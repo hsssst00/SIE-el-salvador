@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-renv@v2
+
+      - name: Validar esquema de catálogos
+        run: Rscript src/validacion/validate_catalogs.R
+        continue-on-error: false
+
+      - name: Correr pruebas
+        run: Rscript -e 'testthat::test_dir("tests")'
+
+  check-l0-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar checksums del manifiesto de L0
+        run: |
+          echo "Pendiente: script de verificación de checksums contra data/L0_raw/manifiesto.csv (Fase 2)"

@@ -1,0 +1,28 @@
+# Capas de datos generadas — se versiona el código que las genera, no su contenido
+data/L1_staging/*
+data/L2_validated/*
+data/L3_master/*
+data/L4_experiments/*
+!data/L1_staging/.gitkeep
+!data/L2_validated/.gitkeep
+!data/L3_master/.gitkeep
+!data/L4_experiments/.gitkeep
+
+# L0_raw: archivos crudos no se comprometen directamente (ver ADR-008, hallazgo BCR)
+# Se versiona el manifiesto y los scripts de descarga, no los archivos en sí,
+# salvo que un ADR posterior confirme licencia de redistribución explícita.
+data/L0_raw/*
+!data/L0_raw/manifiesto.csv
+!data/L0_raw/.gitkeep
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+renv/library/
+renv/staging/
+
+# Sistema
+.DS_Store
+Thumbs.db

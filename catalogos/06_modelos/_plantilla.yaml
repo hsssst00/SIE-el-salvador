@@ -1,0 +1,9 @@
+modelo_id: ""
+familia: ""                      # benchmark | univariado | multivariado | midas | regularizado | ml | combinacion
+especificacion:
+  variables: []
+  ordenes: {}
+  hiperparametros: {}
+  transformaciones_ref: []        # referencia a 04_transformaciones
+justificacion: ""
+referencia_bibliografica: ""

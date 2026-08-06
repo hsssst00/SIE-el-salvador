@@ -1,0 +1,10 @@
+# Plantilla de registro — copiar como {publicacion_id}.yaml por cada publicación
+publicacion_id: ""            # ej. BCR.CUENTAS_NACIONALES_TRIMESTRALES
+institucion_id: ""             # referencia a 00_instituciones
+nombre: ""
+periodicidad: ""                # trimestral | mensual | anual
+formato: ""                     # xlsx | csv | pdf | api
+url: ""
+cobertura_temporal: ""
+condiciones_uso: ""             # ver ADR-008 — pendiente para fuentes distintas de BCR
+notas: ""

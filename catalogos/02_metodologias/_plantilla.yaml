@@ -1,0 +1,6 @@
+metodologia_id: ""              # ej. SCN2008
+nombre: ""
+vigencia_desde: ""
+vigencia_hasta: ""               # vacío si sigue vigente
+documento_referencia: ""
+notas: ""

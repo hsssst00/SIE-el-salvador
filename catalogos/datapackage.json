@@ -1,0 +1,145 @@
+{
+  "name": "pib-el-salvador-catalogos",
+  "title": "Catálogos del Sistema de Información Estadística — PIB El Salvador",
+  "description": "Esquema formal (Frictionless Data Table Schema) para los catálogos en texto plano definidos en ADR-005. Borrador inicial de Fase 0 — 00, 05 y 09 son esquemas tentativos a refinar en Fase 1; 03, 04, 07, 08 siguen los campos mínimos indicativos de la senda metodológica §3.3.",
+  "version": "0.1.0",
+  "resources": [
+    {
+      "name": "00_instituciones",
+      "path": "00_instituciones.csv",
+      "estado_esquema": "borrador",
+      "schema": {
+        "fields": [
+          {"name": "institucion_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "nombre", "type": "string", "constraints": {"required": true}},
+          {"name": "tipo", "type": "string"},
+          {"name": "pais", "type": "string"},
+          {"name": "sitio_web", "type": "string"},
+          {"name": "notas", "type": "string"}
+        ]
+      }
+    },
+    {
+      "name": "03_series",
+      "path": "03_series.csv",
+      "estado_esquema": "cerrado (senda metodológica §3.3)",
+      "schema": {
+        "fields": [
+          {"name": "serie_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "publicacion_id", "type": "string", "constraints": {"required": true}},
+          {"name": "nombre_oficial", "type": "string", "constraints": {"required": true}},
+          {"name": "concepto", "type": "string"},
+          {"name": "freq", "type": "string", "constraints": {"enum": ["Q", "M", "A"]}},
+          {"name": "unit_measure", "type": "string"},
+          {"name": "unit_mult", "type": "string"},
+          {"name": "adjustment", "type": "string"},
+          {"name": "base_year", "type": "string"},
+          {"name": "metodologia_id", "type": "string"},
+          {"name": "inicio", "type": "string"},
+          {"name": "fin", "type": "string"},
+          {"name": "fuente_celda", "type": "string"},
+          {"name": "notas", "type": "string"}
+        ],
+        "foreignKeys": [
+          {"fields": "publicacion_id", "reference": {"resource": "01_publicaciones", "fields": "publicacion_id"}},
+          {"fields": "metodologia_id", "reference": {"resource": "02_metodologias", "fields": "metodologia_id"}}
+        ]
+      }
+    },
+    {
+      "name": "04_transformaciones",
+      "path": "04_transformaciones.csv",
+      "estado_esquema": "cerrado (senda metodológica §3.3)",
+      "schema": {
+        "fields": [
+          {"name": "transf_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "tipo", "type": "string"},
+          {"name": "series_insumo", "type": "string"},
+          {"name": "serie_producto", "type": "string"},
+          {"name": "parametros", "type": "string"},
+          {"name": "script_path", "type": "string"},
+          {"name": "funcion", "type": "string"},
+          {"name": "justificacion", "type": "string"},
+          {"name": "metodologia_ref", "type": "string"},
+          {"name": "reversible", "type": "boolean"}
+        ]
+      }
+    },
+    {
+      "name": "05_series_master",
+      "path": "05_series_master.csv",
+      "estado_esquema": "borrador",
+      "schema": {
+        "fields": [
+          {"name": "series_master_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "transf_id", "type": "string"},
+          {"name": "series_insumo_ids", "type": "string"},
+          {"name": "rol", "type": "string", "constraints": {"enum": ["target_primary", "target_robustness", "predictor"]}},
+          {"name": "freq", "type": "string"},
+          {"name": "unit_measure", "type": "string"},
+          {"name": "adjustment", "type": "string"},
+          {"name": "inicio", "type": "string"},
+          {"name": "fin", "type": "string"},
+          {"name": "linaje_l0", "type": "string"},
+          {"name": "notas", "type": "string"}
+        ]
+      }
+    },
+    {
+      "name": "07_experimentos",
+      "path": "07_experimentos.csv",
+      "estado_esquema": "cerrado (senda metodológica §3.3)",
+      "schema": {
+        "fields": [
+          {"name": "exp_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "modelo_id", "type": "string", "constraints": {"required": true}},
+          {"name": "vintage_id", "type": "string"},
+          {"name": "muestra_inicio", "type": "string"},
+          {"name": "muestra_fin", "type": "string"},
+          {"name": "esquema_validacion", "type": "string"},
+          {"name": "horizontes", "type": "string"},
+          {"name": "semilla", "type": "integer"},
+          {"name": "commit_hash", "type": "string"},
+          {"name": "fecha_corrida", "type": "date"},
+          {"name": "entorno", "type": "string"},
+          {"name": "ruta_resultados", "type": "string"}
+        ]
+      }
+    },
+    {
+      "name": "08_vintages",
+      "path": "08_vintages.csv",
+      "estado_esquema": "cerrado (senda metodológica §3.3, ver ADR-007)",
+      "schema": {
+        "fields": [
+          {"name": "vintage_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "publicacion_id", "type": "string", "constraints": {"required": true}},
+          {"name": "fecha_publicacion", "type": "date"},
+          {"name": "periodo_referencia_max", "type": "string"},
+          {"name": "documento_fuente", "type": "string"},
+          {"name": "archivo_raw", "type": "string"},
+          {"name": "sha256", "type": "string"},
+          {"name": "alcance_revision", "type": "string"},
+          {"name": "notas", "type": "string"}
+        ]
+      }
+    },
+    {
+      "name": "09_rupturas",
+      "path": "09_rupturas.csv",
+      "estado_esquema": "borrador",
+      "schema": {
+        "fields": [
+          {"name": "ruptura_id", "type": "string", "constraints": {"required": true, "unique": true}},
+          {"name": "periodo", "type": "string"},
+          {"name": "descripcion", "type": "string"},
+          {"name": "tipo", "type": "string"},
+          {"name": "series_afectadas", "type": "string"},
+          {"name": "metodologia_ref", "type": "string"},
+          {"name": "tratamiento", "type": "string"},
+          {"name": "notas", "type": "string"}
+        ]
+      }
+    }
+  ]
+}
