@@ -1,10 +1,10 @@
 # Nota metodológica: tratamiento del shock de 2020
 
-**Decisión registrada en:** `doc/adr/ADR-004-shock-2020.md`
+**Decisión registrada en:** `doc/adr/ADR-004-shock-2020.md` (mecanismo enmendado el 2026-08-07 tras enmienda de `doc/adr/ADR-001-variable-objetivo.md`)
 
 ## Resumen
 
-Estrategia principal: outlier aditivo/transitorio tratado en la fase de ajuste estacional (X-13ARIMA-SEATS, paquete `seasonal`), con las fechas detectadas trasplantadas como variables dicotómicas declaradas a la estimación sobre la serie oficial. Estrategia de robustez: contraste de estabilidad en dos submuestras (pre/post 2020).
+Estrategia principal: outlier aditivo/transitorio tratado en la fase de ajuste estacional (X-13ARIMA-SEATS, paquete `seasonal`), aplicada directamente sobre la serie que constituye la variable objetivo primaria — el ajuste propio sobre la concatenación de las series NSA (retropolado 1990–2005 + compilación nativa 2005–2026), conforme a la enmienda de ADR-001 (2026-08-07). Las fechas de outlier detectadas quedan declaradas como variables dicotómicas dentro de esa misma fase, sin trasplante a una serie distinta. La serie oficial SA del BCR (2005–2026), en su rol de verificación de robustez, se contrasta contra la serie ya tratada en el tramo de superposición; no recibe tratamiento de outlier propio de este proyecto. Estrategia de robustez: contraste de estabilidad en dos submuestras (pre/post 2020).
 
 ## Pendiente (Fase 3, al implementar)
 
