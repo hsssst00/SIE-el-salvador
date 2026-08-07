@@ -2,7 +2,7 @@
 
 Proyecto: Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
 
-Cada decisión fundacional (D1–D9, senda metodológica §2) se registra como un ADR independiente. Formato: contexto, alternativas consideradas, decisión, consecuencias. Un ADR se enmienda, no se reescribe, cuando una decisión posterior lo afecta.
+Cada decisión fundacional (D1–D8, senda metodológica §2) se registra como un ADR independiente, más D9 (stack tecnológico), adición propia del proyecto no enumerada en §2 — ver ADR-009. Formato: contexto, alternativas consideradas, decisión, consecuencias. Un ADR se enmienda, no se reescribe, cuando una decisión posterior lo afecta.
 
 | ADR | Decisión | Estado |
 |---|---|---|
