@@ -17,3 +17,17 @@ Cada decisión fundacional (D1–D9, senda metodológica §2) se registra como u
 | [009](./ADR-009-stack-tecnologico.md) | Stack tecnológico | Cerrado |
 
 **Estado general:** ocho de nueve ADR cerrados. Solo ADR-008 queda parcial, y únicamente en la parte que depende del relevamiento de condiciones de uso de fuentes distintas al BCR (DIGESTYC/ONEC, ISSS, organismos internacionales) — tarea de Fase 1, no bloquea el cierre de Fase 0.
+
+## Cierre de Fase 0 (2026-08-07)
+
+Confirmado en CI (GitHub Actions, ubuntu-latest):
+https://github.com/hsssst00/SIE-el-salvador/actions/runs/31143916968 —
+Status: Success (57s). Un tercero (el runner de GitHub, sin intervención
+del autor) clona el repositorio y reproduce el entorno: `renv::restore()`,
+validación de catálogos y la batería de pruebas corren en verde sobre Linux.
+
+**Criterio de cierre de Fase 0 (senda metodológica §4): SATISFECHO.**
+
+Limitación conocida, no bloqueante: en Windows local, `make test` produce
+un segfault de proceso al cierre de sesión, no relacionado con el código
+del proyecto — ver doc/entorno_windows.md. No afecta la señal de CI.
