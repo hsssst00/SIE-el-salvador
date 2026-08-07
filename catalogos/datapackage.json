@@ -22,7 +22,7 @@
     {
       "name": "03_series",
       "path": "03_series.csv",
-      "estado_esquema": "cerrado (senda metodológica §3.3)",
+      "estado_esquema": "cerrado (senda metodológica §3.3), extendido 2026-08-07: +anio_referencia_indice",
       "schema": {
         "fields": [
           {"name": "serie_id", "type": "string", "constraints": {"required": true, "unique": true}},
@@ -38,7 +38,8 @@
           {"name": "inicio", "type": "string"},
           {"name": "fin", "type": "string"},
           {"name": "fuente_celda", "type": "string"},
-          {"name": "notas", "type": "string"}
+          {"name": "notas", "type": "string"},
+          {"name": "anio_referencia_indice", "type": "string"}
         ],
         "foreignKeys": [
           {"fields": "publicacion_id", "reference": {"resource": "01_publicaciones", "fields": "publicacion_id"}},

@@ -1,0 +1,13 @@
+publicacion_id: BCR.PIB_T.SERIE_RETROPOLADA_1990_2005
+institucion_id: BCR
+nombre: "PIB trimestral retropolado 1990-2005 (serie homogénea, SCN 2008)"
+periodicidad: "histórica — sin actualización (confirmado por el usuario, 2026-08-07)"
+formato: xlsx
+url: https://www.bcr.gob.sv/documental/Inicio/descarga/d5abd29f13de28151f5ba6dde48db506.xlsx
+cobertura_temporal: "1990-T1/2005-T4"
+condiciones_uso: "Mismo marco que PUB1 — ver ADR-008."
+notas: |
+  Fecha de publicación oficial no determinada con certeza. Fecha de última
+  modificación del archivo (metadato de archivo, NO necesariamente fecha de
+  publicación oficial): 2019-03-29.
+  Acceso automatizado bloqueado por robots.txt (verificado 2026-08-07).
