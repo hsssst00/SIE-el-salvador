@@ -34,11 +34,30 @@ Tasa interanual como representación primaria se descartó porque, al ser una ve
 - **Enmienda registrada (2026-08-06):** ADR-003 verificó la cobertura real. Con esto, D1 queda completamente cerrado — no quedan sub-puntos pendientes.
 - La muestra disponible (145 observaciones) es ligeramente mayor a la supuesta originalmente (~140), lo cual no cambia ninguna decisión de diseño ya tomada, solo la confirma.
 
-## Enmienda pendiente de confirmación (2026-08-07)
+## Cierre de la enmienda (2026-08-07)
 
-Verificación de campo (inspección directa del archivo retropolado 1990-2005)
-encontró que este tramo coincide exactamente con la serie NSA nativa en el
-período de superposición (2005-T1 a 2005-T4), no con la serie desestacionalizada.
-No hay evidencia, a la fecha, de una serie oficial desestacionalizada del BCR
-que cubra 1990-2005. Pendiente de un chequeo adicional (sitemap del portal
-interactivo) antes de cerrar esta enmienda formalmente.
+Se agotaron las vías de verificación no invasivas (inspección directa del
+archivo retropolado, revisión de robots.txt/sitemap del portal interactivo)
+sin encontrar evidencia de una serie oficial desestacionalizada del BCR que
+cubra el tramo 1990-2005. Por decisión del investigador, se da por cerrada
+la búsqueda y se adopta el plan de reserva.
+
+**Decisión final:** la serie objetivo primaria (1990-T1 a 2026-T1, 145
+observaciones) se construye mediante ajuste estacional propio
+(X-13ARIMA-SEATS vía `seasonal`), aplicado sobre la concatenación de las
+dos series NSA disponibles (retropolado 1990-2005 + compilación nativa NSA
+2005-2026), con el tratamiento de outlier de 2020 ya decidido en ADR-004
+aplicado en la misma fase. La serie oficial SA del BCR (2005-T1 a 2026-T1)
+invierte su rol respecto del ADR-001 original: pasa de variable objetivo
+primaria a verificación de robustez — el ajuste propio se contrasta contra
+ella en el tramo de superposición (2005-2026) como evidencia indirecta de
+fiabilidad en el tramo donde no existe con qué contrastar (1990-2005).
+
+Esto no reabre D4: el tratamiento del shock de 2020 sigue siendo el ya
+decidido, ahora aplicado en lo que es la única fase de ajuste estacional
+para el target primario, no una de dos.
+
+**Nota de alcance:** el cómputo real del ajuste estacional es trabajo de
+Fase 3, no de esta sesión. Hoy se registran las entradas de catálogo que
+documentan y planifican esta transformación; no se ejecuta ni se
+materializa la capa L3 todavía.
