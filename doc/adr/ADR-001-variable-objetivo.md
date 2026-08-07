@@ -33,3 +33,12 @@ Tasa interanual como representación primaria se descartó porque, al ser una ve
 - El catálogo `04_transformaciones` tendrá dos cadenas paralelas de ajuste estacional (oficial: *pass-through* documentado; propio: transformación ejecutable), y `05_series_master` distinguirá el rol de cada una (`target_primary` vs. `target_robustness`).
 - **Enmienda registrada (2026-08-06):** ADR-003 verificó la cobertura real. Con esto, D1 queda completamente cerrado — no quedan sub-puntos pendientes.
 - La muestra disponible (145 observaciones) es ligeramente mayor a la supuesta originalmente (~140), lo cual no cambia ninguna decisión de diseño ya tomada, solo la confirma.
+
+## Enmienda pendiente de confirmación (2026-08-07)
+
+Verificación de campo (inspección directa del archivo retropolado 1990-2005)
+encontró que este tramo coincide exactamente con la serie NSA nativa en el
+período de superposición (2005-T1 a 2005-T4), no con la serie desestacionalizada.
+No hay evidencia, a la fecha, de una serie oficial desestacionalizada del BCR
+que cubra 1990-2005. Pendiente de un chequeo adicional (sitemap del portal
+interactivo) antes de cerrar esta enmienda formalmente.

@@ -11,6 +11,12 @@ notas: |
   https://estadisticas.bcr.gob.sv/serie/pib-t-produccion-y-gasto-indices-de-volumen-encadenados-serie-original-referencia-2014-indices-de-volumen-encadenados
   y serie desestacionalizada (SA, la registrada como URL principal aquí).
   Fecha de publicación de la vigente: junio de 2026.
-  Acceso automatizado bloqueado por detección de bot (verificado 2026-08-07)
-  — anotar en la futura bitácora de fuentes frágiles de Fase 2.
+  Acceso automatizado con dos obstáculos distintos, verificados 2026-08-07:
+  (1) la URL sirve la interfaz web interactiva del portal (aplicación
+  Livewire/Alpine.js), no un endpoint de archivo directo — un GET simple
+  con User-Agent de navegador real devuelve la página HTML, no el xlsx;
+  (2) un fetch externo simple, por separado, recibió una respuesta de
+  detección de bot. Ambos hechos verificados de forma independiente por
+  Claude en sesión de chat — anotar en la futura bitácora de fuentes
+  frágiles de Fase 2.
   Año base de ponderación: 2005. Año de referencia del índice: 2014.
