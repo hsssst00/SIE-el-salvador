@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "Si usa este software o los datos derivados, favor citar como se indica a continuación."
 title: "Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador"
 authors:
-  - family-names: "[Apellido pendiente]"
+  - family-names: "Montano"
     given-names: "Harold"
 date-released: 2026-08-06
 license: MIT
