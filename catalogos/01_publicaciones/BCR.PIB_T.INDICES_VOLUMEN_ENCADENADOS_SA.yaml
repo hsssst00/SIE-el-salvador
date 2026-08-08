@@ -1,0 +1,17 @@
+publicacion_id: BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA
+institucion_id: BCR
+nombre: "PIB trimestral por producción y gasto — índices de volumen encadenados, serie desestacionalizada (año base 2005, referencia 2014)"
+periodicidad: trimestral
+formato: web / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/pib-t-produccion-y-gasto-indices-de-volumen-encadenados-serie-desestacionalizada-referencia-2014-indices-de-volumen-encadenado
+cobertura_temporal: "2005-T1/2026-T1 (a la fecha de esta captura)"
+condiciones_uso: "Portal de libre consulta bajo marco de información pública de libre acceso; sin licencia de redistribución explícita — ver ADR-008."
+notas: |
+  Producto independiente de BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA (M3,
+  2026-08-08) — antes ambas variantes compartían un único publicacion_id
+  genérico; corregido porque cada una es un producto propio del portal, con
+  su propia URL y su propio archivo descargable. Ver la entrada NSA para el
+  detalle completo de los dos obstáculos de acceso automatizado, comunes a
+  ambas variantes.
+  Fecha de publicación de la vigente: junio de 2026.
+  Año base de ponderación: 2005. Año de referencia del índice: 2014.
