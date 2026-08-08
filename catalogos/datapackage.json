@@ -50,7 +50,7 @@
     {
       "name": "04_transformaciones",
       "path": "04_transformaciones.csv",
-      "estado_esquema": "cerrado (senda metodológica §3.3)",
+      "estado_esquema": "cerrado (senda metodológica §3.3), extendido 2026-08-08: +notas",
       "schema": {
         "fields": [
           {"name": "transf_id", "type": "string", "constraints": {"required": true, "unique": true}},
@@ -62,7 +62,8 @@
           {"name": "funcion", "type": "string"},
           {"name": "justificacion", "type": "string"},
           {"name": "metodologia_ref", "type": "string"},
-          {"name": "reversible", "type": "boolean"}
+          {"name": "reversible", "type": "boolean"},
+          {"name": "notas", "type": "string"}
         ]
       }
     },
