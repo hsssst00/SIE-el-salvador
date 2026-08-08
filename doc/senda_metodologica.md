@@ -1,8 +1,12 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.1 — documento de trabajo
-**Fecha:** julio 2026
+**Versión:** 0.2 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2)
+
+**Historial de versiones:**
+- **0.1** (julio 2026): versión original.
+- **0.2** (2026-08-08): añade a §3.4 la documentación del sufijo opcional `.RETRO` para identificadores de series (hallazgo M1, auditoría de remediación de Fase 0). Sin otros cambios de contenido.
 
 ---
 
