@@ -4,7 +4,7 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 
 ## Estado
 
-**Fase 0 — decisiones fundacionales.** Ocho de nueve ADR cerrados. Ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y lo que queda pendiente.
+**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (pendiente el relevamiento de condiciones de uso de fuentes distintas al BCR — tarea de Fase 1, no bloqueante). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
 
 ## Estructura
 
@@ -20,13 +20,13 @@ scripts/             utilidades de configuración (bootstrap de entorno, etc.)
 
 ## Empezar
 
-Este repositorio se creó sin acceso a un espejo de CRAN, así que `renv.lock` todavía no existe de verdad. Primer paso en una máquina con R:
+`renv.lock` ya existe y está fijado (154 paquetes, incluidos los 13 de ADR-009). Primer paso en una máquina con R:
 
 ```r
-source("scripts/bootstrap_renv.R")
+renv::restore()
 ```
 
-Eso inicializa `renv`, instala los paquetes listados en `doc/adr/ADR-009-stack-tecnologico.md`, y genera el `renv.lock` real. A partir de ahí, `renv::restore()` reproduce el entorno en cualquier máquina limpia — ese es el criterio de cierre de Fase 0.
+Eso reproduce el entorno exacto en cualquier máquina limpia — confirmado en CI sobre `ubuntu-latest`. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile (`renv::snapshot()` a partir de `DESCRIPTION`) por si hace falta regenerarlo tras cambiar el stack de ADR-009.
 
 ## Licencia
 

@@ -14,7 +14,7 @@ Fase 0 (decisiones fundacionales) — ver `doc/adr/README.md` para el estado exa
 
 ## Reglas no negociables
 
-1. **Nunca edites manualmente `data/L0_raw/`.** Es inmutable. Todo archivo ahí llega vía script de descarga, con entrada correspondiente en `data/L0_raw/manifiesto.csv` (checksum SHA-256, URL, fecha, código HTTP).
+1. **Nunca edites manualmente `data/L0_raw/`.** Es inmutable. Todo archivo ahí llega vía script de descarga, con entrada correspondiente en `data/L0_raw/manifiesto.csv` (checksum SHA-256, URL, fecha, código HTTP). Excepción explícita, no una violación de la regla: la captura prospectiva de vintages inició de forma manual, antes de que existiera automatización de Fase 2 — así lo previó ADR-007 ("hasta entonces, la captura es manual"). Mientras eso dure, el requisito no negociable es el mismo manifiesto con procedencia trazable, no que el archivo haya llegado por script.
 2. **Nunca edites los catálogos en `catalogos/` a mano fuera de lo declarado en su esquema.** Cualquier cambio de esquema pasa primero por `catalogos/datapackage.json`.
 3. **Ninguna capa de datos (`L1`–`L4`) se edita directamente.** Cada una se genera por código a partir de la anterior. Si necesitas cambiar un valor derivado, cambias el código que lo genera, no el archivo.
 4. **Ante una decisión metodológica no cubierta por un ADR existente, detente y pregunta.** No la resuelvas por inferencia ni la dejes implícita en el código. Esto incluye: definiciones de variables nuevas, tratamiento de datos faltantes no contemplado, elección de hiperparámetros no especificada, cualquier cosa que debería ser su propio ADR.
@@ -24,7 +24,7 @@ Fase 0 (decisiones fundacionales) — ver `doc/adr/README.md` para el estado exa
 
 ## Convenciones (senda metodológica §3.4)
 
-- Identificadores legibles y estables: `{fuente}.{concepto}.{unidad}.{ajuste}.{frecuencia}` — ej. `BCR.PIB.VOL.SA.Q`.
+- Identificadores legibles y estables: `{fuente}.{concepto}.{unidad}.{ajuste}.{frecuencia}` — ej. `BCR.PIB.VOL.SA.Q`. Sufijo adicional opcional tras `{frecuencia}` para distinguir un tramo de captura distinta de la misma serie conceptual — ej. `BCR.PIB.VOL.NSA.Q.RETRO` (tramo retropolado) — ver senda metodológica §3.4.
 - Períodos en ISO 8601: `2024-Q3`, `2024-07`.
 - UTF-8, separador decimal punto, sin separador de miles, ausentes como celda vacía (nunca `0`, `-`, `n.d.`).
 - `snake_case` en nombres de campo, sin acentos ni espacios.
