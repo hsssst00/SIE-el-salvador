@@ -1,0 +1,17 @@
+Package: SIEElSalvador
+Type: Package
+Version: 0.0.0.9000
+Imports:
+    pointblank,
+    duckdb,
+    seasonal,
+    tempdisagg,
+    fable,
+    tsibble,
+    vars,
+    tsDyn,
+    BVAR,
+    midasr,
+    glmnet,
+    ranger,
+    lightgbm

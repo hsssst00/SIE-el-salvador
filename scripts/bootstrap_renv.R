@@ -34,6 +34,12 @@ paquetes <- c(
 
 install.packages(paquetes)
 
-renv::snapshot()
+# snapshot.type por defecto es "implicit": solo registra paquetes
+# referenciados via library()/::/require() en el codigo del proyecto. Como
+# estos 16 paquetes se fijan por ADR-009 antes de que exista codigo que los
+# use (Fase 0-4), hay que nombrarlos explicitamente para que queden en el
+# lockfile. Se agrega "renv" a la lista porque snapshot(packages = ...)
+# restringe el snapshot a lo indicado y deja de incluirlo automaticamente.
+renv::snapshot(packages = c(paquetes, "renv"))
 
 message("Entorno inicializado. renv.lock generado. Verificar con renv::status().")
