@@ -275,6 +275,7 @@ Se propone extender los seis catálogos originales a nueve.
 ### 3.4 Convenciones e identificadores
 
 - Identificadores **legibles y estables**, no números correlativos: `BCR.PIB.VOL.SA.Q`, `BCR.IVAE.IDX.NSA.M`, `USA.GDP.VOL.SA.Q`. Estructura `{fuente}.{concepto}.{unidad}.{ajuste}.{frecuencia}`.
+- Sufijo adicional opcional, tras `{frecuencia}`, para distinguir un tramo de captura distinta de la misma serie conceptual — ej. `BCR.PIB.VOL.NSA.Q.RETRO` para el tramo retropolado 1990-2005, frente a `BCR.PIB.VOL.NSA.Q` de la compilación nativa 2005-2026 (M1, 2026-08-08). No rompe el patrón base de 5 componentes; se usa solo cuando el vínculo entre tramos ya está documentado en `03_series` (columna `notas`).
 - Períodos en formato ISO 8601: `2024-Q3`, `2024-07`.
 - Codificación UTF-8, separador decimal punto, sin separador de miles, valores ausentes como celda vacía (nunca `0`, `-`, `n.d.`).
 - Nombres de campo en `snake_case`, sin acentos ni espacios.
