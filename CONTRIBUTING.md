@@ -10,8 +10,9 @@ Este es actualmente un proyecto de un solo investigador con asistencia de agente
 
 ## Flujo de trabajo
 
-- Rama por tarea, PR contra `main`, aunque se trabaje en solitario — es el sustituto funcional de la revisión por pares.
-- CI debe pasar en verde antes de integrar.
+- Commits directos a `main`, siempre que CI pase en verde — es el flujo real usado en este proyecto de un solo investigador; no hay revisión por pares que una rama/PR pudiera sustituir.
+- PR contra `main` reservado para un caso específico: reabrir una decisión ya cerrada en un ADR. La discusión del PR documenta el motivo de la reapertura antes de enmendar el ADR correspondiente.
+- CI debe pasar en verde antes de integrar, en ambos casos.
 - Ningún dato en `data/L1`–`L4` se edita a mano; si el resultado está mal, se corrige el código que lo genera.
 
 ## Estilo
