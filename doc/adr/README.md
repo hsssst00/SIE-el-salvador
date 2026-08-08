@@ -31,3 +31,33 @@ validación de catálogos y la batería de pruebas corren en verde sobre Linux.
 Limitación conocida, no bloqueante: en Windows local, `make test` produce
 un segfault de proceso al cierre de sesión, no relacionado con el código
 del proyecto — ver doc/entorno_windows.md. No afecta la señal de CI.
+
+**Alcance exacto de este cierre, para no confundirlo con el revalidado más
+abajo:** el tag `v0.1.0-fase0` (commit `1739fc8`) certifica un estado
+*pre-enmienda de ADR-001* — la variable objetivo primaria era entonces la
+serie oficial SA del BCR, antes de que la enmienda del 2026-08-07 la
+invirtiera con la serie oficial NSA (ver ADR-001, ADR-004) — y un entorno
+*pre-C6*: `renv.lock` todavía no fijaba realmente los 13 paquetes de
+ADR-009 (eso se cerró en el commit `cd3e36a`, 2026-08-08). El run
+31143916968 es válido para lo que certificaba en su momento; no es
+evidencia de que el entorno o la enmienda actuales estén verificados.
+
+## Cierre de Fase 0 — revalidado (2026-08-08)
+
+Con la enmienda de ADR-001/ADR-004 cerrada, `renv.lock` fijando los 13
+paquetes reales de ADR-009 (commit `cd3e36a`) y la remediación de Fase 0
+aplicada (ver reparto de tareas: Bloque 1 completo, Bloque 2 y menores de
+Bloque 3 resueltos), se revalida el cierre sobre el estado actual del
+repositorio.
+
+Confirmado en CI (GitHub Actions, ubuntu-latest):
+https://github.com/hsssst00/SIE-el-salvador/actions/runs/31240588025 —
+commit `8ab59c3`, Status: Success (1m18s). Mismo criterio que el cierre
+original: `renv::restore()`, validación de catálogos (incluida la
+extensión de esquema de `04_transformaciones` y el catálogo `09_rupturas`
+recién poblado) y la batería de pruebas corren en verde sobre Linux.
+
+**Criterio de cierre de Fase 0 (senda metodológica §4): SATISFECHO, sobre
+el estado enmendado y con el entorno real fijado.**
+
+Tag: `v0.2.0-fase0-enmendado`.
