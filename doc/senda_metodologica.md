@@ -7,6 +7,7 @@
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
 - **0.2** (2026-08-08): añade a §3.4 la documentación del sufijo opcional `.RETRO` para identificadores de series (hallazgo M1, auditoría de remediación de Fase 0). Sin otros cambios de contenido.
+- **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
 

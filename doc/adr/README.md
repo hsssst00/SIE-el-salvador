@@ -61,3 +61,25 @@ recién poblado) y la batería de pruebas corren en verde sobre Linux.
 el estado enmendado y con el entorno real fijado.**
 
 Tag: `v0.2.0-fase0-enmendado`.
+
+### Corrección de alcance del tag (2026-08-08)
+
+El tag `v0.2.0-fase0-enmendado` apunta al commit `58e6efce`. El commit
+`df02e43a` (actualización del encabezado de `doc/senda_metodologica.md`
+a v0.2, con bloque de historial de versiones) quedó fuera de ese tag —
+es posterior a él. Consecuencia: el snapshot certificado por
+`v0.2.0-fase0-enmendado` contiene §3.4 de la senda metodológica con la
+documentación del sufijo `.RETRO` (hallazgo M1), pero el encabezado del
+mismo documento todavía se rotula como "Versión: 0.1 — documento de
+trabajo", sin bloque de historial. Es la misma forma del hallazgo C2 de
+la auditoría de Fase 0: el tag certifica un estado anterior al estado
+real.
+
+`v0.2.1-fase0-enmendado` es el tag que certifica el estado completo y
+consistente (contenido de §3.4 y encabezado alineados) y es el que debe
+usarse para reproducir "Fase 0 tal como quedó cerrada". `v0.2.0-fase0-enmendado`
+se conserva sin modificar, por disciplina de trazabilidad — no se mueve,
+borra ni recrea.
+
+*(Pendiente de completar con el run de CI y el commit exacto que certifica
+`v0.2.1-fase0-enmendado`.)*
