@@ -1,0 +1,16 @@
+publicacion_id: ONEC.IPC.BASE_1992
+institucion_id: ONEC
+nombre: "Índice de Precios al Consumidor (IPC), base diciembre 1992"
+periodicidad: mensual
+formato: web (Base de Datos Económica y Financiera)
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc-base-dic-1992-periodo-dic-1992-dic-2009
+cobertura_temporal: "1993-01 a 2009-12 (1992 sin observaciones mensuales, verificado)"
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Producida originalmente por DIGESTYC (disuelta ago-2022); atribución de
+  autoría estadística a ONEC como sucesora, aunque la serie numérica está
+  alojada en el dominio del BCR (Base de Datos Económica y Financiera,
+  Sector Real), no en onec.bcr.gob.sv. Precede en cobertura a
+  ONEC.IPC.BASE_2009 — evaluar en Fase 3 si requiere empalme propio o si
+  se usa como tramo independiente, análogo en naturaleza (no en método)
+  al tratamiento dado al PIB en D3/ADR-003.

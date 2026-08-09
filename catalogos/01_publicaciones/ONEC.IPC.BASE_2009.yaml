@@ -1,0 +1,19 @@
+publicacion_id: ONEC.IPC.BASE_2009
+institucion_id: ONEC
+nombre: "Índice de Precios al Consumidor (IPC), base diciembre 2009"
+periodicidad: mensual
+formato: web (Base de Datos Económica y Financiera) / pdf (boletín narrativo)
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc
+cobertura_temporal: "2009 en adelante — datos hasta junio 2026 verificados"
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Serie vigente. Producida originalmente por DIGESTYC, heredada por ONEC.
+  Serie numérica alojada en el dominio del BCR (igual que BASE_1992), no
+  en onec.bcr.gob.sv. Metodología: Laspeyres (Young) + media geométrica,
+  ~12,000 precios/mes, canasta actualizada con encuesta 3T2005-3T2006,
+  manual OIT/FMI 2006.
+  Boletín mensual narrativo (con nota metodológica y gráficos, ej. abril
+  2025) publicado aparte en onec.bcr.gob.sv/indice-de-precios-al-consumidor-ipc/
+  — ese archivo de boletines solo llega hasta 2015 en adelante, pero esa
+  limitación es documental/narrativa, NO afecta la disponibilidad de la
+  serie numérica, que cubre desde 2009 sin hueco.
