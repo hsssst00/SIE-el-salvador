@@ -81,5 +81,10 @@ usarse para reproducir "Fase 0 tal como quedó cerrada". `v0.2.0-fase0-enmendado
 se conserva sin modificar, por disciplina de trazabilidad — no se mueve,
 borra ni recrea.
 
-*(Pendiente de completar con el run de CI y el commit exacto que certifica
-`v0.2.1-fase0-enmendado`.)*
+Confirmado en CI (GitHub Actions, ubuntu-latest):
+https://github.com/hsssst00/SIE-el-salvador/actions/runs/31293195404 —
+commit `ad33c266`, Status: Success. Mismo criterio que los cierres
+anteriores: `renv::restore()`, validación de catálogos y la batería de
+pruebas corren en verde sobre Linux.
+
+Tag: `v0.2.1-fase0-enmendado`, sobre el commit `ad33c266`.
