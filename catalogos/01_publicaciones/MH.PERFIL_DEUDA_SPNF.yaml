@@ -1,0 +1,16 @@
+publicacion_id: MH.PERFIL_DEUDA_SPNF
+institucion_id: MH
+nombre: "Perfil de la Deuda Pública del SPNF"
+periodicidad: mensual
+formato: pdf (hasta ago-2018) / pdf + xlsx (desde sep-2018)
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "oct-2010 en adelante, verificado por Harold directamente contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Inversión y Crédito Público, Ministerio
+  de Hacienda. Mismo quiebre de formato que MH.INFORME_INGRESOS_IMPUESTOS
+  (PDF-only hasta ago-2018, PDF+XLSX desde sep-2018) — coincidencia de
+  fecha entre ambas series, probablemente una actualización del portal
+  PTF en ese momento, no un cambio metodológico de cada serie por
+  separado. Candidato directo a predictor mensual de deuda pública para
+  D6.4 de la senda metodológica.

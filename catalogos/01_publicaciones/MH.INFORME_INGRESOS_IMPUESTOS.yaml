@@ -1,0 +1,15 @@
+publicacion_id: MH.INFORME_INGRESOS_IMPUESTOS
+institucion_id: MH
+nombre: "Informe de Ingresos por Impuestos"
+periodicidad: mensual
+formato: pdf (hasta ago-2018) / pdf + xlsx (desde sep-2018)
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "jun-2010 a 2026 (vigente), verificado por Harold directamente contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Impuestos Internos, Ministerio de
+  Hacienda. Quiebre de formato en sep-2018 (antes solo PDF, desde
+  entonces PDF+XLSX) — no es necesariamente un quiebre metodológico de
+  la serie en sí, pero condiciona la facilidad de extracción automatizada
+  por tramo. Candidato directo a predictor mensual de recaudación
+  tributaria para D6.4 (frecuencia mixta) de la senda metodológica.

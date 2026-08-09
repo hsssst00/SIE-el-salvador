@@ -1,0 +1,14 @@
+publicacion_id: MH.DEUDA_SPNF_ANUAL
+institucion_id: MH
+nombre: "Deuda del Sector Público No Financiero (SPNF), con y sin pensiones"
+periodicidad: anual
+formato: web / xlsx
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "Real: 2011-2020. Proyectado: 2020-2029 (serie distinta, no confundir con ejecutado)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Inversión y Crédito Público, Ministerio
+  de Hacienda. En millones de US$ y % del PIB. Última actualización
+  observada: 21/07/2021 — igual que MH.INGRESOS_TOTALES_ANUAL, parece
+  tabla estática sin verificar vigencia posterior. Menor prioridad que
+  MH.PERFIL_DEUDA_SPNF para uso como predictor.

@@ -1,0 +1,15 @@
+publicacion_id: MH.INGRESOS_TOTALES_ANUAL
+institucion_id: MH
+nombre: "Evolución de los Ingresos Totales del Estado"
+periodicidad: anual
+formato: web / xlsx
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "Real: 2009-2018. Proyectado: 2019-2029 (serie distinta, no confundir con ejecutado)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Ministerio de Hacienda, MFMLP 2019-2029. En millones de US$ y
+  % del PIB. Última actualización observada: septiembre 2019 — tabla
+  aparentemente estática, no se ha verificado si se sigue actualizando
+  con datos reales más allá de 2018. Menor prioridad que
+  MH.INFORME_INGRESOS_IMPUESTOS para uso como predictor: es anual y su
+  vigencia como fuente activa no está confirmada.
