@@ -1,0 +1,25 @@
+publicacion_id: MH.NOTAS_CREDITO_TESORO
+institucion_id: MH
+nombre: "Notas de Crédito del Tesoro Público (NCTP)"
+periodicidad: mixta — ver notas
+formato: pdf / xlsx
+url: https://www.transparenciafiscal.gob.sv/ptf/es/InformesyDocumentos/NotasdeCrditodelTesoroPblico.html
+cobertura_temporal: "Fragmentada en tres tramos distintos, ver notas."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Tesorería, Ministerio de Hacienda.
+  Verificado directamente contra el portal (2026-08-09) — tres tramos
+  con cadencia y granularidad distintas, NO una serie continua:
+    1. Histórico consolidado: PDF único, 2006-2012 (actualizado
+       oct-2012).
+    2. Consolidado anual: xlsx único, 2009-2017.
+    3. Informes individuales, aproximadamente mensuales pero con huecos
+       reales: 2017 (solo diciembre, preliminar); 2018 (jun, ago, más
+       un consolidado xlsx del año completo); 2019 (mar, jun-dic,
+       faltan ene/feb/abr/may); 2020 (ene, mar-dic, faltan feb/may);
+       2021 (ene-mar únicamente).
+  URL distinta a las demás publicaciones de Hacienda de esta sesión —
+  vive en InformesyDocumentos/, no en PTF2-Ingresos.html. Prioridad baja
+  como predictor de alta frecuencia dado lo irregular de la cobertura;
+  más útil como fuente puntual/complementaria que como serie mensual
+  confiable.

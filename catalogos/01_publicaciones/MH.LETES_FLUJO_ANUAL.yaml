@@ -1,0 +1,16 @@
+publicacion_id: MH.LETES_FLUJO_ANUAL
+institucion_id: MH
+nombre: "Flujo de Letras del Tesoro Público (LETES) — resumen anual"
+periodicidad: anual
+formato: web / xlsx
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "2011 a 2021 (marzo)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Tesorería, Ministerio de Hacienda. Tabla
+  resumen (Saldo Anterior, Colocado, Pagado, Saldo) en miles de US$, una
+  columna por año — es un agregado anual derivado de la actividad LETES,
+  NO la fuente de detalle mensual (ver MH.LETES_INFORME_SALDOS para eso).
+  Corregido 2026-08-09: se había catalogado inicialmente como mensual
+  por error, al confundirse con el mandato legal de publicación mensual
+  de LETES (que aplica al informe de saldos, no a esta tabla resumen).

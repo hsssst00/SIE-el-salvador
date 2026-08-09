@@ -1,0 +1,20 @@
+publicacion_id: MH.LETES_INFORME_SALDOS
+institucion_id: MH
+nombre: "Informe de saldos de colocación de Letras del Tesoro Público (LETES)"
+periodicidad: mensual (dentro de informes publicados por año)
+formato: pdf
+url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
+cobertura_temporal: "2011 a 2021, un PDF por año. El informe de 2017 incluye además un retrospectivo mensual desde jun-2009. Desde 2018 en adelante, cobertura mensual completa dentro de cada informe anual."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: Dirección General de Tesorería, Ministerio de Hacienda. Cita
+  textual del portal: "La Ley de Responsabilidad Fiscal ordena la
+  publicación mensual de LETES" — el mandato legal aplica a este
+  producto, no a MH.LETES_FLUJO_ANUAL. Verificado por Harold
+  directamente contra el portal (2026-08-09) que el detalle mes a mes
+  existe realmente dentro de cada PDF anual, no es solo descripción.
+  Candidato directo a predictor mensual de liquidez de corto plazo /
+  deuda de corto plazo para D6.4 de la senda metodológica. Sin
+  evidencia de actualización posterior a 2021 (marzo) — mismo riesgo de
+  "cobertura menor a lo supuesta" que el resto de productos de deuda de
+  Hacienda revisados en esta sesión.
