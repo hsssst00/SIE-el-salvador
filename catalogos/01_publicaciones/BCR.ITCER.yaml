@@ -4,7 +4,7 @@ nombre: "Índice de Tipo de Cambio Efectivo Real (ITCER) — serie mensual"
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-tipo-de-cambio-efectivo-real-mensual
-cobertura_temporal: "ene-2000 a jun-2026, reportado por Claude Cowork (2026-08-09)."
+cobertura_temporal: "ene-2000 a jun-2026, verificado por Harold directamente contra el portal (2026-08-09)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Relevante pese a la dolarización de El Salvador (2001):
