@@ -1,0 +1,20 @@
+publicacion_id: BCR.BALANZA_COMERCIAL
+institucion_id: BCR
+nombre: "Balanza Comercial de Mercancías — valores, serie mensual"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/balanza-comercial
+cobertura_temporal: "ene-1994 a jun-2026, reportado por Claude Cowork (2026-08-09)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Exportaciones e importaciones agregadas, mensual —
+  candidato directo al predictor "comercio mundial" que nombra §1.3 de
+  la senda como determinante externo del PIB a horizontes largos.
+  Existen decenas de desagregaciones adicionales por clasificación de
+  producto (CIIU, CUCI, CCP, CITI, CIAS, CGCE — identificadas por
+  Cowork pero no catalogadas en esta pasada, Nivel 2).
+  Nota de Cowork: no existe una serie dedicada de "exportación de
+  café" — el detalle está dentro del archivo de Exportaciones según
+  Sistema Armonizado Rev.7 (partida 0901), no catalogado aquí, y en un
+  portal COMEX separado (bcr.gob.sv/comex/) fuera del alcance del
+  relevamiento.

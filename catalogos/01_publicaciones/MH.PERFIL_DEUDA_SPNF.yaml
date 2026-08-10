@@ -14,3 +14,10 @@ notas: |
   PTF en ese momento, no un cambio metodológico de cada serie por
   separado. Candidato directo a predictor mensual de deuda pública para
   D6.4 de la senda metodológica.
+  Jerarquía de fuente (2026-08-09): el BCR publica series propias
+  equivalentes con cobertura igual o mejor (ver
+  BCR.SPNF_VIGENTE, BCR.GOBIERNO_CENTRAL_CONSOLIDADO,
+  BCR.DEUDA_PUBLICA_TOTAL_VIGENTE) — por decisión de Harold, el BCR es
+  ahora la fuente PRIMARIA para estadísticas fiscales del SPNF; esta
+  publicación de Hacienda queda como fuente SECUNDARIA / verificación
+  cruzada.

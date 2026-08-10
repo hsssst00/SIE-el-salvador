@@ -12,3 +12,10 @@ notas: |
   observada: 21/07/2021 — igual que MH.INGRESOS_TOTALES_ANUAL, parece
   tabla estática sin verificar vigencia posterior. Menor prioridad que
   MH.PERFIL_DEUDA_SPNF para uso como predictor.
+  Jerarquía de fuente (2026-08-09): el BCR publica series propias
+  equivalentes con cobertura igual o mejor (ver
+  BCR.SPNF_VIGENTE, BCR.GOBIERNO_CENTRAL_CONSOLIDADO,
+  BCR.DEUDA_PUBLICA_TOTAL_VIGENTE) — por decisión de Harold, el BCR es
+  ahora la fuente PRIMARIA para estadísticas fiscales del SPNF; esta
+  publicación de Hacienda queda como fuente SECUNDARIA / verificación
+  cruzada.

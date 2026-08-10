@@ -1,0 +1,16 @@
+publicacion_id: BCR.VALOR_AGREGADO_RAMA_VIGENTE
+institucion_id: BCR
+nombre: "Valor Agregado por Rama de Actividad Económica — índices de volumen encadenados (referencia 2014)"
+periodicidad: anual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/valor-agregado-por-rama-de-actividad-economica-en-indices-de-volumen-encadenados
+cobertura_temporal: "2005-2023, reportado por Claude Cowork (2026-08-09) — no verificado independientemente."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Identificado vía relevamiento de Claude Cowork
+  (2026-08-09). Es el equivalente vigente (SCN2008, ref. 2014) del "PIB
+  por rama de actividad económica" — la versión base 1990 (descontinuada,
+  1990-2016) es BCR.PIB_RAMA_BASE_1990 si se decide catalogar por
+  separado. Relevante si se activa el enfoque bottom-up (extensión
+  diferida, D1 de la senda). Periodicidad anual — no cubre la ventaja de
+  frecuencia mensual/trimestral que persigue D6.4.

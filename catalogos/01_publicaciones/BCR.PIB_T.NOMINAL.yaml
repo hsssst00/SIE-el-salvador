@@ -1,0 +1,16 @@
+publicacion_id: BCR.PIB_T.NOMINAL
+institucion_id: BCR
+nombre: "Producto Interno Bruto Trimestral (PIB T) — Producción y gasto, a precios corrientes"
+periodicidad: trimestral
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/producto-interno-bruto-trimestral-pib-t-produccion-y-gasto-a-precios-corrientes-en-millones-de-us
+cobertura_temporal: "No verificado — Cowork no abrió la página individual durante el relevamiento (2026-08-09). Pendiente de confirmación."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Identificado vía relevamiento de Claude Cowork
+  (2026-08-09), navegando estadisticas.bcr.gob.sv/clasificacion/sector-real
+  — no verificado independientemente por Harold ni por Claude (chat).
+  PIB trimestral a precios corrientes (nominal) — complementa las series
+  ya catalogadas de PIB T (índices de volumen encadenados, NSA/SA), que
+  son en volumen/real, no nominal. Vacío que no habíamos identificado
+  hasta este relevamiento. Verificar cobertura exacta antes de usar.
