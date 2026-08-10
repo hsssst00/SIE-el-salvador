@@ -1,0 +1,19 @@
+publicacion_id: SECMCA.EFPA_DEUDA_GOBCENTRAL_SLV
+institucion_id: SECMCA
+nombre: "EFPA — Estadísticas de Deuda del Sector Público (PSDS2011, cuadro C1), Gobierno Central Presupuestario, El Salvador"
+periodicidad: trimestral
+formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
+url: "https://www.secmca.org/efpa-resultados/?cuadro=PSDS2011_C1&sector=GFS&frecuencia=Q&pais=SLV&subsector=S1311B"
+cobertura_temporal: "2014-T1 a 2025-T2, verificado por Harold directamente contra el portal (2026-08-10)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: SECMCA. Subsector S1311B = Gobierno central presupuestario.
+  Metodología PSDS2011 (FMI/Banco Mundial), armonizada. Subsector NPS
+  (Sector Público No Financiero) NO es una combinación válida para
+  este cuadro específico — confirmado vía endpoint de criterios; los
+  subsectores válidos aquí son S11001, S1311, S13112, S1311B.
+  Rezago frente a la serie de operaciones del mismo país: termina en
+  2025-T2, mientras SECMCA.EFPA_EFP_GOBCENTRAL_SLV llega a 2025 (anual,
+  no directamente comparable pero indicativo).
+  Rol: verificación cruzada frente a BCR.DEUDA_PUBLICA_TOTAL_VIGENTE,
+  no sustituto.

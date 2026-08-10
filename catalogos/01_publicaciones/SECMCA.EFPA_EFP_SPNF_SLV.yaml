@@ -1,0 +1,16 @@
+publicacion_id: SECMCA.EFPA_EFP_SPNF_SLV
+institucion_id: SECMCA
+nombre: "EFPA — Estado de Operaciones (GFSM2014, cuadro E1), Sector Público No Financiero, El Salvador"
+periodicidad: anual
+formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
+url: "https://www.secmca.org/efpa-resultados/?cuadro=GFSM2014_E1&sector=GFS&frecuencia=A&pais=SLV&subsector=NPS"
+cobertura_temporal: "2024 a 2025 únicamente (2 observaciones anuales), verificado por Harold directamente contra el portal (2026-08-10)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: SECMCA. Subsector NPS = Sector Público No Financiero.
+  Cobertura real muy corta (2 años) — el endpoint de metadatos agregado
+  del cuadro sugiere 2014-2025, pero eso lo sostiene únicamente
+  SECMCA.EFPA_EFP_GOBCENTRAL_SLV (S1311B), no este subsector.
+  Utilidad limitada para modelación dada la longitud de la serie;
+  catalogada por completitud del inventario, no como candidata fuerte
+  a predictor.

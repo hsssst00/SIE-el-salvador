@@ -1,0 +1,13 @@
+publicacion_id: SECMCA.EFPA_DEUDA_SOCPUB_SLV
+institucion_id: SECMCA
+nombre: "EFPA — Estadísticas de Deuda del Sector Público (PSDS2011, cuadro C1), Sociedades Públicas No Financieras, El Salvador"
+periodicidad: trimestral
+formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
+url: "https://www.secmca.org/efpa-resultados/?cuadro=PSDS2011_C1&sector=GFS&frecuencia=Q&pais=SLV&subsector=S11001"
+cobertura_temporal: "2014-T1 a 2024-T2, verificado por Harold directamente contra el portal (2026-08-10)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: SECMCA. Subsector S11001 = Sociedades Públicas No Financieras.
+  Arranca en el mismo trimestre que SECMCA.EFPA_DEUDA_GOBCENTRAL_SLV
+  (2014-T1) pero termina un año antes (2024-T2 vs. 2025-T2) — rezago de
+  actualización específico de este subsector, no del cuadro completo.

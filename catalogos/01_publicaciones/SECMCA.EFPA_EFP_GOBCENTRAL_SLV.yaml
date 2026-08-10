@@ -1,0 +1,21 @@
+publicacion_id: SECMCA.EFPA_EFP_GOBCENTRAL_SLV
+institucion_id: SECMCA
+nombre: "EFPA — Estado de Operaciones (GFSM2014, cuadro E1), Gobierno Central Presupuestario, El Salvador"
+periodicidad: anual
+formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript — no confirmado como URL descargable directamente sin interacción)
+url: "https://www.secmca.org/efpa-resultados/?cuadro=GFSM2014_E1&sector=GFS&frecuencia=A&pais=SLV&subsector=S1311B"
+cobertura_temporal: "2014 a 2025 (anual), verificado por Harold directamente contra el portal (2026-08-10) — valores reales confirmados, crecimiento monótono de 4,112.61 (2014) a 8,651.10 (2025)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: SECMCA. Subsector S1311B = Gobierno central presupuestario.
+  Metodología GFSM2014 (FMI), armonizada. Este es el subsector con
+  mejor cobertura real de los tres verificados para este cuadro —
+  contrasta con SECMCA.EFPA_EFP_SPNF_SLV y
+  SECMCA.EFPA_EFP_SOCPUB_SLV, que solo tienen 2 años de dato real
+  (2024-2025) pese a que el endpoint de metadatos agregado sugiere
+  2014-2025 para el cuadro completo. Esa discrepancia (metadato
+  agregado vs. cobertura real por subsector) fue el motivo de
+  desagregar esta publicación en vez de tratarla como una sola entrada
+  — no volver a colapsar sin repetir esta verificación.
+  Rol: verificación cruzada frente a BCR.GOBIERNO_CENTRAL_CONSOLIDADO,
+  no sustituto.

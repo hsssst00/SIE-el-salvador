@@ -1,0 +1,14 @@
+publicacion_id: SECMCA.EFPA_EFP_SOCPUB_SLV
+institucion_id: SECMCA
+nombre: "EFPA — Estado de Operaciones (GFSM2014, cuadro E1), Sociedades Públicas No Financieras, El Salvador"
+periodicidad: anual
+formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
+url: "https://www.secmca.org/efpa-resultados/?cuadro=GFSM2014_E1&sector=GFS&frecuencia=A&pais=SLV&subsector=S11001"
+cobertura_temporal: "2024 a 2025 únicamente (2 observaciones anuales), verificado por Harold directamente contra el portal (2026-08-10)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: SECMCA. Subsector S11001 = Sociedades Públicas No Financieras.
+  Misma limitación que SECMCA.EFPA_EFP_SPNF_SLV: cobertura real de
+  solo 2 años, muy por debajo del rango agregado que sugiere el
+  endpoint de metadatos del cuadro completo. Utilidad limitada para
+  modelación; catalogada por completitud del inventario.
