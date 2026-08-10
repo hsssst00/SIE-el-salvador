@@ -1,0 +1,15 @@
+publicacion_id: BCR.IVAE.PROMEDIO_MOVIL_12M
+institucion_id: BCR
+nombre: "IVAE — promedio móvil de los últimos doce meses, serie tendencia-ciclo"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
+cobertura_temporal: "ene-1991 a dic-2017."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Producto derivado (transformación propia del BCR sobre
+  el IVAE base 1990, no una serie primaria independiente) — descontinuado
+  en la misma fecha que BCR.IVAE.BASE_1990. No se ha verificado si existe
+  un equivalente vigente calculado sobre BCR.IVAE.VIGENTE. Prioridad baja
+  para el proyecto: es una transformación que el propio proyecto puede
+  replicar (promedio móvil 12m) a partir de la serie vigente, D4/D5.

@@ -1,0 +1,22 @@
+publicacion_id: BCR.IVAE.VIGENTE
+institucion_id: BCR
+nombre: "Índice de Volumen de la Actividad Económica (IVAE), serie desestacionalizada"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-de-la-actividad-economica-ivae-serie-desestacionalizada
+cobertura_temporal: "2005 en adelante (verificado por Harold, 2026-08-09); cifras revisadas a jun-2025, referencia 2014."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Referencia 2014 — mismo año de referencia que el PIB
+  SCN2008 ya catalogado. Incluida en el Calendario de Divulgación de
+  Variables Claves del BCR — variable de publicación prioritaria y
+  regular, candidata de máxima relevancia como predictor mensual líder
+  de nowcasting para D6.4 de la senda metodológica: es el indicador
+  mensual más directo del PIB que produce el propio BCR.
+  Nota metodológica propia existe ("Índice de Volumen de la Actividad
+  Económica. Resumen Metodológico") — pendiente de revisión detallada
+  si se usa como predictor principal.
+  Desagregada por actividad económica según CIIU Rev.4, confirmado
+  visualmente por Harold (2026-08-09) — incluye como fila el Índice de
+  Producción Industrial (IPI), que además existe como publicación
+  independiente (ver BCR.IPI.VIGENTE).

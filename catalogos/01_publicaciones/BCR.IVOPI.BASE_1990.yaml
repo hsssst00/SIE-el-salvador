@@ -1,0 +1,18 @@
+publicacion_id: BCR.IVOPI.BASE_1990
+institucion_id: BCR
+nombre: "Índice de Volumen de Producción Industrial (IVOPI), tendencia-ciclo"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
+cobertura_temporal: "ene-1990 a dic-2017."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Componente/subíndice de manufactura dentro del IVAE
+  base 1990, descontinuado en dic-2017 junto con BCR.IVAE.BASE_1990.
+  El sucesor vigente NO se llama IVOPI — es el "Índice de Producción
+  Industrial (IPI)", confirmado por Harold directamente contra la tabla
+  de BCR.IVAE.VIGENTE (fila 3). No es un cambio solo metodológico sino
+  también de nombre/sigla — IVOPI (base 1990) → IPI (vigente). IPI
+  existe tanto como fila dentro de BCR.IVAE.VIGENTE como publicación
+  independiente con URL propia (ver BCR.IPI.VIGENTE). Sin tabla de
+  concordancia verificada entre IVOPI y IPI.

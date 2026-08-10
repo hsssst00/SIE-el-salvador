@@ -1,0 +1,27 @@
+publicacion_id: BCR.IVAE.BASE_1990
+institucion_id: BCR
+nombre: "Índice de Volumen de Actividad Económica (IVAE), base 1990 — global y por sectores"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-actividad-economica-ivae-global-y-por-sectores-periodo-ene-1990-dic-2017-2
+cobertura_temporal: "ene-1990 a dic-2017."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR, Base de Datos Económica y Financiera, Sector Real —
+  sección "Estadísticas del Sistema de Cuentas Nacionales Base 1990
+  (sin actualización por vigencia de nueva metodología)". Declarada
+  explícitamente descontinuada por el propio BCR, no solo desactualizada
+  de facto.
+  Coexiste en calendario con BCR.IVAE.VIGENTE durante 2005-2017, pero NO
+  es un traslape tipo empalme (a diferencia del PIB en D3/ADR-003, donde
+  hay un valor puntual compartido como ancla). Confirmado visualmente
+  por Harold contra capturas de ambas series: usan clasificaciones
+  sectoriales distintas y no directamente reconciliables — la serie
+  base 1990 agrupa categorías de forma más agregada y con terminología
+  antigua (ej. "Agricultura, caza, silvicultura y pesca" unificado;
+  "Electricidad, gas y agua" combinados), mientras la vigente usa CIIU
+  Rev.4 desagregado (~19 actividades, coherente con el SCN2008 ya visto
+  en el PIB). Sin tabla de concordancia verificada entre ambas
+  clasificaciones. Cualquier intento de empalme propio en Fase 3
+  requeriría primero construir esa concordancia sector por sector — no
+  asumir que es un ejercicio trivial de encadenamiento como el del PIB.

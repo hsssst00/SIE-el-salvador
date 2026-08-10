@@ -1,0 +1,22 @@
+publicacion_id: BCR.IPI.VIGENTE
+institucion_id: BCR
+nombre: "Índice de Producción Industrial (IPI), serie desestacionalizada"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-produccion-industrial-serie-desestacionalizada
+cobertura_temporal: "ene-2005 a may-2026, verificado por Harold directamente contra el portal (2026-08-09)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Incluida en el Calendario de Divulgación de Variables
+  Claves del BCR como entrada propia, separada de BCR.IVAE.VIGENTE —
+  confirmado independientemente (2026-08-09) contra esa fuente, no solo
+  reportado por Harold. También aparece como fila/componente dentro de
+  la tabla de BCR.IVAE.VIGENTE, pero existe además como publicación
+  independiente con URL propia — mismo patrón de doble representación
+  que otras variables del BCR.
+  Sucesor de BCR.IVOPI.BASE_1990 en cuanto a tema (producción
+  industrial), aunque con nombre distinto (IVOPI → IPI) y sin tabla de
+  concordancia verificada entre ambos.
+  Mismo año de arranque (2005) que BCR.IVAE.VIGENTE y BCR.PIB (serie
+  vigente base 2005) — coherente con el patrón ya establecido de que las
+  series vigentes del BCR bajo SCN2008 anclan en el año base 2005.
