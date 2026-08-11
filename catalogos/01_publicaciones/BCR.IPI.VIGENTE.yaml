@@ -17,6 +17,7 @@ notas: |
   Sucesor de BCR.IVOPI.BASE_1990 en cuanto a tema (producción
   industrial), aunque con nombre distinto (IVOPI → IPI) y sin tabla de
   concordancia verificada entre ambos.
-  Mismo año de arranque (2005) que BCR.IVAE.VIGENTE y BCR.PIB (serie
-  vigente base 2005) — coherente con el patrón ya establecido de que las
-  series vigentes del BCR bajo SCN2008 anclan en el año base 2005.
+  Mismo año de arranque (2005) que BCR.IVAE.VIGENTE y
+  BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA (serie vigente base 2005) —
+  coherente con el patrón ya establecido de que las series vigentes del
+  BCR bajo SCN2008 anclan en el año base 2005.

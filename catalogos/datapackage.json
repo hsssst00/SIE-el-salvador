@@ -137,6 +137,14 @@
           {"name": "descripcion", "type": "string"},
           {"name": "tipo", "type": "string"},
           {"name": "series_afectadas", "type": "string"},
+          {
+            "name": "tipo_referencia",
+            "type": "string",
+            "description": "Catálogo al que pertenecen los valores de series_afectadas: serie_id (03_series.csv) o publicacion_id (01_publicaciones/)",
+            "constraints": {
+              "enum": ["serie_id", "publicacion_id"]
+            }
+          },
           {"name": "metodologia_ref", "type": "string"},
           {"name": "tratamiento", "type": "string"},
           {"name": "notas", "type": "string"}
