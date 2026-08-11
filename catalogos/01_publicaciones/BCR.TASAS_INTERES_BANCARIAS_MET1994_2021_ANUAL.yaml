@@ -1,0 +1,13 @@
+publicacion_id: BCR.TASAS_INTERES_BANCARIAS_MET1994_2021_ANUAL
+institucion_id: BCR
+nombre: "Tasas de Interés Bancarias y Rendimiento de Reportos — Metodología 1994-2021, anual"
+periodicidad: anual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-4-3-tasas-de-interes-bancarias-y-rendimiento-de-reportos-anual
+cobertura_temporal: "1995 – 2021, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  DISCONTINUADA (2021). idCuadro=293. Versión anual de
+  BCR.TASAS_INTERES_BANCARIAS_MET1994_2021_MENSUAL — misma estructura
+  de 20 variables. Misma ruptura metodológica de enero 2022 (ver
+  09_rupturas.csv, R007).

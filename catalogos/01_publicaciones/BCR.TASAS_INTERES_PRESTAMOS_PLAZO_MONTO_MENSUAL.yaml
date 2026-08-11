@@ -1,0 +1,20 @@
+publicacion_id: BCR.TASAS_INTERES_PRESTAMOS_PLAZO_MONTO_MENSUAL
+institucion_id: BCR
+nombre: "Tasas de Interés por Préstamos según Plazo y Rango de Montos — mensual"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-3-1-mensual-tasas-de-interes-por-prestamos-segun-plazo-y-rango-de-montos
+cobertura_temporal: "2011 – junio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Metodología 2022, vigente. idCuadro=288. 12 variables — cruce de
+  plazo (hasta 6 meses / 6-12 meses / más de 12 meses) por rango de
+  monto (hasta US$1,000 / US$1,000-5,000 / más de US$5,000).
+
+  Ver también la versión anual
+  (BCR.TASAS_INTERES_PRESTAMOS_PLAZO_MONTO_ANUAL). Existe una serie
+  discontinuada equivalente para Otras Sociedades de Depósito
+  (identificada por Cowork como bloque 5.1.5 de la clasificación del
+  BCR, mar-2011 a dic-2021) que NO se catalogó en este lote — decisión
+  de sesión 2026-08-10, queda fuera del alcance por ahora, retomar si
+  hace falta en Fase 3.

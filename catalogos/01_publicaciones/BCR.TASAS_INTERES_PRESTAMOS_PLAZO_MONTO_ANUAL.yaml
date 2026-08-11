@@ -1,0 +1,13 @@
+publicacion_id: BCR.TASAS_INTERES_PRESTAMOS_PLAZO_MONTO_ANUAL
+institucion_id: BCR
+nombre: "Tasas de Interés por Préstamos según Plazo y Rango de Montos — anual"
+periodicidad: anual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-3-2-anual-tasas-de-interes-por-prestamos-segun-plazo-y-rango-de-montos
+cobertura_temporal: "2012 – 2025, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Metodología 2022, vigente. idCuadro=311. Versión anual de
+  BCR.TASAS_INTERES_PRESTAMOS_PLAZO_MONTO_MENSUAL — mismo cruce de 12
+  variables (plazo × monto). Arranca en 2012, un año después que la
+  mensual (2011).

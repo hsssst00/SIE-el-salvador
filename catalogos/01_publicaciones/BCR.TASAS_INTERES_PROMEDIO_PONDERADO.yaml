@@ -15,3 +15,18 @@ notas: |
   hallazgo de empalme no confirmado (ver precedente de IVAE/IPI: no
   asumir que un cambio de metodología permite empalme directo sin
   verificar).
+
+  Variantes de esta misma serie a otras periodicidades, catalogadas
+  como nota y no como registro propio (Fase 1, 2026-08-10, según
+  relevamiento de Claude Cowork — pendiente verificación de Harold):
+  semanal (idCuadro=279, cobertura 2009-24-jul-2026) y anual
+  (idCuadro=284, cobertura 2010-2025, último dato 2025 por no haber
+  cerrado 2026 aún).
+
+  Actualización 2026-08-10: la serie predecesora bajo metodología
+  1994-2021 mencionada arriba SÍ se catalogó como registro propio —
+  ver BCR.TASAS_INTERES_BANCARIAS_MET1994_2021_MENSUAL (idCuadro=292,
+  cobertura 1995-dic-2021) y sus variantes semanal/anual. Misma
+  estructura de 20 variables que esta serie. La afirmación de
+  "empalmable" sigue sin verificarse independientemente — no asumir
+  empalme directo sin tabla de concordancia.

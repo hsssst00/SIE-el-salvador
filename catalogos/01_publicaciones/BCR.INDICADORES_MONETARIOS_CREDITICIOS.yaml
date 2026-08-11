@@ -1,0 +1,19 @@
+publicacion_id: BCR.INDICADORES_MONETARIOS_CREDITICIOS
+institucion_id: BCR
+nombre: "Indicadores Monetarios y Crediticios — Panorama de las Otras Sociedades de Depósito"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/panorama-de-las-otras-sociedades-de-depositos-indicadores-monetarios-y-crediticios
+cobertura_temporal: "2001 – junio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  MEMF 2001 (vigente). idCuadro=212. La más desagregada de todo el
+  sector monetario: 95 variables, organizadas en 5 grandes
+  agrupaciones (Cuentas Activas, Pasivos Externos, Inversiones en
+  Valores, Préstamos, Cuentas Pasivas) — cada una abierta por tipo de
+  institución (Bancos / Bancos Cooperativos / Sociedades de Ahorro y
+  Crédito).
+
+  RUPTURA (ver 09_rupturas.csv, R006): misma reclasificación de
+  sep-2015 que BCR.PANORAMA_SOCIEDADES_DEPOSITO — mismo evento, no una
+  ruptura independiente. Misma nota de actualización EMFA 2024.

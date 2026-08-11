@@ -1,0 +1,18 @@
+publicacion_id: BCR.TASAS_INTERES_MINIMAS_MAXIMAS
+institucion_id: BCR
+nombre: "Tasas de Interés Bancarias, Mínimas y Máximas Contratadas"
+periodicidad: semanal
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-2-1-semanal-tasas-de-interes-bancarias-minimas-y-maximas-contratada
+cobertura_temporal: "2009 – 24 de julio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Metodología 2022, vigente. idCuadro=286. 34 variables — dos bloques
+  espejo (Tasas Mínimas / Tasas Máximas), cada uno con tasas por
+  depósito (30 a 360 días) y por préstamo (hasta/más de 1 año,
+  particulares/empresas, vivienda).
+
+  Serie conceptualmente distinta de BCR.TASAS_INTERES_PROMEDIO_PONDERADO:
+  son tasas nominales pactadas en NUEVOS contratos, no promedios
+  ponderados del stock — no combinar ambas sin declarar esa diferencia
+  conceptual. Fuente: Bancos Comerciales.

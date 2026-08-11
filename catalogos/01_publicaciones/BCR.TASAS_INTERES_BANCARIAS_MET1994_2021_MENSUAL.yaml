@@ -1,0 +1,26 @@
+publicacion_id: BCR.TASAS_INTERES_BANCARIAS_MET1994_2021_MENSUAL
+institucion_id: BCR
+nombre: "Tasas de Interés Bancarias y Rendimiento de Reportos — Metodología 1994-2021, mensual"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-4-2-tasas-de-interes-bancarias-y-rendimiento-de-reportos-mensual
+cobertura_temporal: "1995 – diciembre de 2021, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  DISCONTINUADA (dic-2021). idCuadro=292. ANTECESORA DIRECTA de
+  BCR.TASAS_INTERES_PROMEDIO_PONDERADO (variante mensual, Metodología
+  2022): misma estructura de 20 variables (tasas por depósito a
+  30-360 días; tasas por préstamo hasta/más de 1 año, particulares/
+  empresas, vivienda; interbancarios; rendimiento de reportos),
+  cobertura 1995-2021 frente a 2010-2026 de la vigente.
+
+  Por la Ley de Integración Monetaria, las operaciones desde
+  01-ene-2001 se expresan en US dólares — la serie atraviesa la
+  dolarización sin un cambio de metodología propio en ese punto
+  (contexto de R001_DOLARIZACION_2001 en 09_rupturas.csv, no aplica
+  directamente a esta serie).
+
+  Ruptura metodológica real de esta familia: enero 2022 (ver
+  09_rupturas.csv, R007). Es la antecesora más directa de las tres
+  variantes de esta metodología, pero NO asumir empalme sin tabla de
+  concordancia verificada — misma cautela que el resto de la familia.

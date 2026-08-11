@@ -1,0 +1,20 @@
+publicacion_id: BCR.TASAS_INTERES_BANCARIAS_MET1994_2021_SEMANAL
+institucion_id: BCR
+nombre: "Tasas de Interés Bancarias y Rendimiento de Reportos — Metodología 1994-2021, semanal"
+periodicidad: semanal
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/5-1-4-1-tasas-de-interes-bancarias-y-rendimiento-de-reportos-semanal
+cobertura_temporal: "2005 – 31 de diciembre de 2021, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  DISCONTINUADA — última publicación 31-dic-2021, sustituida por la
+  variante semanal de BCR.TASAS_INTERES_PROMEDIO_PONDERADO
+  (Metodología 2022) desde la primera semana de enero de 2022.
+  idCuadro=291.
+
+  Antecesora histórica — candidata a empalme, sujeta a la ruptura
+  metodológica de enero 2022 (ver 09_rupturas.csv, R007). NO asumir
+  que el empalme es directo sin verificar: mismo criterio de cautela
+  aplicado a IVAE base-1990/vigente — no se ha construido ni
+  verificado una tabla de concordancia entre ambas metodologías
+  todavía.

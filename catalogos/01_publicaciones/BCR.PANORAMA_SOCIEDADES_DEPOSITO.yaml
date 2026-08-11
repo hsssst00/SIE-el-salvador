@@ -1,0 +1,29 @@
+publicacion_id: BCR.PANORAMA_SOCIEDADES_DEPOSITO
+institucion_id: BCR
+nombre: "Panorama de las Sociedades de Depósito"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/panorama-de-las-sociedades-de-depositos
+cobertura_temporal: "2001 – junio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Estadísticas Monetarias según MEMF 2001 (metodología vigente).
+  idCuadro=44. Millones de US$. 38 variables — Activos Externos Netos,
+  Activos Internos Netos, Dinero en Sentido Amplio (M1, M2, cuasidinero).
+  Tipos de dato disponibles: SALDOS / TASA DE CRECIMIENTO ANUAL /
+  PERIODO PUNTUAL. Próxima publicación prevista 31-ago-2026.
+
+  RUPTURA (ver 09_rupturas.csv, R006): en sep-2015 se reclasificaron
+  saldos de corto a mediano/largo plazo, modificando la serie
+  histórica — coincide con el cierre de una conversión por cambio de
+  catálogo contable de Bancos, Bancos Cooperativos y SAC. La misma
+  nota del BCR indica actualización de información EMFA
+  correspondiente a 2024.
+
+  Se evaluó catalogar por separado la Estadística Monetaria y
+  Financiera Armonizada (EMFA, ítem 1.4 de esta clasificación del BCR)
+  y se decidió no hacerlo (sesión 2026-08-10): es una reagregación
+  menos desagregada de esta misma serie, publicada como .xlsx estático
+  en dominio distinto (www.bcr.gob.sv) con URL de hash rotativo, sin
+  selector de fechas ni variables navegables — sin valor añadido sobre
+  esta fuente a mayor resolución.

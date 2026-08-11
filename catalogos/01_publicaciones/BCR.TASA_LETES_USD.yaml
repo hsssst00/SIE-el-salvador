@@ -1,0 +1,24 @@
+publicacion_id: BCR.TASA_LETES_USD
+institucion_id: BCR
+nombre: "Tasa Promedio Ponderada para Letras del Tesoro Emitida en Dólares"
+periodicidad: semanal
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/tasa-promedio-ponderada-para-letras-del-tesoro-emitida-en-dolares
+cobertura_temporal: "2022 – 31 de julio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Clasificada por el BCR dentro de "6. Banco Central de Reserva"
+  (bloque del Sector Monetario y Financiero no anticipado antes del
+  relevamiento de Cowork), sin numeración jerárquica en la página
+  fuente. idCuadro=336. Serie univariante (1 variable): tasa de
+  interés, no volumen. Es la serie con el corte más reciente de todo
+  el sector monetario (31-jul-2026).
+
+  ADVERTENCIA DE POSIBLE SOLAPE evaluada y descartada (sesión
+  2026-08-10): instrumento fiscal (LETES) publicado dentro del sector
+  monetario, verificado contra MH.LETES_FLUJO_ANUAL y
+  MH.LETES_INFORME_SALDOS — no hay duplicidad real. Esta serie es tasa
+  de interés (BCR, 2022-2026); las de Hacienda son saldos/colocación
+  (volumen, hasta 2021 sin evidencia de actualización posterior).
+  Son complementarias: esta serie llena el vacío temporal que dejan
+  los datos de Hacienda.
