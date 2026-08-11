@@ -1,0 +1,8 @@
+metodologia_id: IPP_BASE2009
+nombre: "Índice de Precios al Productor (IPP), base diciembre 2009"
+vigencia_desde: "2009-12"
+vigencia_hasta: ""
+documento_referencia: "BCR, documento de elaboración del IPP base dic-2009 (https://www.bcr.gob.sv/bcrsite/uploaded/content/cuadro/2064632838.pdf) — hallado vía búsqueda externa de Claude (2026-08-11), pendiente verificación directa de Harold"
+predecesor_id: "IPRI_BASE1990"
+sucesor_id: ""
+notas: "Base diciembre 2009=100, CIIU Rev.4, 13 secciones. Sin tabla de concordancia verificada con IPRI_BASE1990. Ver 09_rupturas.csv, R010."

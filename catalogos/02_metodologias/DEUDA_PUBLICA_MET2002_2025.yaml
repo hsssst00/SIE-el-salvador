@@ -1,0 +1,8 @@
+metodologia_id: DEUDA_PUBLICA_MET2002_2025
+nombre: "Deuda Pública Total Mensual, serie desde enero 2002"
+vigencia_desde: "2002-01"
+vigencia_hasta: "2025-12"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "DEUDA_PUBLICA_MET_VIGENTE"
+notas: "Coexiste con la serie vigente (desde 2020) con ventanas solapadas 2020-2025. Diferencia metodológica exacta entre ambas NO verificada. Identificado vía búsqueda externa de Claude (2026-08-11), URL https://estadisticas.bcr.gob.sv/serie/deuda-publica-total — pendiente verificación directa de Harold. Ver 09_rupturas.csv, R012."

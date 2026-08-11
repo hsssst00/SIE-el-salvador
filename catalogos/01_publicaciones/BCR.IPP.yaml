@@ -12,8 +12,11 @@ notas: |
   independientemente por Claude (chat, 2026-08-09) contra documento
   propio del BCR: "es un índice nuevo dentro del sistema estadístico
   nacional, que pasará a sustituir al IPRI" — sucesor directo de
-  BCR.IPRI_BASE_1990 (descontinuada, 1998-2017), con nombre distinto
+  BCR.IPRI.BASE_1990 (descontinuada, 1998-2017), con nombre distinto
   (no solo metodología). Incluido en el Calendario de Divulgación de
   Variables Claves del BCR, misma categoría que IVAE/IPI/PIB/IPC/
   remesas — variable de publicación prioritaria. Sin tabla de
   concordancia verificada entre IPRI y IPP.
+  Ahora catalogada por separado — ver BCR.IPRI.BASE_1990 y
+  09_rupturas.csv, R010 (nota: la coexistencia real 2009-2017 contradice
+  el corte limpio que sugiere la cita del documento metodológico).

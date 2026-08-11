@@ -1,0 +1,8 @@
+metodologia_id: SPNF_MET_VIGENTE
+nombre: "Sector Público No Financiero, serie vigente desde enero 2020"
+vigencia_desde: "2020-01"
+vigencia_hasta: ""
+documento_referencia: ""
+predecesor_id: "SPNF_MET1994_2025"
+sucesor_id: ""
+notas: "Incorpora flujos del Instituto Salvadoreño de Pensiones (ISP) desde ene-2025. Ver 09_rupturas.csv, R013."

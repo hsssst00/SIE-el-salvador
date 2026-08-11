@@ -1,6 +1,9 @@
+# Plantilla de registro — copiar como {metodologia_id}.yaml por cada marco
 metodologia_id: ""              # ej. SCN2008
 nombre: ""
-vigencia_desde: ""
+vigencia_desde: ""               # vacío si no determinada
 vigencia_hasta: ""               # vacío si sigue vigente
 documento_referencia: ""
+predecesor_id: ""                # metodologia_id que esta metodología sustituye, vacío si no aplica
+sucesor_id: ""                   # metodologia_id que sustituye a esta, vacío si sigue vigente o no aplica
 notas: ""

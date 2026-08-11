@@ -1,0 +1,8 @@
+metodologia_id: IVOPI_BASE1990
+nombre: "Índice de Volumen de Producción Industrial (IVOPI), tendencia-ciclo, base 1990"
+vigencia_desde: "1990-01"
+vigencia_hasta: "2017-12"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "IPI_VIGENTE"
+notas: "Componente/subíndice de manufactura dentro del IVAE base 1990. Sucesor NO conserva el nombre (IVOPI → IPI) — cambio de sigla, no solo metodológico. Sin tabla de concordancia verificada. Ver 09_rupturas.csv, R009."

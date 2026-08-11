@@ -1,0 +1,8 @@
+metodologia_id: IVAE_CIIU_REV4
+nombre: "Índice de Volumen de Actividad Económica (IVAE), clasificación CIIU Rev.4, referencia 2014"
+vigencia_desde: "2005-01"
+vigencia_hasta: ""
+documento_referencia: "Índice de Volumen de la Actividad Económica. Resumen Metodológico (BCR) — pendiente revisión detallada"
+predecesor_id: "IVAE_BASE1990"
+sucesor_id: ""
+notas: "Desagregada en ~19 actividades según CIIU Rev.4, coherente con SCN2008. Mismo año de referencia (2014) que el PIB. Sin tabla de concordancia verificada con el predecesor. Ver 09_rupturas.csv, R008."

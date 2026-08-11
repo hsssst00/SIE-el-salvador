@@ -1,0 +1,24 @@
+publicacion_id: BCR.IPRI.BASE_1990
+institucion_id: BCR
+nombre: "Índice de Precios Industriales (IPRI), base 1990"
+periodicidad: mensual
+formato: web
+url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
+cobertura_temporal: "ene-1998 a oct-2017, según relevamiento externo de Claude (2026-08-11) — pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: BCR. Identificado dentro de la sección "5. Estadísticas del
+  Sistema de Cuentas Nacionales Base 1990" de la página de clasificación
+  del sector real, ítem 5.5 — misma página general que aloja
+  BCR.IVAE.BASE_1990 y BCR.IVOPI.BASE_1990 (sin URL de /serie/ dedicada
+  confirmada, a diferencia de las series vigentes).
+  Antecesor directo de BCR.IPP: el documento metodológico del IPP declara
+  textualmente que este índice "pasará a sustituir al IPRI" — pero la
+  ventana de cobertura de IPP (desde ene-2009) se solapa con IPRI (hasta
+  oct-2017) por casi 8 años, no es un corte limpio. Ver 09_rupturas.csv,
+  R010.
+  Identificado vía búsqueda externa por Claude (2026-08-11), no vía
+  Cowork ni verificación directa de Harold contra el portal — tratar con
+  la misma cautela que cualquier hallazgo de Cowork no confirmado.
+  Anteriormente esta serie solo existía como referencia dentro de la
+  nota de BCR.IPP.yaml, sin registro propio.

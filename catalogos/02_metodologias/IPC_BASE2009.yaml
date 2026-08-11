@@ -1,0 +1,8 @@
+metodologia_id: IPC_BASE2009
+nombre: "Índice de Precios al Consumidor (IPC), base diciembre 2009"
+vigencia_desde: "2009-12"
+vigencia_hasta: ""
+documento_referencia: "Manual OIT/FMI 2006"
+predecesor_id: "IPC_BASE1992"
+sucesor_id: ""
+notas: "Laspeyres (Young) + media geométrica, ~12,000 precios/mes, canasta actualizada con encuesta 3T2005-3T2006. Ver 09_rupturas.csv, R011."

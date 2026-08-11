@@ -1,0 +1,8 @@
+metodologia_id: SPNF_MET1994_2025
+nombre: "Sector Público No Financiero, serie 1994-2025"
+vigencia_desde: "1994-01"
+vigencia_hasta: "2025-12"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "SPNF_MET_VIGENTE"
+notas: "Desde ene-1994 los ingresos tributarios brutos se ajustan excluyendo devoluciones de ISR e IVA (nota propia del BCR). El tramo 2023-2024 de ESTA serie NO incluye transacciones del Instituto Salvadoreño de Pensiones (ISP), que la serie vigente sí incorpora desde ene-2025 — diferencia de alcance conceptual, no solo de ventana temporal. Identificado vía búsqueda externa de Claude (2026-08-11), URL https://estadisticas.bcr.gob.sv/serie/sector-publico-no-financiero — pendiente verificación directa de Harold. Ver 09_rupturas.csv, R013."

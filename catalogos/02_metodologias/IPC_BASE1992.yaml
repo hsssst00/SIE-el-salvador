@@ -1,0 +1,8 @@
+metodologia_id: IPC_BASE1992
+nombre: "Índice de Precios al Consumidor (IPC), base diciembre 1992"
+vigencia_desde: "1992-12"
+vigencia_hasta: "2009-12"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "IPC_BASE2009"
+notas: "Traslape de 1 mes con IPC_BASE2009 en dic-2009 (valor medido en esta serie y simultáneamente mes de anclaje índice=100 en la sucesora) — misma estructura que el traslape de 4 trimestres del PIB (D3/ADR-003). Ver 09_rupturas.csv, R011."

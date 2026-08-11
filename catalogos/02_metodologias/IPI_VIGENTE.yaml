@@ -1,0 +1,8 @@
+metodologia_id: IPI_VIGENTE
+nombre: "Índice de Producción Industrial (IPI), serie desestacionalizada"
+vigencia_desde: "2005-01"
+vigencia_hasta: ""
+documento_referencia: ""
+predecesor_id: "IVOPI_BASE1990"
+sucesor_id: ""
+notas: "Sucesor de IVOPI_BASE1990 en cuanto a tema (producción industrial), con nombre distinto y sin tabla de concordancia verificada. Ver 09_rupturas.csv, R009."

@@ -1,0 +1,8 @@
+metodologia_id: IPRI_BASE1990
+nombre: "Índice de Precios Industriales (IPRI), base 1990"
+vigencia_desde: "1998-01"
+vigencia_hasta: "2017-10"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "IPP_BASE2009"
+notas: "Cobertura ene-1998 a oct-2017 según relevamiento externo de Claude (2026-08-11) — pendiente verificación directa de Harold. Coexiste con IPP_BASE2009 (desde 2009) durante ~8 años pese a que el documento metodológico del IPP declara textualmente que 'pasará a sustituir al IPRI' — no es un corte limpio. Ver 09_rupturas.csv, R010."

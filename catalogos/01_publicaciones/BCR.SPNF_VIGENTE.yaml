@@ -8,8 +8,8 @@ cobertura_temporal: "ene-2020 a jun-2026, verificado por Harold directamente con
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Nueva metodología, vigente. Existe también una serie
-  cerrada (1994-2025) bajo metodología anterior — no catalogada por
-  separado en esta pasada.
+  predecesora, ahora catalogada por separado: ver
+  BCR.SPNF_SERIE_1994_2025 y 09_rupturas.csv, R013.
   Decisión de diseño (2026-08-09, confirmada por Harold): el BCR pasa a
   ser fuente PRIMARIA para estadísticas fiscales del SPNF, dado que
   ofrece series propias con cobertura igual o mejor que las de Hacienda.

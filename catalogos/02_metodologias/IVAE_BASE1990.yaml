@@ -1,0 +1,8 @@
+metodologia_id: IVAE_BASE1990
+nombre: "Índice de Volumen de Actividad Económica (IVAE), clasificación sectorial agregada, base 1990"
+vigencia_desde: "1990-01"
+vigencia_hasta: "2017-12"
+documento_referencia: ""
+predecesor_id: ""
+sucesor_id: "IVAE_CIIU_REV4"
+notas: "Clasificación sectorial agregada con terminología antigua (ej. 'Agricultura, caza, silvicultura y pesca' unificado; 'Electricidad, gas y agua' combinados). Sin tabla de concordancia verificada con IVAE_CIIU_REV4 — NO es empalme tipo ancla (a diferencia de SCN2008/PIB, D3/ADR-003). Ver 09_rupturas.csv, R008."
