@@ -1,0 +1,32 @@
+publicacion_id: BM.GEM
+institucion_id: BM
+nombre: "Global Economic Monitor (GEM) — indicadores de coyuntura de alta frecuencia"
+periodicidad: mensual
+formato: api (REST; JSON o XML)
+url: https://api.worldbank.org/v2/sources/15
+cobertura_temporal: "No verificada. La API reporta última actualización de la fuente el 2026-03-31 (verificado por Claude contra el endpoint /v2/sources, 2026-08-12) — nótese que eso es la fecha de actualización de la fuente, no la cobertura de las series. Pendiente verificación directa de Harold."
+condiciones_uso: "Mismas condiciones que BM.WDI — CC-BY 4.0 por defecto con cláusula de mediación obligatoria y salvedad de datasets de terceros. Debe verificarse si GEM en particular contiene componentes de terceros, ya que agrega datos de múltiples proveedores. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: Banco Mundial. Código de fuente en la API: GEM, id=15
+  (verificado directamente por Claude contra /v2/sources, 2026-08-12).
+
+  HALLAZGO NO PREVISTO en el encargo original de esta sesión, y
+  probablemente la entrada más útil del bloque Banco Mundial. A
+  diferencia de WDI, que es anual, GEM publica indicadores de coyuntura
+  de frecuencia mensual y trimestral para países en desarrollo. Eso lo
+  convierte en candidato directo para senda §6.4 (frecuencia mixta y
+  nowcasting), que es la extensión que la propia senda §9 identifica
+  como la de mejor relación entre valor añadido y costo.
+
+  QUÉ FALTA CONFIRMAR ANTES DE DARLE PESO, en este orden:
+    1. Si El Salvador está cubierto y con qué indicadores.
+    2. Qué frecuencia efectiva tienen esas series para SLV.
+    3. Cuál es el rezago de publicación — un predictor mensual que
+       llega con cuatro meses de retraso no sirve para nowcasting.
+    4. Si los indicadores de GEM para El Salvador son retransmisión
+       de fuentes que el proyecto ya cataloga (BCR, ONEC) o agregan
+       información propia. Si es lo primero, el valor cae a contraste
+       de consistencia.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

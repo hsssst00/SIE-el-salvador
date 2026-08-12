@@ -1,0 +1,38 @@
+publicacion_id: FRED.INDICADORES_MENSUALES_EEUU
+institucion_id: FRED
+nombre: "Indicadores mensuales de actividad, empleo y precios de Estados Unidos, redistribuidos por FRED"
+periodicidad: mensual
+formato: api (REST; JSON o XML)
+url: https://api.stlouisfed.org/fred/series/observations
+cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "Idénticas a FRED.BEA_PIB_EEUU — ver esa entrada. Atención especial al punto de copyright de terceros: FRED redistribuye series de decenas de fuentes y algunas son de propiedad privada. Antes de incorporar cualquier serie concreta debe verificarse si su campo de notas contiene la marca de copyright. Pendiente verificación directa de Harold."
+notas: |
+  Fuentes ORIGINALES: mayoritariamente Bureau of Labor Statistics (BLS)
+  y Junta de Gobernadores del Sistema de la Reserva Federal. Canal de
+  acceso: FRED.
+
+  Justificación: senda §6.4 (frecuencia mixta y nowcasting) señala que
+  ignorar la frecuencia mensual desperdicia la principal ventaja
+  informativa del sistema. Los predictores mensuales estadounidenses
+  son el complemento externo natural de los predictores mensuales
+  salvadoreños ya catalogados (IVAE, IPI, remesas, comercio exterior).
+
+  Series candidatas identificadas por Claude, códigos NO verificados
+  contra la API:
+    - INDPRO — producción industrial
+    - PAYEMS — empleo no agrícola en nómina
+    - UNRATE — tasa de desempleo
+    - CPIAUCSL — índice de precios al consumidor
+    - Índices de precios de importación y exportación (BLS)
+
+  ADVERTENCIA DE ALCANCE: esta entrada es deliberadamente genérica
+  porque el conjunto definitivo de predictores mensuales estadounidenses
+  no está fijado y no debe fijarse acá. La construcción de la matriz de
+  predictores es entregable de Fase 3 (senda §4). Lo que corresponde a
+  Fase 1 es dejar constancia de que la fuente existe, es accesible por
+  API y tiene condiciones de uso conocidas. La selección concreta de
+  series se hace después, con criterio explícito, y se registra en
+  03_series.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

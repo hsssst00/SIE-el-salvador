@@ -1,0 +1,60 @@
+publicacion_id: FRED.BEA_PIB_EEUU
+institucion_id: FRED
+nombre: "Cuentas nacionales de Estados Unidos (PIB y componentes), producidas por la BEA y redistribuidas por FRED"
+periodicidad: trimestral
+formato: api (REST; JSON o XML)
+url: https://api.stlouisfed.org/fred/series/observations
+cobertura_temporal: "No verificada en esta sesión. La serie de PIB real trimestral de EE.UU. de la BEA arranca convencionalmente en 1947, pero la cobertura efectiva en FRED no se comprobó. Pendiente verificación directa de Harold."
+condiciones_uso: "API key gratuita obligatoria (fredaccount.stlouisfed.org); cada usuario debe usar su propia clave, por lo que la clave NO puede comprometerse al repositorio. Los Términos de Uso de la API de FRED imponen dos obligaciones activas verificadas por Claude (2026-08-12): (i) colocar de forma prominente en la aplicación el aviso de que el producto usa la API de FRED pero no está avalado ni certificado por el Federal Reserve Bank of St. Louis; (ii) no afirmar ni sugerir respaldo institucional, y no usar marcas ni logos del banco. Además, las series accesibles vía FRED pueden pertenecer a terceros y estar sujetas a copyright que FRED no puede levantar — las series con copyright llevan la palabra Copyright en su campo de notas y son identificables por búsqueda. Se aplica el default conservador de ADR-008. Pendiente verificación directa de Harold."
+notas: |
+  Fuente ORIGINAL: Bureau of Economic Analysis (BEA), Departamento de
+  Comercio de Estados Unidos. Canal de acceso: FRED. Ver la nota de
+  modelado en la entrada FRED de 00_instituciones.csv.
+
+  Justificación en el proyecto: la senda §1.3 identifica la actividad
+  económica de Estados Unidos como el determinante externo dominante
+  del error de pronóstico del PIB salvadoreño a horizontes largos, y
+  §4 Fase 6 exige fuente citada para cada supuesto exógeno. Esta es
+  esa fuente por el lado real estadounidense.
+
+  Serie de referencia identificada: GDPC1 (PIB real de EE.UU.,
+  desestacionalizado, tasa anual). Código no verificado contra la API
+  en esta sesión.
+
+  Endpoints relevantes de la Versión 1 de la API (verificados contra la
+  documentación oficial, 2026-08-12):
+    - fred/series — metadatos de una serie
+    - fred/series/observations — observaciones
+    - fred/series/search — búsqueda por palabras clave
+    - fred/series/vintagedates — fechas en que la serie fue revisada o
+      recibió nuevos valores (ver FRED.ALFRED_VINTAGES)
+    - fred/release y fred/release/series — organización por publicación
+    - fred/releases/dates — calendario de publicaciones
+
+  Formato de autenticación: la Versión 1 pasa la clave como parámetro
+  api_key en la URL; la Versión 2 la pasa como cabecera
+  Authorization: Bearer. La Versión 1 es la que da acceso a ALFRED.
+
+  Límite de tasa: fuentes de terceros (documentación de clientes y
+  guías) coinciden en aproximadamente 120 solicitudes por minuto por
+  clave, con un límite más estricto para observaciones de series. NO
+  aparece en la página oficial de Términos de Uso que Claude leyó, que
+  solo declara que el banco puede imponer o ajustar límites a su
+  discreción. Tratar la cifra como indicativa, no como dato oficial.
+
+  ALTERNATIVA DESCARTADA (documentada por trazabilidad): la BEA expone
+  su propia API en apps.bea.gov/api (dataset NIPA, tabla T10101 para
+  PIB trimestral, clave gratuita en apps.bea.gov/API/signup/index.cfm).
+  Se prefiere FRED por cobertura multi-fuente y por ALFRED. Observación
+  de fragilidad de fuente, relevante para la bitácora de Fase 2: una
+  lectura del sitio de la API de la BEA capturada por Claude mostraba
+  un aviso de que el sitio no se estaba actualizando por interrupción
+  de asignaciones presupuestarias del gobierno de EE.UU. La fecha de
+  esa captura no pudo determinarse y el aviso puede no estar vigente
+  hoy — pero la vulnerabilidad estructural sí es real: la BEA es una
+  agencia federal sujeta a cierres presupuestarios, mientras que el
+  Federal Reserve Bank of St. Louis no se financia por asignación del
+  Congreso. Es un argumento adicional a favor de FRED como canal.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

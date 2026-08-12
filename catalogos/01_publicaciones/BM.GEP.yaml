@@ -1,0 +1,34 @@
+publicacion_id: BM.GEP
+institucion_id: BM
+nombre: "Global Economic Prospects (GEP) — base de datos de proyecciones"
+periodicidad: semestral
+formato: api (REST; JSON o XML)
+url: https://api.worldbank.org/v2/sources/27
+cobertura_temporal: "No verificada. La API reporta última actualización de la fuente el 2026-06-11 (verificado por Claude contra el endpoint /v2/sources, 2026-08-12). Pendiente verificación directa de Harold."
+condiciones_uso: "Mismas condiciones que BM.WDI — CC-BY 4.0 por defecto con cláusula de mediación obligatoria y salvedad de datasets de terceros. Nótese que la API reporta esta fuente con disponibilidad de metadatos en negativo, lo que puede complicar la verificación de condiciones a nivel de indicador. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: Banco Mundial. Código de fuente en la API: GEP, id=27
+  (verificado directamente por Claude contra /v2/sources, 2026-08-12).
+
+  Es el análogo del WEO del FMI por el lado del Banco Mundial:
+  proyecciones macroeconómicas semestrales por país. Su utilidad para
+  el proyecto es específica y vale la pena enunciarla con precisión,
+  porque no es la de una fuente más de datos.
+
+  El Ejercicio B (senda §1.3 y §4 Fase 6) es explícitamente condicional
+  y exige supuestos exógenos declarados con fuente citada. Disponer de
+  DOS conjuntos independientes de proyecciones (WEO del FMI y GEP del
+  Banco Mundial) para las mismas variables externas convierte el
+  análisis de sensibilidad a los supuestos —que la senda ya exige como
+  entregable de Fase 6— en un ejercicio con contenido real, en vez de
+  una perturbación arbitraria de un único conjunto de supuestos. La
+  discrepancia entre dos proyecciones institucionales publicadas es una
+  medida defendible de incertidumbre sobre el supuesto; una banda de
+  más o menos un porcentaje elegido a ojo, no.
+
+  Esto es una RECOMENDACIÓN metodológica de Claude, no una decisión
+  tomada. La definición de escenarios es de Harold y corresponde a
+  Fase 6.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

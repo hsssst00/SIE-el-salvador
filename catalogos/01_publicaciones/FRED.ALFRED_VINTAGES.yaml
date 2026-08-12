@@ -1,0 +1,46 @@
+publicacion_id: FRED.ALFRED_VINTAGES
+institucion_id: FRED
+nombre: "ALFRED — archivo de vintages con historial de revisiones de series económicas"
+periodicidad: continua
+formato: api (REST; JSON o XML)
+url: https://alfred.stlouisfed.org
+cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "Idénticas a FRED.BEA_PIB_EEUU — ver esa entrada. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: Federal Reserve Bank of St. Louis. Producto PROPIO de FRED,
+  no una redistribución — es la excepción dentro de las entradas FRED.
+
+  ES LA ENTRADA MÁS RELEVANTE DE ESTE BLOQUE PARA EL DISEÑO DEL SIE, y
+  no por los datos que contiene sino por lo que documenta.
+
+  Relevancia para D7 (política de versiones de publicación), que la
+  senda §2 califica como la decisión que más valor agrega al proyecto:
+  ALFRED es una implementación en producción, madura y consultable, de
+  exactamente el diseño bitemporal que el proyecto se propone construir
+  — cada observación indexada por período de referencia y por fecha de
+  publicación. Vale la pena examinar cómo modela el concepto de período
+  en tiempo real (real-time period) y qué expone el endpoint
+  fred/series/vintagedates, ANTES de cerrar el diseño de 08_vintages.
+  El costo de mirarlo es bajo; el costo de descubrir tarde que el
+  modelo de datos propio no soporta un caso que ALFRED sí resuelve es
+  alto, porque la senda §2 (D7) ya advierte que añadir la dimensión de
+  vintage después obliga a rehacer el modelo de datos completo.
+
+  Relevancia para senda §5.5 (evaluación en tiempo real): si se usan
+  predictores estadounidenses en los modelos, evaluarlos contra sus
+  series revisadas más recientes reintroduce por la puerta de atrás
+  exactamente el sesgo que el diseño bitemporal busca eliminar para la
+  variable objetivo. ALFRED permite recuperar el vintage disponible en
+  cada origen de pronóstico también para los predictores externos.
+  Esto NO está contemplado en ADR-007, que acotó la reconstrucción
+  retrospectiva de vintages al período SCN 2008 y al caso BCR. Es una
+  extensión de alcance que debe decidirse explícitamente, no asumirse.
+
+  Documentación conceptual de referencia:
+    - https://fred.stlouisfed.org/docs/api/fred/alfred.html
+    - https://fred.stlouisfed.org/docs/api/fred/fred_vs_alfred.html
+    - https://fred.stlouisfed.org/docs/api/fred/realtime_period.html
+    - https://fred.stlouisfed.org/docs/api/fred/series_vintagedates.html
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

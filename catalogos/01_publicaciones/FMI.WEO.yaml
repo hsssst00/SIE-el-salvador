@@ -1,0 +1,56 @@
+publicacion_id: FMI.WEO
+institucion_id: FMI
+nombre: "World Economic Outlook (WEO) — base de datos de indicadores macroeconómicos y proyecciones"
+periodicidad: semestral
+formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+
+cobertura_temporal: "Series anuales desde 1980, con proyecciones que se extienden aproximadamente cinco años más allá del último dato observado. Verificado de forma INDIRECTA por Claude (2026-08-12): una consulta documentada de la serie NGDP_RPCH de un país tercero devuelve el rango 1980-2025. Cobertura específica de El Salvador (código SLV) y Estados Unidos (USA) NO verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "El FMI publica su contenido como propiedad intelectual propia bajo régimen de todos los derechos reservados salvo indicación en contrario, con una política separada de reuso libre no comercial de datos con cita de fuente obligatoria. NO equivale a una licencia abierta tipo Creative Commons y NO autoriza redistribución comercial. Se aplica el default conservador de ADR-008: el repositorio publica el script de descarga y el checksum, no el archivo. Página de referencia: https://www.imf.org/en/_site_imf/about/copyright-and-terms — pendiente lectura y verificación directa de Harold."
+notas: |
+  Fuente: FMI, Departamento de Investigación (agencia SDMX IMF.RES).
+
+  ES LA PUBLICACIÓN MÁS IMPORTANTE DE ESTE BLOQUE. La senda metodológica
+  §1.3 nombra explícitamente al WEO/FMI como fuente de los supuestos
+  exógenos declarados del Ejercicio B (proyección condicional 2026-2030),
+  y §4 Fase 6 exige que cada supuesto exógeno tenga fuente citada. Esta
+  entrada es la que resuelve esa exigencia por el lado del FMI.
+
+  Estructura de la consulta SDMX 3.0, verificada por Claude contra
+  documentación técnica publicada (2026-08-12):
+    - dataflow: WEO, agencia IMF.RES, versión 9.0.0
+    - DSD: DSD_WEO, agencia IMF.RES
+    - dimensiones, en orden posicional: COUNTRY.INDICATOR.FREQUENCY,
+      más TIME_PERIOD como dimensión temporal
+    - clave de ejemplo: SLV.NGDP_RPCH.A
+    - codelists: CL_WEO_COUNTRY (338 códigos), CL_WEO_INDICATOR
+      (145 códigos), CL_FREQ (A, D, M, Q, S, W)
+    - parámetros útiles: startPeriod, endPeriod, dimensionAtObservation,
+      attributes, measures, includeHistory
+
+  Indicadores WEO candidatos para el proyecto (códigos confirmados
+  presentes en CL_WEO_INDICATOR, aplicabilidad a SLV/USA no verificada):
+    - NGDP_RPCH — PIB, precios constantes, variación porcentual
+    - NGDP_R — PIB, precios constantes, moneda doméstica
+    - NGDP_D — deflactor del PIB, índice
+    - PCPIPCH — IPC, promedio del período, variación porcentual
+    - BCA_NGDPD — saldo en cuenta corriente, porcentaje del PIB
+    - TX_RPCH / TM_RPCH — exportaciones e importaciones de bienes y
+      servicios, volumen, variación porcentual
+    - TRADEPCH — comercio de bienes y servicios, volumen, variación
+    - POILAPSP — petróleo crudo APSP, dólares por barril
+    - PALLFNFW / PNFUELW / PFOODW — índices de precios de materias primas
+    - LUR — tasa de desempleo
+    - NGAP_NPGDP — brecha del producto, porcentaje del PIB potencial
+
+  RELEVANTE PARA D7 (política de vintages) Y PARA SENDA §5.5: el WEO se
+  publica dos veces al año (abril y octubre) y cada publicación es un
+  vintage con su propio conjunto de proyecciones. Existe al menos un
+  cliente de R que expone recuperación de vintages históricos del WEO
+  por parámetro explícito de vintage — es decir, la reconstrucción
+  retrospectiva de vintages del WEO parece factible, a diferencia del
+  caso BCR. Si se confirma, habilita evaluación en tiempo real de los
+  supuestos exógenos, no solo de la variable objetivo. Esto excede lo
+  que ADR-007 contempló y debería discutirse antes de asumirlo.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

@@ -1,0 +1,37 @@
+publicacion_id: FMI.QNEA
+institucion_id: FMI
+nombre: "National Economic Accounts (NEA), Quarterly Data — cuentas nacionales trimestrales"
+periodicidad: trimestral
+formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/+
+cobertura_temporal: "No verificada. La cobertura efectiva de El Salvador (SLV) en este dataflow es precisamente el punto que debe comprobarse antes de asignarle cualquier rol en el proyecto. Pendiente verificación directa de Harold."
+condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Régimen de todos los derechos reservados con política de reuso no comercial; se aplica el default conservador de ADR-008 (script + checksum, no el archivo). Pendiente verificación directa de Harold."
+notas: |
+  Fuente: FMI, Departamento de Estadística (agencia SDMX IMF.STA),
+  dataflow QNEA, versión 7.0.0 al momento del relevamiento.
+
+  Es el sustituto, en la API nueva, de la parte de cuentas nacionales
+  trimestrales que antes vivía dentro de IFS. Existe además ANEA
+  (National Economic Accounts, Annual Data, IMF.STA 6.0.1) para el
+  equivalente anual, y QGDP_WCA (Quarterly GDP, World and Country
+  Aggregates, IMF.STA 3.0.0) para agregados mundiales y de grupos.
+
+  RELACIÓN CON EL BCR — no es una fuente sustituta. Si el FMI publica
+  PIB trimestral de El Salvador, será una retransmisión de lo que el
+  propio BCR le reporta, no una estimación independiente. El BCR sigue
+  siendo la fuente primaria de la variable objetivo (ADR-001 y su
+  enmienda). El valor potencial de esta entrada es otro y es doble:
+    (a) contraste de consistencia — si la serie del FMI difiere de la
+        del BCR, la diferencia es informativa sobre armonización
+        metodológica o sobre el momento de corte de la transmisión;
+    (b) posible fuente auxiliar de vintages — el FMI archiva lo que
+        recibe, y ese archivo puede contener versiones del PIB
+        salvadoreño anteriores a las que el portal del BCR conserva.
+        Esto es especulativo y NO debe asumirse sin verificar.
+
+  Antes de invertir esfuerzo acá conviene confirmar dos cosas: si SLV
+  aparece siquiera en el dataflow, y con qué rezago respecto de la
+  publicación del BCR.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

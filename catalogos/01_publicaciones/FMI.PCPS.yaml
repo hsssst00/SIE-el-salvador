@@ -1,0 +1,27 @@
+publicacion_id: FMI.PCPS
+institucion_id: FMI
+nombre: "Primary Commodity Price System (PCPS) — precios internacionales de materias primas"
+periodicidad: mensual
+formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+
+cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: FMI, Departamento de Investigación (agencia SDMX IMF.RES),
+  dataflow PCPS, versión 9.0.0 al momento del relevamiento.
+
+  Candidata directa a predictor de frecuencia mensual (senda §6.4) y a
+  insumo de escenarios exógenos del Ejercicio B (senda §1.3, que nombra
+  precios de importación entre los determinantes externos del error de
+  pronóstico del PIB salvadoreño).
+
+  Complementaria, NO sustituta, de BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR
+  ya catalogada: el índice del BCR mide precios de importación efectivos
+  de El Salvador, mientras que PCPS mide precios internacionales de
+  materias primas. El primero es el precio que El Salvador efectivamente
+  paga; el segundo es el shock externo que lo determina en parte. Como
+  predictor de frecuencia mensual, PCPS tiene la ventaja de publicarse
+  con menos rezago.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

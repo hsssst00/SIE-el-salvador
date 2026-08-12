@@ -1,0 +1,39 @@
+publicacion_id: BM.WDI
+institucion_id: BM
+nombre: "World Development Indicators (WDI)"
+periodicidad: anual
+formato: api (REST; JSON o XML) / csv / xlsx
+url: https://api.worldbank.org/v2/country/SLV/indicator
+cobertura_temporal: "Muchas series se remontan más de cincuenta años, según la documentación oficial de la API. Cobertura específica de El Salvador por indicador NO verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "LICENCIA ABIERTA — es el único caso así en el catálogo hasta la fecha. El Banco Mundial licencia por defecto sus datasets propios distribuidos como datos abiertos bajo Creative Commons Attribution 4.0 International (CC-BY 4.0), que permite copiar, modificar y distribuir en cualquier formato y para cualquier fin, incluido el comercial, con la sola obligación de dar crédito e indicar si se hicieron cambios. Aplican tres condiciones adicionales verificadas por Claude (2026-08-12): (i) una cláusula obligatoria y vinculante de mediación no vinculante para disputas; (ii) formato de atribución solicitado del tipo nombre del Banco Mundial, nombre del dataset, fuente original si se conoce; (iii) algunos datasets e indicadores provienen de terceros y NO pueden redistribuirse sin consentimiento del proveedor original — esas condiciones aparecen en los metadatos del indicador. Prohibido afirmar o sugerir respaldo del Banco Mundial. IMPLICACIÓN PARA ADR-008, pendiente de decisión de Harold: para los indicadores producidos por el propio Banco Mundial, el default conservador de script + checksum NO es obligatorio — los archivos L0 SÍ podrían comprometerse al repositorio público. Referencias: https://datacatalog.worldbank.org/public-licenses y https://data.worldbank.org/summary-terms-of-use. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: Banco Mundial. Base de datos insignia de la Indicators API v2.
+
+  Justificación: fuente anual de contraste y de variables que ninguna
+  fuente nacional publica con la misma armonización. El indicador de
+  mayor interés directo es el de remesas personales recibidas — las
+  remesas son, junto con la actividad de EE.UU., la variable externa
+  que la senda §1.3 identifica como dominante del error de pronóstico
+  a horizontes largos.
+
+  Limitación estructural: frecuencia anual. Para el Ejercicio A
+  (h = 1 a 8 trimestres) es de utilidad marginal. Su valor está en el
+  Ejercicio B (escenarios) y en la validación cruzada de niveles.
+  Redundante en varios conceptos con BCR y con FMI.WEO; el BCR sigue
+  siendo la fuente primaria para todo dato salvadoreño con equivalente
+  nacional, conforme al criterio ya aplicado en este proyecto.
+
+  Estructura de llamada, verificada contra la documentación oficial
+  (2026-08-12): el patrón es /v2/country/{código}/indicator/{código de
+  indicador}, con formato por defecto XML y JSON disponible por
+  parámetro. Ejemplo documentado oficialmente:
+  https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL
+
+  ADVERTENCIA DE VERIFICACIÓN: el identificador numérico de fuente de
+  WDI dentro de la API (habitualmente citado como id=2) NO pudo
+  confirmarse en esta sesión — la lectura del endpoint /v2/sources
+  devolvió solo la primera de dos páginas y WDI no aparecía en ella.
+  No es motivo de alarma, pero no debe darse por confirmado.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.

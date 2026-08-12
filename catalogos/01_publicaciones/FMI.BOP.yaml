@@ -1,0 +1,33 @@
+publicacion_id: FMI.BOP
+institucion_id: FMI
+nombre: "Balance of Payments (BOP) — balanza de pagos"
+periodicidad: trimestral
+formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/+
+cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
+condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Pendiente verificación directa de Harold."
+notas: |
+  Fuente: FMI, Departamento de Estadística (agencia SDMX IMF.STA),
+  dataflow BOP, versión 21.0.0 al momento del relevamiento.
+
+  Interés principal: remesas familiares (ingreso secundario de la cuenta
+  corriente). Las remesas son, junto con la actividad económica de
+  Estados Unidos, la variable externa que la senda §1.3 identifica como
+  dominante en el error de pronóstico del PIB salvadoreño a horizontes
+  largos.
+
+  Redundante respecto de BCR.BALANZA_PAGOS_TRIMESTRAL, ya catalogada, y
+  con la misma lógica que FMI.QNEA: el FMI retransmite lo que el BCR le
+  reporta bajo el marco BPM6. El BCR sigue siendo la fuente primaria.
+  Se cataloga por completitud del inventario y como posible contraste
+  de consistencia, no como candidata fuerte a insumo de modelación.
+
+  Existen dataflows relacionados que podrían ser más útiles que este
+  para el proyecto y que NO se catalogan todavía: IIP (International
+  Investment Position), ITG e IMTS (comercio internacional de bienes,
+  este último por país socio — potencialmente relevante para modelar la
+  exposición bilateral de El Salvador a EE.UU.), e ITS (comercio
+  internacional de servicios). Quedan pendientes de evaluación.
+
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
+  Pendiente verificación directa de Harold contra la API.
