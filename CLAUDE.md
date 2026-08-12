@@ -22,6 +22,10 @@ Fase 0 (decisiones fundacionales) — ver `doc/adr/README.md` para el estado exa
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.
 
+## Consideraciones sobre fuentes de datos
+
+- **Ministerio de Hacienda (MH): sin repositorio sistemático.** A diferencia del BCR (URLs `/serie/` individuales por publicación, mismo patrón estructural), el Portal de Transparencia Fiscal (PTF) expone múltiples tablas estáticas como widgets independientes dentro de una misma página HTML (ej. `PTF2-Ingresos.html`), cada una con su propia fecha de "Actualizado" y sin API ni endpoint por serie. Confirmado empíricamente (2026-08-11): 4 tablas en esa página con fechas de actualización entre sep-2019 y jun-2026. Trata cada tabla de Hacienda como un artefacto aislado que requiere verificación individual — la vigencia de una tabla en esa página NO implica la vigencia de otra. Consecuencia de diseño ya aplicada: BCR es la fuente primaria sobre Hacienda para series con equivalente (ver notas cruzadas en `01_publicaciones` y en `00_instituciones.csv`, entrada MH).
+
 ## Convenciones (senda metodológica §3.4)
 
 - Identificadores legibles y estables: `{fuente}.{concepto}.{unidad}.{ajuste}.{frecuencia}` — ej. `BCR.PIB.VOL.SA.Q`. Sufijo adicional opcional tras `{frecuencia}` para distinguir un tramo de captura distinta de la misma serie conceptual — ej. `BCR.PIB.VOL.NSA.Q.RETRO` (tramo retropolado) — ver senda metodológica §3.4.
