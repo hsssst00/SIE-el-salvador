@@ -4,7 +4,7 @@ nombre: "Tasas de Interés Bancarias y Rendimiento de Reportos — Metodología 
 periodicidad: semanal
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/5-1-4-1-tasas-de-interes-bancarias-y-rendimiento-de-reportos-semanal
-cobertura_temporal: "2005 – 31 de diciembre de 2021, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "7-ene-2005 a 31-dic-2021, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   DISCONTINUADA — última publicación 31-dic-2021, sustituida por la

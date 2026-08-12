@@ -4,7 +4,7 @@ nombre: "Panorama del Banco Central"
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/panorama-del-banco-central
-cobertura_temporal: "2001 – julio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "ene-2001 a jul-2026, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   MEMF 2001 (vigente). idCuadro=46. Millones de US$. 25 variables —

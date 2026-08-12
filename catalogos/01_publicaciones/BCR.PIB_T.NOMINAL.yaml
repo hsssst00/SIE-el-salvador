@@ -4,7 +4,7 @@ nombre: "Producto Interno Bruto Trimestral (PIB T) — Producción y gasto, a pr
 periodicidad: trimestral
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/producto-interno-bruto-trimestral-pib-t-produccion-y-gasto-a-precios-corrientes-en-millones-de-us
-cobertura_temporal: "2005-T1 a 2026-T1, verificado por Harold directamente contra el portal (2026-08-09)."
+cobertura_temporal: "2005-T1 a 2026-T1, re-verificado por Harold directamente contra el portal (2026-08-12) — resuelve una discrepancia aparente encontrada por Claude en un snippet de búsqueda (que en realidad mezclaba texto de un widget distinto de la misma página); el dato real hasta 2026-T1 queda confirmado."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Identificado vía relevamiento de Claude Cowork

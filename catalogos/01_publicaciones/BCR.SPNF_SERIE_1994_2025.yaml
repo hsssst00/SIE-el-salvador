@@ -4,7 +4,7 @@ nombre: "Sector Público No Financiero (Serie 1994-2025)"
 periodicidad: mensual
 formato: web
 url: https://estadisticas.bcr.gob.sv/serie/sector-publico-no-financiero
-cobertura_temporal: "1994-01 a 2025 (datos recientes en proceso de conciliación), según relevamiento externo de Claude (2026-08-11) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "1994-01 a 2025 (datos recientes en proceso de conciliación), verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Antecesora de BCR.SPNF_VIGENTE (serie desde ene-2020) —

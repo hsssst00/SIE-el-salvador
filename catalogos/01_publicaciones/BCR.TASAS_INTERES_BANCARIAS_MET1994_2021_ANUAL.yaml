@@ -4,7 +4,7 @@ nombre: "Tasas de Interés Bancarias y Rendimiento de Reportos — Metodología 
 periodicidad: anual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/5-1-4-3-tasas-de-interes-bancarias-y-rendimiento-de-reportos-anual
-cobertura_temporal: "1995 – 2021, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "1995 a 2021, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   DISCONTINUADA (2021). idCuadro=293. Versión anual de

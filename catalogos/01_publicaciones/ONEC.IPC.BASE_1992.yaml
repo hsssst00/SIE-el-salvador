@@ -4,7 +4,7 @@ nombre: "Índice de Precios al Consumidor (IPC), base diciembre 1992"
 periodicidad: mensual
 formato: web / csv / xlsx (Base de Datos Económica y Financiera)
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc-base-dic-1992-periodo-dic-1992-dic-2009
-cobertura_temporal: "dic-1992 (mes base, índice=100 por construcción, no observación independiente) + observaciones medidas de 1993-01 a 2009-12."
+cobertura_temporal: "dic-1992 (mes base, índice=100 por construcción, no observación independiente) + observaciones medidas de 1993-01 a 2009-12, verificado por Harold directamente contra el portal (2026-08-12): ene-1992 a nov-1992 son celdas vacías, no observaciones."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Producida originalmente por DIGESTYC (disuelta ago-2022); atribución de
@@ -26,3 +26,8 @@ notas: |
   BCR.PIB_T.SERIE_RETROPOLADA_1990_2005, que es un archivo puntual
   publicado solo en xlsx, no parte del portal interactivo — no aplica
   esta corrección a esa entrada.)
+
+  Confirmado por Harold (2026-08-12) directamente contra el portal:
+  los meses de ene-1992 a nov-1992 están vacíos (sin observación), no
+  son ceros ni valores interpolados — relevante para Fase 3 al
+  construir la serie maestra, para no confundir "sin dato" con "cero".

@@ -4,7 +4,7 @@ nombre: "PIB trimestral por producción y gasto — índices de volumen encadena
 periodicidad: trimestral
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/pib-t-produccion-y-gasto-indices-de-volumen-encadenados-serie-original-referencia-2014-indices-de-volumen-encadenados
-cobertura_temporal: "2005-T1/2026-T1 (a la fecha de esta captura)"
+cobertura_temporal: "2005-T1 a 2026-T1, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "Portal de libre consulta bajo marco de información pública de libre acceso; sin licencia de redistribución explícita — ver ADR-008."
 notas: |
   Producto independiente de BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA (M3,

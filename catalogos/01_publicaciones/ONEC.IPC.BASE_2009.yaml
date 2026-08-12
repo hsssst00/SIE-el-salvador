@@ -27,3 +27,8 @@ notas: |
   BCR.PIB_T.SERIE_RETROPOLADA_1990_2005, que es un archivo puntual
   publicado solo en xlsx, no parte del portal interactivo — no aplica
   esta corrección a esa entrada.)
+
+  Intento de verificación directa por Harold (2026-08-12): la URL
+  https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc
+  devolvió error 404 — no se pudo confirmar. Pendiente reintentar o
+  localizar la URL correcta.

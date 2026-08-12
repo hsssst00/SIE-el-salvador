@@ -4,7 +4,7 @@ nombre: "Deuda Pública Total Mensual (Serie desde enero 2002-2025)"
 periodicidad: mensual
 formato: web
 url: https://estadisticas.bcr.gob.sv/serie/deuda-publica-total
-cobertura_temporal: "ene-2002 a dic-2025, según relevamiento externo de Claude (2026-08-11) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "ene-2002 a dic-2025, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Antecesora de BCR.DEUDA_PUBLICA_TOTAL_VIGENTE (serie desde

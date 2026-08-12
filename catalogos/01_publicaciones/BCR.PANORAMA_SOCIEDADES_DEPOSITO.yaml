@@ -4,7 +4,7 @@ nombre: "Panorama de las Sociedades de Depósito"
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/panorama-de-las-sociedades-de-depositos
-cobertura_temporal: "2001 – junio de 2026, según relevamiento de Claude Cowork (2026-08-10) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "ene-2001 a jun-2026, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Estadísticas Monetarias según MEMF 2001 (metodología vigente).

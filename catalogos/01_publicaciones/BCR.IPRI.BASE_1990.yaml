@@ -22,3 +22,10 @@ notas: |
   la misma cautela que cualquier hallazgo de Cowork no confirmado.
   Anteriormente esta serie solo existía como referencia dentro de la
   nota de BCR.IPP.yaml, sin registro propio.
+
+  Intento de verificación directa por Harold (2026-08-12): la URL
+  https://estadisticas.bcr.gob.sv/clasificacion/sector-real devolvió
+  error 500 — no se pudo confirmar. Pendiente reintentar. Esta misma
+  URL es compartida con BCR.IVOPI.BASE_1990 y
+  BCR.IVAE.PROMEDIO_MOVIL_12M — si el error persiste, revisar también
+  esas dos publicaciones.
