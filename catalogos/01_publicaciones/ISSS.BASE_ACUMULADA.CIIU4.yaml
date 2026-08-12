@@ -1,0 +1,23 @@
+publicacion_id: ISSS.BASE_ACUMULADA.CIIU4
+institucion_id: ISSS
+nombre: "Base mensual acumulada de patronos y trabajadores reportados y cotizados por sector y actividad económica según CIIU Rev.4"
+periodicidad: "mensual (acumulativa dentro del año)"
+formato: web / xlsx
+url: https://www.transparencia.gob.sv/documentos/27-28
+cobertura_temporal: "2017 a may-2023. Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: ISSS, mismo repositorio y mismo estado de discontinuación que
+  ISSS.COTIZANTES.CIIU4 (última actualización mostrada por el portal:
+  12-ago-2024). Es la versión acumulada año-a-la-fecha del mismo dato —
+  podría cubrir algunos de los huecos declarados en la serie mensual
+  individual, pero no se ha verificado abriendo los archivos (fuera del
+  alcance del relevamiento de Cowork).
+
+  URL de descarga del archivo más reciente localizado (may-2023):
+  https://www.transparencia.gob.sv/descarga_archivo.php?id=<base64>&inst=597255
+  — no confirmada activa independientemente (a diferencia de la de
+  ISSS.COTIZANTES.CIIU4, que sí se probó).
+
+  Ver ISSS.COTIZANTES.CIIU4 para el detalle de la discontinuación y
+  09_rupturas.csv R014 para la nota de reserva de información.

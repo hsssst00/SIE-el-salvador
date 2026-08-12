@@ -1,0 +1,51 @@
+publicacion_id: ISSS.COTIZANTES.CIIU4
+institucion_id: ISSS
+nombre: "Patronos y trabajadores reportados y cotizados al ISSS (número y salarios medios mensuales)"
+periodicidad: mensual
+formato: web / xlsx
+url: https://www.transparencia.gob.sv/documentos/27-28
+cobertura_temporal: "sep-2017 a may-2023 (63 entregas localizadas, con huecos declarados — ver notas). Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold contra el portal."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008). Sin licencia abierta. Portal opera bajo LAIP; reproducción de documentos cuesta $0.04/página vía solicitud formal."
+notas: |
+  Fuente: ISSS, vía Portal de Transparencia institucional (institución id=27,
+  sección Estadísticas, documentos/27-28) — NO en isss.gob.sv, que no tiene
+  sección de estadísticas (confirmado por Cowork y cross-check directo de
+  Claude sobre el mapa completo del sitio, 2026-08-12).
+
+  Serie prioritaria para el proyecto: predictor mensual de empleo (senda
+  §6.4). PERO discontinuada: última entrega corresponde a may-2023, y esa
+  entrega en particular se cargó tarde — el sello de "última actualización"
+  de la página es 12-ago-2024, más de un año después del dato que contiene.
+  Sin publicaciones nuevas detectadas en 2024, 2025 ni 2026 (filtro por año
+  del propio portal, verificado por Cowork).
+
+  Huecos declarados en la serie mensual (sep-2017 a may-2023), sin verificar
+  si el archivo acumulado (ver ISSS.BASE_ACUMULADA.CIIU4) los cubre:
+  2018-01; 2019-03, 04, 06; 2020-01, 02, 03, 09, 10, 12; 2022-02 a 2022-07
+  (seis meses seguidos); 2023-04.
+
+  Lag estructural declarado por el propio ISSS (Informe de Coyuntura): un
+  mes de gracia para presentación/pago de planilla + tiempo de validación,
+  ~2 meses de rezago entre mes de referencia y publicación. Relevante para
+  cualquier uso como predictor en tiempo real si la serie se reactivara.
+
+  URL de descarga del archivo más reciente localizado (may-2023):
+  https://www.transparencia.gob.sv/descarga_archivo.php?id=NTk3MjU2&inst=597256
+  — confirmada activa (no 404) por Claude, 2026-08-12. No hay URL estable
+  por mes; el listado se carga dinámicamente (POST a documentosListar.php),
+  así que la URL de arriba (landing de la sección) es la única entrada
+  estable documentable.
+
+  Ruptura metodológica CIIU Rev.3 → CIIU Rev.4 en 2017 (serie histórica
+  CIIU 3 detectada pero no catalogada todavía). Empalmar pre/post-2017
+  requiere cuidado.
+
+  Ver 09_rupturas.csv R014 para la discontinuación y la nota aclaratoria
+  de reserva de información (art. 19 LAIP) que el ISSS invoca sobre el
+  estándar Estadísticas completo — verificada directamente por Harold
+  contra los documentos primarios (PDF de la nota + PDF del índice de
+  reserva vigente a jun-2026), no relevamiento externo.
+
+  Nombre de archivo publicado con higiene deficiente detectado en un mes
+  de la serie: "Copia_de_5._BD_Actividad_Economica.xlsx" — nombre de
+  trabajo interno, no un nombre de publicación curado.

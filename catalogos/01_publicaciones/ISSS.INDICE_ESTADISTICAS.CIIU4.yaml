@@ -1,0 +1,15 @@
+publicacion_id: ISSS.INDICE_ESTADISTICAS.CIIU4
+institucion_id: ISSS
+nombre: "Índice de estadísticas de patronos y trabajadores CIIU 4"
+periodicidad: anual
+formato: web / pdf
+url: https://www.transparencia.gob.sv/documentos/27-28
+cobertura_temporal: "Año 2023 (actualizado a febrero 2023), subido 02-may-2023. Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+notas: |
+  Fuente: ISSS. Documento índice/metadato de la serie de cotizantes
+  (ISSS.COTIZANTES.CIIU4), no una serie de datos en sí — utilidad
+  limitada para el proyecto, catalogado por completitud del inventario
+  de la sección Estadísticas. Última entrega: Año 2023. Sin entregas
+  posteriores detectadas, consistente con la discontinuación general
+  documentada en 09_rupturas.csv R014.
