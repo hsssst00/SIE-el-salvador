@@ -26,3 +26,25 @@ El PIB trimestral se revisa. Si los modelos se evalúan contra la serie revisada
 - Habilita la evaluación en tiempo real (§5.5 de la senda metodológica) y la cuantificación de la magnitud y el sesgo de las revisiones del PIB salvadoreño como resultado publicable independiente.
 - Resuelve por extensión el sub-punto "vintage de referencia" de ADR-001: evaluación contra el vintage disponible en cada origen de pronóstico como criterio primario.
 - Cada publicación del BCR no archivada desde hoy es información irrecuperable — la captura prospectiva debe iniciar de inmediato, incluso antes de que exista automatización (Fase 2). Hasta entonces, la captura es manual.
+
+## Nota de alcance — vintages de predictores externos (2026-08-12)
+
+El inventario de Fase 1 identificó dos fuentes de *vintages* que este ADR no contempló, porque al redactarse solo estaba a la vista el caso del BCR:
+
+- **ALFRED**, el archivo de versiones del Federal Reserve Bank of St. Louis, que expone el historial de revisiones de las series estadounidenses y un *endpoint* de fechas de revisión por serie.
+- **Los vintages históricos del World Economic Outlook del FMI**, publicados dos veces al año, cada uno con su propio conjunto de proyecciones.
+
+**El diseño de datos no requiere cambio alguno.** En `08_vintages`, el `vintage_id` está ligado a `publicacion_id`, que es genérico: un *vintage* del WEO o de una serie de FRED entra en el catálogo sin tocar el esquema. La advertencia de la senda metodológica §2 (D7) sobre el costo de añadir tarde la dimensión de *vintage* no aplica acá, porque la dimensión ya existe y ya es general.
+
+**Asimetría que sí cambia la prioridad, y que este ADR trataba de forma uniforme por no haberla visto:**
+
+| | Vintages del BCR | Vintages de ALFRED y del WEO |
+|---|---|---|
+| Recuperación | Irrecuperables. Cada publicación no archivada en su momento desaparece de forma permanente. | Recuperables a demanda desde la API, en cualquier momento futuro. |
+| Urgencia | Máxima. La captura prospectiva debe ocurrir aunque no exista automatización. | Ninguna. Postergarlos no cuesta información. |
+
+Este ADR trata todos los *vintages* como eventos que hay que capturar al pasar, lo cual es correcto para el BCR y no lo es para las fuentes internacionales. La captura prospectiva del BCR conserva su carácter de compromiso firme e inmediato, sin cambio.
+
+**Decisión de alcance.** La incorporación de *vintages* de predictores externos —y con ella la evaluación en tiempo real de los predictores, no solo de la variable objetivo (senda metodológica §5.5)— queda **fuera del núcleo mínimo viable**. Corresponde a la extensión 2 de la senda §9 ("reconstrucción retrospectiva de vintages y estudio de revisiones"), explícitamente clasificada allí como extensión y no como compromiso firme.
+
+**Observación de diseño que sí conviene aprovechar antes de Fase 2.** ALFRED es una implementación en producción del mismo diseño bitemporal que este proyecto construye. Revisar cómo modela el concepto de período en tiempo real tiene costo bajo y puede anticipar casos que el modelo propio no resuelva. Es una revisión conceptual de referencia, no una tarea de adquisición de datos, y no reabre la decisión de alcance de esta nota.
