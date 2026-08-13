@@ -2,36 +2,297 @@ publicacion_id: FMI.QNEA
 institucion_id: FMI
 nombre: "National Economic Accounts (NEA), Quarterly Data — cuentas nacionales trimestrales"
 periodicidad: trimestral
-formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
-url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/+
-cobertura_temporal: "No verificada. La cobertura efectiva de El Salvador (SLV) en este dataflow es precisamente el punto que debe comprobarse antes de asignarle cualquier rol en el proyecto. Pendiente verificación directa de Harold."
-condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Régimen de todos los derechos reservados con política de reuso no comercial; se aplica el default conservador de ADR-008 (script + checksum, no el archivo). Pendiente verificación directa de Harold."
+formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0 / SDMX-CSV 2.0.0)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/7.0.0
+cobertura_temporal: "2000-Q1 a 2026-Q1 (105 trimestres) para los agregados; 2005-Q1 a 2026-Q1 (85 trimestres) para las desagregaciones. Verificado por consulta directa a la API el 2026-08-13. El archivo de versiones históricas accesible vía el parámetro asOf arranca el 2025-03-29 — ver notas."
+condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Régimen de todos los derechos reservados con política de reuso no comercial; se aplica el default conservador de ADR-008 (script + checksum, no el archivo), conforme a la enmienda del 2026-08-12 de ese ADR. Pendiente verificación directa de Harold de la página de términos."
 notas: |
   Fuente: FMI, Departamento de Estadística (agencia SDMX IMF.STA),
-  dataflow QNEA, versión 7.0.0 al momento del relevamiento.
+  dataflow QNEA, versión 7.0.0.
 
-  Es el sustituto, en la API nueva, de la parte de cuentas nacionales
-  trimestrales que antes vivía dentro de IFS. Existe además ANEA
-  (National Economic Accounts, Annual Data, IMF.STA 6.0.1) para el
-  equivalente anual, y QGDP_WCA (Quarterly GDP, World and Country
-  Aggregates, IMF.STA 3.0.0) para agregados mundiales y de grupos.
+  ESTATUS PROBATORIO DE ESTA FICHA — distinto del resto del bloque de
+  organismos internacionales. Todo lo que sigue fue verificado por
+  consulta directa a la API entre el 2026-08-12 y el 2026-08-13, con
+  controles de reproducibilidad byte a byte. No es relevamiento web.
+  Los puntos que siguen siendo inferencia están marcados como tales.
 
-  RELACIÓN CON EL BCR — no es una fuente sustituta. Si el FMI publica
-  PIB trimestral de El Salvador, será una retransmisión de lo que el
-  propio BCR le reporta, no una estimación independiente. El BCR sigue
-  siendo la fuente primaria de la variable objetivo (ADR-001 y su
-  enmienda). El valor potencial de esta entrada es otro y es doble:
-    (a) contraste de consistencia — si la serie del FMI difiere de la
-        del BCR, la diferencia es informativa sobre armonización
-        metodológica o sobre el momento de corte de la transmisión;
-    (b) posible fuente auxiliar de vintages — el FMI archiva lo que
-        recibe, y ese archivo puede contener versiones del PIB
-        salvadoreño anteriores a las que el portal del BCR conserva.
-        Esto es especulativo y NO debe asumirse sin verificar.
+  ## Estructura de la consulta
 
-  Antes de invertir esfuerzo acá conviene confirmar dos cosas: si SLV
-  aparece siquiera en el dataflow, y con qué rezago respecto de la
-  publicación del BCR.
+  Clave de seis dimensiones, en este orden posicional:
+  COUNTRY.INDICATOR.PRICE_TYPE.S_ADJUSTMENT.TYPE_OF_TRANSFORMATION.FREQUENCY
 
-  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
-  Pendiente verificación directa de Harold contra la API.
+  Codelists: CL_COUNTRY, CL_NEA_INDICATOR (78 códigos),
+  CL_NEA_PRICE_TYPE (Q volumen, V valor corriente, PD deflactor),
+  CL_S_ADJUSTMENT, CL_NEA_TYPE_OF_TRANSFORMATION (8 códigos: XDC, USD,
+  IX, PU, POGDP_PT, PT, YOY_PCH_PT, POP_PCH_PT), CL_FREQ.
+
+  El DSD asociado es DSD_QNEA (agencia IMF.STA).
+
+  PARÁMETROS DE CONSULTA — la API implementa SDMX 3.0 y **no** acepta
+  la sintaxis de SDMX 2.1. Verificado con controles cruzados:
+    - Filtro temporal: c[TIME_PERIOD]=ge:AAAA-Qn+le:AAAA-Qn. Funciona.
+      startPeriod y endPeriod se ignoran EN SILENCIO, con respuesta
+      HTTP 200 y sin aviso alguno. Es una fuente de error grave: una
+      consulta con startPeriod devuelve la serie completa sin señalar
+      que el filtro no se aplicó.
+    - detail se ignora igual; en 3.0 lo sustituyen attributes y measures.
+    - limit, offset, updatedAfter y asOf sí se honran.
+    - includeHistory se ignora en silencio, pese a ser parámetro válido
+      de SDMX 3.0. El historial se obtiene por asOf, no por este.
+
+  ## Cobertura para El Salvador
+
+  228 series listadas, 40 con observaciones. Las 40 comparten
+  S_ADJUSTMENT=NSA, TYPE_OF_TRANSFORMATION=XDC, FREQUENCY=Q — son 20
+  indicadores × 2 tipos de precio (Q y V).
+
+  Verificado sin ambigüedad: NINGUNA serie con S_ADJUSTMENT=SA tiene
+  observaciones para SLV, y NINGUNA con TYPE_OF_TRANSFORMATION=USD las
+  tiene. No es limitación de la consulta; es disponibilidad real.
+
+  Los 20 indicadores poblados son, sin excepción, componentes del PIB
+  por el ENFOQUE DEL GASTO. QNEA no aporta ninguna serie de El Salvador
+  por el enfoque de producción: no hay ningún B1G_* poblado, pese a que
+  la codelist define decenas de códigos de valor agregado por rama.
+
+  Agregados, 2000-Q1 a 2026-Q1 (105 obs):
+    B1GQ    Producto interno bruto
+    B11     Saldo externo de bienes y servicios
+    P3      Gasto de consumo final
+    P3_S13  Gasto de consumo final, gobierno general
+    P3_PS   Gasto de consumo final, sector privado
+    P5      Formación bruta de capital
+    P6      Exportaciones de bienes y servicios
+    P7      Importaciones de bienes y servicios
+
+  Desagregaciones, 2005-Q1 a 2026-Q1 (85 obs):
+    P51G    Formación bruta de capital fijo
+    P52     Variación de existencias
+    P52_PS  Variación de existencias, sector privado
+    P61     Exportaciones de bienes
+    P62     Exportaciones de servicios
+    P71     Importaciones de bienes
+    P72     Importaciones de servicios
+    N111N   Adquisiciones menos disposiciones de activos fijos:
+            estructuras residenciales
+    P511N113N  Adquisiciones menos disposiciones de activos fijos:
+            maquinaria y equipo (identificador oficial de la codelist,
+            no un artefacto de extracción pese a su apariencia)
+    YA0     Discrepancia estadística (enfoque del gasto)
+
+  Interrumpidas, 2005-Q1 a 2023-Q4 (76 obs):
+    P3_S14  Gasto de consumo final, hogares
+    P3_S15  Gasto de consumo final, ISFLSH
+
+  ## Ruptura de 2005 — corroboración independiente de ADR-003
+
+  El corte entre agregados (desde 2000) y desagregaciones (desde 2005)
+  no es casual. 2005 es el año de referencia de la retropolación del
+  BCR anclada en 2005=100, documentada en
+  doc/metodologia/empalme_cuentas_nacionales.md. El FMI recibió del BCR
+  el agregado retropolado hasta 2000, pero el desglose solo existe
+  desde donde la metodología vigente lo produce.
+
+  Es corroboración desde una segunda fuente de dónde empieza el tramo
+  homogéneo, obtenida sin costo adicional. Refuerza ADR-003.
+
+  ## Interrupción de P3_S14 y P3_S15 en 2023-Q4
+
+  Verificado: es AUSENCIA de observaciones, no observaciones con valor
+  vacío. El DSD de QNEA no define ningún atributo OBS_STATUS, y los
+  cuatro atributos de nivel observación que sí existen (PRECISION,
+  DERIVATION_TYPE, COMPUTATIONAL_NOTE, CONFIDENTIALITY_STATUS) no
+  varían en la última observación antes del corte.
+
+  P3_PS, que es la suma de ambas, continúa hasta 2026-Q1 y además
+  empieza cinco años antes (2000 frente a 2005). El agregado no se
+  interrumpió; lo que se dejó de difundir es la apertura.
+
+  PENDIENTE, y decide dónde se registra esto: falta establecer si el
+  BCR dejó de PRODUCIR la apertura o el FMI dejó de DIFUNDIRLA. Si el
+  BCR sigue publicando hogares e ISFLSH por separado en su portal, esto
+  es limitación de difusión del FMI y se queda en esta nota. Si el BCR
+  también dejó de publicarla, es discontinuidad de la serie salvadoreña
+  y corresponde entrada en 09_rupturas.csv, categoría análoga a R014
+  (ISSS). Nueve trimestres de ausencia son demasiados para ser rezago
+  de reporte.
+
+  ## Aditividad — distinta según el tipo de precio
+
+  Verificado sobre los cuatro trimestres de 2023 en que las tres series
+  coexisten:
+    - En PRICE_TYPE=V (valor corriente), P3_S14 + P3_S15 = P3_PS de
+      forma exacta, con diferencias del orden de 1e-6 atribuibles a
+      redondeo de punto flotante.
+    - En PRICE_TYPE=Q (volumen), NO se cumple exactamente. La
+      diferencia es del orden de 0.007% a 0.024%, pequeña pero
+      sistemática.
+
+  INFERENCIA, no hecho verificado: la explicación más parsimoniosa es
+  la no-aditividad propia de las medidas de volumen encadenado, que es
+  un fenómeno esperado y documentado en cuentas nacionales bajo SCN
+  2008. No se confirmó contra documentación metodológica del FMI. Si
+  sumara exacto en volumen habría motivo para sospechar que no son
+  índices encadenados, de modo que el resultado observado es el que
+  corresponde a la naturaleza declarada de la serie.
+
+  Consecuencia práctica: cualquier cálculo que use esta relación debe
+  distinguir ambos casos.
+
+  ## Unidad monetaria y dolarización
+
+  La dimensión TYPE_OF_TRANSFORMATION expone XDC, que significa moneda
+  nacional, no dólar. La serie arranca en 2000-Q1, antes de la
+  dolarización de enero de 2001, de modo que el tramo de 2000 podría
+  estar en colones.
+
+  Verificado que NO lo está. Dos evidencias independientes:
+    - El cociente entre 2001-Q1 y 2000-Q4 es 0.9516 en valor corriente
+      y 0.9210 en volumen. Ninguno se acerca a 8.75 ni a su recíproco
+      (0.1143), que es el tipo de cambio de la dolarización.
+    - Los cuatro trimestres de 2000 suman del orden de 11,784 millones,
+      que es la magnitud conocida del PIB nominal de El Salvador de ese
+      año en dólares. En colones habrían rondado los 103,000 millones.
+
+  El FMI, o el BCR en su reporte al FMI, ya convirtió el tramo previo a
+  una base monetaria continua. No hay cambio de unidad dentro de la
+  serie y no corresponde entrada en 09_rupturas.csv.
+
+  LIMITACIÓN DE LA VERIFICACIÓN, que debe quedar registrada: los
+  atributos NO respaldan esta conclusión, y no porque la contradigan.
+  El atributo UNIT existe en el DSD pero el endpoint /data no lo puebla
+  — viene vacío en las 40 series pobladas, confirmado en SDMX-JSON y en
+  SDMX-CSV de forma independiente. Además, UNIT está adjunto a la
+  dimensión TYPE_OF_TRANSFORMATION completa, no a la observación, así
+  que estructuralmente no podría variar dentro de una serie aunque
+  estuviera poblado. La conclusión descansa en las dos evidencias
+  numéricas, no en metadatos.
+
+  ## Mecanismo de vintages vía asOf — hallazgo principal
+
+  La API implementa el parámetro asOf de SDMX 3.0, que devuelve los
+  datos tal como estaban en un momento dado. includeHistory, en cambio,
+  se ignora.
+
+  Evidencia de que el mecanismo es real y no un artefacto:
+    - updatedAfter con fecha futura devuelve cuerpo vacío, lo que
+      prueba que el servidor procesa parámetros de tipo temporal.
+    - La combinación de updatedAfter posterior a asOf devuelve HTTP 403
+      de forma reproducible, mientras que el orden válido devuelve 200.
+      El servidor evalúa la relación entre ambos parámetros.
+    - Consultas repetidas con el mismo asOf devuelven respuesta
+      byte-idéntica. Las diferencias entre estados dependen de asOf y
+      no del momento de la consulta.
+
+  REVISIONES MEDIDAS. Comparando el mismo trimestre entre estados
+  sucesivos de B1GQ.V.NSA.XDC.Q, el gradiente es monótono y ordenado
+  por antigüedad:
+
+    trimestre   diferencia absoluta   diferencia relativa
+    2010-Q1                    1.31              3 e-10
+    2015-Q1                2,113                 3.8 e-7
+    2020-Q1            1,564,194                 2.4 e-4
+    2023-Q4          133,859,741                 1.5 e-2
+
+  Ocho órdenes de magnitud de gradiente, con el trimestre más reciente
+  revisado 1.5% y los antiguos asentados. Es el patrón esperado de
+  revisión de cuentas nacionales y no es explicable por truncamiento ni
+  por redondeo.
+
+  Esto es relevante para la senda metodológica §2 (D7), que plantea la
+  cuantificación de las revisiones del PIB salvadoreño como resultado
+  de interés propio. Es la primera medición directa de una revisión que
+  el proyecto tiene. Con un solo trimestre y un archivo defectuoso no
+  sustenta un resultado, pero fija un orden de magnitud.
+
+  ## Limitaciones del archivo de vintages — por qué NO sirve para
+  ## evaluación en tiempo real
+
+  Tres limitaciones, todas verificadas:
+
+  1. EL ARCHIVO ARRANCA EL 2025-03-29 y ese primer estado es una CARGA
+     DE PLATAFORMA, no un evento de publicación. Acotado por bisección
+     al día exacto: el 2025-03-28 devuelve fila-plantilla vacía y el
+     2025-03-29 devuelve datos. La prueba de que es carga de plataforma
+     es que la misma frontera, el mismo día, aplica a Estados Unidos
+     (cuya serie arranca en 1950-Q1) y a México (1993-Q1) — tres países
+     con coberturas históricas completamente distintas saltan a datos
+     el mismo día. Además, el 2025-03-29 fue sábado. Un banco central
+     no publica cuentas nacionales en sábado; un proceso de carga por
+     lotes corre cualquier día.
+
+     Consecuencia: el primer estado no representa lo que se sabía en
+     esa fecha. Debe excluirse de cualquier uso como instantánea
+     informativa.
+
+  2. EL ARCHIVO NO ES MONÓTONO. El estado del 2025-06-01 contiene
+     SIETE observaciones menos que el del 2025-03-29: faltan los cuatro
+     trimestres de 2022 y el borde derecho retrocede de 2024-Q3 a
+     2023-Q4. Es decir, en junio de 2025 la base del FMI afirmaba saber
+     menos que en marzo del mismo año.
+
+     Alcance del incidente, verificado: afecta a múltiples series de El
+     Salvador (B1GQ en volumen, P3, P6, además de B1GQ en valor), y en
+     todas faltan exactamente los mismos cuatro trimestres de 2022. NO
+     afecta a Estados Unidos ni a México, completos en la misma fecha.
+     Es un incidente específico de El Salvador.
+
+     Ventana: presente el 2025-06-01 y todavía el 2025-08-01; resuelto
+     ya el 2025-10-01 y estable en adelante. Duró entre tres y cinco
+     meses. La fecha exacta de resolución no se acotó.
+
+  3. asOf REFLEJA EL ESTADO DE LA BASE DEL FMI, NO EL CALENDARIO DE
+     PUBLICACIÓN DEL BCR. Entre que el BCR publica y el FMI carga hay
+     un rezago desconocido, y el incidente del punto 2 demuestra que la
+     base del FMI tiene estados que no corresponden a ninguna
+     publicación del BCR.
+
+  CONCLUSIÓN OPERATIVA: el archivo no puede usarse para construir
+  orígenes de pronóstico en tiempo real (senda metodológica §5.5). Un
+  conjunto de datos en tiempo real presupone que la información
+  disponible crece de forma monótona; acá no crece. Un modelo evaluado
+  contra el estado de junio de 2025 "habría visto" tres trimestres
+  menos que contra el de marzo, por una falla de plataforma sin
+  relación con lo que el BCR había publicado. Eso introduciría un
+  artefacto en la evaluación.
+
+  Ver la nota de alcance de ADR-007 del 2026-08-13.
+
+  ## Rol de esta publicación en el proyecto
+
+  El BCR sigue siendo la fuente primaria de la variable objetivo
+  (ADR-001 y su enmienda). Esta publicación NO es fuente sustituta.
+
+  Valor diferencial, en orden:
+
+    (a) VEINTE TRIMESTRES QUE EL BCR VIGENTE NO TIENE. Las tres
+        publicaciones BCR.PIB_T.* catalogadas cubren 2005-T1 a 2026-T1.
+        Los agregados de QNEA arrancan en 2000-Q1. PENDIENTE de
+        verificar si la serie retropolada del BCR (1990-T1 a 2005-T4)
+        incluye descomposición por el gasto o solo el agregado. Si es
+        solo el agregado, QNEA aporta componentes del gasto para
+        2000-2004 que el proyecto no tiene por ninguna otra vía.
+
+    (b) CONTRASTE DE CONSISTENCIA con lo que el BCR reporta al FMI,
+        frente a lo que publica en su propio portal.
+
+    (c) MEDICIÓN DE REVISIONES, con las limitaciones ya expuestas.
+
+  ## Notas operativas
+
+  El endpoint /data no puebla los atributos de nivel grupo-parcial
+  (UNIT, TRANSFORMATION, NA_STO, ACTIVITY, SECTOR, ACCOUNTS,
+  INDEX_TYPE, PRICES). Vienen vacíos en todas las respuestas. No se
+  determinó si es limitación permanente, defecto de este despliegue, o
+  característica general de la implementación del FMI.
+
+  La combinación de updatedAfter posterior a asOf devuelve HTTP 403 con
+  cabecera WWW-Authenticate indicando privilegios insuficientes, en vez
+  del HTTP 400 que la especificación SDMX prevé. Sugiere la existencia
+  de un nivel autenticado de la API. No se investigó. Si en el futuro
+  el proyecto necesitara mayor profundidad de historial, ese es el
+  punto por donde indagar.
+
+  Verificado por consulta directa a la API entre el 2026-08-12 y el
+  2026-08-13, con controles de reproducibilidad. Los puntos marcados
+  como PENDIENTE o INFERENCIA no lo están.

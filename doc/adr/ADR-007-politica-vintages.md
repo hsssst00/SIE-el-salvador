@@ -48,3 +48,30 @@ Este ADR trata todos los *vintages* como eventos que hay que capturar al pasar, 
 **Decisión de alcance.** La incorporación de *vintages* de predictores externos —y con ella la evaluación en tiempo real de los predictores, no solo de la variable objetivo (senda metodológica §5.5)— queda **fuera del núcleo mínimo viable**. Corresponde a la extensión 2 de la senda §9 ("reconstrucción retrospectiva de vintages y estudio de revisiones"), explícitamente clasificada allí como extensión y no como compromiso firme.
 
 **Observación de diseño que sí conviene aprovechar antes de Fase 2.** ALFRED es una implementación en producción del mismo diseño bitemporal que este proyecto construye. Revisar cómo modela el concepto de período en tiempo real tiene costo bajo y puede anticipar casos que el modelo propio no resuelva. Es una revisión conceptual de referencia, no una tarea de adquisición de datos, y no reabre la decisión de alcance de esta nota.
+
+## Nota de alcance — vintages de la variable objetivo vía el FMI (2026-08-13)
+
+Esta nota complementa la del 2026-08-12 y registra un hallazgo verificado que, a primera vista, podría parecer que contradice la premisa de este ADR. No la contradice, pero acota su alcance con precisión y conviene dejar el análisis asentado.
+
+**El hallazgo.** El dataflow QNEA del FMI implementa el parámetro `asOf` de SDMX 3.0, que devuelve el estado de los datos en un momento dado. Para El Salvador el mecanismo funciona: se midieron revisiones del PIB trimestral entre estados sucesivos, con un gradiente monótono ordenado por antigüedad del trimestre —desde 3e-10 de diferencia relativa en 2010-Q1 hasta 1.5% en 2023-Q4—, que es el patrón esperado de revisión de cuentas nacionales. Todo verificado por consulta directa con controles de reproducibilidad byte a byte. El detalle completo está en `catalogos/01_publicaciones/FMI.QNEA.yaml`.
+
+**Por qué la premisa de este ADR sale intacta.** Este ADR sostiene que la reconstrucción retrospectiva de *vintages* del PIB salvadoreño es probablemente inviable, y acota el esfuerzo a la captura prospectiva. Tres hechos verificados confirman esa premisa en vez de refutarla:
+
+1. **El archivo arranca el 2025-03-29 y ese primer estado es una carga de plataforma, no una publicación.** La misma fecha frontera, al día, aplica a Estados Unidos y a México, cuyas series arrancan en 1950 y 1993 respectivamente. Tres países con coberturas históricas incomparables saltando a datos el mismo día no es un calendario de publicación; es un volcado. La fecha además cayó en sábado.
+
+2. **El archivo no es monótono.** El estado del 2025-06-01 contiene siete observaciones menos que el del 2025-03-29 —faltan los cuatro trimestres de 2022 y el borde derecho retrocede tres trimestres—, y el incidente afecta a varias series de El Salvador pero no a Estados Unidos ni a México. Se resolvió entre agosto y octubre de 2025. Un archivo del que desaparecen datos y luego reaparecen no es un registro fiel de publicaciones.
+
+3. **`asOf` refleja el estado de la base del FMI, no el calendario del BCR.** El punto 2 lo demuestra: hubo estados de la base del FMI que no corresponden a ninguna publicación del BCR.
+
+En síntesis: no hay nada que reconstruir hacia atrás. La ventana es de diecisiete meses, su extremo inicial es un artefacto de migración, y contiene al menos un estado corrupto. **La decisión de este ADR no se modifica.**
+
+**Lo que sí se corrige de la nota del 2026-08-12.** Aquella nota clasificó los *vintages* de fuentes internacionales como "recuperables a demanda, sin urgencia", por contraste con los del BCR, que son irrecuperables. Esa clasificación es correcta pero incompleta en un punto: nada garantiza que el FMI conserve indefinidamente sus registros de validez, ni que sobrevivan a la próxima migración de plataforma —y el hallazgo del punto 1 muestra que las migraciones de plataforma del FMI sí destruyen historial anterior, porque el archivo actual no contiene nada previo al volcado de marzo de 2025.
+
+Esto no convierte el asunto en urgente: no hay indicio de poda activa, y el archivo crece con el tiempo. Pero "recuperable a demanda" debe leerse como "recuperable mientras la plataforma actual siga en pie", no como una garantía permanente.
+
+**Uso admisible y uso inadmisible.** Queda registrado, para que no haya que redescubrirlo:
+
+- **Inadmisible:** construir orígenes de pronóstico en tiempo real (senda metodológica §5.5) a partir de este archivo. Un conjunto de datos en tiempo real presupone información que crece de forma monótona; el incidente de 2022 rompe ese supuesto e introduciría un artefacto de plataforma en la evaluación predictiva.
+- **Admisible:** medir la magnitud de las revisiones del PIB salvadoreño, que la senda §2 (D7) plantea como resultado de interés propio. Con un archivo de diecisiete meses y un estado corrupto no alcanza para un resultado publicable, pero es la primera medición directa de una revisión que el proyecto tiene y fija un orden de magnitud.
+
+**Sin cambio en la captura prospectiva del BCR.** Sigue siendo compromiso firme e inmediato, sin alteración. Este hallazgo no provee un sustituto ni reduce su urgencia.
