@@ -261,22 +261,105 @@ notas: |
   ## Rol de esta publicación en el proyecto
 
   El BCR sigue siendo la fuente primaria de la variable objetivo
-  (ADR-001 y su enmienda). Esta publicación NO es fuente sustituta.
+  (ADR-001 y su enmienda). Esta publicación NO es fuente sustituta ni
+  complementaria en cobertura.
 
-  Valor diferencial, en orden:
+  CORRECCIÓN 2026-08-13 — se retira el valor diferencial declarado
+  originalmente. La versión anterior de esta ficha sostenía que QNEA
+  aportaba veinte trimestres de componentes del gasto (2000-2004) que
+  el BCR vigente no cubre, dejando pendiente verificar si la serie
+  retropolada del BCR incluía esa descomposición. Se verificó por
+  lectura directa del archivo de L0_raw: SÍ la incluye.
 
-    (a) VEINTE TRIMESTRES QUE EL BCR VIGENTE NO TIENE. Las tres
-        publicaciones BCR.PIB_T.* catalogadas cubren 2005-T1 a 2026-T1.
-        Los agregados de QNEA arrancan en 2000-Q1. PENDIENTE de
-        verificar si la serie retropolada del BCR (1990-T1 a 2005-T4)
-        incluye descomposición por el gasto o solo el agregado. Si es
-        solo el agregado, QNEA aporta componentes del gasto para
-        2000-2004 que el proyecto no tiene por ninguna otra vía.
+  El archivo BCR_pib_t_retropolado_1990_2005 trae los seis rubros del
+  gasto (gasto de consumo final, consumo privado, consumo público,
+  formación de capital, exportaciones, importaciones) con cobertura
+  completa 1990-Q1 a 2005-Q4, y en DOS unidades: índices de volumen
+  encadenados en la hoja T2 y millones de dólares corrientes en la hoja
+  T1. El archivo vigente trae la misma desagregación en volumen para
+  2005-Q1 a 2026-Q1.
 
-    (b) CONTRASTE DE CONSISTENCIA con lo que el BCR reporta al FMI,
-        frente a lo que publica en su propio portal.
+  Es decir: el BCR publica los componentes del gasto desde 1990, QNEA
+  desde 2000. QNEA no aporta cobertura que el proyecto no tenga; aporta
+  diez años menos. Las series correspondientes quedaron registradas en
+  03_series.csv el 2026-08-13 (commit a0be6ae).
 
-    (c) MEDICIÓN DE REVISIONES, con las limitaciones ya expuestas.
+  Valor diferencial que sí subsiste, en orden:
+
+    (a) DESAGREGACIONES QUE EL BCR NO PUBLICA. Son dos: la apertura de
+        comercio exterior entre bienes y servicios (P61, P62, P71, P72)
+        y la variación de existencias como serie propia (P52). Ninguna
+        aparece en ningún archivo del BCR examinado. También expone la
+        discrepancia estadística como serie propia (YA0) y el saldo
+        externo (B11), que el BCR no reporta por separado.
+
+        ADVERTENCIA: este valor está sujeto a que la calidad de QNEA
+        para El Salvador se confirme de forma independiente, dado el
+        defecto de escala documentado más arriba para las series de
+        volumen. En precios corrientes el problema no aparece.
+
+    (b) CONTRASTE DE CONSISTENCIA entre lo que el BCR reporta al FMI y
+        lo que publica en su propio portal. El contraste ya rindió un
+        resultado: reveló que el FMI recompila y reencadena con año de
+        referencia distinto (2005 frente a 2014), en vez de
+        retransmitir. Eso es información sobre el proceso de
+        transmisión, no sobre los datos del BCR.
+
+    (c) MEDICIÓN DE REVISIONES, con las limitaciones ya expuestas en la
+        sección sobre el archivo de vintages.
+
+  ## Series de volumen (PRICE_TYPE=Q) — NO UTILIZABLES ANTES DE 2005
+
+  Verificado el 2026-08-13: las series de volumen presentan un salto de
+  escala de aproximadamente 51× entre 2004-Q4 y 2005-Q1, dentro de una
+  misma serie. Para B1GQ.Q el valor pasa de 85,030,202 a 4,352,145,232
+  sin discontinuidad económica que lo justifique, y el mismo salto
+  ocurre en P3_PS.Q.
+
+  Consecuencia verificada y económicamente imposible: en el tramo
+  2000-2004 el consumo privado (P3_PS.Q) SUPERA al PIB (B1GQ.Q) —
+  cociente 1.060 en 2000-Q4 y 1.072 en 2004-Q4. Desde 2005-Q1 la
+  relación se normaliza (0.937 en 2005-Q1, 0.820 en 2023-Q4).
+
+  Las series de valor corriente (PRICE_TYPE=V) NO presentan el
+  problema: de 2004-Q4 (3,609,259,620) a 2005-Q1 (3,348,260,853) la
+  transición es continua.
+
+  DESCARTADO COMO EXPLICACIÓN: el atributo SCALE (múltiplo de unidad,
+  codelist CL_UNIT_MULT). Se verificó que viene poblado, que vale 0 en
+  las cuatro series examinadas, y que es constante a lo largo de las
+  105 observaciones de cada una — es decir, sin reescalado y sin
+  variación a ambos lados del salto. SCALE no explica ni corrige nada.
+
+  EXPLICACIÓN MÁS PLAUSIBLE, marcada como inferencia: el atributo
+  REFERENCE_PERIOD_REPORTED de las series de volumen declara 2005,
+  mientras que el archivo del BCR declara literalmente en su encabezado
+  "Índices encadenados de volumen. Referencia 2014". El FMI no
+  retransmite lo que el BCR publica: aplica su propia compilación y
+  reencadenamiento con año de referencia distinto, y ese proceso no
+  reconcilia la frontera con el tramo retropolado del BCR — que es
+  exactamente donde cae el salto.
+
+  Esto reinterpreta además el mecanismo de vintages documentado más
+  arriba: lo que el parámetro asOf archiva es el estado de la
+  COMPILACIÓN DEL FMI, no de la publicación del BCR.
+
+  Otros atributos de nivel serie verificados el 2026-08-13:
+    SCALE                      0 (constante, las 4 series probadas)
+    VINDEX_TYPE                "L", solo en las series Q; vacío en V
+    REFERENCE_PERIOD_REPORTED  2005, solo en las series Q; vacío en V
+    OVERLAP                    "OL"
+    IFS_FLAG                   true
+    DECIMALS_DISPLAYED         vacío
+
+  El código "L" de VINDEX_TYPE no se pudo resolver a su etiqueta: la
+  respuesta del endpoint /data trae el código pero no la descripción de
+  la codelist CL_VINDEX_TYPE. La lectura plausible es índice de
+  Laspeyres encadenado, pero es INFERENCIA y no se confirmó.
+
+  CONCLUSIÓN OPERATIVA: las series PRICE_TYPE=Q de QNEA para El
+  Salvador no son utilizables tal como vienen para el tramo anterior a
+  2005. Las de PRICE_TYPE=V no presentan este problema.
 
   ## Notas operativas
 
