@@ -50,3 +50,31 @@ El inventario de Fase 1 incorporó tres fuentes que se consumen por API (FMI, FR
 **Disparador.** Antes de escribir el primer *script* de `src/adquisicion/` que consuma una API externa, debe decidirse y registrarse acá si se enmienda este ADR para incorporar uno o más clientes, o si se escribe cliente propio. La decisión se toma una sola vez y cubre las tres fuentes; no se resuelve caso por caso.
 
 **Restricción que no cambia:** cualquiera sea la vía elegida, el stack sigue siendo R (regla 5 de `CLAUDE.md`). Este seguimiento es sobre qué paquetes de R, no sobre el lenguaje.
+
+## Nota de seguimiento — lector de hojas de cálculo (2026-08-15)
+
+El verificador de `fuente_celda` (`src/validacion/verificar_fuente_celda.R`, ver también
+`doc/adr/ADR-005-soporte-catalogos.md`) necesita abrir los archivos `.xlsx` de `data/L0_raw/`
+para confirmar que el rótulo declarado en cada fila de `catalogos/03_series.csv` sigue
+coincidiendo con la celda real. Ninguno de los trece paquetes originales de este ADR lee
+`.xlsx`. A diferencia de la nota de seguimiento anterior, este disparador llegó desde
+validación, no desde adquisición.
+
+**Decisión: `xml2` ahora, `readxl` diferido a Fase 3.**
+
+- `xml2` se incorpora como import #14 (`DESCRIPTION` actualizado). Ya estaba presente en
+  `renv.lock` como dependencia transitiva de otros trece paquetes, así que no amplía la
+  superficie real de instalación. Un `.xlsx` es un `.zip` con XML interno; `unzip()` de R
+  base descomprime, `xml2` parsea `xl/worksheets/sheetN.xml` y `xl/sharedStrings.xml`.
+  Es la vía correcta para el verificador específicamente porque opera sobre números de fila
+  y rótulos crudos — leer con una librería que interpreta la hoja (reordena, tipa, salta
+  filas) sería contradictorio con lo que el verificador existe para comprobar.
+- `readxl` no se incorpora todavía. Cuando Fase 3 necesite leer los valores numéricos de
+  las series (no solo confirmar un rótulo), `xml2` deja de alcanzar razonablemente y ahí
+  corresponde una enmienda formal de este ADR incorporando `readxl` como import #15.
+
+**Disparador.** Antes de escribir el primer script de `src/transformacion/` que lea valores
+(no rótulos) de un `.xlsx`, debe enmendarse este ADR para incorporar `readxl`.
+
+**Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota
+es sobre qué paquete lee archivos de hoja de cálculo, no sobre el lenguaje.
