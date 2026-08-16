@@ -26,3 +26,4 @@ renv/staging/
 # Sistema
 .DS_Store
 Thumbs.db
+.Rproj.user
