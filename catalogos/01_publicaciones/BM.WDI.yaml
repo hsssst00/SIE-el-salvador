@@ -37,3 +37,10 @@ notas: |
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
   Pendiente verificación directa de Harold contra la API.
+
+  Re-confirmado independientemente por Claude vía fetch directo de
+  https://datacatalog.worldbank.org/search/dataset/0037712/world-development-indicators
+  (2026-08-17): misma licencia (CC-BY 4.0) y clasificación ("Public")
+  que ya constaba del relevamiento del 2026-08-12 — sin discrepancia.
+  La página también declara cobertura_temporal "1960 - 2025" y
+  periodicidad "Annual", coherente con lo ya registrado.

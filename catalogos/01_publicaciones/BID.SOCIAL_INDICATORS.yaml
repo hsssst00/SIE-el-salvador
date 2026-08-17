@@ -5,7 +5,7 @@ periodicidad: "variable por indicador; incluye datos observados y proyecciones e
 formato: api (CKAN Data API — datastore_search_sql sobre https://data.iadb.org/api/3/action/)
 url: "https://data.iadb.org/api/3/action/datastore_search_sql?sql=SELECT ... FROM \"ba412771-9c90-4613-a96a-e18c005c0ab6\" WHERE isoalpha3='SLV'"
 cobertura_temporal: "Confirmada con curl real (2026-08-17): 724,780 registros para SLV (isoalpha3='SLV'), 505 indicadores distintos, rango de año 1955-2026 EN LA CONSULTA AGREGADA SIN FILTRAR POR FUENTE (ver hallazgo crítico — ese rango mezcla dato observado y proyección FMI, no es cobertura real continua de 71 años)."
-condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold."
+condiciones_uso: "Verificado directamente por Harold (2026-08-17) contra los metadatos del paquete CKAN (package_id 98a5b747-7c01-4476-a283-6832ea136072): licencia cc-by (Creative Commons Attribution 4.0 International), isopen=True, private=False. Dataset con DOI propio registrado: 10.60966/qtp2zxqd (doi_status=True), distinto del DOI de BID.LATIN_MACRO_WATCH — son dos paquetes CKAN separados, verificados cada uno por su cuenta, no por extensión de la misma organización."
 notas: |
   ID de recurso CKAN (UUID completo, verificado): ba412771-9c90-4613-
   a96a-e18c005c0ab6. Consulta reproducible vía
@@ -36,3 +36,8 @@ notas: |
   Este catálogo entra como parte del criterio de inventario completo de
   Fase 1 (senda §3.3). No implica decisión de uso en la modelación —
   y de usarse, requeriría filtrar por source antes que nada.
+
+  Licencia confirmada por Harold (2026-08-17) contra el CSV de
+  metadatos propio de este paquete — mismo resultado (cc-by 4.0) que
+  BID.LATIN_MACRO_WATCH, pero verificado independientemente, no
+  asumido por compartir organización (idb-datasets) en el portal.

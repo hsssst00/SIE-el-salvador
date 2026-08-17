@@ -5,7 +5,7 @@ periodicidad: "variable por indicador — el catálogo GEM combina series mensua
 formato: api (REST v2; JSON)
 url: https://api.worldbank.org/v2/country/SLV/indicator/{codigo_indicador}?source=15
 cobertura_temporal: "Confirmada por consulta directa a la API (2026-08-15) para SLV, cruzada contra JSON crudo. Catálogo de 36 indicadores en total bajo source=15. Cobertura verificada indicador por indicador, no de forma agregada: DPANUSSPB (tipo de cambio LCU/USD) con mensualidad real confirmada 2023-2024 (total:24, formato date AAAAMnn), valor constante 8.75 (correcto, tipo fijo post-dolarización). NYGDPMKTPSACD (PIB corriente USD, SA) anual, 1990-2025 (nulos 1987-1989 y 2026 sin dato aún), 40 observaciones. REER (tipo de cambio efectivo real) SIN datos para SLV en el rango consultado — todos los valores null. No se probaron los 36 indicadores; no asumir que los no probados tienen cobertura. Última actualización de la fuente reportada por la API: 2026-03-31 (verificado 2026-08-12) — es la fecha de actualización de la fuente, no la cobertura de las series."
-condiciones_uso: "Mismas condiciones que BM.WDI — CC-BY 4.0 por defecto con cláusula de mediación obligatoria y salvedad de datasets de terceros. Debe verificarse si GEM en particular contiene componentes de terceros, ya que agrega datos de múltiples proveedores. Pendiente verificación directa de Harold."
+condiciones_uso: "CONFIRMADO por Claude vía fetch directo de la página oficial del catálogo (2026-08-17): https://datacatalog.worldbank.org/search/dataset/0037798/global-economic-monitor declara explícitamente, sin ambigüedad, 'License: Creative Commons Attribution 4.0' y 'Classification: Public'. Coincide con la política general (misma que BM.WDI) pero esta vez confirmado dataset por dataset contra la fuente primaria oficial, no asumido por default ni inferido de un snippet. Siguen aplicando las mismas tres condiciones adicionales de BM.WDI (cláusula de mediación, formato de atribución, salvedad de datasets de terceros)."
 notas: |
   Fuente: Banco Mundial. Código de fuente en la API: GEM, id=15
   (verificado directamente por Claude contra /v2/sources, 2026-08-12).
@@ -109,3 +109,16 @@ notas: |
   verificación de cobertura y periodicidad por Claude Code vía curl
   directo, cruzada contra JSON crudo por Claude chat (2026-08-15).
   Pendiente verificación directa de Harold contra la API.
+
+  Datos adicionales confirmados en la misma consulta (2026-08-17):
+  la página oficial declara periodicidad "Day" (diaria) para el
+  conjunto del dataset — más alta que lo observado para El Salvador en
+  los indicadores probados en esta sesión, consistente con que la
+  granularidad real varía mucho por indicador, no por la fuente en
+  general. También declara cobertura_temporal "1990 - 2023" —
+  NO 2026 — pese a que la metadata del dataset se actualizó
+  recientemente (Jul 22, 2026). Es la misma señal de rezago que se
+  encontró independientemente en BID.LATIN_MACRO_WATCH (fecha de
+  "actualizado" del paquete no garantiza que los datos del país estén
+  al día) — vale la pena cruzar ambos hallazgos si se evalúa esta
+  fuente para nowcasting (senda §6.4).

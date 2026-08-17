@@ -5,7 +5,7 @@ periodicidad: "mensual, trimestral y anual según indicador"
 formato: api (CKAN Data API — datastore_search sobre https://data.iadb.org/api/3/action/)
 url: https://data.iadb.org/api/3/action/datastore_search
 cobertura_temporal: "Confirmada con curl real (2026-08-17) para SLV: IPC trimestral 1993Q1-2023Q4 (125 obs) y anual 1992-2023; balanza comercial mensual 1991-2023 (396 obs), también trimestral y anual hasta 2023. Dataset con 664 recursos en total — solo se verificaron IPC y balanza comercial, no el resto."
-condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold."
+condiciones_uso: "Verificado directamente por Harold (2026-08-17) contra los metadatos del paquete CKAN: licencia cc-by (Creative Commons Attribution 4.0 International), https://creativecommons.org/licenses/by/4.0/deed. Campo isopen=True, private=False. Dataset con DOI registrado: 10.60966/2n3c3oib (doi_status=True) — citable formalmente, no solo referenciable por URL."
 notas: |
   Más pertinente al foco del proyecto que BID.SOCIAL_INDICATORS —
   contiene IPC, tipo de cambio, base monetaria, balanza comercial.
@@ -28,3 +28,12 @@ notas: |
 
   Este catálogo entra como parte del criterio de inventario completo de
   Fase 1 (senda §3.3). No implica decisión de uso en la modelación.
+
+  Licencia confirmada por Harold (2026-08-17) contra el CSV de
+  metadatos del paquete CKAN (campos license_id, license_title,
+  license_url, isopen, doi, doi_status — a nivel de paquete, no de
+  recurso individual). Esta verificación aplica específicamente al
+  paquete abea491d-2123-4aed-b94a-5dcd057e4fad ("Latin Macro Watch
+  Dataset") — NO se extiende automáticamente a BID.SOCIAL_INDICATORS,
+  que es un dataset CKAN distinto (package_id 98a5b747-7c01-4476-
+  a283-6832ea136072) y se verificó por separado, no por asunción.

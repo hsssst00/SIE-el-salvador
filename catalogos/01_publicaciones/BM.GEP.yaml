@@ -5,7 +5,7 @@ periodicidad: semestral
 formato: api (REST; JSON o XML)
 url: https://api.worldbank.org/v2/sources/27
 cobertura_temporal: "No verificada. La API reporta última actualización de la fuente el 2026-06-11 (verificado por Claude contra el endpoint /v2/sources, 2026-08-12). Pendiente verificación directa de Harold."
-condiciones_uso: "Mismas condiciones que BM.WDI — CC-BY 4.0 por defecto con cláusula de mediación obligatoria y salvedad de datasets de terceros. Nótese que la API reporta esta fuente con disponibilidad de metadatos en negativo, lo que puede complicar la verificación de condiciones a nivel de indicador. Pendiente verificación directa de Harold."
+condiciones_uso: "CONFIRMADO por Claude vía fetch directo de la página oficial del catálogo (2026-08-17): https://datacatalog.worldbank.org/search/dataset/0037888/global-economic-prospects declara explícitamente, sin ambigüedad, 'License: Creative Commons Attribution 4.0' y 'Classification: Public'. Coincide con la política general (misma que BM.WDI) pero esta vez confirmado dataset por dataset contra la fuente primaria oficial, no asumido por default ni inferido de un snippet. Siguen aplicando las mismas tres condiciones adicionales de BM.WDI."
 notas: |
   Fuente: Banco Mundial. Código de fuente en la API: GEP, id=27
   (verificado directamente por Claude contra /v2/sources, 2026-08-12).
@@ -32,3 +32,12 @@ notas: |
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
   Pendiente verificación directa de Harold contra la API.
+
+  Dato adicional confirmado en la misma consulta (2026-08-17): la
+  página oficial declara cobertura_temporal "2023 - 2027" y
+  periodicidad "Annual" — coherente con la naturaleza de esta
+  publicación (Global Economic Prospects son proyecciones a futuro,
+  no serie histórica retrospectiva; el rango incluye años que todavía
+  no ocurrieron porque son el objeto mismo del dataset). No confundir
+  con un hueco de cobertura como el detectado en BM.GEM — acá el
+  rango hacia adelante es la naturaleza esperada del dato.
