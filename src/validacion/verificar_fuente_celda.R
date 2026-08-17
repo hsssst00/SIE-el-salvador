@@ -4,10 +4,12 @@
 # manifiesto.csv).
 #
 # Se compara contra el rotulo transcrito en fuente_celda, NO contra nombre_oficial: son
-# literales distintos en 7 de 50 filas por razones ya documentadas en 03_series.csv (redaccion
-# propia del proyecto en las filas de PIB agregado; marcadores de nota al pie del BCR, p.ej.
-# "2/", que nombre_oficial omite pero la celda real conserva). Comparar contra nombre_oficial
-# produciria falsos FAIL en filas correctas.
+# literales distintos en una fraccion de filas (11 de 98 al recalcular contra el catalogo del
+# 2026-08-17 — recalcular contra el catalogo vigente en cada revision, esta cifra crece con el
+# catalogo) por razones ya documentadas en 03_series.csv (redaccion propia del proyecto en las
+# filas de PIB agregado; marcadores de nota al pie del BCR, p.ej. "2/", que nombre_oficial omite
+# pero la celda real conserva). Comparar contra nombre_oficial produciria falsos FAIL en filas
+# correctas.
 #
 # La validacion falla, no advierte (regla 7 de CLAUDE.md, S3.5 de la senda metodologica):
 # termina con stop() y codigo de salida distinto de cero si hay al menos un FAIL (checksum

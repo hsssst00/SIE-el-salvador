@@ -4,7 +4,7 @@ nombre: "IVAE — promedio móvil de los últimos doce meses, serie tendencia-ci
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
-cobertura_temporal: "ene-1991 a dic-2017."
+cobertura_temporal: "ene-1990 a dic-2017. Verificado directamente por Harold contra el portal (2026-08-17). Corrige el valor anterior (ene-1991), que provenía del relevamiento inicial de Claude (2026-08-09, commit 362d4fd) y no había sido verificado contra el portal."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Producto derivado (transformación propia del BCR sobre
@@ -13,3 +13,15 @@ notas: |
   un equivalente vigente calculado sobre BCR.IVAE.VIGENTE. Prioridad baja
   para el proyecto: es una transformación que el propio proyecto puede
   replicar (promedio móvil 12m) a partir de la serie vigente, D4/D5.
+
+  Verificación directa por Harold (2026-08-17) contra el portal: la
+  cobertura real es ene-1990 a dic-2017, no ene-1991 como quedó
+  registrado en el relevamiento inicial (2026-08-09, commit 362d4fd).
+  Corrige un error de trazabilidad de un año en el extremo inicial.
+  Confirmado en la misma sesión en que se corrigió un error inverso en
+  BCR.IVOPI.BASE_1990 (ver notas de esa publicación) — ambas
+  publicaciones comparten URL y quedaron verificadas contra el mismo
+  intercambio con Harold. Es internamente consistente con que las tres
+  publicaciones asociadas a la metodología base 1990 en esta página
+  (IVAE.BASE_1990, IVOPI, y este promedio móvil) compartan el mismo
+  extremo inicial, ene-1990.

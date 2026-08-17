@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR resuelto; pendiente DIGESTYC/ONEC, ISSS y organismos internacionales (Fase 1)
+**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS resuelto por decisión de no perseguir esclarecimiento; Banco Mundial aplazado a la resolución del BCR; CEPAL en gestión (corte 2026-10-16); pendiente DIGESTYC/ONEC (Fase 1)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -108,4 +108,38 @@ Esta enmienda actualiza y sustituye el punto "Seguimiento no bloqueante" de la e
 
 **Conservación de evidencia.** El hilo completo de correspondencia —consulta original, solicitud de ampliación del BCR y ampliación remitida— se conserva como respaldo de esta enmienda.
 
-**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC e ISSS. Este ADR permanece en estado **Parcial**.
+**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC. ISSS: ver enmienda separada abajo (2026-08-17) — queda resuelto por decisión de no perseguir esclarecimiento, no por relevamiento pendiente.
+
+## Enmienda — condiciones de la fuente CEPAL: consulta enviada, corte pendiente (2026-08-17)
+
+**Hallazgo.** Los Términos y condiciones del sitio de CEPAL (`https://www.cepal.org/es/terminos-condiciones-uso-sitio-web-la-cepal-usuario`, punto 4) autorizan a los Usuarios a descargar y copiar los Materiales del sitio únicamente para uso personal, sin fines comerciales, y sin derecho a revender, redistribuir ni crear otros trabajos a partir de ellos. Es una licencia más restrictiva que la del Banco Mundial y comparable en severidad a la del FMI — no es un régimen de datos abiertos.
+
+**Estándar probatorio de este hallazgo (más sólido que las enmiendas anteriores de este ADR).** Claude verificó directamente por *fetch* (no snippet de buscador) la versión en inglés de este documento (`https://www.cepal.org/en/website-usage-agreement-between-eclac-and-user`) y confirmó el texto de la cláusula 4 palabra por palabra contra lo que Harold cita en su propia consulta a CEPAL (ver registro de la gestión) — coinciden. La URL en español específica que Harold cita no se re-verificó por *fetch* directo en esta sesión (restricción de la herramienta de navegación de Claude, no del hallazgo en sí), pero el mismo texto de la cláusula 4, en español, aparece de forma idéntica en múltiples subdominios oficiales de `cepal.org` consultados de forma independiente. Se trata como confiable, sin la salvedad de "pendiente verificación directa de Harold" que llevan los hallazgos de FMI y FRED — Harold ya verificó él mismo el contenido de la cláusula al citarla textualmente en su propia consulta.
+
+**Decisión aplicada.** Se aplica el default conservador de este ADR: el repositorio publica el *script* de descarga y el *checksum* (SHA-256) de los archivos provenientes de CEPALSTAT; los archivos crudos de L0 de esta fuente no se comprometen al repositorio público.
+
+**Matiz que excede el default de este ADR — pendiente, no resuelto por esta enmienda.** El default conservador fue diseñado para el archivo crudo de L0 ("no comprometer el archivo, sí el script"). La cláusula 4 de CEPAL prohíbe además crear obras derivadas — no solo redistribuir el archivo original. El proyecto sí transforma las series de CEPALSTAT (ajuste estacional, deflactación, empalmes, combinación con otras fuentes) y publica el resultado (series master, hallazgos) en el repositorio abierto. No está resuelto si esa actividad cae dentro de "obra derivada" en el sentido de la cláusula 4, ni si el uso académico sin fines comerciales la exceptúa implícitamente. Harold ya elevó esta pregunta exacta a CEPAL (ver registro de la gestión). Queda señalado como riesgo abierto explícito, no resuelto por interpretación propia mientras la fuente no se pronuncie — misma lógica que ya rige el resto de este ADR: relajar un default exige verificación previa, nunca inferencia propia.
+
+**Registro de la gestión:**
+
+| Fecha | Acto |
+|---|---|
+| 2026-08-17 (lunes) | Harold remite consulta a `cepalstat@cepal.org`. Se presenta como estudiante de economía de la Universidad de El Salvador, describe el SIE (catálogo trazable, repositorio abierto en GitHub, caso de uso: comparación de modelos de proyección del PIB trimestral), cita textualmente la cláusula 4 de los Términos y condiciones del sitio, y pregunta explícitamente si (a) el uso descrito —investigación académica sin fines comerciales que transforma las series y publica el resultado (código MIT, documentación CC-BY-4.0) en un repositorio público— está cubierto por los términos generales del sitio, o (b) CEPALSTAT tiene una política de datos abiertos específica (tipo Creative Commons) separada del aviso legal general, análoga a la de Banco Mundial y BID. |
+
+**Naturaleza de la gestión.** Consulta ordinaria por correo institucional, no solicitud formal bajo un régimen de acceso a la información. No existe plazo legal de respuesta.
+
+**Fecha de corte: 2026-10-16** (60 días desde el envío, mismo criterio que la enmienda del BCR). Si a esa fecha no hay pronunciamiento de CEPAL:
+
+- se mantiene el default conservador de este ADR para la fuente CEPAL, sin cambio para el archivo crudo de L0;
+- el matiz sobre obras derivadas señalado arriba **no** se cierra por el solo vencimiento del plazo — a diferencia del caso BCR, acá el default conservador (script + checksum del archivo crudo) probablemente no cubre por sí solo la actividad real que el proyecto ya realiza sobre esta fuente (transformar y publicar derivados). El vencimiento sin respuesta deja ese riesgo documentado como abierto, no resuelto por omisión;
+- se documenta en este mismo ADR la ausencia de pronunciamiento, con las fechas de la gestión.
+
+**Conservación de evidencia.** El correo enviado se conserva en la bandeja de salida de Harold como respaldo de esta enmienda; no se reproduce íntegro en este documento, mismo criterio ya establecido para la enmienda del BCR.
+
+**Diferencia con el caso del Banco Mundial.** A diferencia de BM (licencia CC-BY-4.0 declarada, con matices que motivaron aplazar la decisión de arquitectura de L0), acá el hallazgo apunta en la dirección contraria: términos más restrictivos que el propio default de este ADR, no más permisivos. La pregunta de arquitectura de L0 que dejó aplazada la enmienda de Banco Mundial (¿una política uniforme de L0 o una política por fuente?) no se resuelve ni se activa por este caso.
+
+## Enmienda — condiciones de la fuente ISSS: resuelto por decisión, no por relevamiento (2026-08-17)
+
+**Decisión de Harold:** no se persigue esclarecimiento adicional de condiciones de uso con el ISSS. El portal opera bajo LAIP (no datos abiertos; reproducción de documentos $0.04/página vía solicitud formal), y el contexto de discontinuación de publicaciones desde may-2023 e invocación de reserva de información ya está verificado directamente por Harold contra el portal — ver `09_rupturas.csv`, `R014_ISSS_ESTADISTICAS_RESERVA`, y la fila ISSS de `00_instituciones.csv` para el detalle completo. Escribir para confirmar términos formales de uso no aporta información adicional relevante: el ISSS sirve solo como tramo histórico hasta may-2023, no como predictor en tiempo real del proyecto. Se aplica el default conservador de este ADR sin cambios. Puede revisitarse si el ISSS retoma publicaciones o si estas series se vuelven candidatas concretas a insumo de modelación.
+
+**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC. Este ADR permanece en estado **Parcial**.

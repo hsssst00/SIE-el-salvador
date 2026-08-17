@@ -4,7 +4,7 @@ nombre: "Índice de Volumen de Producción Industrial (IVOPI), tendencia-ciclo"
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
-cobertura_temporal: "ene-1990 a dic-2017."
+cobertura_temporal: "ene-1990 a dic-2017. Verificado directamente por Harold contra el portal (2026-08-17). Ver notas: este valor pasó por una corrección errónea intermedia el mismo día, ya revertida."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Componente/subíndice de manufactura dentro del IVAE
@@ -16,3 +16,19 @@ notas: |
   existe tanto como fila dentro de BCR.IVAE.VIGENTE como publicación
   independiente con URL propia (ver BCR.IPI.VIGENTE). Sin tabla de
   concordancia verificada entre IVOPI y IPI.
+
+  Historial de verificación de cobertura_temporal (2026-08-17), en orden:
+  (1) valor original del relevamiento inicial (2026-08-09, commit 362d4fd):
+  ene-1990 a dic-2017. (2) Harold reportó en chat "ivopi: desde enero 1991
+  hasta diciembre 2017" — Claude lo aplicó como corrección del extremo
+  inicial a ene-1991 sin pedir confirmación adicional, por tratarse
+  aparentemente de una verificación directa contra el portal. (3) En un
+  mensaje posterior, Harold aclaró explícitamente: "ivopi si viene desde
+  enero de 1990" — contradiciendo (2) y confirmando el valor original.
+  Se revierte a ene-1990. Error atribuible a Claude: se actuó sobre una
+  respuesta breve y ambigua sin confirmar a qué publicación se refería
+  antes de editar el catálogo — BCR.IVOPI.BASE_1990 y
+  BCR.IVAE.PROMEDIO_MOVIL_12M comparten URL y contexto, y el primer
+  mensaje de Harold no distinguía con claridad entre ambas. Queda este
+  registro como evidencia del error y de la corrección, no se borra el
+  paso intermedio.

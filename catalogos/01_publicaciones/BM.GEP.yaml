@@ -4,7 +4,7 @@ nombre: "Global Economic Prospects (GEP) — base de datos de proyecciones"
 periodicidad: semestral
 formato: api (REST; JSON o XML)
 url: https://api.worldbank.org/v2/sources/27
-cobertura_temporal: "Confirmada por Claude vía fetch directo de la página oficial del catálogo (2026-08-17): 2023-2027, periodicidad Annual — coherente con la naturaleza de GEP (proyecciones a futuro, no serie retrospectiva). La API reporta además última actualización de la fuente el 2026-06-11 (verificado por Claude contra el endpoint /v2/sources, 2026-08-12)."
+cobertura_temporal: "La página oficial del catálogo declara (verificado por Claude vía fetch directo, 2026-08-17): 2023-2027, periodicidad Annual — coherente con la naturaleza de GEP (proyecciones a futuro, no serie retrospectiva). Es el metadato publicado en la página del catálogo, no una verificación de los datos observados vía API: la cobertura real de las observaciones que devuelve la API no se ha consultado. La API reporta además última actualización de la fuente el 2026-06-11 (verificado por Claude contra el endpoint /v2/sources, 2026-08-12)."
 condiciones_uso: "CONFIRMADO por Claude vía fetch directo de la página oficial del catálogo (2026-08-17): https://datacatalog.worldbank.org/search/dataset/0037888/global-economic-prospects declara explícitamente, sin ambigüedad, 'License: Creative Commons Attribution 4.0' y 'Classification: Public'. Coincide con la política general (misma que BM.WDI) pero esta vez confirmado dataset por dataset contra la fuente primaria oficial, no asumido por default ni inferido de un snippet. Siguen aplicando las mismas tres condiciones adicionales de BM.WDI."
 notas: |
   Fuente: Banco Mundial. Código de fuente en la API: GEP, id=27
