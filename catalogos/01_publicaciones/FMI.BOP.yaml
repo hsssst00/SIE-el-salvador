@@ -1,33 +1,40 @@
 publicacion_id: FMI.BOP
 institucion_id: FMI
-nombre: "Balance of Payments (BOP) — balanza de pagos"
-periodicidad: trimestral
-formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
-url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/+
-cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
-condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Pendiente verificación directa de Harold."
+nombre: "Balance de Pagos de El Salvador (Balance of Payments), FMI, dataflow BOP, SDMX 3.0"
+periodicidad: "anual y trimestral (dataflow contiene ambas frecuencias combinadas)"
+formato: api (SDMX 3.0; JSON o XML)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/~/SLV
+cobertura_temporal: "Verificada contra JSON crudo (2026-08-15, dos pasadas independientes): 1,565 series (Object.keys de dataSets[0].series), 434 indicadores distintos (dimensions.series, entrada INDICATOR), unidad única USD (dimensions.series, entrada UNIT, un solo valor). El rango de fechas — anual 1976-2025 (50 valores), trimestral 1999-Q1 a 2026-Q1 (109 valores), 159 en total — es un valor DERIVADO de los 159 valores de TIME_PERIOD presentes en dimensions.observation, NO un campo de cobertura declarado explícitamente por el dataflow: no existe validFrom/validTo ni metadata de rango en la respuesta. Es evidencia razonable de que hay datos en ese rango, no una declaración oficial de cobertura del dataflow."
+condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold — mismo default conservador de ADR-008 que rige mientras tanto."
 notas: |
-  Fuente: FMI, Departamento de Estadística (agencia SDMX IMF.STA),
-  dataflow BOP, versión 21.0.0 al momento del relevamiento.
+  Cobertura verificada en dos pasadas (2026-08-15). Primera pasada:
+  consulta directa con curl contra
+  https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/~/SLV?detail=serieskeysonly,
+  resumida narrativamente por Claude Code sin revisión del JSON crudo
+  por Claude (chat). Segunda pasada, a pedido explícito de Harold antes
+  de registrar nada ("hay que verificar antes de generar conclusiones"):
+  se repitió la consulta y se cruzó cada número contra el JSON real.
+  Los cuatro coincidieron exactamente con el resumen inicial — no hubo
+  que corregir nada, pero la verificación se hizo antes de escribir esta
+  ficha, no después.
 
-  Interés principal: remesas familiares (ingreso secundario de la cuenta
-  corriente). Las remesas son, junto con la actividad económica de
-  Estados Unidos, la variable externa que la senda §1.3 identifica como
-  dominante en el error de pronóstico del PIB salvadoreño a horizontes
-  largos.
+  DISTINCIÓN EPISTÉMICA IMPORTANTE (criterio transversal de la senda,
+  §10.4): la cobertura temporal de este registro es una INFERENCIA
+  propia (rango de valores de TIME_PERIOD que aparecen en las claves de
+  observación de una consulta puntual), no un HECHO DOCUMENTADO por el
+  FMI en forma de campo de metadata declarado. La respuesta no trae
+  validFrom/validTo ni ningún campo de cobertura explícito — se revisó
+  tanto `links` como `annotations` de la estructura y ambos estaban
+  vacíos de esa información. Si en algún momento se necesita la
+  cobertura oficial declarada por el FMI para este dataflow (no la
+  inferida), hay que consultarla por otra vía — esta respuesta no la
+  tiene.
 
-  Redundante respecto de BCR.BALANZA_PAGOS_TRIMESTRAL, ya catalogada, y
-  con la misma lógica que FMI.QNEA: el FMI retransmite lo que el BCR le
-  reporta bajo el marco BPM6. El BCR sigue siendo la fuente primaria.
-  Se cataloga por completitud del inventario y como posible contraste
-  de consistencia, no como candidata fuerte a insumo de modelación.
+  Pendiente (ver lista de pendientes de Fase 1): confirmar si el corte
+  de cobertura de consumo de hogares/ISFLSH detectado en FMI.QNEA tiene
+  algún paralelo o relación con BOP — no evaluado en esta sesión.
 
-  Existen dataflows relacionados que podrían ser más útiles que este
-  para el proyecto y que NO se catalogan todavía: IIP (International
-  Investment Position), ITG e IMTS (comercio internacional de bienes,
-  este último por país socio — potencialmente relevante para modelar la
-  exposición bilateral de El Salvador a EE.UU.), e ITS (comercio
-  internacional de servicios). Quedan pendientes de evaluación.
-
-  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
-  Pendiente verificación directa de Harold contra la API.
+  Este catálogo entra como parte del criterio de inventario completo de
+  Fase 1 (senda §3.3, decisión ya cerrada de Harold: 03_series es
+  inventario de TODO lo publicado). No implica decisión de uso en la
+  modelación del PIB — eso es aparte.
