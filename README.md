@@ -9,7 +9,7 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 ## Estructura
 
 ```
-doc/adr/            decisiones de arquitectura registradas (ADR-001 … ADR-009)
+doc/adr/             decisiones de arquitectura registradas (ADR-001 … ADR-009)
 doc/metodologia/     notas metodológicas específicas (empalme, shock 2020, protocolo, supuestos)
 catalogos/           las 9 tablas de metadatos del sistema, esquema en datapackage.json
 data/L0_raw … L4/    capas de datos unidireccionales — ver CLAUDE.md antes de tocar cualquiera
