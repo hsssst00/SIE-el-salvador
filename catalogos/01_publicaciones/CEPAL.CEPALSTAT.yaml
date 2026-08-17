@@ -1,0 +1,28 @@
+publicacion_id: CEPAL.CEPALSTAT
+institucion_id: CEPAL
+nombre: "CEPALSTAT — Bases de Datos y Publicaciones Estadísticas de CEPAL"
+periodicidad: "variable por indicador — catálogo de 1,957 indicadores (confirmado vía thematic-tree por fuente de terceros, no verificado el conteo exacto por curl propio)"
+formato: api (REST; JSON nativo confirmado por curl, ver nota de discrepancia en 00_instituciones.csv)
+url: https://api-cepalstat.cepal.org/cepalstat/api/v1/indicator/{indicator_id}/data
+cobertura_temporal: "Confirmada con curl real (2026-08-17) para El Salvador (iso3=SLV) en 2 indicadores: indicador 365 (IPC), 559 filas, frecuencia mensual, cobertura 1980-2026 (47 años completos); indicador 1819 (Exportaciones totales de bienes y servicios), 46 filas, frecuencia anual, cobertura 1980-2025. No se auditó el catálogo completo de 1,957 indicadores — cobertura confirmada solo para estos 2, no asumir que se extiende al resto sin verificar caso por caso."
+condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold."
+notas: |
+  Verificado con curl real (2026-08-17), no relevamiento web sin
+  confirmar. Estructura de respuesta: objeto con metadata, data y
+  dimensions — cada fila de data lleva iso3 ("SLV" para El Salvador) más
+  IDs de dimensión (año, mes) que se resuelven contra el array
+  dimensions. El indicador 365 (IPC) incluye en sus metadatos el año
+  base ("El Salvador: Diciembre 2009").
+
+  El visualizador interactivo del portal (statistics.cepal.org/portal/
+  cepalstat/) es JS-renderizado y necesitaría Cowork para navegarlo,
+  pero la API de datos en sí (api-cepalstat.cepal.org) es un endpoint
+  REST estático, accesible directamente por curl — la traba original de
+  "necesita Cowork" aplicaba solo al visualizador, no al acceso a datos.
+
+  Pendiente: confirmar cobertura de indicadores adicionales relevantes
+  (comercio exterior con más detalle, cuentas nacionales si CEPALSTAT
+  las publica para El Salvador) — solo se probaron 2 de 1,957.
+
+  Este catálogo entra como parte del criterio de inventario completo de
+  Fase 1 (senda §3.3). No implica decisión de uso en la modelación.

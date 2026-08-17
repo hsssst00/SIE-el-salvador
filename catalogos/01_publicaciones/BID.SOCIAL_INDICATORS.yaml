@@ -1,0 +1,38 @@
+publicacion_id: BID.SOCIAL_INDICATORS
+institucion_id: BID
+nombre: "Social Indicators of Latin America and the Caribbean (dataset CKAN, portal Números para el Desarrollo)"
+periodicidad: "variable por indicador; incluye datos observados y proyecciones en el mismo recurso (ver hallazgo crítico abajo)"
+formato: api (CKAN Data API — datastore_search_sql sobre https://data.iadb.org/api/3/action/)
+url: "https://data.iadb.org/api/3/action/datastore_search_sql?sql=SELECT ... FROM \"ba412771-9c90-4613-a96a-e18c005c0ab6\" WHERE isoalpha3='SLV'"
+cobertura_temporal: "Confirmada con curl real (2026-08-17): 724,780 registros para SLV (isoalpha3='SLV'), 505 indicadores distintos, rango de año 1955-2026 EN LA CONSULTA AGREGADA SIN FILTRAR POR FUENTE (ver hallazgo crítico — ese rango mezcla dato observado y proyección FMI, no es cobertura real continua de 71 años)."
+condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold."
+notas: |
+  ID de recurso CKAN (UUID completo, verificado): ba412771-9c90-4613-
+  a96a-e18c005c0ab6. Consulta reproducible vía
+  https://data.iadb.org/api/3/action/datastore_search_sql con parámetro
+  sql= (usar curl -G --data-urlencode para el encoding correcto).
+
+  HALLAZGO CRÍTICO (2026-08-17), verificado con sanity check dirigido
+  sobre los años extremos de la consulta agregada:
+    - year=1955 es dato real: indicadores mdg_0000000001 (mortalidad
+      infantil por 1000 nacidos vivos) y mdg_0000000007 (mortalidad de
+      menores de 5 años), fuente declarada "WHO", valores (147.82,
+      138.22, etc.) consistentes con tasas históricas reales de El
+      Salvador. No es placeholder.
+    - year=2026 NO es dato observado: son proyecciones del FMI
+      (indicadores BCA, BCA_NGDPD, cpi, gdp_change, GGR, con
+      source="WEO-Database" — World Economic Outlook del FMI). El campo
+      quality_check es null tanto en filas observadas como en
+      proyectadas, así que NO sirve para distinguir una cosa de otra.
+    - CONSECUENCIA OPERATIVA: el campo `source` es el único que separa
+      dato real (valores como "WHO", "SLV-NA", "SLV-EPHP") de proyección
+      (WEO-Database). Cualquier consulta agregada sobre este recurso
+      (incluido el MIN/MAX de año usado para esta misma ficha) que no
+      filtre por `source` va a mezclar ambas categorías y puede sugerir
+      cobertura temporal que no es real. La cifra "1955-2026" en
+      cobertura_temporal está anotada con esta salvedad explícita
+      precisamente para no repetir el error en otro lugar del catálogo.
+
+  Este catálogo entra como parte del criterio de inventario completo de
+  Fase 1 (senda §3.3). No implica decisión de uso en la modelación —
+  y de usarse, requeriría filtrar por source antes que nada.

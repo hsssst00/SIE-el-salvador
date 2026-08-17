@@ -1,0 +1,30 @@
+publicacion_id: BID.LATIN_MACRO_WATCH
+institucion_id: BID
+nombre: "Latin Macro Watch Dataset (dataset CKAN, portal Números para el Desarrollo)"
+periodicidad: "mensual, trimestral y anual según indicador"
+formato: api (CKAN Data API — datastore_search sobre https://data.iadb.org/api/3/action/)
+url: https://data.iadb.org/api/3/action/datastore_search
+cobertura_temporal: "Confirmada con curl real (2026-08-17) para SLV: IPC trimestral 1993Q1-2023Q4 (125 obs) y anual 1992-2023; balanza comercial mensual 1991-2023 (396 obs), también trimestral y anual hasta 2023. Dataset con 664 recursos en total — solo se verificaron IPC y balanza comercial, no el resto."
+condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold."
+notas: |
+  Más pertinente al foco del proyecto que BID.SOCIAL_INDICATORS —
+  contiene IPC, tipo de cambio, base monetaria, balanza comercial.
+
+  HALLAZGO DE REZAGO (2026-08-17), mismo patrón de alerta que
+  Ministerio de Hacienda ya documentado en CLAUDE.md: el metadato
+  metadata_modified del dataset marca 2026-08-05 (recentísimo), pero
+  los datos reales de El Salvador en los recursos verificados
+  (IPC, balanza comercial) terminan en diciembre de 2023 — rezago real
+  de aproximadamente 2 años y medio. La fecha de "actualizado" del
+  paquete CKAN NO garantiza que los datos del país estén al día; hay
+  que verificar la cobertura real de cada recurso individualmente, no
+  asumir vigencia por la fecha de metadata del dataset.
+
+  Esto es relevante para cualquier evaluación futura de esta fuente
+  como candidata a predictor de alta frecuencia (senda §6.4,
+  frecuencia mixta/nowcasting): un rezago de 2.5 años inutiliza la
+  fuente para nowcasting del trimestre en curso, aunque la frecuencia
+  nominal (mensual/trimestral) sea la adecuada.
+
+  Este catálogo entra como parte del criterio de inventario completo de
+  Fase 1 (senda §3.3). No implica decisión de uso en la modelación.
