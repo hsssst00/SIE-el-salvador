@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / pdf
 url: https://www.transparencia.gob.sv/documentos/27-28
 cobertura_temporal: "hasta marzo 2023 (47 documentos incluyendo históricos). Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008). Decisión de Harold (2026-08-17): no se persigue esclarecimiento adicional de condiciones de uso con el ISSS. Motivo, ya documentado en 09_rupturas.csv (R014_ISSS_ESTADISTICAS_RESERVA, que cubre las 5 publicaciones de este bloque): el ISSS discontinuó esta familia de publicaciones desde may-2023, con una carga tardía aislada en ago-2024 y ninguna publicación nueva detectada en 2024-2026, e invocó reserva de información (art. 19 LAIP) en una nota que remite a un índice de reserva sin ninguna entrada correspondiente. El portal ya opera bajo LAIP con costo de $0.04/página por solicitud formal, no un modelo de datos abiertos. Con ese contexto ya verificado directamente por Harold contra el portal, escribir para confirmar términos formales de uso no aporta información adicional relevante para la decisión de uso del proyecto — R014 ya establece que esta familia sirve solo como tramo histórico hasta may-2023, no como predictor en tiempo real. Puede revisitarse si en el futuro el ISSS retoma publicaciones o si estas series se vuelven candidatas concretas a insumo de modelación."
 notas: |
   Fuente: ISSS. Cobertura poblacional, demanda de servicios de salud,
   prestaciones monetarias — mayormente fuera del alcance directo del
