@@ -4,9 +4,58 @@ nombre: "Global Economic Monitor (GEM), Banco Mundial, source=15"
 periodicidad: "variable por indicador — el catálogo GEM combina series mensuales, trimestrales y anuales bajo una misma fuente; no asumir alta frecuencia pareja para todo el catálogo"
 formato: api (REST v2; JSON)
 url: https://api.worldbank.org/v2/country/SLV/indicator/{codigo_indicador}?source=15
-cobertura_temporal: "Confirmada por consulta directa a la API (2026-08-15) para SLV, cruzada contra JSON crudo. Catálogo de 36 indicadores en total bajo source=15. Cobertura verificada indicador por indicador, no de forma agregada: DPANUSSPB (tipo de cambio LCU/USD) con mensualidad real confirmada 2023-2024 (total:24, formato date AAAAMnn), valor constante 8.75 (correcto, tipo fijo post-dolarización). NYGDPMKTPSACD (PIB corriente USD, SA) anual, 1990-2025 (nulos 1987-1989 y 2026 sin dato aún), 40 observaciones. REER (tipo de cambio efectivo real) SIN datos para SLV en el rango consultado — todos los valores null. No se probaron los 36 indicadores; no asumir que los no probados tienen cobertura."
-condiciones_uso: "No verificadas en esta sesión. Pendiente verificación directa de Harold — mismo default conservador de ADR-008 que rige mientras tanto."
+cobertura_temporal: "Confirmada por consulta directa a la API (2026-08-15) para SLV, cruzada contra JSON crudo. Catálogo de 36 indicadores en total bajo source=15. Cobertura verificada indicador por indicador, no de forma agregada: DPANUSSPB (tipo de cambio LCU/USD) con mensualidad real confirmada 2023-2024 (total:24, formato date AAAAMnn), valor constante 8.75 (correcto, tipo fijo post-dolarización). NYGDPMKTPSACD (PIB corriente USD, SA) anual, 1990-2025 (nulos 1987-1989 y 2026 sin dato aún), 40 observaciones. REER (tipo de cambio efectivo real) SIN datos para SLV en el rango consultado — todos los valores null. No se probaron los 36 indicadores; no asumir que los no probados tienen cobertura. Última actualización de la fuente reportada por la API: 2026-03-31 (verificado 2026-08-12) — es la fecha de actualización de la fuente, no la cobertura de las series."
+condiciones_uso: "Mismas condiciones que BM.WDI — CC-BY 4.0 por defecto con cláusula de mediación obligatoria y salvedad de datasets de terceros. Debe verificarse si GEM en particular contiene componentes de terceros, ya que agrega datos de múltiples proveedores. Pendiente verificación directa de Harold."
 notas: |
+  Fuente: Banco Mundial. Código de fuente en la API: GEM, id=15
+  (verificado directamente por Claude contra /v2/sources, 2026-08-12).
+
+  HALLAZGO DEL RELEVAMIENTO INICIAL, sigue vigente y es importante:
+  probablemente la entrada más útil del bloque Banco Mundial. A
+  diferencia de WDI, que es anual, GEM publica indicadores de coyuntura
+  de frecuencia mensual y trimestral para países en desarrollo — ahora
+  CONFIRMADO para al menos un indicador (ver verificación de
+  periodicidad abajo). Eso lo convierte en candidato directo para senda
+  §6.4 (frecuencia mixta y nowcasting), que es la extensión que la
+  propia senda §9 identifica como la de mejor relación entre valor
+  añadido y costo.
+
+  QUÉ FALTA CONFIRMAR ANTES DE DARLE PESO — lista original de 4 puntos,
+  actualizada con lo resuelto en esta sesión (2026-08-15):
+    1. Si El Salvador está cubierto y con qué indicadores.
+       RESUELTO: sí, cobertura confirmada para al menos 3 de 4
+       indicadores probados (ver cobertura_temporal). No se probaron
+       los 36 indicadores del catálogo completo.
+    2. Qué frecuencia efectiva tienen esas series para SLV.
+       RESUELTO: DPANUSSPB es mensual real, confirmado contra JSON
+       crudo con el formato de fecha correcto (date=AAAAMnn:AAAAMnn).
+       NYGDPMKTPSACD es genuinamente anual — confirmado con el mismo
+       rigor, no asumido de una sola lectura: date=2023 y date=2024 por
+       separado devuelven cada uno un valor real (33850.75 y 35353.64
+       respectivamente), mientras que date=2023M01:2024M12 (formato
+       mensual, la misma ventana de calendario) devuelve 24 filas
+       estructuralmente válidas pero TODAS null — la API no rechaza el
+       formato mensual para un indicador anual, simplemente no matchea
+       la observación de período "año" contra ninguna grilla de mes, ni
+       siquiera diciembre. La frecuencia varía por indicador, confirmado
+       en ambos sentidos: no hay una respuesta única para "GEM" como
+       fuente, y el formato de fecha usado en la consulta puede tanto
+       ocultar sub-anualidad real (caso DPANUSSPB) como devolver un
+       falso patrón de "sin datos" para un indicador genuinamente anual
+       si se consulta con la granularidad equivocada (caso
+       NYGDPMKTPSACD). Cualquier consulta futura a esta fuente debe
+       probar ambos formatos de fecha antes de concluir ausencia de
+       dato o de granularidad.
+    3. Cuál es el rezago de publicación — un predictor mensual que
+       llega con cuatro meses de retraso no sirve para nowcasting.
+       SIGUE ABIERTO. No evaluado en esta sesión.
+    4. Si los indicadores de GEM para El Salvador son retransmisión de
+       fuentes que el proyecto ya cataloga (BCR, ONEC) o agregan
+       información propia. Si es lo primero, el valor cae a contraste
+       de consistencia — mismo patrón que se encontró en FMI.QNEA y en
+       FMI.BOP.
+       SIGUE ABIERTO. No evaluado en esta sesión.
+
   PARÁMETROS DE CONSULTA — hallazgo importante verificado el 2026-08-15,
   con controles cruzados (curl directo, JSON crudo revisado por Claude
   chat, no solo por Claude Code):
@@ -33,6 +82,21 @@ notas: |
     - Análogo al gotcha ya documentado en FMI.QNEA.yaml (SDMX 2.1 vs
       3.0, startPeriod/endPeriod ignorados en silencio) — mismo patrón
       de fuente que acepta un parámetro sin aplicarlo, sin error visible.
+    - GOTCHA INVERSO, confirmado el mismo día: consultar un indicador
+      que SÍ es genuinamente anual (NYGDPMKTPSACD) con formato mensual
+      (date=AAAAMnn:AAAAMnn) NO da error — devuelve filas
+      estructuralmente válidas (una por mes solicitado) pero con
+      `value: null` en las 24, incluido diciembre de cada año, que sería
+      el lugar más esperable si la API "estampara" el valor anual en
+      algún mes. Confirmado que no es hueco de cobertura: los mismos dos
+      años, consultados en formato año (date=2023 y date=2024 por
+      separado), devuelven cada uno un valor real. Conclusión operativa
+      para Fase 2: un script que solo pruebe un formato de fecha puede
+      concluir "sin datos" para un indicador anual consultado en
+      formato mes, o "sin datos sub-anuales" para un indicador mensual
+      consultado en formato año — ambos falsos negativos, mismo origen.
+      La única forma confiable de determinar la granularidad real de un
+      indicador de GEM es probar ambos formatos antes de concluir.
 
   Cobertura por indicador NO es pareja: de los 4 indicadores probados
   (de 36 totales en el catálogo GEM), uno (REER) no tiene ningún dato
@@ -41,7 +105,7 @@ notas: |
   indicador, no asumir que el 100% del catálogo GEM aplica a El
   Salvador solo porque la fuente en general sí tiene cobertura.
 
-  Verificado por Claude Code vía curl directo, revisado contra JSON
-  crudo por Claude (chat) — no por Claude Cowork ni por navegador.
-  Este catálogo entra como parte del criterio de inventario completo de
-  Fase 1 (senda §3.3). No implica decisión de uso en la modelación.
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork;
+  verificación de cobertura y periodicidad por Claude Code vía curl
+  directo, cruzada contra JSON crudo por Claude chat (2026-08-15).
+  Pendiente verificación directa de Harold contra la API.
