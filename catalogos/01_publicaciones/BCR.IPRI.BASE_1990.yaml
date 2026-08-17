@@ -4,7 +4,7 @@ nombre: "Índice de Precios Industriales (IPRI), base 1990"
 periodicidad: mensual
 formato: web
 url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
-cobertura_temporal: "ene-1998 a oct-2017, según relevamiento externo de Claude (2026-08-11) — pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "ene-1998 a oct-2017. Verificado directamente por Harold contra el portal (2026-08-17): la URL cargó correctamente esta vez y la cobertura declarada es correcta."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
   Fuente: BCR. Identificado dentro de la sección "5. Estadísticas del
@@ -29,3 +29,14 @@ notas: |
   URL es compartida con BCR.IVOPI.BASE_1990 y
   BCR.IVAE.PROMEDIO_MOVIL_12M — si el error persiste, revisar también
   esas dos publicaciones.
+
+  Verificación directa por Harold (2026-08-17): la URL cargó
+  correctamente esta vez (a diferencia del intento de 2026-08-12, que
+  dio error 500) y confirmó que la cobertura temporal declarada es
+  correcta. El error anterior parece haber sido transitorio del lado
+  del portal del BCR, no un problema estructural de la URL — es
+  evidencia a favor (no confirmación completa) de que
+  BCR.IVOPI.BASE_1990 y BCR.IVAE.PROMEDIO_MOVIL_12M, que comparten esta
+  misma URL, también podrían cargar bien ahora. Siguen marcadas como
+  pendientes hasta que se verifiquen por separado — el contenido
+  específico de cada una no se confirmó en esta revisión.
