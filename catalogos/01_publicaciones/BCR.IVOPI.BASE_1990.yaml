@@ -32,3 +32,8 @@ notas: |
   mensaje de Harold no distinguía con claridad entre ambas. Queda este
   registro como evidencia del error y de la corrección, no se borra el
   paso intermedio.
+
+  El valor erróneo (ene-1991) quedó en el borrador de la sesión y no llegó a
+  commitearse: el historial de este archivo va de 362d4fd (2026-08-09) directo
+  a la corrección, sin commit intermedio. El registro se conserva igual —
+  la trazabilidad es del proceso, no solo del archivo.

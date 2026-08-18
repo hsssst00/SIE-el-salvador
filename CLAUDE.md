@@ -21,6 +21,11 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 —inventario del ecosiste
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.
+8. **Toda corrida de `src/validacion/verificar_fuente_celda.R` se asienta en
+   `doc/bitacora_verificaciones.md`**, en el mismo commit en que se usa su resultado. El
+   verificador no corre en CI (los `.xlsx` están en `.gitignore`, ver ADR-008): esa bitácora es
+   su única evidencia. Una entrada corresponde a una corrida real, nunca a la intención de
+   correrla.
 
 ## Consideraciones sobre fuentes de datos
 
@@ -40,7 +45,7 @@ Ver `Makefile`. Objetivos previstos: `make raw | clean | master | eval | report`
 
 ## Stack (ADR-009)
 
-R vía `renv`. Ver `scripts/bootstrap_renv.R` para inicializar el entorno — no se ha corrido todavía en este repositorio (creado sin acceso a CRAN). Paquetes: `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`.
+R vía `renv`. `renv.lock` está fijado (154 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (14 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`.
 
 ## Orden de fases (no te lo saltes)
 

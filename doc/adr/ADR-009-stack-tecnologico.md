@@ -78,3 +78,9 @@ validación, no desde adquisición.
 
 **Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota
 es sobre qué paquete lee archivos de hoja de cálculo, no sobre el lenguaje.
+
+**Registro de corridas.** El verificador no puede correr en integración continua: los `.xlsx`
+de `data/L0_raw/` están en `.gitignore` por ADR-008, de modo que en el runner todas las filas
+salen `NO_VERIFICABLE`. La consecuencia es que su única evidencia es el registro manual en
+`doc/bitacora_verificaciones.md`, que por eso no es documentación opcional sino la contraparte
+del verde de CI para esta comprobación en particular.

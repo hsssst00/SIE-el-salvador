@@ -1,12 +1,17 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.2 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2)
+**Versión:** 0.3 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
 - **0.2** (2026-08-08): añade a §3.4 la documentación del sufijo opcional `.RETRO` para identificadores de series (hallazgo M1, auditoría de remediación de Fase 0). Sin otros cambios de contenido.
+- **0.3** (2026-08-17): añade a §7 el directorio `doc/auditorias/`, que aloja las revisiones
+  independientes del repositorio y hace resolubles las citas por código de hallazgo (hallazgo
+  I2, verificación de la remediación de Fase 1). Corrige el rótulo del árbol de `doc/adr/`,
+  que decía `ADR-001 … ADR-008` cuando existen nueve — la procedencia de D9 como adición
+  propia del proyecto ya está explicada en `doc/adr/README.md`. Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -487,7 +492,8 @@ pib-el-salvador/
 ├── renv.lock / pyproject.toml
 │
 ├── doc/
-│   ├── adr/                    # ADR-001 … ADR-008
+│   ├── adr/                    # ADR-001 … ADR-009
+│   ├── auditorias/             # revisiones independientes; sin autoridad decisoria
 │   ├── metodologia/
 │   │   ├── empalme_cuentas_nacionales.md
 │   │   ├── tratamiento_covid.md
