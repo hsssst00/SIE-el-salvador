@@ -4,7 +4,7 @@ nombre: "ALFRED — archivo de vintages con historial de revisiones de series ec
 periodicidad: continua
 formato: api (REST; JSON o XML)
 url: https://alfred.stlouisfed.org
-cobertura_temporal: "No verificada. Pendiente verificación directa de Harold."
+cobertura_temporal: "Confirmado por Claude Code (2026-08-18) vía GET directo a fred/series/vintagedates?series_id=GDPC1 (serie de referencia, PIB real de EE.UU.): 417 fechas de vintage archivadas, desde 1991-12-04 hasta 2026-07-30. Es decir, ALFRED archiva vintages de GDPC1 desde fines de 1991 — casi 35 años de historial de revisiones para esta serie puntual. No se probó si otras series tienen la misma profundidad de archivo; no asumir que 1991 es el arranque general de ALFRED."
 condiciones_uso: "Idénticas a FRED.BEA_PIB_EEUU — ver esa entrada. Pendiente verificación directa de Harold."
 notas: |
   Fuente: Federal Reserve Bank of St. Louis. Producto PROPIO de FRED,

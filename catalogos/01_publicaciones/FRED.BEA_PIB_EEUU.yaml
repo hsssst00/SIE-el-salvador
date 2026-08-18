@@ -4,7 +4,7 @@ nombre: "Cuentas nacionales de Estados Unidos (PIB y componentes), producidas po
 periodicidad: trimestral
 formato: api (REST; JSON o XML)
 url: https://api.stlouisfed.org/fred/series/observations
-cobertura_temporal: "No verificada en esta sesión. La serie de PIB real trimestral de EE.UU. de la BEA arranca convencionalmente en 1947, pero la cobertura efectiva en FRED no se comprobó. Pendiente verificación directa de Harold."
+cobertura_temporal: "Confirmado por Claude Code (2026-08-18) vía GET directo a fred/series/observations?series_id=GDPC1: rango real 1947-01-01 a 2026-04-01, 318 observaciones trimestrales, todas con valor (sin huecos). Coincide con el arranque convencional de 1947 que ya se documentaba de forma no verificada."
 condiciones_uso: "API key gratuita obligatoria (fredaccount.stlouisfed.org); cada usuario debe usar su propia clave, por lo que la clave NO puede comprometerse al repositorio. Los Términos de Uso de la API de FRED imponen dos obligaciones activas verificadas por Claude (2026-08-12): (i) colocar de forma prominente en la aplicación el aviso de que el producto usa la API de FRED pero no está avalado ni certificado por el Federal Reserve Bank of St. Louis; (ii) no afirmar ni sugerir respaldo institucional, y no usar marcas ni logos del banco. Además, las series accesibles vía FRED pueden pertenecer a terceros y estar sujetas a copyright que FRED no puede levantar — las series con copyright llevan la palabra Copyright en su campo de notas y son identificables por búsqueda. Se aplica el default conservador de ADR-008. Pendiente verificación directa de Harold."
 notas: |
   Fuente ORIGINAL: Bureau of Economic Analysis (BEA), Departamento de
