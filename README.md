@@ -4,7 +4,7 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 
 ## Estado
 
-**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (pendiente el relevamiento de condiciones de uso de fuentes distintas al BCR — tarea de Fase 1, no bloqueante). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
+**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (queda ONEC/DIGESTYC y la decisión de política de L0, aplazada al corte del BCR — el estado por fuente está en ADR-008; tarea de Fase 1, no bloqueante). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
 
 ## Estructura
 

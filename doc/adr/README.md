@@ -13,10 +13,15 @@ Cada decisión fundacional (D1–D8, senda metodológica §2) se registra como u
 | [005](./ADR-005-soporte-catalogos.md) | Soporte tecnológico de los catálogos | Cerrado |
 | [006](./ADR-006-vocabulario-metadatos.md) | Vocabulario de metadatos | Cerrado |
 | [007](./ADR-007-politica-vintages.md) | Política de versiones de publicación (vintages) | Cerrado |
-| [008](./ADR-008-licencias.md) | Licencias y condiciones de redistribución | Parcial — resueltos BCR (default conservador), FMI y FRED; pendientes ONEC/DIGESTYC, ISSS y decisión de política de L0 (Fase 1) |
+| [008](./ADR-008-licencias.md) | Licencias y condiciones de redistribución | Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS resuelto por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16); pendiente DIGESTYC/ONEC (Fase 1) |
 | [009](./ADR-009-stack-tecnologico.md) | Stack tecnológico | Cerrado |
 
-**Estado general:** ocho de nueve ADR cerrados. Solo ADR-008 queda parcial. Su alcance pendiente se redujo el 2026-08-12: los tramos FMI y FRED quedaron resueltos con el default conservador, y siguen abiertos las condiciones de DIGESTYC/ONEC e ISSS, más la decisión de si el proyecto adopta una política única de L0 o una política por fuente — decisión aplazada hasta conocer el régimen de redistribución del BCR, con fecha de corte 2026-10-12. Tarea de Fase 1; no bloquea el cierre de Fase 0.
+> **Regla de este índice.** La celda "Estado" de cada fila es copia literal de la línea
+> `**Estado:**` del ADR correspondiente. Si divergen, el ADR manda y el índice está
+> desactualizado. Se verifica con un `grep`; en Fase 3 corresponde un `test_that()` que
+> lo compruebe automáticamente.
+
+**Estado general:** ocho de nueve ADR cerrados. Solo ADR-008 queda parcial. Su alcance pendiente se redujo en dos tandas. El 2026-08-12: los tramos FMI y FRED quedaron resueltos con el default conservador, y el tramo Banco Mundial quedó relevado con decisión aplazada. El 2026-08-17: el tramo ISSS quedó resuelto por decisión de no perseguir esclarecimiento —no por relevamiento pendiente—, se abrió el tramo CEPAL con consulta enviada y fecha de corte 2026-10-16, y se registró el tramo BID, enganchado al mismo disparador que el del Banco Mundial. Siguen abiertas las condiciones de DIGESTYC/ONEC y la decisión de si el proyecto adopta una política única de L0 o una política por fuente — aplazada hasta conocer el régimen de redistribución del BCR, con fecha de corte 2026-10-12.
 
 ADR-007 y ADR-009 permanecen cerrados y llevan, desde el 2026-08-12, notas de seguimiento con disparador explícito: clientes de API externa en ADR-009 (se decide antes del primer *script* de `src/adquisicion/` que consuma una API), y alcance de *vintages* de predictores externos en ADR-007 (fuera del núcleo mínimo viable).
 

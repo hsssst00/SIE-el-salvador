@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS resuelto por decisión de no perseguir esclarecimiento; Banco Mundial aplazado a la resolución del BCR; CEPAL en gestión (corte 2026-10-16); pendiente DIGESTYC/ONEC (Fase 1)
+**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS resuelto por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16); pendiente DIGESTYC/ONEC (Fase 1)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -85,6 +85,30 @@ Esa pregunta no puede contestarse sin conocer el régimen de la fuente que aport
 
 **Disparador.** Se resuelve al ocurrir lo primero de: (i) respuesta del BCR a la consulta registrada en la enmienda siguiente, o (ii) la fecha de corte fijada en esa misma enmienda. En cualquiera de los dos casos, la resolución exige además verificación directa de Harold de los términos del Banco Mundial, por la razón expuesta en la nota preliminar sobre estándar probatorio.
 
+### Actualización — estándar probatorio satisfecho para Banco Mundial (2026-08-17)
+
+**Hallazgo (verificación directa de Harold, 2026-08-17).** Harold obtuvo directamente del
+catálogo de datos del Banco Mundial las fichas de metadatos oficiales de las tres
+publicaciones de esta fuente ya catalogadas por el proyecto: Global Economic Prospects
+(`dataset_unique_id 0037888`), Global Economic Monitor (`dataset_unique_id 0037798`) y
+World Development Indicators (`dataset_unique_id 0037712`). Las tres declaran
+`License: Creative Commons Attribution 4.0` y `Classification: Public`. Re-confirmado
+independientemente por Claude vía *fetch* directo de las tres URL el mismo día — sin
+discrepancia.
+
+**Consecuencia.** Con esto se satisface, para estas tres publicaciones, el estándar
+probatorio que la nota preliminar de este ADR (2026-08-12) exige para que una fuente entre
+a la resolución de la política de L0 sin necesitar verificación adicional — la misma
+condición que ya cumple el BID (ver enmienda BID). **Decisión aplicada: ninguna nueva.**
+El tramo Banco Mundial sigue enganchado al mismo disparador fijado arriba: respuesta del
+BCR, o la fecha de corte 2026-10-12.
+
+**Fuera de alcance de esta nota.** Durante esta verificación apareció un cuarto dataset,
+"WDI Database Archives" (`dataset_unique_id 0038555`) — distinto de World Development
+Indicators, contiene versiones históricas de WDI desde 1989. No está catalogado por el
+proyecto y no es objeto de esta actualización; se deja registrado como candidato a nueva
+entrada de `01_publicaciones` para el inventario de Fase 1.
+
 ## Enmienda — consulta formal al BCR sobre régimen de redistribución (2026-08-12)
 
 Esta enmienda actualiza y sustituye el punto "Seguimiento no bloqueante" de la enmienda del 2026-08-06 sobre la fuente BCR. Aquel punto planteaba localizar en el sitio del BCR una página de términos de uso. La gestión escaló de la búsqueda documental a la consulta directa a la institución.
@@ -114,7 +138,24 @@ Esta enmienda actualiza y sustituye el punto "Seguimiento no bloqueante" de la e
 
 **Hallazgo.** Los Términos y condiciones del sitio de CEPAL (`https://www.cepal.org/es/terminos-condiciones-uso-sitio-web-la-cepal-usuario`, punto 4) autorizan a los Usuarios a descargar y copiar los Materiales del sitio únicamente para uso personal, sin fines comerciales, y sin derecho a revender, redistribuir ni crear otros trabajos a partir de ellos. Es una licencia más restrictiva que la del Banco Mundial y comparable en severidad a la del FMI — no es un régimen de datos abiertos.
 
-**Estándar probatorio de este hallazgo (más sólido que las enmiendas anteriores de este ADR).** Claude verificó directamente por *fetch* (no snippet de buscador) la versión en inglés de este documento (`https://www.cepal.org/en/website-usage-agreement-between-eclac-and-user`) y confirmó el texto de la cláusula 4 palabra por palabra contra lo que Harold cita en su propia consulta a CEPAL (ver registro de la gestión) — coinciden. La URL en español específica que Harold cita no se re-verificó por *fetch* directo en esta sesión (restricción de la herramienta de navegación de Claude, no del hallazgo en sí), pero el mismo texto de la cláusula 4, en español, aparece de forma idéntica en múltiples subdominios oficiales de `cepal.org` consultados de forma independiente. Se trata como confiable, sin la salvedad de "pendiente verificación directa de Harold" que llevan los hallazgos de FMI y FRED — Harold ya verificó él mismo el contenido de la cláusula al citarla textualmente en su propia consulta.
+**Ámbito, no resuelto.** Estos Términos gobiernan el sitio `www.cepal.org` ("este Sitio").
+CEPALSTAT se sirve desde `statistics.cepal.org` y su API desde `api-cepalstat.cepal.org`, que
+es la URL declarada en `01_publicaciones/CEPAL.CEPALSTAT.yaml`. Que la cláusula 4 alcance a
+esos subdominios es una inferencia del proyecto, no un hecho verificado — es precisamente el
+punto (b) de la consulta enviada. Se aplica igual el default conservador, que es robusto al
+error en ambas direcciones por la lógica ya fijada en la nota probatoria del 2026-08-12.
+
+**Estándar probatorio de este hallazgo.** `CORRECCIÓN (2026-08-17):` la redacción anterior de
+este párrafo declaraba que la URL en español no se había podido verificar por *fetch* directo
+por una restricción de la herramienta de navegación. Esa restricción era de la sesión en que se
+redactó la enmienda, no del hallazgo ni del entorno: en la verificación independiente del
+2026-08-17 se trajeron por *fetch* directo **las dos** versiones oficiales del documento
+—española (`https://www.cepal.org/es/terminos-condiciones-uso-sitio-web-la-cepal-usuario`) e
+inglesa (`https://www.cepal.org/en/website-usage-agreement-between-eclac-and-user`)— y ambas
+coinciden en el texto de la cláusula 4. El hallazgo es verificable de forma independiente por
+cualquier tercero en las URL citadas, sin depender de la correspondencia con la fuente ni de
+ninguna verificación previa. No lleva la salvedad de "pendiente verificación directa de Harold"
+que llevan los hallazgos de FMI y FRED.
 
 **Decisión aplicada.** Se aplica el default conservador de este ADR: el repositorio publica el *script* de descarga y el *checksum* (SHA-256) de los archivos provenientes de CEPALSTAT; los archivos crudos de L0 de esta fuente no se comprometen al repositorio público.
 
@@ -142,4 +183,30 @@ Esta enmienda actualiza y sustituye el punto "Seguimiento no bloqueante" de la e
 
 **Decisión de Harold:** no se persigue esclarecimiento adicional de condiciones de uso con el ISSS. El portal opera bajo LAIP (no datos abiertos; reproducción de documentos $0.04/página vía solicitud formal), y el contexto de discontinuación de publicaciones desde may-2023 e invocación de reserva de información ya está verificado directamente por Harold contra el portal — ver `09_rupturas.csv`, `R014_ISSS_ESTADISTICAS_RESERVA`, y la fila ISSS de `00_instituciones.csv` para el detalle completo. Escribir para confirmar términos formales de uso no aporta información adicional relevante: el ISSS sirve solo como tramo histórico hasta may-2023, no como predictor en tiempo real del proyecto. Se aplica el default conservador de este ADR sin cambios. Puede revisitarse si el ISSS retoma publicaciones o si estas series se vuelven candidatas concretas a insumo de modelación.
 
-**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC. Este ADR permanece en estado **Parcial**.
+## Enmienda — condiciones de la fuente BID (2026-08-17)
+
+**Hallazgo (verificación directa de Harold, 2026-08-17).** Los dos paquetes del Banco
+Interamericano de Desarrollo catalogados por el proyecto —Latin Macro Watch y Social
+Indicators— declaran en sus metadatos CKAN licencia `cc-by` (Creative Commons Attribution
+4.0 International), con `isopen=True` y `private=False`, cada uno con DOI propio registrado
+(`10.60966/2n3c3oib` y `10.60966/qtp2zxqd`). Verificado contra los metadatos del paquete,
+no contra la página de portada ni contra un snippet de buscador.
+
+**Estándar probatorio.** Es la primera fuente del proyecto cuya licencia abierta satisface
+la condición que la nota preliminar de este ADR (2026-08-12) exige para relajar el default
+conservador: verificación directa de Harold, previa a la decisión. El Banco Mundial no la
+satisfacía cuando su tramo se aplazó.
+
+**Decisión aplicada: ninguna nueva.** Se mantiene el default conservador. El argumento que
+sostiene el aplazamiento del Banco Mundial —no fijar la arquitectura de L0 desde un caso
+periférico mientras el caso central (BCR) sigue abierto— cubre al BID con la misma fuerza.
+Que la evidencia del BID sea más sólida no cambia que la fuente sea periférica. El tramo BID
+queda enganchado al mismo disparador que el del Banco Mundial: respuesta del BCR, o la fecha
+de corte 2026-10-12.
+
+**Consecuencia registrada.** Al resolverse la política de L0, el BID entra a esa decisión sin
+necesitar verificación adicional; el Banco Mundial sí la necesita. La distinción importa
+porque las dos fuentes van a resolverse en el mismo acto y con la misma fecha.
+
+**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC. Este ADR permanece en estado
+**Parcial**.
