@@ -5,7 +5,7 @@ periodicidad: anual
 formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
 url: "https://www.secmca.org/efpa-resultados/?cuadro=GFSM2014_E1&sector=GFS&frecuencia=A&pais=SLV&subsector=S11001"
 cobertura_temporal: "2024 a 2025 únicamente (2 observaciones anuales), verificado por Harold directamente contra el portal (2026-08-10)."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con SECMCA; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: SECMCA. Subsector S11001 = Sociedades Públicas No Financieras.
   Misma limitación que SECMCA.EFPA_EFP_SPNF_SLV: cobertura real de

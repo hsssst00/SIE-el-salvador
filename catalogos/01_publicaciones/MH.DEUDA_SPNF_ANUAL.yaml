@@ -5,7 +5,7 @@ periodicidad: anual
 formato: web / xlsx
 url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
 cobertura_temporal: "Real: 2011-2020. Proyectado: 2020-2029 (serie distinta, no confundir con ejecutado)."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con el Ministerio de Hacienda; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: Dirección General de Inversión y Crédito Público, Ministerio
   de Hacienda. En millones de US$ y % del PIB. Última actualización

@@ -5,7 +5,7 @@ periodicidad: anual
 formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript — no confirmado como URL descargable directamente sin interacción)
 url: "https://www.secmca.org/efpa-resultados/?cuadro=GFSM2014_E1&sector=GFS&frecuencia=A&pais=SLV&subsector=S1311B"
 cobertura_temporal: "2014 a 2025 (anual), verificado por Harold directamente contra el portal (2026-08-10) — valores reales confirmados, crecimiento monótono de 4,112.61 (2014) a 8,651.10 (2025)."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con SECMCA; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: SECMCA. Subsector S1311B = Gobierno central presupuestario.
   Metodología GFSM2014 (FMI), armonizada. Este es el subsector con

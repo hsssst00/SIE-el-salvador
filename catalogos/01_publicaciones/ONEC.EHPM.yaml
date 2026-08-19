@@ -5,7 +5,7 @@ periodicidad: anual (levantamiento continuo, publicación anual)
 formato: web / pdf / microdatos
 url: https://onec.bcr.gob.sv/encuesta-de-hogares-de-propositos-multiples-ehpm/
 cobertura_temporal: "2010 a 2025, verificado textualmente contra la sección de descarga del portal de ONEC."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con ONEC/DIGESTYC; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Producida originalmente por DIGESTYC, heredada por ONEC desde dic-2022.
   Cobertura real verificada (2026-08-09) contra la sección de descarga de

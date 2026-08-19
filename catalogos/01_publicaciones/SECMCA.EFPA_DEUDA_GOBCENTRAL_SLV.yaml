@@ -5,7 +5,7 @@ periodicidad: trimestral
 formato: web / json / csv / excel / txt (exportación vía botón con menú desplegable, mecanismo activado por JavaScript)
 url: "https://www.secmca.org/efpa-resultados/?cuadro=PSDS2011_C1&sector=GFS&frecuencia=Q&pais=SLV&subsector=S1311B"
 cobertura_temporal: "2014-T1 a 2025-T2, verificado por Harold directamente contra el portal (2026-08-10)."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con SECMCA; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: SECMCA. Subsector S1311B = Gobierno central presupuestario.
   Metodología PSDS2011 (FMI/Banco Mundial), armonizada. Subsector NPS

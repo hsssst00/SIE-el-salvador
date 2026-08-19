@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / csv / xlsx (Base de Datos Económica y Financiera)
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc-base-dic-1992-periodo-dic-1992-dic-2009
 cobertura_temporal: "dic-1992 (mes base, índice=100 por construcción, no observación independiente) + observaciones medidas de 1993-01 a 2009-12, verificado por Harold directamente contra el portal (2026-08-12): ene-1992 a nov-1992 son celdas vacías, no observaciones."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con ONEC/DIGESTYC; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Producida originalmente por DIGESTYC (disuelta ago-2022); atribución de
   autoría estadística a ONEC como sucesora, aunque la serie numérica está

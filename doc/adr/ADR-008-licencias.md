@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS resuelto por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16); pendiente DIGESTYC/ONEC (Fase 1)
+**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS, MH, ONEC/DIGESTYC y SECMCA resueltos por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -208,5 +208,52 @@ de corte 2026-10-12.
 necesitar verificación adicional; el Banco Mundial sí la necesita. La distinción importa
 porque las dos fuentes van a resolverse en el mismo acto y con la misma fecha.
 
-**Pendiente sin cambios:** condiciones de DIGESTYC/ONEC. Este ADR permanece en estado
-**Parcial**.
+## Enmienda — condiciones de las fuentes MH, ONEC/DIGESTYC y SECMCA: resueltas por decisión, no por relevamiento (2026-08-18)
+
+**Decisión de Harold:** no se persigue esclarecimiento adicional de condiciones de uso con el
+Ministerio de Hacienda (MH), ONEC/DIGESTYC ni SECMCA — mismo patrón aplicado a ISSS en la
+enmienda del 2026-08-17 (opción (b) de las tres presentadas: consulta formal, default
+conservador documentado, o mixto por institución). Se aplica el default conservador de este
+ADR a las 15 publicaciones de estas tres fuentes (7 de MH, 3 de ONEC, 5 de SECMCA), sin
+consulta nueva.
+
+**Diferencia con BCR y CEPAL.** Esas dos fuentes tienen consulta enviada con fecha de corte
+registrada en este mismo ADR. Ninguna de las tres fuentes de esta enmienda tuvo gestión alguna
+iniciada antes de hoy: no había pregunta pendiente de respuesta, solo el campo
+`condiciones_uso` sin poblar en cada ficha de `01_publicaciones`.
+
+**Motivo, por institución:**
+
+- **MH.** Ya documentado desde Fase 0 (`00_instituciones.csv`, fila MH; `CLAUDE.md`) que el
+  Portal de Transparencia Fiscal no opera como repositorio sistemático: expone tablas estáticas
+  sin API, cada una verificada de forma aislada. El BCR ya es fuente primaria sobre Hacienda
+  para toda serie con equivalente — decisión de diseño tomada con independencia de este ADR.
+  Las 7 publicaciones de MH quedan como tramo secundario de bajo volumen relativo.
+- **ONEC/DIGESTYC.** Las 3 publicaciones catalogadas (EHPM, IPC base 1992, IPC base 2009) no
+  tienen la misma alternativa de fuente equivalente que MH, pero tampoco había gestión
+  iniciada. Se prioriza BCR y CEPAL —mayor volumen de series candidatas y consulta ya en
+  curso— sobre abrir un tercer frente de gestión institucional sin evidencia de que cambie la
+  decisión que de todas formas se aplica (el default conservador).
+- **SECMCA.** 5 publicaciones de la familia EFPA (finanzas públicas armonizadas), la más
+  cercana en relevancia a BCR/CEPAL —alimenta series de deuda pública ya catalogadas— pero
+  Harold decidió no abrir gestión nueva por el mismo criterio de costo/beneficio que las otras
+  dos: el default conservador ya cubre el caso sin necesitar pronunciamiento de la fuente.
+
+**Decisión aplicada.** Se aplica el default conservador de este ADR a las 15 publicaciones de
+MH, ONEC/DIGESTYC y SECMCA: el repositorio publica el *script* de descarga y el *checksum*
+(SHA-256); los archivos crudos de L0 de estas tres fuentes no se comprometen al repositorio
+público. Tramos cerrados.
+
+**Hallazgo de registro corregido por esta misma enmienda.** SECMCA no aparecía mencionado en
+ningún estado previo de este ADR pese a tener 5 publicaciones ya catalogadas con
+`condiciones_uso` sin resolver — no estaba mal resuelto, directamente no estaba registrado
+como fuente con licencia por determinar. Esta enmienda es el primer registro de SECMCA en
+ADR-008.
+
+**Puede revisitarse** si alguna de estas tres fuentes se vuelve candidata central de modelación
+(p. ej. SECMCA para deuda pública) y el costo de una consulta formal se justifica frente al de
+hoy — mismo criterio de reversibilidad ya fijado para ISSS.
+
+**Pendiente:** ninguno de licencias por fuente. Este ADR permanece en estado **Parcial** solo
+por BCR (corte 2026-10-12) y CEPAL (corte 2026-10-16), y por la decisión de arquitectura de L0
+aplazada a la resolución del BCR.

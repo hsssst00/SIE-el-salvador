@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / csv / xlsx (Base de Datos Económica y Financiera) / pdf (boletín narrativo)
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc
 cobertura_temporal: "dic-2009 (mes base, índice=100 por construcción, compartido con el último dato de BASE_1992) + observaciones medidas de 2010-01 a 2026-06 (verificado)."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con ONEC/DIGESTYC; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Serie vigente. Producida originalmente por DIGESTYC, heredada por ONEC.
   Serie numérica alojada en el dominio del BCR (igual que BASE_1992), no
