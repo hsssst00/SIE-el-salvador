@@ -31,6 +31,48 @@ notas: |
   exposición bilateral de El Salvador a EE.UU.), e ITS (comercio
   internacional de servicios). Quedan pendientes de evaluación.
 
+  DESCUBRIMIENTO de los cuatro dataflows, por Claude Code vía curl
+  directo (2026-08-18) — paso de descubrimiento, no de decisión; ninguno
+  de los cuatro está catalogado todavía como ficha propia:
+    - Listado completo vía /structure/dataflow/{agencia}/?detail=allstubs:
+      IIP, ITG e IMTS existen bajo la agencia IMF.STA (misma agencia que
+      BOP); ITS existe bajo IMF.RES (NO bajo IMF.STA, a diferencia de los
+      otros tres — hay que usar la agencia correcta al construir la URL
+      de datos).
+    - Los cuatro tienen datos para SLV, confirmado con el mismo patrón de
+      consulta que ya funciona para BOP (.../data/dataflow/{agencia}/{id}/~/SLV?detail=serieskeysonly):
+        IIP: 618 series, 234 indicadores distintos, TIME_PERIOD 1948
+          a 2026-Q1 (356 valores distintos de período).
+        ITG: 70 series, 8 indicadores distintos, TIME_PERIOD 1948
+          a 2026-M05 (804 valores distintos).
+        IMTS: 2,080 series (comercio bilateral por país socio — el
+          volumen alto es consistente con la dimensión adicional de
+          contraparte), 3 indicadores distintos, TIME_PERIOD 1948
+          a 2026-M04 (999 valores distintos).
+        ITS: 60 series, 34 indicadores distintos, TIME_PERIOD 1976
+          a 2015 — a diferencia de los otros tres, ITS NO llega al
+          presente: el dato más reciente encontrado es de 2015, once
+          años de rezago frente a la fecha de esta verificación. Antes
+          de considerar ITS candidata a insumo, confirmar si 2015 es de
+          verdad el límite del dataflow para SLV o un artefacto de esta
+          consulta puntual.
+    - CAVEAT sin resolver: el valor "1948" aparece como límite inferior
+      en IIP, ITG e IMTS. No se verificó si corresponde a una
+      observación real de El Salvador o es un artefacto del dataflow
+      (p. ej. un código de período usado como año base o placeholder por
+      algún indicador atípico dentro del conjunto). El listado de
+      TIME_PERIOD proviene del dataset completo devuelto por la consulta
+      (todas las series a la vez), no se cruzó indicador por indicador
+      contra el valor 1948 específico. No asumir 1948 como cobertura real
+      sin esa verificación adicional.
+    - Estructura de datos: IIP comparte DSD_BOP con el dataflow BOP
+      (urn de la respuesta: DataStructure=IMF.STA:DSD_BOP), mismo patrón
+      de reuso de DSD ya visto entre dataflows temáticos del FMI.
+    - Ninguno de los cuatro se cataloga todavía como ficha propia de
+      01_publicaciones — eso sería adelanto de catalogación, fuera del
+      alcance de este descubrimiento. Candidatos para Fase 1 si se decide
+      ampliar el inventario del bloque FMI.
+
   VERIFICACIÓN DE COBERTURA (2026-08-15, dos pasadas independientes):
   primera pasada con curl contra
   https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/BOP/~/SLV?detail=serieskeysonly,
@@ -47,9 +89,42 @@ notas: |
   momento se necesita la cobertura oficial declarada por el FMI para
   este dataflow (no la inferida), hay que consultarla por otra vía.
 
-  Pendiente: confirmar si el corte de cobertura de consumo de
-  hogares/ISFLSH detectado en FMI.QNEA tiene algún paralelo o relación
-  con BOP — no evaluado todavía.
+  PARALELO QNEA↔BOP DEL CORTE HOGARES/ISFLSH — resuelto por Claude Code
+  vía lectura de estructura SDMX (2026-08-18), no por lectura de
+  documentación narrativa del FMI (no se encontró una página específica
+  de metodología para este punto; se leyó el DSD directamente):
+    - El DSD_BOP (agencia IMF.STA, consultado vía
+      /structure/dataflow/IMF.STA/BOP/?references=all) SÍ define una
+      dimensión SECTOR y una COUNTERPART_SECTOR, respaldadas por el
+      mismo codelist CL_SECTOR que usa QNEA — con las mismas dos
+      etiquetas, texto idéntico: S14 "Households", S15 "Non profit
+      institutions serving households". No hay definición divergente
+      entre dataflows: es el mismo concepto SCN 2008, tomado del mismo
+      codelist compartido.
+    - PERO esas dos dimensiones NO forman parte de la clave real de
+      series que BOP expone para El Salvador. Verificado contra la
+      consulta de datos real (.../data/dataflow/IMF.STA/BOP/~/SLV?detail=serieskeysonly,
+      2,514,531 bytes, 1,565 series): la clave de serie poblada para SLV
+      usa solo cinco dimensiones — COUNTRY, BOP_ACCOUNTING_ENTRY,
+      INDICATOR, UNIT, FREQUENCY. SECTOR no aparece entre las
+      dimensiones de serie de la respuesta real, pese a estar definida
+      en el DSD compartido.
+    - Búsqueda de los 434 indicadores poblados para SLV por nombre
+      (household, NPISH, transfer, remittance, case-insensitive): CERO
+      coincidencias — pero porque el campo `name` de INDICATOR viene
+      vacío en la respuesta de datos (a diferencia de QNEA, donde sí
+      viene poblado); no se pudo completar el cruce por nombre con esta
+      sola consulta. Cruzar los 434 códigos de INDICATOR contra el
+      codelist completo CL_BOP_INDICATOR (con nombres) para ubicar el
+      código exacto de "personal transfers"/remesas queda pendiente si
+      se necesita el nombre descriptivo de cada indicador.
+    - CONCLUSIÓN, con la evidencia disponible: BOP no expone para El
+      Salvador ningún corte hogares/ISFLSH análogo al de QNEA (P3_S14 /
+      P3_S15). La definición conceptual es la misma (mismo codelist,
+      mismo texto), pero BOP no la usa como dimensión de la clave de
+      datos — el corte existe solo en QNEA, no en BOP, para esta fuente.
+      No es un paralelo activo; es un concepto compartido que un
+      dataflow expone y el otro no.
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork;
   verificación de cobertura por Claude Code vía curl directo (2026-08-15).

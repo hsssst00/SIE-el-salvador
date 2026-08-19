@@ -48,13 +48,80 @@ notas: |
        dato o de granularidad.
     3. Cuál es el rezago de publicación — un predictor mensual que
        llega con cuatro meses de retraso no sirve para nowcasting.
-       SIGUE ABIERTO. No evaluado en esta sesión.
+       RESUELTO PARCIALMENTE por Claude Code vía curl directo
+       (2026-08-18), repitiendo la consulta a DPANUSSPB y NYGDPMKTPSACD
+       con ventana más reciente, contra la fecha "lastupdated" que la
+       API reporta para source=15 (2026-03-31, confirmado de nuevo vía
+       /v2/sources/15):
+         - DPANUSSPB (mensual): el último valor real es 2026M03, el
+           mismo mes que "lastupdated" — rezago aparente ≈ 0. Pero el
+           hallazgo NO es informativo sobre el rezago real de GEM: es un
+           tipo de cambio fijo post-dolarización (8.75 constante en
+           todos los meses consultados, 2025M01-2026M03), conocido de
+           antemano sin necesidad de reportar nada — no sirve como
+           prueba de qué tan rápido GEM publica un dato que sí cambia.
+         - NYGDPMKTPSACD (anual): el último valor real es el año 2025
+           (27,700.44; el año 2026 aparece con value=null). Contra
+           "lastupdated"=2026-03-31, el rezago es de aproximadamente
+           tres meses desde el cierre del año calendario 2025 — rezago
+           típico de una cifra de PIB anual, ni mejor ni peor que otras
+           fuentes anuales ya catalogadas.
+         Conclusión operativa: con los dos únicos indicadores
+         verificados hasta ahora no se pudo aislar el rezago de un
+         indicador GEM genuinamente de alta frecuencia y variable — el
+         único mensual probado es un caso degenerado (tipo de cambio
+         fijo). Para responder la pregunta original ("un predictor
+         mensual con cuatro meses de rezago no sirve para nowcasting")
+         hace falta repetir este mismo procedimiento sobre un indicador
+         mensual o trimestral de GEM que sí tenga variación real para
+         SLV — no evaluado todavía, y no se puede generalizar desde
+         DPANUSSPB.
     4. Si los indicadores de GEM para El Salvador son retransmisión de
        fuentes que el proyecto ya cataloga (BCR, ONEC) o agregan
        información propia. Si es lo primero, el valor cae a contraste
        de consistencia — mismo patrón que se encontró en FMI.QNEA y en
        FMI.BOP.
-       SIGUE ABIERTO. No evaluado en esta sesión.
+       RESUELTO PARCIALMENTE por Claude Code (2026-08-18), comparación
+       elegida por Harold vía pregunta directa: NYGDPMKTPSACD (GEM, PIB
+       corriente USD, SA) contra la suma de los cuatro trimestres de
+       "Producto Interno Bruto trimestral por el enfoque de la
+       producción" en el archivo L0 ya descargado
+       data/L0_raw/BCR_pib_t_nominal_2026-08-15.xlsx (cifra idéntica,
+       verificado en el mismo archivo, a la fila equivalente por el
+       enfoque del gasto — consistencia interna del propio archivo BCR).
+       Resultado, año por año (GEM vs. BCR, millones USD):
+         2019: 26,878.99 vs 26,881.13 (-0.008%)
+         2020: 24,918.34 vs 24,921.19 (-0.011%)
+         2021: 29,032.78 vs 29,043.14 (-0.036%)
+         2022: 31,871.83 vs 31,870.11 (+0.005%)
+         2023: 33,850.75 vs 33,565.43 (+0.850%)
+         2024: 35,353.64 vs 34,879.73 (+1.359%)
+         2025: 27,700.44 vs 36,708.10 (-24.539%)
+       LECTURA: 2019-2022 coinciden casi exactamente (diferencias
+       <0.04%) — evidencia fuerte de que GEM retransmite la cifra del
+       BCR para esos años, no una medición propia. 2023-2024 divergen
+       un poco más (0.85% y 1.36%) pero siguen siendo consistentes con
+       retransmisión de una revisión anterior no actualizada — mismo
+       patrón de rezago que ya señala el punto 3 de esta lista. 2025 es
+       la excepción que no encaja en "solo rezago": la brecha es de
+       24.5%, un orden de magnitud mayor que cualquier otro año, y en
+       dirección de que GEM reporta MENOS PIB que el BCR, no más (lo
+       esperable si GEM simplemente no hubiera incorporado revisiones
+       al alza). CAVEAT que atenúa pero no explica la magnitud: el
+       propio archivo BCR marca los cuatro trimestres de 2025 como
+       cifras "(e) Estimadas" —la calificación menos firme de las tres
+       que usa el BCR (r=revisada, p=preliminar, e=estimada)— así que
+       ni el numerador (GEM) ni el denominador (BCR) de esta
+       comparación para 2025 son cifras cerradas. No se determinó la
+       causa exacta de la brecha de 2025 (¿el valor de GEM no es en
+       realidad el año calendario completo? ¿usa otra base o método de
+       agregación trimestral distinto al BCR?) — pendiente si esta
+       fuente llega a evaluarse en serio como candidata de modelación.
+       Conclusión operativa: para años ya consolidados, GEM SÍ es
+       retransmisión del BCR y no aporta información propia — confirma
+       la hipótesis que motivó este punto. Para el año más reciente
+       disponible, GEM no debe tratarse como equivalente al BCR sin
+       investigar antes la brecha.
 
   PARÁMETROS DE CONSULTA — hallazgo importante verificado el 2026-08-15,
   con controles cruzados (curl directo, JSON crudo revisado por Claude
