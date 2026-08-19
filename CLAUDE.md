@@ -8,7 +8,7 @@ Sistema de Información Estadística (SIE) para variables macroeconómicas de El
 
 ## Estado del proyecto
 
-Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 —inventario del ecosistema estadístico— en curso. Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: ocho de nueve ADR cerrados; ADR-008 sigue parcial, con ONEC/DIGESTYC y la decisión de política de L0 como únicos tramos abiertos — el estado por fuente vive en ADR-008, no acá.
+Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 —inventario del ecosistema estadístico— en curso. Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: ocho de nueve ADR cerrados; ADR-008 sigue parcial, con BCR/CEPAL en gestión y la decisión de política de L0 como únicos tramos abiertos — el estado por fuente vive en ADR-008, no acá.
 
 **Antes de escribir cualquier código de estimación o transformación, lee los ADR relevantes en `doc/adr/`.** Son la especificación. No hay decisión metodológica de las nueve fundacionales que debas tomar tú — ya están tomadas y documentadas.
 
