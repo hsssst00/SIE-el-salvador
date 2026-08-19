@@ -234,10 +234,16 @@ iniciada antes de hoy: no había pregunta pendiente de respuesta, solo el campo
   iniciada. Se prioriza BCR y CEPAL —mayor volumen de series candidatas y consulta ya en
   curso— sobre abrir un tercer frente de gestión institucional sin evidencia de que cambie la
   decisión que de todas formas se aplica (el default conservador).
-- **SECMCA.** 5 publicaciones de la familia EFPA (finanzas públicas armonizadas), la más
-  cercana en relevancia a BCR/CEPAL —alimenta series de deuda pública ya catalogadas— pero
-  Harold decidió no abrir gestión nueva por el mismo criterio de costo/beneficio que las otras
-  dos: el default conservador ya cubre el caso sin necesitar pronunciamiento de la fuente.
+- **SECMCA.** 5 publicaciones de la familia EFPA (finanzas públicas armonizadas) — temática
+  cercana a series de deuda pública que el proyecto ya sigue vía BCR, aunque ninguna de las 5
+  publicaciones de SECMCA tiene todavía una fila propia en `03_series.csv` (ese trabajo es
+  adelanto de Fase 3 y no ha llegado a esta fuente). `CORRECCIÓN (2026-08-18):` la redacción
+  original de este párrafo afirmaba que SECMCA "alimenta series de deuda pública ya
+  catalogadas" — verificado contra `03_series.csv` (4 filas, las 4 de BCR): esa afirmación era
+  falsa, no hay ninguna fila de SECMCA todavía. SECMCA está catalogado como publicación en
+  `01_publicaciones`, no como serie. Harold decidió no abrir gestión nueva por el mismo criterio
+  de costo/beneficio que las otras dos: el default conservador ya cubre el caso sin necesitar
+  pronunciamiento de la fuente — esa decisión no dependía de la afirmación errónea y no cambia.
 
 **Decisión aplicada.** Se aplica el default conservador de este ADR a las 15 publicaciones de
 MH, ONEC/DIGESTYC y SECMCA: el repositorio publica el *script* de descarga y el *checksum*
