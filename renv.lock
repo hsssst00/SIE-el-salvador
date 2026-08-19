@@ -2498,6 +2498,12 @@
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "CRAN"
     },
+    "httr2": {
+      "Package": "httr2",
+      "Version": "1.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "isoband": {
       "Package": "isoband",
       "Version": "0.3.0",

@@ -15,4 +15,5 @@ Imports:
     glmnet,
     ranger,
     lightgbm,
-    xml2
+    xml2,
+    httr2
