@@ -51,6 +51,45 @@ El inventario de Fase 1 incorporó tres fuentes que se consumen por API (FMI, FR
 
 **Restricción que no cambia:** cualquiera sea la vía elegida, el stack sigue siendo R (regla 5 de `CLAUDE.md`). Este seguimiento es sobre qué paquetes de R, no sobre el lenguaje.
 
+**Disparador RESUELTO (2026-08-18) — cliente híbrido.**
+
+**Decisión de Harold:** híbrido. El fetch crudo de L0 para las tres fuentes (FMI, FRED, Banco
+Mundial) se escribe con un cliente propio sobre `httr2` — la respuesta cruda de cada API
+(JSON o SDMX-JSON, según corresponda) se guarda tal cual, con el mismo tratamiento que ya
+reciben los archivos `.xlsx` del BCR: SHA-256, comparación contra el manifiesto, nunca
+sobrescribir. Los paquetes de terceros (`imfapi`, `wbwdi`, `fred` — ver investigación abajo)
+quedan reservados para Fase 3 (L0 → L1), donde parsean los archivos ya capturados en vez de
+volver a consultar la red.
+
+**Motivo.** Los tres paquetes candidatos devuelven datos ya tidificados (`tibble`), no la
+respuesta cruda de la API. Checksumear esa salida en vez de la respuesta real de la fuente
+viola el principio de inmutabilidad de L0 (senda §3.1): el hash dejaría de depender solo de lo
+que la fuente publicó y empezaría a depender también de la versión del paquete y de cómo
+decide tidificar el dato — un cambio de versión del paquete podría alterar el checksum de L0
+sin que la fuente haya cambiado nada. El cliente propio sobre `httr2` mantiene a L0 consistente
+con el patrón ya establecido para BCR: el archivo es el archivo, no una interpretación de él.
+
+**Investigación previa a la decisión (Claude, 2026-08-18), verificada contra CRAN, no asumida
+de memoria:**
+- FMI: `imfapi` (CRAN, familia econdataverse, publicado 2025-11-19) es el cliente vigente para
+  SDMX 3.0 — reemplaza a `imfp`/`imfr`, que dejaron de funcionar cuando el FMI migró desde
+  SDMX 2.1.
+- Banco Mundial: `WDI` (Arel-Bundock) sigue activo, pero cachea por defecto y no usa `httr2`.
+  `wbwdi` (misma familia econdataverse que `imfapi`, mismo mantenedor —Christoph Scheuch—) evita
+  caché por defecto explícitamente por los problemas que genera, y sí usa `httr2`.
+- FRED: `fredr` (Boysel/Vaughan), el paquete que se asumía por defecto en discusiones previas
+  del proyecto, **no tiene actualizaciones desde agosto de 2021**. El reemplazo activo es
+  `fred` (Coverdale — paquete distinto pese al nombre parecido, publicado 2026-04-11), que
+  además soporta vintages nativamente (`fred_all_vintages`, `fred_as_of`) — relevante para D7
+  cuando corresponda, aunque en Fase 2 el vintage se sigue capturando vía el manifiesto propio,
+  no vía este paquete.
+
+**Pendiente de verificación práctica, no bloqueante para Fase 2:** no se confirmó todavía si
+`imfapi`, `wbwdi` y `fred` pueden operar sobre un archivo ya descargado (parseo puro) o si
+solo ofrecen fetch-y-parseo en un mismo paso — de ser lo segundo, su uso en Fase 3 requeriría
+extraer la lógica de parseo o llamarlos igual y aceptar una segunda consulta de red no
+determinante para L0. Se resuelve al llegar a Fase 3, no antes.
+
 ## Nota de seguimiento — lector de hojas de cálculo (2026-08-15)
 
 El verificador de `fuente_celda` (`src/validacion/verificar_fuente_celda.R`, ver también
