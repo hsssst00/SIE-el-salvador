@@ -123,3 +123,70 @@ de `data/L0_raw/` están en `.gitignore` por ADR-008, de modo que en el runner t
 salen `NO_VERIFICABLE`. La consecuencia es que su única evidencia es el registro manual en
 `doc/bitacora_verificaciones.md`, que por eso no es documentación opcional sino la contraparte
 del verde de CI para esta comprobación en particular.
+
+## Nota de seguimiento — mecanismo de captura para el BCR (2026-08-20)
+
+**Contexto.** El portal del BCR (`estadisticas.bcr.gob.sv`) bloquea peticiones sin motor de
+renderizado real: `web_fetch` simple (2026-08-18) y `httr2` con headers de navegador completos
+(2026-08-19) recibieron ambos contenido bloqueado — el segundo con `codigo_http = 200` pero
+`Content-Type: text/html` en vez del `.xlsx` esperado (ver `doc/bitacora_fuentes_fragiles.md`).
+Investigación posterior (2026-08-19) estableció además que el portal no ofrece ningún endpoint
+de exportación: el botón "Descargar datos en Excel/CSV" genera el archivo enteramente del lado
+del cliente (SheetJS), y los valores mismos viajan por el protocolo interno de Livewire
+(`POST /livewire/message/vista-serie`, con estado de sesión) — no hay atajo de red posible sin
+un motor de navegador real detrás.
+
+**Alternativas consideradas:**
+
+- **Cowork como tarea programada:** descartado — la documentación de Anthropic es explícita en
+  que las tareas programadas de Cowork no pueden atarse a una carpeta del sistema de archivos
+  local, y el diseño de L0 exige que el archivo caiga en el clon de trabajo del proyecto.
+- **Flujo semi-supervisado (Claude en Chrome sobre el navegador real de Harold):** probado y
+  confirmado de punta a punta el 2026-08-19 — rango por defecto, rango histórico completo (85
+  observaciones), y desagregación por enfoque de producción/gasto, las tres con archivo `.xlsx`
+  real verificado por Harold. Funciona, pero requiere una sesión interactiva; no es
+  desatendido.
+- **Automatización CDP desatendida, sin sesión interactiva:** probada en dos frameworks
+  distintos (2026-08-20) para descartar que el bloqueo del BCR distinguiera Cowork/Claude en
+  Chrome de automatización CDP genérica — no lo distingue. `Playwright` (Python, headless y
+  headed) y `chromote` (R, headless y headed) cargan la página real por igual, sin bloqueo. El
+  flujo completo (clics + generación del `.xlsx`) se extendió y confirmó específicamente sobre
+  `chromote` en modo headless: archivo real de 16 471 bytes, sin sufijo `.crdownload` residual.
+
+**Decisión de Harold: `chromote`, automatización CDP desatendida en R, headless, como mecanismo
+de captura para las publicaciones del BCR servidas desde el portal `estadisticas.bcr.gob.sv`.**
+
+**Motivo.** Es la única de las vías desatendidas que se mantiene dentro de la restricción que
+motiva este ADR desde su decisión original: un solo lenguaje, R, dado el equipo de un
+investigador más un agente de código. Que `chromote` replicara exactamente el resultado de
+Playwright disolvió la tensión de stack que la prueba en Python había dejado abierta — no hace
+falta introducir Python al proyecto para este mecanismo. El flujo semi-supervisado queda como
+alternativa de respaldo, no como el camino principal: el `.xlsx` sigue siendo la fuente L0
+capturada (SHA-256, comparación contra manifiesto, nunca sobrescribir — mismo tratamiento ya
+vigente), cambia únicamente qué produce ese archivo.
+
+**Restricción operativa registrada, no resuelta todavía.** La prueba de flujo completo
+encontró un desfase de versión (binario CRAN de `chromote` 0.5.1 para Windows compilado bajo
+R 4.5.3, máquina de prueba en R 4.5.1) que produjo *segfaults* en llamadas de introspección no
+relacionadas con el flujo sustantivo — no bloqueante para la prueba, pero debe resolverse antes
+de que el script real entre a `src/adquisicion/`. Además, `Page$navigate()` +
+`Page$loadEventFired()` mostró una carrera conocida (documentada en el propio `NEWS.md` de
+`chromote`, que agregó `$go_to()` en la versión 0.5.1 específicamente para evitarla) — el script
+real debe usar `$go_to()`, no el patrón que se usó en el diagnóstico.
+
+**Disparador.** `chromote` no se agrega todavía a `DESCRIPTION`/`renv.lock` — se incorpora
+formalmente como import cuando se escriba el primer script real de `src/adquisicion/` que lo
+use (mismo patrón que `httr2` en la nota de seguimiento anterior: la enmienda de ADR se cierra
+primero, la dependencia formal llega con el primer script real).
+
+**Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota es
+sobre qué mecanismo captura las publicaciones del BCR específicamente, no sobre el lenguaje del
+proyecto en general.
+
+**Alcance de lo probado, explícito:** la prueba de flujo completo cubrió únicamente
+`BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA` — rango por defecto, un solo clic de descarga, sin
+combinar con rango histórico ni con desagregación en la misma corrida. No probado todavía:
+combinar rango completo + desagregación en una sola descarga vía `chromote`; generalización del
+mecanismo a otras publicaciones del BCR con estructura de filtro distinta (ver revisión de
+publicaciones, 2026-08-20, más abajo en este ADR o en el documento de diseño de adquisición
+correspondiente).

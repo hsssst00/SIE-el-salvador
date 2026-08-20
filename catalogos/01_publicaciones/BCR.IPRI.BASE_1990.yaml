@@ -3,7 +3,7 @@ institucion_id: BCR
 nombre: "Índice de Precios Industriales (IPRI), base 1990"
 periodicidad: mensual
 formato: web
-url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-industriales-ipri-enero-1998-oct-2017
 cobertura_temporal: "ene-1998 a oct-2017. Verificado directamente por Harold contra el portal (2026-08-17): la URL cargó correctamente esta vez y la cobertura declarada es correcta."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
@@ -40,3 +40,17 @@ notas: |
   misma URL, también podrían cargar bien ahora. Siguen marcadas como
   pendientes hasta que se verifiquen por separado — el contenido
   específico de cada una no se confirmó en esta revisión.
+
+  Corrección de URL (Claude, chat, 2026-08-20): la URL registrada hasta
+  ahora (`.../clasificacion/sector-real`) es la página de índice del
+  sector real, no la página de esta serie específica — ya se había
+  anotado esto arriba ("sin URL de /serie/ dedicada confirmada"), pero
+  seguía sin resolverse. Se navegó la página de índice, se ubicó la
+  fila "5.5 Índice de Precios Industriales (IPRI). Enero 1998-oct.2017"
+  y se extrajo su enlace real:
+  `.../serie/indice-de-precios-industriales-ipri-enero-1998-oct-2017`.
+  Campo `url` actualizado. La verificación de cobertura_temporal de
+  Harold (2026-08-17) sigue siendo válida — el título de la fila
+  ("Enero 1998-oct.2017") coincide con lo ya registrado. No verificado
+  en esta corrección: contenido de la nueva URL más allá del título de
+  la fila que la origina.

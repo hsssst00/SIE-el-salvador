@@ -3,7 +3,7 @@ institucion_id: BCR
 nombre: "Índice de Volumen de Producción Industrial (IVOPI), tendencia-ciclo"
 periodicidad: mensual
 formato: web / csv / xlsx
-url: https://estadisticas.bcr.gob.sv/clasificacion/sector-real
+url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-de-produccion-industrial-ivopi-tendencia-ciclo-periodo-ene-1990-dic-2017
 cobertura_temporal: "ene-1990 a dic-2017. Verificado directamente por Harold contra el portal (2026-08-17). Ver notas: este valor pasó por una corrección errónea intermedia el mismo día, ya revertida."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
 notas: |
@@ -37,3 +37,16 @@ notas: |
   commitearse: el historial de este archivo va de 362d4fd (2026-08-09) directo
   a la corrección, sin commit intermedio. El registro se conserva igual —
   la trazabilidad es del proceso, no solo del archivo.
+
+  Corrección de URL (Claude, chat, 2026-08-20): la URL registrada hasta
+  ahora (`.../clasificacion/sector-real`) es la página de índice del
+  sector real, no la página de esta serie específica. Se navegó la
+  página de índice, se ubicó la fila "5.3 Índice de Volumen de
+  Producción Industrial (IVOPI). Tendencia ciclo. Período ene /1990 -
+  dic /2017" y se extrajo su enlace real:
+  `.../serie/indice-de-volumen-de-produccion-industrial-ivopi-tendencia-ciclo-periodo-ene-1990-dic-2017`.
+  Campo `url` actualizado. El título de la fila que origina este enlace
+  dice "ene /1990 - dic /2017" — coincide exactamente con el valor ya
+  verificado por Harold (2026-08-17), sin contradicción. No verificado
+  en esta corrección: contenido de la nueva URL más allá del título de
+  la fila que la origina.
