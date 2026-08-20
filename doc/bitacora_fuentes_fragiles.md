@@ -111,13 +111,48 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   clic en "Descargar datos en Excel/CSV" → "Formato Excel" que sí se probó de punta a
   punta vía Cowork (ver entradas 2026-08-19 arriba); no se automatizaron esos clics ni
   la generación del `.xlsx` vía SheetJS con estos scripts. Pendiente antes de considerar
-  esto una vía de automatización completa.
+  esto una vía de automatización completa — **cerrado el mismo día, ver entrada
+  siguiente.**
 
   Relevancia para ADR-009: que `chromote` replique el resultado de Playwright disuelve
   la tensión de stack que motivó la pregunta — no habría necesidad de introducir Python
   para este mecanismo si el flujo completo también funciona en R. No se agregó
   `chromote` como dependencia formal del proyecto en esta sesión (decisión pendiente,
   ver abajo).
+- **2026-08-20** (Claude Code, terminal — continuación del diagnóstico anterior, mismo
+  día): cierra el pendiente de alcance señalado arriba. Se extendió el script de
+  `chromote` al flujo completo: navegar → clic "Descargar datos en Excel/CSV" → clic
+  "Formato Excel" → verificar archivo en disco, fijando `Browser$setDownloadBehavior`
+  con carpeta destino (sin esto, Chrome headless descarta cualquier descarga en
+  silencio, sin error visible).
+  - En una corrida completa en modo headless, ambos clics resolvieron (`clic_ok`) y se
+    descargó un archivo real:
+    `PIB_T._Producción_y_gasto._Índices_de_volumen_encadenados._Serie_original_(referencia_2014).xlsx`,
+    16 471 bytes, sin sufijo `.crdownload` residual — nombre y tamaño coherentes con
+    esta serie. **El flujo de descarga completo también funciona vía CDP desatendido,
+    no solo vía navegador real con sesión interactiva.**
+  - Deriva de API encontrada y corregida: desde `chromote` 0.4.0, `headless` ya no es
+    argumento de `Chrome$new()` (error textual: `unused argument (headless = TRUE)`);
+    el modo headless se controla vía la opción global `chromote.headless`, confirmado
+    leyendo el `NEWS.md` del paquete instalado — no por ensayo y error. El script
+    original de este diagnóstico ya advertía que podía fallar por esto y no por bloqueo
+    del BCR; así fue.
+  - Inestabilidad aparte, no atribuible al BCR: dos corridas (una headed, una headless)
+    fallaron con `Chromote: timed out waiting for event Page.loadEventFired` — carrera
+    conocida, documentada en el propio `NEWS.md` de `chromote` (0.5.1 agregó `$go_to()`
+    específicamente para reemplazar el patrón `Page$navigate()` +
+    `Page$loadEventFired()` por ser propenso a esa carrera). No se investigó más a
+    fondo porque no es evidencia de bloqueo: la corrida que evitó la carrera se
+    completó limpia con archivo real.
+  - Nota de entorno para cuando esto se formalice: el binario CRAN de `chromote` 0.5.1
+    para Windows está compilado bajo R 4.5.3; la máquina de prueba tiene R 4.5.1. Ese
+    desfase produjo *segfaults* (no errores de R) en un par de llamadas de
+    introspección no relacionadas con el flujo (`args()` sobre el método
+    `Chrome$new`, `tools::Rd_db()`) y una vez en una invocación `-e` inline — nunca en
+    el script sustantivo corrido como archivo `.R` (limpio en dos corridas). Antes de
+    construir esto como script real, conviene resolver el desfase de versión.
+  - No se comprometió nada: script vive fuera del repo (carpeta temporal), no se
+    agregó `chromote` a `DESCRIPTION`/`renv.lock`.
 - **Conclusión vigente:** headers de navegador por sí solos no bastan contra `httr2`
   (confirmado 2026-08-19); no existe un endpoint estático de exportación que un script
   sin navegador pueda golpear directamente (confirmado 2026-08-19); la única vía de
@@ -126,13 +161,14 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   desagregación por enfoque de producción/gasto** (ambas confirmadas 2026-08-19 — falta
   combinar ambas pruebas en una sola descarga y probar desagregación por actividad
   económica individual). La automatización vía navegador real (Cowork o Claude en
-  Chrome) queda **validada como mecanismo para lo relevante de Fase 2**; y la carga de
-  página (no el flujo de descarga completo) también pasa sin bloqueo vía automatización
-  CDP desatendida, en Python (Playwright) y en R (`chromote`) por igual (confirmado
-  2026-08-20) — falta decidir su forma operativa final (script recurrente vía Cowork,
-  flujo semi-supervisado, automatización CDP desatendida en R, u otra combinación) antes
-  de considerar esto entregable de Fase 2 para
-  `BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA`.
+  Chrome) queda **validada como mecanismo para lo relevante de Fase 2**; la carga de
+  página también pasa sin bloqueo vía automatización CDP desatendida, en Python
+  (Playwright) y en R (`chromote`) por igual; y el flujo completo de descarga (clics +
+  generación del `.xlsx` vía SheetJS) igualmente funciona sin bloqueo vía `chromote`
+  desatendido en modo headless (las tres, confirmadas 2026-08-20) — falta decidir su
+  forma operativa final (script recurrente vía Cowork, flujo semi-supervisado,
+  automatización CDP desatendida en R, u otra combinación) antes de considerar esto
+  entregable de Fase 2 para `BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA`.
   Notas de diseño para cuando se automatice: (a) el archivo cae en la carpeta de
   Descargas del sistema con el nombre que asigna el navegador, con deduplicación tipo
   "(2)"/"(3)" si ya existen homónimos — `lib_adquisicion.R` va a necesitar
