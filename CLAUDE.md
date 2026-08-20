@@ -26,6 +26,13 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 —inventario del ecosiste
    verificador no corre en CI (los `.xlsx` están en `.gitignore`, ver ADR-008): esa bitácora es
    su única evidencia. Una entrada corresponde a una corrida real, nunca a la intención de
    correrla.
+9. **Ningún mecanismo de captura desatendido (`chromote` u otro, ver ADR-009) se usa para
+   scraping de volumen.** Captura solo lo necesario, al ritmo real de publicación de cada
+   fuente (trimestral para el PIB, mensual para la mayoría de series del BCR, etc.) — nunca
+   como recolección exhaustiva o repetida más allá de lo que la actualización del catálogo
+   exige. Que un mecanismo evada técnicamente una restricción (ej. detección de bots, o el
+   propio `robots.txt`) no es motivo para ignorarla: la posibilidad técnica no es la pregunta
+   relevante bajo esta regla. Decisión de Harold, 2026-08-20.
 
 ## Consideraciones sobre fuentes de datos
 

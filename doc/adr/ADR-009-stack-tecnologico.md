@@ -190,3 +190,16 @@ combinar rango completo + desagregación en una sola descarga vía `chromote`; g
 mecanismo a otras publicaciones del BCR con estructura de filtro distinta (ver revisión de
 publicaciones, 2026-08-20, más abajo en este ADR o en el documento de diseño de adquisición
 correspondiente).
+
+**Restricción de volumen (Harold, 2026-08-20; regla 9 de `CLAUDE.md`).** `chromote` se usa para
+capturar solo lo necesario, al ritmo real de publicación de cada fuente — no como scraper
+exhaustivo o de alta frecuencia. Que la automatización CDP evada técnicamente el bloqueo del
+BCR no cambia esta restricción: la posibilidad técnica y la conveniencia de hacerlo son
+preguntas distintas. Esto resuelve, como consecuencia directa y no como excepción aparte, la
+pregunta que había quedado abierta sobre `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`
+(`doc/bitacora_fuentes_fragiles.md` no la registra todavía; su nota en
+`01_publicaciones/BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.yaml` sigue diciendo "acceso
+automatizado bloqueado por *robots.txt*"): esa restricción **no se reconsidera**. `chromote`
+no se usa para evadir *robots.txt* en esa ni en ninguna otra fuente — el mecanismo desatendido
+que este ADR adopta está acotado por esta regla, no es una vía general para superar
+cualquier restricción de acceso que se encuentre.
