@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-de-la-actividad-economica-ivae-serie-desestacionalizada
 cobertura_temporal: "2005 en adelante (verificado por Harold, 2026-08-09); cifras revisadas a jun-2025, referencia 2014."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Fuente: BCR. Referencia 2014 — mismo año de referencia que el PIB
   SCN2008 ya catalogado. Incluida en el Calendario de Divulgación de

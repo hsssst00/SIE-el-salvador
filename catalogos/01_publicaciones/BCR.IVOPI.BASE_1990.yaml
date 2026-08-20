@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-de-produccion-industrial-ivopi-tendencia-ciclo-periodo-ene-1990-dic-2017
 cobertura_temporal: "ene-1990 a dic-2017. Verificado directamente por Harold contra el portal (2026-08-17). Ver notas: este valor pasó por una corrección errónea intermedia el mismo día, ya revertida."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Fuente: BCR. Componente/subíndice de manufactura dentro del IVAE
   base 1990, descontinuado en dic-2017 junto con BCR.IVAE.BASE_1990.

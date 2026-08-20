@@ -5,7 +5,7 @@ periodicidad: trimestral
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/pib-t-produccion-y-gasto-indices-de-volumen-encadenados-serie-desestacionalizada-referencia-2014-indices-de-volumen-encadenado
 cobertura_temporal: "2005-T1 a 2026-T1, verificado por Harold directamente contra el portal (2026-08-12)."
-condiciones_uso: "Portal de libre consulta bajo marco de información pública de libre acceso; sin licencia de redistribución explícita — ver ADR-008."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Producto independiente de BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA (M3,
   2026-08-08) — antes ambas variantes compartían un único publicacion_id

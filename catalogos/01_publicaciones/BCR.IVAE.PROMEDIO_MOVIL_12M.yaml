@@ -5,7 +5,7 @@ periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/ivae-promedio-movil-de-los-ultimos-doce-meses-de-la-serie-en-tendencia-ciclo-periodo-ene-1991-dic-2017
 cobertura_temporal: "ene-1990 a dic-2017 (rango de tabla). Primer valor real: dic-1990 — celdas de ene-1990 a nov-1990 vacías (verificado por Harold contra la celda real, 2026-08-20). Verificado directamente por Harold contra el portal (2026-08-17). Corrige el valor anterior (ene-1991), que provenía del relevamiento inicial de Claude (2026-08-09, commit 362d4fd) y no había sido verificado contra el portal."
-condiciones_uso: "No verificado — pendiente relevamiento (ADR-008)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Fuente: BCR. Producto derivado (transformación propia del BCR sobre
   el IVAE base 1990, no una serie primaria independiente) — descontinuado
