@@ -86,6 +86,38 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   individual (las filas "A. Agricultura...", "B. Explotación de minas...", etc., más
   allá de los dos enfoques agregados) ni combinación con el rango histórico completo en
   la misma descarga.
+- **2026-08-20** (Claude Code, terminal — diagnóstico fuera del repo, no comprometido
+  a `DESCRIPTION`/`renv.lock`): pregunta distinta de las pruebas anteriores. Todas las
+  pruebas del 2026-08-19 usaron Cowork o Claude en Chrome — un navegador real con una
+  sesión interactiva de por medio. ¿La detección de bots del BCR distingue
+  específicamente esa modalidad, o bloquea cualquier automatización vía protocolo
+  CDP (Chrome DevTools Protocol) sin humano ni LLM interactivo de por medio? Se probó
+  la carga de la misma URL (`INDICES_VOLUMEN_ENCADENADOS_NSA`, referencia 2014) con dos
+  frameworks distintos, cada uno en modo headless y headed, verificando presencia del
+  texto esperado del indicador en el HTML servido:
+  - **Playwright (Python 3.14, venv descartable fuera del clon del repo):** headless y
+    headed, ambos HTTP 200 con el contenido real presente — no bloqueados.
+  - **`chromote` (R, biblioteca de paquetes aislada, `Chrome$new()`/opción
+    `chromote.headless` sobre el Chrome ya instalado en el sistema, sin tocar el
+    `renv` del proyecto):** mismo resultado — headless y headed, ambos con el
+    contenido real presente.
+
+  Ninguno de los cuatro casos fue bloqueado. La detección de bots del BCR **no
+  distingue Cowork/Claude en Chrome de automatización CDP genérica**, al menos para la
+  carga inicial de la página — es consistente con que la señal de bloqueo sea la
+  ausencia de un motor de renderizado real (lo que sí le faltaba a `httr2`), no alguna
+  huella específica de las herramientas de Anthropic. **Importante — alcance limitado:**
+  esta prueba solo cubrió la carga de página (`GET` + render), no el flujo completo de
+  clic en "Descargar datos en Excel/CSV" → "Formato Excel" que sí se probó de punta a
+  punta vía Cowork (ver entradas 2026-08-19 arriba); no se automatizaron esos clics ni
+  la generación del `.xlsx` vía SheetJS con estos scripts. Pendiente antes de considerar
+  esto una vía de automatización completa.
+
+  Relevancia para ADR-009: que `chromote` replique el resultado de Playwright disuelve
+  la tensión de stack que motivó la pregunta — no habría necesidad de introducir Python
+  para este mecanismo si el flujo completo también funciona en R. No se agregó
+  `chromote` como dependencia formal del proyecto en esta sesión (decisión pendiente,
+  ver abajo).
 - **Conclusión vigente:** headers de navegador por sí solos no bastan contra `httr2`
   (confirmado 2026-08-19); no existe un endpoint estático de exportación que un script
   sin navegador pueda golpear directamente (confirmado 2026-08-19); la única vía de
@@ -94,9 +126,12 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   desagregación por enfoque de producción/gasto** (ambas confirmadas 2026-08-19 — falta
   combinar ambas pruebas en una sola descarga y probar desagregación por actividad
   económica individual). La automatización vía navegador real (Cowork o Claude en
-  Chrome) queda **validada como mecanismo para lo relevante de Fase 2**; falta decidir
-  su forma operativa final (script recurrente vía Cowork, flujo semi-supervisado, u
-  otra) antes de considerar esto entregable de Fase 2 para
+  Chrome) queda **validada como mecanismo para lo relevante de Fase 2**; y la carga de
+  página (no el flujo de descarga completo) también pasa sin bloqueo vía automatización
+  CDP desatendida, en Python (Playwright) y en R (`chromote`) por igual (confirmado
+  2026-08-20) — falta decidir su forma operativa final (script recurrente vía Cowork,
+  flujo semi-supervisado, automatización CDP desatendida en R, u otra combinación) antes
+  de considerar esto entregable de Fase 2 para
   `BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA`.
   Notas de diseño para cuando se automatice: (a) el archivo cae en la carpeta de
   Descargas del sistema con el nombre que asigna el navegador, con deduplicación tipo
