@@ -4,7 +4,7 @@ nombre: "Patronos y trabajadores reportados y cotizados al ISSS (número y salar
 periodicidad: mensual
 formato: web / xlsx
 url: https://www.transparencia.gob.sv/documentos/27-28
-cobertura_temporal: "sep-2017 a may-2023 (63 entregas localizadas, con huecos declarados — ver notas). Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold contra el portal."
+cobertura_temporal: "ene-2017 a may-2023 (huecos declarados dentro del tramo sep-2017 a may-2023 — ver notas). Verificado directamente por Harold contra el portal (2026-08-20): corrige el extremo inicial del relevamiento de Cowork (2026-08-12), que decía sep-2017 — la cobertura real arranca ocho meses antes, en enero de 2017. Los huecos ya documentados quedan confirmados existentes por Harold. El conteo de '63 entregas localizadas' y la lista de huecos de las notas corresponden al relevamiento original sobre el tramo sep-2017 a may-2023 — no se ha verificado todavía si la franja nueva (ene-2017 a ago-2017) tiene huecos propios; no asumir que está completa."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-17): los términos formales de uso no se verificaron y no se persigue esclarecimiento con el ISSS; aplica el default conservador. Contexto de discontinuación y reserva de información (LAIP) en 09_rupturas.csv, R014_ISSS_ESTADISTICAS_RESERVA; régimen del portal y costo de reproducción de $0.04/página en la fila ISSS de 00_instituciones.csv."
 notas: |
   Fuente: ISSS, vía Portal de Transparencia institucional (institución id=27,
@@ -49,3 +49,11 @@ notas: |
   Nombre de archivo publicado con higiene deficiente detectado en un mes
   de la serie: "Copia_de_5._BD_Actividad_Economica.xlsx" — nombre de
   trabajo interno, no un nombre de publicación curado.
+
+  Verificación directa por Harold (2026-08-20): confirma que la cobertura
+  real arranca en ene-2017, no en sep-2017 como decía el relevamiento
+  inicial de Cowork (2026-08-12), y confirma que los huecos listados
+  arriba existen. No verificado todavía: si los ocho meses agregados al
+  extremo inicial (ene-2017 a ago-2017) tienen huecos propios — la lista
+  de huecos de arriba fue construida sobre el rango anterior (desde
+  sep-2017), no sobre el rango corregido.

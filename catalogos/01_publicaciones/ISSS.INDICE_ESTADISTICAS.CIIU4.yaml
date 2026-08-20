@@ -4,7 +4,7 @@ nombre: "Índice de estadísticas de patronos y trabajadores CIIU 4"
 periodicidad: anual
 formato: web / pdf
 url: https://www.transparencia.gob.sv/documentos/27-28
-cobertura_temporal: "Año 2023 (actualizado a febrero 2023), subido 02-may-2023. Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold."
+cobertura_temporal: "ene-2017 a feb-2023 (documento 'Año 2023', subido 02-may-2023). Verificado directamente por Harold contra el portal (2026-08-20): el relevamiento de Cowork (2026-08-12) solo registraba el año de la entrega ('Año 2023') sin el rango de cobertura del propio índice; el rango real que el documento cubre es ene-2017 a feb-2023. Nota de reconciliación pendiente: las notas de este archivo describen la publicación como 'documento índice/metadato... no una serie de datos en sí' — no se ha verificado si ese rango describe la cobertura de ISSS.COTIZANTES.CIIU4 que el índice documenta, o cobertura propia de este archivo; no asumir equivalencia automática con la cobertura de COTIZANTES.CIIU4 (ene-2017 a may-2023, con huecos)."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-17): los términos formales de uso no se verificaron y no se persigue esclarecimiento con el ISSS; aplica el default conservador. Contexto de discontinuación y reserva de información (LAIP) en 09_rupturas.csv, R014_ISSS_ESTADISTICAS_RESERVA; régimen del portal y costo de reproducción de $0.04/página en la fila ISSS de 00_instituciones.csv."
 notas: |
   Fuente: ISSS. Documento índice/metadato de la serie de cotizantes

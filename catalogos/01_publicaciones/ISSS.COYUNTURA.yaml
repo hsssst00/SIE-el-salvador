@@ -4,7 +4,7 @@ nombre: "Informe de Coyuntura del ISSS"
 periodicidad: mensual
 formato: web / pdf
 url: https://www.transparencia.gob.sv/documentos/27-28
-cobertura_temporal: "hasta marzo 2023 (47 documentos incluyendo históricos). Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold."
+cobertura_temporal: "ene-2018 a mar-2023 (47 documentos incluyendo históricos). Verificado directamente por Harold contra el portal (2026-08-20): el relevamiento de Cowork (2026-08-12) solo registraba el extremo final (hasta marzo 2023); el extremo inicial (enero de 2018) se confirma ahora por primera vez."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-17): los términos formales de uso no se verificaron y no se persigue esclarecimiento con el ISSS; aplica el default conservador. Contexto de discontinuación y reserva de información (LAIP) en 09_rupturas.csv, R014_ISSS_ESTADISTICAS_RESERVA; régimen del portal y costo de reproducción de $0.04/página en la fila ISSS de 00_instituciones.csv."
 notas: |
   Fuente: ISSS. Cobertura poblacional, demanda de servicios de salud,

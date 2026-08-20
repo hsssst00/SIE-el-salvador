@@ -4,7 +4,7 @@ nombre: "Anuario Estadístico"
 periodicidad: anual
 formato: web / pdf
 url: https://www.transparencia.gob.sv/documentos/27-28
-cobertura_temporal: "1959 a 2021 (serie moderna 2014-2021; serie histórica con años sueltos: 1959, 1990, 2000, 2010, 2017...). Último disponible: Anuario 2021, subido 23-sep-2024. Relevamiento Cowork (2026-08-12), pendiente verificación directa de Harold."
+cobertura_temporal: "1959 a 2021 (serie moderna 2014-2021; serie histórica con años sueltos: 1959, 1990, 2000, 2010, 2017...). Último disponible: Anuario 2021, subido 23-sep-2024. Verificado directamente por Harold contra el portal (2026-08-20): confirmado tal cual el relevamiento de Cowork (2026-08-12)."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-17): los términos formales de uso no se verificaron y no se persigue esclarecimiento con el ISSS; aplica el default conservador. Contexto de discontinuación y reserva de información (LAIP) en 09_rupturas.csv, R014_ISSS_ESTADISTICAS_RESERVA; régimen del portal y costo de reproducción de $0.04/página en la fila ISSS de 00_instituciones.csv."
 notas: |
   Fuente: ISSS. Secundario para el proyecto (cobertura anual, no
