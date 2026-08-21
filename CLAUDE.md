@@ -52,7 +52,7 @@ Ver `Makefile`. Objetivos previstos: `make raw | clean | master | eval | report`
 
 ## Stack (ADR-009)
 
-R vía `renv`. `renv.lock` está fijado (154 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (14 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`.
+R vía `renv`. `renv.lock` está fijado (155 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (15 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`.
 
 ## Orden de fases (no te lo saltes)
 

@@ -110,7 +110,8 @@ validación, no desde adquisición.
   filas) sería contradictorio con lo que el verificador existe para comprobar.
 - `readxl` no se incorpora todavía. Cuando Fase 3 necesite leer los valores numéricos de
   las series (no solo confirmar un rótulo), `xml2` deja de alcanzar razonablemente y ahí
-  corresponde una enmienda formal de este ADR incorporando `readxl` como import #15.
+  corresponde una enmienda formal de este ADR incorporando `readxl` como import #16 — el
+  #15 lo tomó `httr2` el 2026-08-19 (commit `ef135df`).
 
 **Disparador.** Antes de escribir el primer script de `src/transformacion/` que lea valores
 (no rótulos) de un `.xlsx`, debe enmendarse este ADR para incorporar `readxl`.

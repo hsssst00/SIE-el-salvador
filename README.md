@@ -22,7 +22,7 @@ scripts/             utilidades de configuración (bootstrap de entorno, etc.)
 
 ## Empezar
 
-`renv.lock` ya existe y está fijado (154 paquetes, incluidos los 13 de ADR-009). Primer paso en una máquina con R:
+`renv.lock` ya existe y está fijado (155 paquetes: los 13 de ADR-009 más `xml2` y `httr2`). Primer paso en una máquina con R:
 
 ```r
 renv::restore()
