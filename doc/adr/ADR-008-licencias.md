@@ -239,8 +239,12 @@ iniciada antes de hoy: no había pregunta pendiente de respuesta, solo el campo
   publicaciones de SECMCA tiene todavía una fila propia en `03_series.csv` (ese trabajo es
   adelanto de Fase 3 y no ha llegado a esta fuente). `CORRECCIÓN (2026-08-18):` la redacción
   original de este párrafo afirmaba que SECMCA "alimenta series de deuda pública ya
-  catalogadas" — verificado contra `03_series.csv` (4 filas, las 4 de BCR): esa afirmación era
-  falsa, no hay ninguna fila de SECMCA todavía. SECMCA está catalogado como publicación en
+  catalogadas" — verificado contra `03_series.csv`: esa afirmación era falsa, no hay ninguna
+  fila de SECMCA todavía. `CORRECCIÓN (2026-08-20):` esa verificación citaba "4 filas, las 4
+  de BCR" como evidencia; el conteo real es de 98 filas, provenientes de 4 publicaciones del
+  BCR. Se confundió publicaciones con filas. La conclusión —cero filas de SECMCA— no dependía
+  de la cifra y no cambia (hallazgo M1, auditoría 2026-08-20). SECMCA está catalogado como
+  publicación en
   `01_publicaciones`, no como serie. Harold decidió no abrir gestión nueva por el mismo criterio
   de costo/beneficio que las otras dos: el default conservador ya cubre el caso sin necesitar
   pronunciamiento de la fuente — esa decisión no dependía de la afirmación errónea y no cambia.

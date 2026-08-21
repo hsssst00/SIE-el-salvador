@@ -90,6 +90,14 @@ solo ofrecen fetch-y-parseo en un mismo paso — de ser lo segundo, su uso en Fa
 extraer la lógica de parseo o llamarlos igual y aceptar una segunda consulta de red no
 determinante para L0. Se resuelve al llegar a Fase 3, no antes.
 
+**Registro de la dependencia (asentado 2026-08-20).** `httr2` se incorporó como import #15 de
+`DESCRIPTION` y a `renv.lock` el 2026-08-19 (commit `ef135df`), al escribir el primer script de
+`src/adquisicion/`. Se fijó con `renv::record()` en vez de `renv::snapshot()`; sus catorce
+dependencias transitivas ya estaban en el lockfile, de modo que el entorno quedó completo pese
+al registro mínimo. Esta nota no estaba en el ADR cuando la dependencia llegó: se asienta ahora
+a raíz del hallazgo I5 de la auditoría del 2026-08-20. Consecuencia de numeración: `readxl`,
+cuando corresponda, entra como import #16, no #15.
+
 ## Nota de seguimiento — lector de hojas de cálculo (2026-08-15)
 
 El verificador de `fuente_celda` (`src/validacion/verificar_fuente_celda.R`, ver también
@@ -177,8 +185,10 @@ real debe usar `$go_to()`, no el patrón que se usó en el diagnóstico.
 
 **Disparador.** `chromote` no se agrega todavía a `DESCRIPTION`/`renv.lock` — se incorpora
 formalmente como import cuando se escriba el primer script real de `src/adquisicion/` que lo
-use (mismo patrón que `httr2` en la nota de seguimiento anterior: la enmienda de ADR se cierra
-primero, la dependencia formal llega con el primer script real).
+use (mismo patrón que `httr2` en la nota de seguimiento de clientes de API externa: la decisión
+se cierra primero, la dependencia formal llega con el primer script real — con la salvedad,
+registrada en esa misma nota, de que en el caso de `httr2` el asiento en este ADR llegó después
+de la dependencia y no antes; acá el orden se respeta desde el principio).
 
 **Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota es
 sobre qué mecanismo captura las publicaciones del BCR específicamente, no sobre el lenguaje del

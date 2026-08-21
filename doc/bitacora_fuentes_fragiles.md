@@ -117,8 +117,10 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   Relevancia para ADR-009: que `chromote` replique el resultado de Playwright disuelve
   la tensión de stack que motivó la pregunta — no habría necesidad de introducir Python
   para este mecanismo si el flujo completo también funciona en R. No se agregó
-  `chromote` como dependencia formal del proyecto en esta sesión (decisión pendiente,
-  ver abajo).
+  `chromote` como dependencia formal del proyecto en esta sesión; la decisión se cerró
+  el mismo día en ADR-009, nota de seguimiento "mecanismo de captura para el BCR"
+  (2026-08-20), que además difiere la incorporación a `DESCRIPTION`/`renv.lock` hasta el
+  primer script real que lo use.
 - **2026-08-20** (Claude Code, terminal — continuación del diagnóstico anterior, mismo
   día): cierra el pendiente de alcance señalado arriba. Se extendió el script de
   `chromote` al flujo completo: navegar → clic "Descargar datos en Excel/CSV" → clic
@@ -153,22 +155,28 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     construir esto como script real, conviene resolver el desfase de versión.
   - No se comprometió nada: script vive fuera del repo (carpeta temporal), no se
     agregó `chromote` a `DESCRIPTION`/`renv.lock`.
-- **Conclusión vigente:** headers de navegador por sí solos no bastan contra `httr2`
-  (confirmado 2026-08-19); no existe un endpoint estático de exportación que un script
-  sin navegador pueda golpear directamente (confirmado 2026-08-19); la única vía de
-  descarga real es reproducir la interacción de la interfaz, y esa vía **ya se probó de
-  punta a punta con el rango histórico completo de la serie agregada, y por separado con
-  desagregación por enfoque de producción/gasto** (ambas confirmadas 2026-08-19 — falta
-  combinar ambas pruebas en una sola descarga y probar desagregación por actividad
-  económica individual). La automatización vía navegador real (Cowork o Claude en
-  Chrome) queda **validada como mecanismo para lo relevante de Fase 2**; la carga de
-  página también pasa sin bloqueo vía automatización CDP desatendida, en Python
-  (Playwright) y en R (`chromote`) por igual; y el flujo completo de descarga (clics +
-  generación del `.xlsx` vía SheetJS) igualmente funciona sin bloqueo vía `chromote`
-  desatendido en modo headless (las tres, confirmadas 2026-08-20) — falta decidir su
-  forma operativa final (script recurrente vía Cowork, flujo semi-supervisado,
-  automatización CDP desatendida en R, u otra combinación) antes de considerar esto
-  entregable de Fase 2 para `BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA`.
+- **Conclusión vigente (actualizada 2026-08-20, tras la decisión de ADR-009):** headers de
+  navegador por sí solos no bastan contra `httr2` (confirmado 2026-08-19); no existe un
+  endpoint estático de exportación que un script sin navegador pueda golpear directamente
+  (confirmado 2026-08-19); la única vía de descarga real es reproducir la interacción de la
+  interfaz. Esa vía está probada de punta a punta en dos modalidades: vía navegador real con
+  sesión interactiva (Cowork o Claude en Chrome), con rango histórico completo de la serie
+  agregada y, por separado, con desagregación por enfoque de producción/gasto (ambas
+  2026-08-19); y vía automatización CDP desatendida, que pasa sin bloqueo tanto en Python
+  (Playwright) como en R (`chromote`), esta última extendida al flujo completo de clics y
+  generación del `.xlsx` vía SheetJS (2026-08-20).
+  **La forma operativa ya no está abierta.** ADR-009, nota de seguimiento "mecanismo de
+  captura para el BCR" (2026-08-20), fija `chromote` —automatización CDP desatendida en R,
+  headless— como el mecanismo de captura para las publicaciones del BCR servidas desde
+  `estadisticas.bcr.gob.sv`, y deja el flujo semi-supervisado como alternativa de respaldo,
+  no como camino principal. Lo que sigue abierto es de ejecución, no de elección: resolver
+  el desfase de versión (binario CRAN de `chromote` 0.5.1 compilado bajo R 4.5.3, máquina de
+  prueba en R 4.5.1) y usar `$go_to()` en lugar de `Page$navigate()` +
+  `Page$loadEventFired()` —ambas condición previa, según ADR-009, a que el script real entre
+  a `src/adquisicion/`—; combinar rango histórico completo y desagregación en una sola
+  descarga; y probar la desagregación por actividad económica individual. El uso de este
+  mecanismo queda acotado por la regla 9 de `CLAUDE.md`: captura al ritmo real de
+  publicación de la fuente, nunca recolección de volumen.
   Notas de diseño para cuando se automatice: (a) el archivo cae en la carpeta de
   Descargas del sistema con el nombre que asigna el navegador, con deduplicación tipo
   "(2)"/"(3)" si ya existen homónimos — `lib_adquisicion.R` va a necesitar
