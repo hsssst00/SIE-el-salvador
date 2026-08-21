@@ -1,9 +1,10 @@
 # lib_adquisicion.R
 #
 # Funcion compartida para todos los scripts de src/adquisicion/. Implementa el
-# contrato descrito en diseno_src_adquisicion.md (aprobado 2026-08-18): descargar,
-# calcular checksum, comparar contra el manifiesto, registrar si cambio, nunca
-# sobrescribir (senda S3.1; reglas 1 y 6 de CLAUDE.md).
+# contrato descrito en src/adquisicion/README.md, seccion 3 (borrador aprobado el
+# 2026-08-18, incorporado al repositorio el 2026-08-21): descargar, calcular
+# checksum, comparar contra el manifiesto, registrar si cambio, nunca sobrescribir
+# (senda S3.1; reglas 1 y 6 de CLAUDE.md).
 #
 # Esta funcion NO decide como se pide el dato (eso lo hace cada script por
 # institucion) - solo que hacer con la respuesta una vez obtenida.

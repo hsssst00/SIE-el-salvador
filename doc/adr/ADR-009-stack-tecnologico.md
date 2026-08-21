@@ -198,9 +198,10 @@ proyecto en general.
 `BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA` — rango por defecto, un solo clic de descarga, sin
 combinar con rango histórico ni con desagregación en la misma corrida. No probado todavía:
 combinar rango completo + desagregación en una sola descarga vía `chromote`; generalización del
-mecanismo a otras publicaciones del BCR con estructura de filtro distinta (ver revisión de
-publicaciones, 2026-08-20, más abajo en este ADR o en el documento de diseño de adquisición
-correspondiente).
+mecanismo a otras publicaciones del BCR con estructura de filtro distinta. Ambos pendientes
+quedan registrados en `src/adquisicion/README.md` §5 y en la conclusión vigente de
+`doc/bitacora_fuentes_fragiles.md`. El formato de captura (`.xlsx`, no CSV) se fija en
+`src/adquisicion/README.md` §2.1, junto con las dos pruebas pendientes que podrían invertirlo.
 
 **Restricción de volumen (Harold, 2026-08-20; regla 9 de `CLAUDE.md`).** `chromote` se usa para
 capturar solo lo necesario, al ritmo real de publicación de cada fuente — no como scraper
