@@ -4,7 +4,7 @@ nombre: "Índice de Volumen de Actividad Económica (IVAE), base 1990 — global
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-actividad-economica-ivae-global-y-por-sectores-periodo-ene-1990-dic-2017-2
-cobertura_temporal: "ene-1990 a dic-2017."
+cobertura_temporal: "ene-1990 a dic-2017. Verificado directamente por Harold contra el portal (2026-08-21): ene-1990 tiene valor real en la celda, no es solo el extremo declarado del rango de la tabla — a diferencia de BCR.IVAE.PROMEDIO_MOVIL_12M, cuyo primer valor real es dic-1990. La inferencia de que las tres publicaciones base 1990 comparten extremo inicial no se usó como sustento: se verificó esta ficha por separado."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Fuente: BCR, Base de Datos Económica y Financiera, Sector Real —

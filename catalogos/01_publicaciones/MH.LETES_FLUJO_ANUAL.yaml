@@ -4,7 +4,7 @@ nombre: "Flujo de Letras del Tesoro Público (LETES) — resumen anual"
 periodicidad: anual
 formato: web / xlsx
 url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
-cobertura_temporal: "2011 a 2021 (marzo)."
+cobertura_temporal: "2011 a 2021 (marzo). Procedencia: relevamiento inicial, sin verificación individual registrada contra el portal. Tramo secundario (BCR es fuente primaria para estas series), por lo que no se priorizó."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con el Ministerio de Hacienda; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: Dirección General de Tesorería, Ministerio de Hacienda. Tabla

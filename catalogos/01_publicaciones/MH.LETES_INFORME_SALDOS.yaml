@@ -4,7 +4,7 @@ nombre: "Informe de saldos de colocación de Letras del Tesoro Público (LETES)"
 periodicidad: mensual (dentro de informes publicados por año)
 formato: pdf
 url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
-cobertura_temporal: "2011 a 2021, un PDF por año. El informe de 2017 incluye además un retrospectivo mensual desde jun-2009. Desde 2018 en adelante, cobertura mensual completa dentro de cada informe anual."
+cobertura_temporal: "2011 a 2021, un PDF por año. El informe de 2017 incluye además un retrospectivo mensual desde jun-2009. Desde 2018 en adelante, cobertura mensual completa dentro de cada informe anual. Verificado directamente por Harold contra el portal (2026-08-09): el detalle mes a mes existe dentro de cada PDF anual, no es solo descripción del portal. Salvedad de vigencia: sin evidencia de actualización posterior a mar-2021, no verificada."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con el Ministerio de Hacienda; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: Dirección General de Tesorería, Ministerio de Hacienda. Cita

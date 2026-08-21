@@ -4,7 +4,7 @@ nombre: "Evolución de los Ingresos Totales del Estado"
 periodicidad: anual
 formato: web / xlsx
 url: https://www.transparenciafiscal.gob.sv/ptf/es/PTF2-Ingresos.html
-cobertura_temporal: "Real: 2009-2018. Proyectado: 2019-2029 (serie distinta, no confundir con ejecutado)."
+cobertura_temporal: "Real: 2009-2018. Proyectado: 2019-2029 (serie distinta, no confundir con ejecutado). Procedencia: relevamiento inicial, no verificado individualmente contra el portal. La tabla declara última actualización en septiembre 2019 y su vigencia posterior no se confirmó. Tramo secundario (BCR es fuente primaria para estas series, ver notas), por lo que la verificación individual no se priorizó."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con el Ministerio de Hacienda; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Fuente: Ministerio de Hacienda, MFMLP 2019-2029. En millones de US$ y
