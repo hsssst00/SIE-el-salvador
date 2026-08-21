@@ -244,10 +244,10 @@ iniciada antes de hoy: no había pregunta pendiente de respuesta, solo el campo
   de BCR" como evidencia; el conteo real es de 98 filas, provenientes de 4 publicaciones del
   BCR. Se confundió publicaciones con filas. La conclusión —cero filas de SECMCA— no dependía
   de la cifra y no cambia (hallazgo M1, auditoría 2026-08-20). SECMCA está catalogado como
-  publicación en
-  `01_publicaciones`, no como serie. Harold decidió no abrir gestión nueva por el mismo criterio
-  de costo/beneficio que las otras dos: el default conservador ya cubre el caso sin necesitar
-  pronunciamiento de la fuente — esa decisión no dependía de la afirmación errónea y no cambia.
+  publicación en `01_publicaciones`, no como serie. Harold decidió no abrir gestión nueva por
+  el mismo criterio de costo/beneficio que las otras dos: el default conservador ya cubre el
+  caso sin necesitar pronunciamiento de la fuente — esa decisión no dependía de la afirmación
+  errónea y no cambia.
 
 **Decisión aplicada.** Se aplica el default conservador de este ADR a las 15 publicaciones de
 MH, ONEC/DIGESTYC y SECMCA: el repositorio publica el *script* de descarga y el *checksum*
