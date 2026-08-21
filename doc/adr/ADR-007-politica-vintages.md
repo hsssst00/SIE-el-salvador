@@ -75,3 +75,38 @@ Esto no convierte el asunto en urgente: no hay indicio de poda activa, y el arch
 - **Admisible:** medir la magnitud de las revisiones del PIB salvadoreño, que la senda §2 (D7) plantea como resultado de interés propio. Con un archivo de diecisiete meses y un estado corrupto no alcanza para un resultado publicable, pero es la primera medición directa de una revisión que el proyecto tiene y fija un orden de magnitud.
 
 **Sin cambio en la captura prospectiva del BCR.** Sigue siendo compromiso firme e inmediato, sin alteración. Este hallazgo no provee un sustituto ni reduce su urgencia.
+
+## Nota de seguimiento — formato del identificador de vintage (2026-08-20)
+
+**Disparador.** El primer borrador de `src/adquisicion/lib_adquisicion.R` derivaba el
+`vintage_id` de `Sys.Date()` —la fecha de descarga— mientras las cuatro filas ya existentes de
+`catalogos/08_vintages.csv` lo derivan de la fecha de publicación de la fuente. Hallazgo I2 de
+la auditoría del 2026-08-20.
+
+**Decisión: `{publicacion_id}.v{AAAA-MM}`, con `AAAA-MM` = mes de la fecha de publicación de la
+fuente.** Dos razones. La primera es de definición: la senda §3.2 modela el vintage como "un
+hecho de publicación con fecha, documento fuente y alcance", no como un hecho de descarga; un
+identificador que codifique la fecha de descarga nombraría algo que la entidad no es. La segunda
+es de no redundancia (§10.6): la fecha de descarga ya vive en `fecha_descarga` del manifiesto de
+L0, y no necesita un segundo domicilio dentro de una clave.
+
+**Consecuencias.**
+
+- `fecha_publicacion` pasa a ser obligatoria en la práctica para `registrar_descarga()`: la
+  función falla de forma visible si falta o no es ISO (regla 6 de `CLAUDE.md`). Si la fuente no
+  la declara de forma parseable, quien llama pasa una aproximación explícita y anota de qué se
+  deriva. El caso ya tiene precedente asentado:
+  `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03` usa la fecha de última modificación del
+  archivo y lo declara en sus notas.
+- La granularidad mensual admite colisión si una misma publicación se publica dos veces en el
+  mismo mes. No se cambia la granularidad por un caso que no se ha dado; se agrega una
+  verificación que falla si el `vintage_id` ya existe, en lugar de escribir un duplicado de
+  clave (senda §3.5: los duplicados fallan, no advierten).
+- Dos de las cuatro filas existentes se normalizan: la cadena base pasa a ser el
+  `publicacion_id` completo. El sufijo `-SA` de una de ellas desaparece — existía porque la
+  cadena base omitía la variante, y desde M3 (2026-08-08) cada variante tiene `publicacion_id`
+  propio. Normalizarlas completa M3; no revierte nada. Las otras dos ya cumplían la convención.
+
+**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión de este ADR: el diseño
+bitemporal, la política híbrida (a)+(b) y el alcance del rescate retrospectivo quedan como
+están. Esto es formato de identificador, no política de vintages.

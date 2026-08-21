@@ -32,6 +32,12 @@ calcular_sha256_raw <- function(contenido_crudo) {
 # extension: "xlsx", "json", etc.
 # contenido_crudo: bytes crudos ya obtenidos (raw vector)
 # codigo_http: codigo de estado HTTP de la respuesta
+# fecha_publicacion: fecha ISO (AAAA-MM-DD) que la fuente declara para este vintage.
+# Obligatoria en la practica: de ella se deriva el vintage_id (ADR-007, nota de
+# seguimiento 2026-08-20). Se mantiene con default vacio en la firma solo para que
+# el fallo sea un mensaje diagnosticable y no el error terso de R por argumento
+# faltante.
+# periodo_referencia_max: ultimo periodo de referencia cubierto por este vintage
 # verificacion_forma: funcion opcional, recibe contenido_crudo, devuelve TRUE/FALSE
 registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo, extension,
                                 contenido_crudo, codigo_http, fecha_publicacion = "",
@@ -64,7 +70,7 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
   filas_previas <- manifiesto[manifiesto$publicacion_id == publicacion_id, ]
 
   if (nrow(filas_previas) == 0) {
-    alcance_revision <- "primera captura - sin vintage previo con el cual comparar"
+    alcance_revision <- "primera captura — sin vintage previo con el cual comparar"
   } else {
     sha256_previo <- filas_previas$sha256[nrow(filas_previas)]
     if (identical(sha256_previo, sha256_nuevo)) {
@@ -78,7 +84,7 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
         mensaje = paste0("verificado, sin cambios desde ", fecha_previa)
       )))
     }
-    alcance_revision <- paste0("vintage nuevo - sha256 distinto del capturado el ",
+    alcance_revision <- paste0("vintage nuevo — sha256 distinto del capturado el ",
                                  filas_previas$fecha_descarga[nrow(filas_previas)])
   }
 
@@ -93,7 +99,32 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
   writeBin(contenido_crudo, ruta_archivo)
 
   # Paso 5: vintage_id y registro en manifiesto + 08_vintages.csv
-  vintage_id <- paste0(publicacion_id, ".v", format(Sys.Date(), "%Y-%m"))
+  #
+  # El sufijo es el mes de la FECHA DE PUBLICACION de la fuente, no el de la descarga:
+  # la senda S3.2 define el vintage como un hecho de publicacion, y la fecha de
+  # descarga ya vive en el campo fecha_descarga del manifiesto. Convencion fijada en
+  # ADR-007, nota de seguimiento 2026-08-20.
+  if (!nzchar(fecha_publicacion) ||
+      !grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", fecha_publicacion)) {
+    stop("FALLO VISIBLE [", publicacion_id, "]: fecha_publicacion ausente o no ISO ",
+         "(recibido: '", fecha_publicacion, "'). El vintage_id se deriva de la fecha de ",
+         "publicacion de la fuente y esta funcion no la infiere. Si la fuente no la ",
+         "declara de forma parseable, pasar una aproximacion explicita y anotar de que ",
+         "se deriva - ver la fila BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03, que ",
+         "usa la fecha de ultima modificacion del archivo y lo declara en sus notas.")
+  }
+  vintage_id <- paste0(publicacion_id, ".v", substr(fecha_publicacion, 1, 7))
+
+  # La granularidad mensual admite colision si una misma publicacion se publica dos
+  # veces en el mismo mes. No se cambia la granularidad por un caso que no se ha dado,
+  # pero un duplicado de clave falla, no advierte (senda S3.5).
+  vintages_previos <- read.csv(ruta_vintages, stringsAsFactors = FALSE, colClasses = "character")
+  if (vintage_id %in% vintages_previos$vintage_id) {
+    stop("FALLO VISIBLE [", publicacion_id, "]: el vintage_id '", vintage_id, "' ya existe ",
+         "en ", ruta_vintages, ", pero el sha256 de esta descarga es distinto del ",
+         "registrado. Dos publicaciones de la misma fuente en el mismo mes colisionan en ",
+         "esta convencion. Resolver a mano antes de seguir - no se escribe nada.")
+  }
 
   fila_manifiesto <- data.frame(
     archivo = nombre_archivo, fuente = fuente, url = url,
