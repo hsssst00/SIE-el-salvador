@@ -110,3 +110,50 @@ L0, y no necesita un segundo domicilio dentro de una clave.
 **Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión de este ADR: el diseño
 bitemporal, la política híbrida (a)+(b) y el alcance del rescate retrospectivo quedan como
 están. Esto es formato de identificador, no política de vintages.
+
+## Nota de seguimiento — checksum de integridad vs. de identidad de vintage (2026-08-21)
+
+**Disparador.** La decisión de este ADR (sección Decisión, "Granularidad del registro") afirma
+que "la comparación de checksum contra el manifiesto de L0 (§3.1) determina si hubo cambio real de
+contenido respecto del vintage anterior". La prueba F1 (2026-08-21, registrada en
+`src/adquisicion/README.md` §2.1 y §2.3) estableció que esa afirmación no se sostiene para las
+publicaciones del BCR servidas por el portal: el `.xlsx` que genera SheetJS no es determinista
+byte a byte —el empaquetado ZIP varía entre descargas del mismo dato— aunque su contenido
+descomprimido sea idéntico. Un checksum sobre el archivo crudo reportaría vintage nuevo en cada
+corrida.
+
+**Verificación, no inferencia.** Se descargó dos veces la misma serie sin cambio en la fuente. Las
+nueve entradas del ZIP resultaron byte-idénticas entre descargas; el SHA-256 del archivo completo,
+distinto; el SHA-256 del contenido normalizado (entradas ordenadas por nombre, concatenadas
+descomprimidas), idéntico. La causa quedó acotada al contenedor, no al dato. Se descartó
+explícitamente la hipótesis de timestamp: las fechas internas de las entradas del ZIP coincidían
+al segundo en ambas descargas.
+
+**Decisión: dos checksums, no uno.** El manifiesto de L0 y `08_vintages` llevan desde ahora dos
+campos:
+
+- `sha256` — del archivo crudo tal como se descargó. Responde "¿el archivo en disco está íntegro,
+  sin corrupción?". Es el que ya existía; su semántica no cambia.
+- `sha256_norm` — del contenido normalizado. Responde "¿este contenido es un vintage nuevo respecto
+  del anterior?". Es el que compara el mecanismo de detección de vintage.
+
+Para fuentes cuyo crudo ya es determinista (las API que guardan `.json`: FMI, FRED, Banco Mundial),
+`sha256_norm` coincide con `sha256`. Solo divergen en fuentes tipo contenedor (el `.xlsx` del BCR).
+El campo se llena siempre, sin casos especiales.
+
+**Consecuencias.**
+
+- La frase de la sección Decisión se lee, a partir de esta nota, referida a `sha256_norm`, no al
+  checksum crudo. No se reescribe la Decisión —sigue siendo válida en su intención, que es detectar
+  cambio real de contenido— pero queda anotado que el checksum que la cumple es el normalizado.
+- Cambia el esquema de dos artefactos: `08_vintages` (esquema `cerrado`, `datapackage.json`
+  actualizado) y el manifiesto de L0 (columna agregada, `tests/test-catalogs.R` actualizado). Es
+  cambio de esquema, no de política de vintages: el diseño bitemporal y la estrategia híbrida no se
+  tocan.
+- Las cuatro filas ya capturadas reciben su `sha256_norm` calculado sobre el archivo real. El
+  `sha256` crudo de esas filas no se recalcula ni se toca — la integridad histórica se conserva.
+
+**Lo que esta nota no cambia.** Ninguna otra decisión de este ADR. La normalización es una
+operación de lectura para computar un hash estable; no altera el archivo de L0, que se sigue
+archivando crudo, tal como cae (con la salvedad de encuadre de `src/adquisicion/README.md` §2.1:
+para esta fuente, "crudo" ya es un artefacto del cliente, no del publicador).

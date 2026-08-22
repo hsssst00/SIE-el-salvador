@@ -162,6 +162,26 @@ aparece con el nombre correcto.
 
 ---
 
+### 2.3 Dos checksums: integridad de archivo vs. identidad de vintage
+
+El `.xlsx` que genera SheetJS no es determinista byte a byte (prueba F1, 2026-08-21): dos
+descargas del mismo dato dan SHA-256 distintos, porque el empaquetado ZIP varía —orden físico de
+las entradas o cabeceras del contenedor— aunque las entradas descomprimidas sean byte-idénticas.
+Verificado, no inferido: las nueve entradas coinciden una a una y el hash del contenido
+normalizado (entradas ordenadas por nombre, concatenadas descomprimidas) es idéntico entre
+descargas.
+
+Eso rompe el uso del SHA-256 crudo como detector de vintage: reportaría vintage nuevo en cada
+corrida. Pero el SHA-256 crudo sigue haciendo falta para verificar que el archivo en disco no se
+corrompió. Son dos preguntas distintas, y desde 2026-08-21 (ADR-007, nota de seguimiento) el
+sistema las separa en dos campos, presentes tanto en el manifiesto de L0 como en `08_vintages`:
+
+- `sha256` — del archivo crudo tal como se descargó. Integridad.
+- `sha256_norm` — del contenido normalizado. Identidad de vintage. Es el que compara el paso 3.
+
+Para fuentes cuyo crudo ya es determinista (las API que guardan `.json`), `sha256_norm` es igual a
+`sha256`; solo divergen en las fuentes tipo ZIP. El campo se llena siempre.
+
 ## 3. Contrato de `lib_adquisicion.R`
 
 Una función principal, que todos los scripts por institución llaman:
@@ -193,13 +213,15 @@ hasta que todas las validaciones pasaron.**
 1. Falla con `stop()` si `codigo_http != 200` o si `verificacion_forma` devuelve `FALSE`. El
    mensaje debe decir qué falló concretamente, para que el fallo sea diagnosticable sin releer
    el script (regla 6 de `CLAUDE.md`: se falla, no se advierte).
-2. Calcula SHA-256 del contenido crudo.
-3. Compara contra el manifiesto para ese `publicacion_id`. Sin fila previa → primera captura.
-   Fila previa con el **mismo** SHA-256 → no hay vintage nuevo: no se escribe nada, se reporta
-   "sin cambios respecto de la última captura (fecha)" y se retorna. Eso importa: distingue
-   "el script corrió y verificó" de "el script no hizo nada". Fila previa con SHA-256 **distinto**
-   → vintage nuevo. **Esta rama es la que la prueba F1 de §2.1 pone en cuestión** para las
-   capturas del portal del BCR.
+2. Calcula dos checksums (ver §2.3): `sha256` sobre el contenido crudo —integridad del archivo en
+   disco— y `sha256_norm` sobre el contenido normalizado —identidad de vintage—. Para fuentes cuyo
+   crudo ya es determinista (las API con `.json`), ambos coinciden; para el `.xlsx` del BCR
+   divergen, y el que decide vintage es `sha256_norm`.
+3. Compara `sha256_norm` contra el manifiesto para ese `publicacion_id`. Sin fila previa → primera
+   captura. Fila previa con el **mismo** `sha256_norm` → no hay vintage nuevo: no se escribe nada,
+   se reporta "sin cambios respecto de la última captura (fecha)" y se retorna. Eso importa:
+   distingue "el script corrió y verificó" de "el script no hizo nada". Fila previa con
+   `sha256_norm` **distinto** → vintage nuevo.
 3b. Verifica que el `vintage_id` no exista ya en `08_vintages.csv`. Va después del retorno
    temprano del paso 3 —una corrida repetida sobre un archivo idéntico no debe fallar acá— y
    antes de escribir. La granularidad mensual admite colisión si una publicación sale dos veces

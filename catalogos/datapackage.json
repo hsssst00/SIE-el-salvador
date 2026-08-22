@@ -121,6 +121,7 @@
           {"name": "documento_fuente", "type": "string"},
           {"name": "archivo_raw", "type": "string"},
           {"name": "sha256", "type": "string"},
+          {"name": "sha256_norm", "type": "string"},
           {"name": "alcance_revision", "type": "string"},
           {"name": "notas", "type": "string"}
         ]

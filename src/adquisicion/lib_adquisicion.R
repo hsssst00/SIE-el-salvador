@@ -26,6 +26,27 @@ calcular_sha256_raw <- function(contenido_crudo) {
   digest::digest(contenido_crudo, algo = "sha256", serialize = FALSE)
 }
 
+# sha256 del contenido NORMALIZADO. Para un .xlsx (contenedor ZIP), el sha256 crudo no
+# es determinista entre descargas del mismo dato (prueba F1, 2026-08-21): el empaquetado
+# ZIP varia aunque las entradas descomprimidas sean identicas. Este hash se calcula sobre
+# las entradas ordenadas por nombre y concatenadas descomprimidas, que si es estable, y es
+# el que decide identidad de vintage. Para contenido que no es ZIP (JSON de las API), no
+# hay contenedor que normalizar y el resultado es igual al sha256 crudo.
+calcular_sha256_norm <- function(contenido_crudo, extension) {
+  if (!identical(tolower(extension), "xlsx")) {
+    return(calcular_sha256_raw(contenido_crudo))
+  }
+  tmp <- tempfile(fileext = ".xlsx")
+  writeBin(contenido_crudo, tmp)
+  d <- tempfile(); dir.create(d)
+  utils::unzip(tmp, exdir = d)
+  ns <- sort(utils::unzip(tmp, list = TRUE)$Name)
+  bytes <- do.call(c, lapply(ns, function(n) {
+    f <- file.path(d, n); readBin(f, "raw", file.info(f)$size)
+  }))
+  digest::digest(bytes, algo = "sha256", serialize = FALSE)
+}
+
 # fuente: "BCR", "FMI", "FRED", "BM" - coincide con institucion_id
 # publicacion_id: debe existir en 01_publicaciones/*.yaml
 # url: URL exacta consultada
@@ -77,8 +98,10 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
     }
   }
 
-  # Paso 2: checksum
+  # Paso 2: checksums. sha256 crudo para integridad del archivo; sha256_norm para
+  # identidad de vintage (ver src/adquisicion/README.md §2.3 y ADR-007, nota 2026-08-21).
   sha256_nuevo <- calcular_sha256_raw(contenido_crudo)
+  sha256_norm_nuevo <- calcular_sha256_norm(contenido_crudo, extension)
   tamano_bytes <- length(contenido_crudo)
   fecha_descarga <- as.character(Sys.Date())
 
@@ -89,8 +112,8 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
   if (nrow(filas_previas) == 0) {
     alcance_revision <- "primera captura — sin vintage previo con el cual comparar"
   } else {
-    sha256_previo <- filas_previas$sha256[nrow(filas_previas)]
-    if (identical(sha256_previo, sha256_nuevo)) {
+    sha256_norm_previo <- filas_previas$sha256_norm[nrow(filas_previas)]
+    if (identical(sha256_norm_previo, sha256_norm_nuevo)) {
       fecha_previa <- filas_previas$fecha_descarga[nrow(filas_previas)]
       message("Sin cambios respecto de la ultima captura (", fecha_previa,
               ") para ", publicacion_id, ". No se registra archivo ni vintage nuevo. ",
@@ -134,6 +157,7 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
   fila_manifiesto <- data.frame(
     archivo = nombre_archivo, fuente = fuente, url = url,
     fecha_descarga = fecha_descarga, sha256 = sha256_nuevo,
+    sha256_norm = sha256_norm_nuevo,
     tamano_bytes = as.character(tamano_bytes), codigo_http = as.character(codigo_http),
     vintage_id = vintage_id, publicacion_id = publicacion_id,
     stringsAsFactors = FALSE
@@ -145,6 +169,7 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
     vintage_id = vintage_id, publicacion_id = publicacion_id,
     fecha_publicacion = fecha_publicacion, periodo_referencia_max = periodo_referencia_max,
     documento_fuente = url, archivo_raw = nombre_archivo, sha256 = sha256_nuevo,
+    sha256_norm = sha256_norm_nuevo,
     alcance_revision = alcance_revision, notas = "",
     stringsAsFactors = FALSE
   )

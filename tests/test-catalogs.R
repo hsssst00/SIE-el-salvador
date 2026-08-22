@@ -27,7 +27,7 @@ test_that("los catalogos con esquema cerrado tienen las columnas declaradas", {
 })
 
 test_that("el manifiesto de L0 tiene las columnas declaradas", {
-  cols_esperadas <- c("archivo","fuente","url","fecha_descarga","sha256",
+  cols_esperadas <- c("archivo","fuente","url","fecha_descarga","sha256","sha256_norm",
                        "tamano_bytes","codigo_http","vintage_id","publicacion_id")
   cols_reales <- names(read.csv(here::here("data", "L0_raw", "manifiesto.csv"), nrows = 0))
   expect_equal(cols_reales, cols_esperadas)
