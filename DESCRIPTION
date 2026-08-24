@@ -16,4 +16,6 @@ Imports:
     ranger,
     lightgbm,
     xml2,
-    httr2
+    httr2,
+    chromote,
+    jsonlite

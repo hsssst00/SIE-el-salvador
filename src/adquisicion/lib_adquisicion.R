@@ -61,9 +61,13 @@ calcular_sha256_norm <- function(contenido_crudo, extension) {
 #   faltante.
 # periodo_referencia_max: ultimo periodo de referencia cubierto por este vintage
 # verificacion_forma: funcion opcional, recibe contenido_crudo, devuelve TRUE/FALSE
+# notas_vintage: texto opcional para la columna notas de 08_vintages.csv - p.ej. para
+#   anotar de donde se deriva fecha_publicacion cuando la fuente no declara una fecha
+#   parseable (ver BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03)
 registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo, extension,
                                 contenido_crudo, codigo_http, fecha_publicacion = "",
-                                periodo_referencia_max = "", verificacion_forma = NULL) {
+                                periodo_referencia_max = "", verificacion_forma = NULL,
+                                notas_vintage = "") {
 
   # Paso 0: validar argumentos ANTES de tocar el disco. El vintage_id se deriva de la
   # fecha de publicacion de la fuente, no de la de descarga: la senda S3.2 define el
@@ -170,7 +174,7 @@ registrar_descarga <- function(fuente, publicacion_id, url, descripcion_archivo,
     fecha_publicacion = fecha_publicacion, periodo_referencia_max = periodo_referencia_max,
     documento_fuente = url, archivo_raw = nombre_archivo, sha256 = sha256_nuevo,
     sha256_norm = sha256_norm_nuevo,
-    alcance_revision = alcance_revision, notas = "",
+    alcance_revision = alcance_revision, notas = notas_vintage,
     stringsAsFactors = FALSE
   )
   write.table(fila_vintage, ruta_vintages, sep = ",", append = TRUE,
