@@ -155,6 +155,65 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     construir esto como script real, conviene resolver el desfase de versión.
   - No se comprometió nada: script vive fuera del repo (carpeta temporal), no se
     agregó `chromote` a `DESCRIPTION`/`renv.lock`.
+- **2026-08-24** (Cowork, sobre la página en vivo; re-corrido y verificado en vivo el mismo
+  día por Claude Code, ver abajo): caracterización fina del mecanismo `vista-serie`, que
+  resuelve el pendiente "combinar rango completo y desagregación en una sola descarga".
+  Hallazgos completos en `doc/captura_bcr_livewire_hallazgo.md`:
+  - El exportador `html_table_to_excel()` lee **del DOM** (`#tablaVariables` +
+    `#tablaValores`), no de una variable JS. Las dos tablas solo alcanzan su tamaño
+    completo —las 29 variables con datos— cuando el componente está en **modo tabular**
+    (`data.tabular === true`, vía `cambiarTipo()`) **y** se ejecutó `filtrar` con el rango
+    completo. En modo gráfico `filtrar` renderiza solo la variable graficada (~200
+    celdas): eso explica las capturas headless truncadas previas. **Consecuencia de
+    diseño:** basta poner el componente en modo tabular antes de `filtrar` para que
+    "Formato Excel" exporte todas las variables de una sola descarga — no hace falta
+    tildar los checkboxes de enfoque (`vars`/`variable[]`) que la exploración del
+    2026-08-19 usaba.
+  - API de control de Livewire **v2**: usar `window.livewire.components.componentsById[<id>]`;
+    `window.livewire.find(id)` devuelve un **Proxy** en el que cualquier propiedad
+    aparece como función (falso positivo garantizado). `set(nombre, valor, true)` =
+    diferido; los cinco parámetros del filtro (`formula`, `yInicio`, `nInicio`, `yFin`,
+    `nFin`) viajan juntos con la siguiente petición, así que el orden estricto de los
+    `<select>` deja de importar.
+  - `filtrar` en modo tabular tarda entre ~2 y ~30 s según la corrida: esperar por
+    **predicado** (contador de `message.processed` + `messageInTransit === null` +
+    `#tablaValores` con el nº de columnas esperado y ≥1 fila de datos de ese ancho),
+    nunca por `Sys.sleep()`.
+  - El rango completo se deriva de `GET /api/rangos/{idPublic}` **invocado con `fetch()`
+    desde la propia página** (hereda cookies; el endpoint devuelve 403 a clientes
+    externos como `curl`).
+  - Reconciliación pendiente (Fase 3, no bloquea la captura): el portal sirve **29**
+    variables con datos para la serie de índices NSA (31 filas de la tabla − 2
+    encabezados de sección vacíos); `03_series.csv` tiene **28** filas para NSA y 28 para
+    SA, pero **29** para NOMINAL. Las publicaciones de volumen quedan una fila cortas
+    respecto de lo que el portal sirve y de lo que NOMINAL ya tiene — candidata plausible
+    del faltante: variación de existencias, que el portal declara explícitamente que no
+    publica en índices de volumen encadenados (solo la FBKF). Cuadrar antes del mapeo de
+    `fuente_celda`.
+  - **Re-corrida en vivo por Claude Code (mismo día, sesión separada):** el hallazgo de
+    Cowork no se aceptó sin verificar — se reprodujo la coreografía completa contra la
+    misma URL (idPublic 210, NSA) antes de escribir el `bcr.R` final. Esa corrida
+    **corrigió un dato del handoff original:** `html_table_to_excel(type)` usa `type`
+    como la extensión literal del archivo (`XLSX.writeFile(wb, titulo + '.' + type)`) —
+    el valor correcto es `"xlsx"`, no `"excel"` como se había asumido sin verificar.
+    Confirmado además, sobre la publicación real: 29 variables × 85 periodos (2005-T1 a
+    2026-T1); descarga headless capturada sin `.crdownload` residual (92 137 bytes,
+    mismo tamaño que el vintage manual de 2026-08-06); ningún campo de
+    `component.data` ni del DOM expone una fecha de publicación parseable (solo el
+    período de referencia, ej. `"I 2026"`) — confirma que `fecha_publicacion` sigue
+    siendo argumento explícito de quien opera la captura; `chromote` 0.5.1 headless
+    funciona limpio bajo R 4.6.1 en el flujo sustantivo (el segfault ya documentado el
+    2026-08-20 se reprodujo, pero confinado a una llamada de introspección ajena al
+    flujo, nunca en la navegación/evaluación real).
+  - **Cierre de I1:** con `src/adquisicion/bcr_captura.R` y el `bcr.R` reescritos sobre
+    estos hallazgos, `descargar_bcr_pib_nsa("2026-06-01")` y
+    `descargar_bcr_pib_sa("2026-06-01")` corridos de punta a punta contra el portal en
+    vivo devolvieron **"sin cambios respecto de la última captura (2026-08-06)"** para
+    ambas publicaciones — el `sha256_norm` de la descarga automatizada coincide con el
+    del vintage capturado manualmente, pese a que el `sha256` crudo difiere (esperado,
+    ver F1: el empaquetado ZIP no es determinista). La automatización 1a reproduce el
+    `.xlsx` publicado hasta la identidad de vintage.
+
 - **Conclusión vigente (actualizada 2026-08-20, tras la decisión de ADR-009):** headers de
   navegador por sí solos no bastan contra `httr2` (confirmado 2026-08-19); no existe un
   endpoint estático de exportación que un script sin navegador pueda golpear directamente
