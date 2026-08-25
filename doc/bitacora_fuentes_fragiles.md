@@ -252,3 +252,18 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   queda excluida por la regla 9 de `CLAUDE.md`. `make raw` (`scripts/verificar_l0.R`) la excluye
   explícitamente; su integridad se verifica por la vía cruzada offline de
   `scripts/check_l0_integrity.R`, no por re-captura en vivo.
+- **2026-08-25** (Claude Code, puerta de confirmación de `descargar_bcr_pib_nominal()`):
+  `formula="0"` confirmado correcto para la publicación en precios corrientes — la primera
+  corrida contra el portal en vivo colgó, no dio un hash distinto. Diagnóstico aislado del
+  paso que cuelga (disparo de `html_table_to_excel()`, invocado directamente vía
+  `b$Runtime$evaluate` con `timeout_` explícito): con más tiempo, la llamada sí retorna y el
+  `.xlsx` resultante reproduce exactamente `sha256_norm =
+  f6bcfcac851f38f5e3645c6f82d99d5c387196f2f2f7e9fdfd3d12d37c3a395b` (el del vintage manual
+  v2026-06). Causa raíz: el timeout por defecto de `chromote` para el comando CDP
+  `Runtime.evaluate` es insuficiente para tablas grandes — SheetJS serializa el `.xlsx` de
+  forma síncrona en el hilo de JS, bloqueando la respuesta a CDP más tiempo del que NSA/SA
+  (29 variables) necesitan, pero no NOMINAL (30 variables). No es un problema del BCR ni de
+  la fórmula: `bcr_capturar_xlsx()` (`src/adquisicion/bcr_captura.R`) ahora pasa
+  `timeout_s = 300` explícito solo en el paso de disparo del exportador; NSA/SA no cambian de
+  comportamiento (ya completaban por debajo del default). Confirmado con `make raw`
+  (`scripts/verificar_l0.R`) en 3/3 PASS tras el ajuste.

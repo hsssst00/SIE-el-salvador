@@ -41,8 +41,10 @@ library(jsonlite)
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
-.bcr_eval <- function(b, expr, await = FALSE) {
-  res <- b$Runtime$evaluate(expression = expr, returnByValue = TRUE, awaitPromise = await)
+.bcr_eval <- function(b, expr, await = FALSE, timeout_s = NULL) {
+  args <- list(expression = expr, returnByValue = TRUE, awaitPromise = await)
+  if (!is.null(timeout_s)) args$timeout_ <- timeout_s
+  res <- do.call(b$Runtime$evaluate, args)
   if (!is.null(res$exceptionDetails)) {
     stop("Error JS: ", res$exceptionDetails$exception$description %||% res$exceptionDetails$text)
   }
@@ -241,10 +243,18 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
       meta$n_periodos, " periodos; ult=", periodo_ref_max)
 
   # 6. disparar el exportador del portal e interceptar la descarga REAL (1a)
+  #    timeout_s explícito: el default de chromote para Runtime.evaluate resultó
+  #    insuficiente para tablas grandes (NOMINAL, 30 variables x 85 periodos) porque
+  #    SheetJS serializa el .xlsx de forma síncrona en el hilo de JS, bloqueando la
+  #    respuesta a CDP más de lo que el default tolera (hallazgo empírico, puerta de
+  #    confirmación del handoff de Fase 2, 2026-08-25: NSA/SA -29 variables- no lo
+  #    tocan, NOMINAL -30- sí). No afecta NSA/SA, que ya completaban por debajo del
+  #    default.
   antes <- list.files(dir_descarga)
   ok_disparo <- .bcr_eval(b, sprintf(
     '(function(){ if (typeof html_table_to_excel !== "function") return false;
-       html_table_to_excel("%s"); return true; })()', .BCR_EXPORT_ARG))
+       html_table_to_excel("%s"); return true; })()', .BCR_EXPORT_ARG),
+    timeout_s = 300)
   if (!isTRUE(ok_disparo)) {
     stop("FALLO VISIBLE: html_table_to_excel no está disponible o no se pudo invocar.")
   }

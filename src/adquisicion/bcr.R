@@ -62,3 +62,26 @@ descargar_bcr_pib_sa <- function(fecha_publicacion) {
     notas_vintage = .bcr_nota_fecha_aproximada
   )
 }
+
+descargar_bcr_pib_nominal <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/producto-interno-bruto-trimestral-pib-t-produccion-y-gasto-a-precios-corrientes-en-millones-de-us"
+  # formula = "0": representación base del componente vista-serie. En las publicaciones
+  # de índices, "0" da los índices; en esta publicación en precios corrientes, "0" da
+  # los valores en millones de US$. Confirmado en vivo (puerta de confirmación del
+  # handoff de Fase 2, 2026-08-25): la captura con formula="0" reproduce el sha256_norm
+  # del vintage manual v2026-06 registrado en el manifiesto.
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR",
+    publicacion_id = "BCR.PIB_T.NOMINAL",
+    url = url,
+    descripcion_archivo = "pib_t_nominal",
+    extension = "xlsx",
+    contenido_crudo = cap$bytes,
+    codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion,
+    periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_fecha_aproximada
+  )
+}

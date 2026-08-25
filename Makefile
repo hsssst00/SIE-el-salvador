@@ -7,9 +7,12 @@
 setup:
 	Rscript scripts/bootstrap_renv.R
 
-# Fase 2 — reconstruye o verifica la integridad de la capa L0 desde cero, sin pasos manuales.
+# Fase 2 — verifica la integridad de L0 re-capturando del portal en vivo y comparando
+# sha256_norm contra el manifiesto (Decisión 1b, 2026-08-25). Objetivo LOCAL: usa
+# navegador headless, no corre en CI. La captura de un vintage nuevo es un acto
+# deliberado vía descargar_bcr_*(), no desde aquí (ADR-007).
 raw:
-	@echo "Pendiente: src/adquisicion/ (Fase 2)"
+	Rscript scripts/verificar_l0.R
 
 # Fase 3 — L0 -> L1 -> L2 -> L3, transformaciones y series maestras.
 master: validate
