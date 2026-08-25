@@ -63,6 +63,37 @@ descargar_bcr_pib_sa <- function(fecha_publicacion) {
   )
 }
 
+.bcr_nota_ivae_vigente_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (verificado en vivo",
+  "2026-08-25: la página solo expone 'Datos actualizados hasta: Mayo 2026' -cobertura,",
+  "no fecha de publicación- y 'Próxima fecha de publicación: 31 agosto 2026' -la",
+  "SIGUIENTE, no la del vintage capturado). Se aproxima por el patrón de rezago del",
+  "propio calendario del BCR (doc/calendario_divulgacion_bcr.csv: publicación de",
+  "agosto cubre referencia 2026-06, rezago de 2 meses); con periodo_referencia_max =",
+  "2026-M05, el ciclo que la publicó cae ~julio 2026. Aproximada a 2026-07-01 (mes,",
+  "día 01 por convención - mismo patrón que .bcr_nota_fecha_aproximada). Decisión de",
+  "Harold, 2026-08-25 (handoff Fase 2, Bloque 2, Paso 2.4): usar la fecha del ciclo",
+  "anterior inferida por patrón, no la próxima fecha anunciada."
+)
+
+descargar_bcr_ivae_vigente <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-de-volumen-de-la-actividad-economica-ivae-serie-desestacionalizada"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR",
+    publicacion_id = "BCR.IVAE.VIGENTE",
+    url = url,
+    descripcion_archivo = "ivae_vigente",
+    extension = "xlsx",
+    contenido_crudo = cap$bytes,
+    codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion,
+    periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_ivae_vigente_fecha
+  )
+}
+
 descargar_bcr_pib_nominal <- function(fecha_publicacion) {
   url <- "https://estadisticas.bcr.gob.sv/serie/producto-interno-bruto-trimestral-pib-t-produccion-y-gasto-a-precios-corrientes-en-millones-de-us"
   # formula = "0": representación base del componente vista-serie. En las publicaciones

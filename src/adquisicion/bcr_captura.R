@@ -140,10 +140,28 @@ verificacion_xlsx <- function(bytes) {
   identical(as.integer(bytes[1:2]), c(0x50L, 0x4bL))
 }
 
-# Símbolo romano de periodo -> Tn (formato de periodo_referencia_max en 08_vintages)
+# Símbolo de periodo -> Tn/Mnn (formato de periodo_referencia_max en 08_vintages)
 .bcr_periodo_T <- function(simbolo) {
+  simbolo_original <- simbolo
   simbolo <- sub("\\s*\\(.*\\)$", "", simbolo)   # quita marca "(e)"/"(p)"
-  unname(c(I = "T1", II = "T2", III = "T3", IV = "T4")[simbolo])
+  mapa <- c(
+    I = "T1", II = "T2", III = "T3", IV = "T4",
+    # Símbolos mensuales confirmados empíricamente contra IVAE.VIGENTE (2026-08-25,
+    # handoff de Fase 2, Bloque 2: la celda real observada fue 'May (e)', limpia
+    # a 'May'). Extender acá si aparecen símbolos nuevos en otras publicaciones
+    # mensuales - no asumir que están cubiertos sin confirmarlo.
+    Ene = "M01", Feb = "M02", Mar = "M03", Abr = "M04", May = "M05", Jun = "M06",
+    Jul = "M07", Ago = "M08", Sep = "M09", Oct = "M10", Nov = "M11", Dic = "M12"
+  )
+  resultado <- unname(mapa[simbolo])
+  if (is.na(resultado)) {
+    stop("FALLO VISIBLE: símbolo de período no reconocido: '", simbolo_original,
+         "' (limpio: '", simbolo, "'). .bcr_periodo_T() solo mapea trimestres romanos ",
+         "(I/II/III/IV). Si esta es una tabla mensual/semanal/anual, extender el mapa - ",
+         "ver bitácora 2026-08-24: 'series de periodicidad mensual: los símbolos cambian, ",
+         "la estructura no'. No inferir el símbolo correcto sin verlo en el error real.")
+  }
+  resultado
 }
 
 # Espera a que aparezca un .xlsx nuevo y estable en `dir` (sin .crdownload).
