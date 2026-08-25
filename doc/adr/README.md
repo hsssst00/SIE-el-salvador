@@ -95,3 +95,51 @@ anteriores: `renv::restore()`, validación de catálogos y la batería de
 pruebas corren en verde sobre Linux.
 
 Tag: `v0.2.1-fase0-enmendado`, sobre el commit `ad33c266`.
+
+## Cierre de Fase 1 (2026-08-24)
+
+**Criterio de cierre de Fase 1 (senda metodológica §4): SATISFECHO,** bajo la
+interpretación de "ingresa al proyecto" fijada en la nota de cierre de §4 de la
+senda (2026-08-24): el criterio se certifica sobre las variables *admitidas*
+(series en `03_series.csv`), no sobre el inventario completo de `01_publicaciones`.
+
+El criterio tiene dos mitades, ambas satisfechas:
+
+1. **"El número real de observaciones de la variable objetivo está establecido y
+   documentado."** `doc/metodologia/empalme_cuentas_nacionales.md` fija la serie de
+   PIB trimestral en 1990-T1 a 2026-T1, **145 observaciones** (64 retropoladas +
+   85 nativas, con el solape documentado). D3 resuelto; empalme documentado.
+
+2. **"Ninguna variable ingresa al proyecto sin registro verificado de disponibilidad,
+   cobertura y frecuencia."** Las 98 variables admitidas —las 98 filas de
+   `catalogos/03_series.csv`— pertenecen a las cuatro publicaciones de PIB del BCR
+   (NSA 28, SA 28, NOMINAL 29, retropolada 13), con cobertura verificada contra el
+   portal y trazabilidad `fuente_celda` verificada **98 PASS / 0 FAIL / 0
+   NO_VERIFICABLE** (`doc/bitacora_verificaciones.md`, corrida del 2026-08-17 sobre el
+   commit `f7bae34`). `03_series.csv` es byte-idéntico entre `f7bae34` y este cierre,
+   de modo que esa verificación certifica el catálogo actual, no un estado anterior.
+
+**Relación con la auditoría de Fase 1** (`doc/auditorias/auditoria_fase1_SIE-el-salvador.md`).
+Su veredicto "no satisfecho" se emitió bajo la lectura amplia del criterio y antes de
+la remediación. Los hallazgos I1–I3 y M1–M4 de esa auditoría, y el C1 de su
+verificación, están remediados (ver `doc/auditorias/` y el historial hasta
+`bde69f68`). Bajo la interpretación estrecha fijada ahora en §4, las coberturas no
+verificadas y las condiciones de uso abiertas que la auditoría citaba no vinculan el
+cierre, porque tocan publicaciones de las que no ha ingresado ninguna serie.
+
+**Lo que queda abierto y NO bloquea este cierre:** cobertura no verificada de las
+publicaciones inventariadas sin serie admitida (FRED, FMI.WEO, BM.WDI, ONEC.IPC,
+etc.) — compuerta *just-in-time* al admitir una serie suya en Fase 3; condiciones de
+uso abiertas — vía ADR-008 con cortes fechados (BCR 2026-10-12, CEPAL 2026-10-16); la
+reconciliación 29-vs-28 de variables de volumen — mapeo de `fuente_celda` en Fase 3
+(`doc/bitacora_fuentes_fragiles.md`). Ninguno toca una variable ya admitida.
+
+**Reproducibilidad.** Este cierre es de documentación: no cambia catálogos ni código,
+así que la señal de CI es la continuidad del verde ya establecido sobre `main`. La
+evidencia sustantiva del cierre es la verificación de trazabilidad (98 PASS) y el
+recuento de la variable objetivo (N=145), no una corrida nueva de CI. Confirmar que
+el run de CI sobre el commit de cierre queda en verde antes de tagear.
+
+**Tag: `v0.4.0-fase1`,** sobre el commit que ya contiene esta certificación y la nota
+de cierre de la senda §4 — nunca antes, para no repetir la corrección de alcance de
+tag que hubo que hacer en Fase 0. El tag certifica el estado completo y propagado.

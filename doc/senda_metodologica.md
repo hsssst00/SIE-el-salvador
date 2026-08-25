@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.3 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3)
+**Versión:** 0.4 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -12,6 +12,11 @@
   I2, verificación de la remediación de Fase 1). Corrige el rótulo del árbol de `doc/adr/`,
   que decía `ADR-001 … ADR-008` cuando existen nueve — la procedencia de D9 como adición
   propia del proyecto ya está explicada en `doc/adr/README.md`. Sin otros cambios de contenido.
+- **0.4** (2026-08-24): añade a §4 la nota de cierre de Fase 1, que fija la interpretación de
+  "ingresa al proyecto" (variables admitidas en `03_series.csv`, no el inventario completo de
+  `01_publicaciones`) usada para certificar el cierre. El registro del cierre —con la evidencia
+  de cobertura, trazabilidad y N— está en `doc/adr/README.md`, "Cierre de Fase 1". Sin otros
+  cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -326,6 +331,19 @@ Entregables: catálogos `00`, `01`, `02`, `09` poblados; nota metodológica sobr
 **Criterio de cierre:** ninguna variable ingresa al proyecto sin registro verificado de disponibilidad, cobertura y frecuencia. El número real de observaciones de la variable objetivo está establecido y documentado.
 
 > Esta fase es el filtro contra el riesgo más común en proyectos de este tipo: diseñar un modelo alrededor de variables que no existen con la cobertura supuesta.
+
+**Nota de cierre — alcance de "ingresa al proyecto" (2026-08-24).** El criterio se interpreta y
+certifica sobre las variables *admitidas* —las series registradas en `catalogos/03_series.csv`—,
+no sobre el inventario completo de `01_publicaciones`. Es la lectura del texto ("ninguna variable
+*ingresa*", no "ninguna publicación se inventaría") y del modelo de entidades (§3.2): una variable
+ingresa al proyecto como *serie* (`03_series` → transformaciones → `series_master` → modelos), no
+como publicación; una publicación inventariada de la que aún no se extrajo ninguna serie es parte
+del mapa del ecosistema, pero ninguna variable suya ha ingresado. La verificación de
+disponibilidad/cobertura/frecuencia de esas publicaciones es una compuerta *just-in-time* que se
+aplica cuando una serie suya entra a `03_series` (Fase 3). Las **condiciones de uso** quedan fuera
+de este criterio por diseño de la propia senda —la lista de actividades de esta fase las incluye,
+el criterio de cierre no las nombra— y se gobiernan por ADR-008 (D8) con sus cortes fechados. El
+registro del cierre, con su evidencia, está en `doc/adr/README.md`, "Cierre de Fase 1".
 
 ### Fase 2 — Adquisición automatizada y capa raw
 

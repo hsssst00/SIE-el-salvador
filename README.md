@@ -4,7 +4,9 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 
 ## Estado
 
-**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (quedan BCR y CEPAL en gestión, y la decisión de política de L0 aplazada al corte del BCR — el estado por fuente está en ADR-008; tarea de Fase 1, no bloqueante). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
+**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (quedan BCR y CEPAL en gestión, y la decisión de política de L0 aplazada al corte del BCR — el estado por fuente está en ADR-008; gestión vía ADR-008 con cortes fechados, no atada al cierre de fase). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
+
+**Fase 1 — cerrada.** Inventario del ecosistema estadístico. El criterio de cierre (senda §4) se satisface sobre las variables *admitidas*: las 98 series de `catalogos/03_series.csv` (las cuatro publicaciones de PIB del BCR) con cobertura verificada y trazabilidad `fuente_celda` 98 PASS, y la variable objetivo con N=145 observaciones documentado (D3 / empalme). Se cierra bajo la interpretación de "ingresa al proyecto" = variable admitida, no inventario completo — ver la nota de §4 de la senda y el registro de cierre en [`doc/adr/README.md`](doc/adr/README.md). Quedan abiertas, sin bloquear el cierre, la cobertura de las publicaciones inventariadas sin serie admitida (compuerta *just-in-time* de Fase 3) y las condiciones de uso (vía ADR-008). Tag `v0.4.0-fase1`.
 
 ## Estructura
 
