@@ -243,3 +243,12 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   senda §3.1, no puede asumir que el archivo aparece ya con el nombre correcto; (b) el
   piso real de cobertura de este catálogo específico es 2005, no 1990 — ver nota de
   reconciliación arriba.
+
+- **2026-08-25** (Claude Code, aplicando handoff): decisión firme registrada — la serie
+  retropolada `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005` **queda de captura manual y fuera de
+  `make raw`**. No es una serie del componente `vista-serie`: es un `.xlsx` estático servido
+  desde `www.bcr.gob.sv/documental/`, una serie histórica **cerrada** (termina en 2005-T4, no
+  genera vintages nuevos), capturada una sola vez el 2026-08-06. Su automatización desatendida
+  queda excluida por la regla 9 de `CLAUDE.md`. `make raw` (`scripts/verificar_l0.R`) la excluye
+  explícitamente; su integridad se verifica por la vía cruzada offline de
+  `scripts/check_l0_integrity.R`, no por re-captura en vivo.
