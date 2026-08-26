@@ -1,0 +1,25 @@
+publicacion_id: BCR.IED_FLUJO_NETO_POR_PAIS
+institucion_id: BCR
+nombre: "IED: Flujo neto. Desde Trimestre I 2010"
+periodicidad: trimestral
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/ii-6-2-a-2-flujos-de-inversion-extranjera-directa-por-pais-de-procedencia-desde-trimestre-i-2010
+cobertura_temporal: "2010 I a 2026 I, confirmado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano — ver src/adquisicion/bcr_sondear_publicacion.R)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
+notas: |
+  Fuente: BCR. ID interno BCR: II.6.2.a.2. Desagregación por país de
+  procedencia (37 filas — países individuales agrupados bajo
+  CENTROAMÉRICA / OTROS PAISES DE AMÉRICA / EUROPA / ASIA / OTROS
+  PAÍSES) más una fila "Total" — el flujo neto agregado.
+
+  Ver BCR.IED_FLUJO_NETO_POR_SECTOR para la discusión completa de por
+  qué existen dos publicaciones con el mismo nombre en el calendario de
+  divulgación (doc/calendario_divulgacion_bcr.md) y la decisión de
+  Harold (2026-08-26) de catalogarlas por separado. Esta es la
+  desagregación por país (id_publicacion=183); su nombre_cuadro real
+  difiere de BCR.IED_FLUJO_NETO_POR_SECTOR solo en la capitalización de
+  "Trimestre" — diferencia menor, no indicio de una tercera variable.
+
+  Comparte la misma fila "Total" que BCR.IED_FLUJO_NETO_POR_SECTOR (mismo
+  agregado de flujo neto de IED) — no son series independientes en su
+  nivel agregado, solo en su desagregación.

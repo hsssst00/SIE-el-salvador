@@ -1,0 +1,33 @@
+publicacion_id: BCR.IED_FLUJO_NETO_POR_SECTOR
+institucion_id: BCR
+nombre: "IED: Flujo neto. Desde trimestre I 2010"
+periodicidad: trimestral
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/ii-6-1-a-2-flujos-de-inversion-extranjera-directa-por-sector-economico-receptor-desde-trimestre-i-2010
+cobertura_temporal: "2010 I a 2026 I, confirmado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano — ver src/adquisicion/bcr_sondear_publicacion.R)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
+notas: |
+  Fuente: BCR. ID interno BCR: II.6.1.a.2. Desagregación por sector
+  económico receptor (Agropecuario, Minería, Industria, Electricidad,
+  Construcción, Comercio, Transporte, Información y Comunicaciones,
+  Actividades Financieras y de Seguros, Otros Servicios) más una fila
+  "Total" — el flujo neto agregado.
+
+  El calendario de divulgación (doc/calendario_divulgacion_bcr.md,
+  sección Sector Externo) nombra la variable simplemente "IED: Flujo
+  neto. Desde trimestre I 2010", sin distinguir sector de país. Existen
+  DOS publicaciones del portal con ese mismo nombre_cuadro genérico —
+  esta (por sector, II.6.1.a.2) y BCR.IED_FLUJO_NETO_POR_PAIS (por país
+  de procedencia, II.6.2.a.2). Se revisó oferta-estadistica en vivo
+  (2026-08-26) buscando una tercera página con el total sin desagregar
+  para el tramo 2010-presente; no existe (la única variante "por
+  componente", II.6.3.b, empieza en 2012, cobertura distinta). Decisión
+  de Harold (2026-08-26): catalogar ambas por separado en vez de forzar
+  una sola a representar la entrada del calendario. Esta es la que
+  coincide carácter por carácter con el nombre_cuadro real leído en
+  vivo del componente (id_publicacion=171); BCR.IED_FLUJO_NETO_POR_PAIS
+  difiere en la capitalización de "Trimestre" en su nombre_cuadro real.
+
+  Ambas comparten la misma fila "Total" (mismo agregado de flujo neto
+  de IED), por construcción de balanza de pagos — no son series
+  independientes en su nivel agregado, solo en su desagregación.

@@ -60,13 +60,10 @@ excepción debe declarar en `notas_vintage` el cálculo completo y estar avalado
 explícitamente, no aplicarse por defecto.
 
 **Cruce contra `01_publicaciones` (2026-08-25, actualizado 2026-08-26).** De las 22
-variables nombradas en el calendario, 20 tienen entrada existente en el catálogo
+variables nombradas en el calendario, 21 tienen entrada existente en el catálogo
 (incluida `IPC`, que corresponde a `ONEC.IPC.BASE_2009`, no a una publicación del
-propio BCR). **2 no tienen entrada todavía**:
+propio BCR). **1 no tiene entrada todavía**:
 
-- IED: Flujo neto — ambigüedad entre dos publicaciones candidatas (por sector
-  económico receptor y por país de procedencia), ninguna de las dos un agregado sin
-  desagregar; pendiente de decisión de Harold (ver handoff Fase 1, Bloque 3).
 - Reservas Internacionales y Liquidez en Moneda Extranjera — sondeada en vivo
   (2026-08-26): no es una publicación `vista-serie` sino una fila dentro de la
   Cartelera Electrónica FMI (`cartelera_es.html`), con descarga de Excel a nivel de
@@ -75,8 +72,12 @@ propio BCR). **2 no tienen entrada todavía**:
   `doc/bitacora_fuentes_fragiles.md`; no se cataloga todavía como publicación de
   `01_publicaciones` hasta definir un mecanismo de captura para este tipo de fuente.
 
-Las 5 variables restantes del cruce original (remesas familiares mensuales, deuda del
+Las 6 variables restantes del cruce original (remesas familiares mensuales, deuda del
 Gobierno Central trimestral, índices de precios del comercio exterior trimestral,
-saldo bruto de la deuda externa total y posición de inversión internacional) ya
-cuentan con entrada en `01_publicaciones`, con `cobertura_temporal` confirmada por
-sondeo en vivo (`src/adquisicion/bcr_sondear_publicacion.R`, 2026-08-26).
+saldo bruto de la deuda externa total, posición de inversión internacional e IED:
+Flujo neto) ya cuentan con entrada en `01_publicaciones`, con `cobertura_temporal`
+confirmada por sondeo en vivo (`src/adquisicion/bcr_sondear_publicacion.R`,
+2026-08-26). IED: Flujo neto quedó catalogada como dos publicaciones separadas —
+`BCR.IED_FLUJO_NETO_POR_SECTOR` y `BCR.IED_FLUJO_NETO_POR_PAIS` — porque ninguna de
+las dos páginas del portal con ese nombre es un agregado sin desagregar; decisión de
+Harold (2026-08-26), detalle completo en las notas de ambos YAML.
