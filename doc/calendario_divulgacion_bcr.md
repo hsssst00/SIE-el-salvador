@@ -44,8 +44,20 @@ fecha **anunciada**, no la fecha **real** de publicación. El campo `fecha_publi
 de `registrar_descarga()` (`lib_adquisicion.R`) exige la fecha que la fuente declara en
 el momento real de la captura — este calendario no la sustituye. Su uso legítimo es
 decidir *cuándo intentar* una captura (candidato para resolver, aunque sea
-parcialmente, la decisión abierta de Fase 2 sobre el mecanismo de captura prospectiva),
-nunca para prellenar el campo de fecha en el manifiesto o en `08_vintages.csv`.
+parcialmente, la decisión abierta de Fase 2 sobre el mecanismo de captura prospectiva).
+
+**Excepción explícita, confirmada por Harold (2026-08-25).** La regla anterior prohíbe
+tomar la fecha *anunciada* de un evento específico como si fuera la fecha *real* de
+publicación — eso sigue vigente. No prohíbe usar el **patrón de rezago** que el
+calendario revela (cuántos meses pasan entre el período de referencia y su publicación,
+comparando varias columnas) para *aproximar* una fecha cuando la fuente no declara
+ninguna y el patrón es estable. Primer uso: `BCR.IVAE.VIGENTE.v2026-07`
+(`catalogos/08_vintages.csv`) — la página solo exponía la cobertura y la *próxima*
+fecha de publicación, ninguna de las dos la fecha real de este vintage; se aproximó por
+el rezago de 2 meses que el calendario muestra de forma consistente para esta variable,
+y Harold confirmó el patrón contra el histórico antes de aceptarlo. Cada uso de esta
+excepción debe declarar en `notas_vintage` el cálculo completo y estar avalado
+explícitamente, no aplicarse por defecto.
 
 **Cruce contra `01_publicaciones` (2026-08-25).** De las 22 variables nombradas en el
 calendario, 15 tienen entrada existente en el catálogo (incluida `IPC`, que corresponde
