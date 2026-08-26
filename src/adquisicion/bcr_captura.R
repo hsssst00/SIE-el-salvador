@@ -268,15 +268,21 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
   #    confirmación del handoff de Fase 2, 2026-08-25: NSA/SA -29 variables- no lo
   #    tocan, NOMINAL -30- sí). No afecta NSA/SA, que ya completaban por debajo del
   #    default.
+  #    Subido de 300s/120s a 600s/300s (2026-08-26, captura del lote de 12
+  #    publicaciones mensuales/trimestrales): GOBIERNO_CENTRAL_CONSOLIDADO
+  #    (55 variables x 390 periodos, ~21450 celdas - 8x NOMINAL) agotó los 300s del
+  #    disparo; PANORAMA_SOCIEDADES_DEPOSITO (37 x 306, ~11300 celdas) agotó los
+  #    120s de espera de la descarga. Mismo mecanismo, tablas más grandes que las
+  #    que motivaron el timeout anterior.
   antes <- list.files(dir_descarga)
   ok_disparo <- .bcr_eval(b, sprintf(
     '(function(){ if (typeof html_table_to_excel !== "function") return false;
        html_table_to_excel("%s"); return true; })()', .BCR_EXPORT_ARG),
-    timeout_s = 300)
+    timeout_s = 600)
   if (!isTRUE(ok_disparo)) {
     stop("FALLO VISIBLE: html_table_to_excel no está disponible o no se pudo invocar.")
   }
-  ruta_xlsx <- .bcr_esperar_descarga(dir_descarga, antes, timeout_s = 120)
+  ruta_xlsx <- .bcr_esperar_descarga(dir_descarga, antes, timeout_s = 300)
   bytes <- readBin(ruta_xlsx, "raw", file.info(ruta_xlsx)$size)
   if (!verificacion_xlsx(bytes)) {
     stop("FALLO VISIBLE: el archivo descargado no tiene firma PK (.xlsx). Ruta: ", ruta_xlsx)

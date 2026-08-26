@@ -301,3 +301,35 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     divulgación en `doc/calendario_divulgacion_bcr.md`? ¿se captura solo la fila
     relevante por lectura del HTML, renunciando a un `.xlsx` de origen?) antes de
     prometer una publicación que hoy no sabemos cómo traer a L0.
+
+## BCR — SPNF_SERIE_1994_2025: fila del calendario de divulgación no corresponde a esta publicación
+
+- **2026-08-26** (Claude Code, captura del lote de 12 publicaciones mensuales/trimestrales,
+  handoff Fase 2 Bloque 3): el handoff asumía rezago de 1 mes para
+  `BCR.SPNF_SERIE_1994_2025` (calendario: "Sector Público No Financiero (Serie
+  1994-2025)", fila 'Agosto',31 → periodo_referencia 2026-07), tratándola igual que las
+  otras 10 publicaciones mensuales activas del lote. Capturada en vivo vía
+  `bcr_capturar_xlsx()` sobre la URL del propio YAML
+  (`.../serie/sector-publico-no-financiero`): la cobertura real que sirve el portal
+  termina en **2025-M12**, no avanza a 2026 — consistente con lo que ya documentan las
+  propias notas de `catalogos/01_publicaciones/BCR.SPNF_SERIE_1994_2025.yaml`
+  (`cobertura_temporal: "1994-01 a 2025 (datos recientes en proceso de conciliación)"`,
+  reconfirmado por sondeo el mismo 2026-08-26) y `BCR.SPNF_VIGENTE.yaml` (serie
+  sucesora, activa desde ene-2020, con su propio `publicacion_id`). Es decir: la fila del
+  calendario de divulgación con ese nombre textual describe la publicación mensual
+  activa del SPNF, pero la publicación activa es `BCR.SPNF_VIGENTE` — no
+  `BCR.SPNF_SERIE_1994_2025`, que es la serie predecesora congelada. El patrón de
+  aproximación de `fecha_publicacion` por rezago (periodo_referencia_max + N meses) no
+  aplica a una serie que no avanza: no hay manera de derivar una `fecha_publicacion`
+  razonable de un periodo que no se mueve mes a mes.
+  - **Consecuencia:** `BCR.SPNF_SERIE_1994_2025` quedó **fuera del lote capturado el
+    2026-08-26** (11 de las 12 publicaciones del handoff cerraron; esta es la única
+    pendiente). No se escribió ninguna fila en el manifiesto ni en `08_vintages.csv`
+    para ella en esta sesión.
+  - **Pendiente de decisión de Harold:** (a) si vale la pena mantener
+    `BCR.SPNF_SERIE_1994_2025` en `make raw`/captura recurrente dado que es una serie
+    cerrada (mismo tratamiento que se le dio a `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`:
+    captura única, fuera del ciclo mensual, verificada por la vía cruzada offline de
+    `check_l0_integrity.R`), o (b) si el calendario de divulgación debería apuntar esa
+    fila a `BCR.SPNF_VIGENTE` en vez de a esta publicación — no es una decisión
+    metodológica que corresponda resolver por inferencia (regla 4 de CLAUDE.md).

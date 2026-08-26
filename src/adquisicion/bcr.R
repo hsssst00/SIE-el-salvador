@@ -116,3 +116,271 @@ descargar_bcr_pib_nominal <- function(fecha_publicacion) {
     notas_vintage = .bcr_nota_fecha_aproximada
   )
 }
+
+# -----------------------------------------------------------------------------
+# Lote de 11 publicaciones mensuales/trimestrales (handoff Fase 2, Bloque 3,
+# 2026-08-26). Mismo patrón de aproximación de fecha_publicacion que IVAE.VIGENTE:
+# el portal no declara una fecha de publicación parseable, se aproxima por el
+# rezago del calendario del BCR (doc/calendario_divulgacion_bcr.csv) aplicado al
+# periodo_referencia_max realmente capturado. Cada nota cita su propia fila del
+# calendario y su propio periodo capturado — no es la nota de IVAE reutilizada.
+#
+# Queda fuera BCR.SPNF_SERIE_1994_2025: verificado en vivo (2026-08-26) que es una
+# serie congelada (cobertura real hasta 2025-M12, no 2026 en adelante como el
+# calendario de divulgación sugeriría para una fila mensual) — el patrón de rezago
+# de este lote no le aplica. Reportado aparte en
+# doc/bitacora_fuentes_fragiles.md, no capturada en este lote.
+# -----------------------------------------------------------------------------
+
+.bcr_nota_ipi_vigente_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE, ver .bcr_nota_ivae_vigente_fecha). Se aproxima por el rezago",
+  "del calendario del BCR (doc/calendario_divulgacion_bcr.csv: IPI, fila 'Agosto',10",
+  "-> periodo_referencia 2026-06, rezago 2 meses); con periodo_referencia_max =",
+  "2026-M06 (capturado 2026-08-26), el ciclo que la publicó cae ~2026-08-01.",
+  "Aproximada a 2026-08-01 (mes, día 01 por convención). Decisión de Harold,",
+  "2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_ipi_vigente <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-de-produccion-industrial-serie-desestacionalizada"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.IPI.VIGENTE", url = url,
+    descripcion_archivo = "ipi_vigente", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx, notas_vintage = .bcr_nota_ipi_vigente_fecha
+  )
+}
+
+.bcr_nota_ipp_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: IPP, fila 'Agosto',18 -> periodo_referencia",
+  "2026-07, rezago 1 mes); con periodo_referencia_max = 2026-M07 (capturado",
+  "2026-08-26), el ciclo que la publicó cae ~2026-08-01. Aproximada a 2026-08-01",
+  "(mes, día 01 por convención). Decisión de Harold, 2026-08-25 (handoff Fase 2,",
+  "Bloque 3)."
+)
+
+descargar_bcr_ipp <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-productor-ipp"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.IPP", url = url,
+    descripcion_archivo = "ipp", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx, notas_vintage = .bcr_nota_ipp_fecha
+  )
+}
+
+.bcr_nota_isi_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: ISI, fila 'Agosto',18 -> periodo_referencia",
+  "2026-07, rezago 1 mes); con periodo_referencia_max = 2026-M07 (capturado",
+  "2026-08-26), el ciclo que la publicó cae ~2026-08-01. Aproximada a 2026-08-01",
+  "(mes, día 01 por convención). Decisión de Harold, 2026-08-25 (handoff Fase 2,",
+  "Bloque 3)."
+)
+
+descargar_bcr_isi <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-subyacente-de-inflacion-isi-base-dic-2009"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.ISI", url = url,
+    descripcion_archivo = "isi", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx, notas_vintage = .bcr_nota_isi_fecha
+  )
+}
+
+.bcr_nota_itcer_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: ITCER, fila 'Agosto',31 -> periodo_referencia",
+  "2026-07, rezago 1 mes); con periodo_referencia_max = 2026-M06 (capturado",
+  "2026-08-26), el ciclo que la publicó cae ~2026-07-01. Aproximada a 2026-07-01",
+  "(mes, día 01 por convención). Decisión de Harold, 2026-08-25 (handoff Fase 2,",
+  "Bloque 3)."
+)
+
+descargar_bcr_itcer <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-de-tipo-de-cambio-efectivo-real-mensual"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.ITCER", url = url,
+    descripcion_archivo = "itcer", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx, notas_vintage = .bcr_nota_itcer_fecha
+  )
+}
+
+.bcr_nota_gobierno_central_consolidado_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Gobierno Central Consolidado, fila",
+  "'Agosto',31 -> periodo_referencia 2026-07, rezago 1 mes); con",
+  "periodo_referencia_max = 2026-M06 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-07-01. Aproximada a 2026-07-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3). Primera captura",
+  "falló por timeout (tabla grande, 55 variables x 390 periodos): timeouts de",
+  "exportación/descarga subidos en bcr_captura.R (600s/300s) antes de reintentar."
+)
+
+descargar_bcr_gobierno_central_consolidado <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/gobierno-central-consolidado-mensual"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.GOBIERNO_CENTRAL_CONSOLIDADO", url = url,
+    descripcion_archivo = "gobierno_central_consolidado", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_gobierno_central_consolidado_fecha
+  )
+}
+
+.bcr_nota_panorama_sociedades_deposito_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Panorama de las sociedades de depósito,",
+  "fila 'Agosto',31 -> periodo_referencia 2026-07, rezago 1 mes); con",
+  "periodo_referencia_max = 2026-M06 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-07-01. Aproximada a 2026-07-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3). Primera captura",
+  "falló por timeout (tabla grande, 37 variables x 306 periodos): timeouts de",
+  "exportación/descarga subidos en bcr_captura.R (600s/300s) antes de reintentar."
+)
+
+descargar_bcr_panorama_sociedades_deposito <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/panorama-de-las-sociedades-de-depositos"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.PANORAMA_SOCIEDADES_DEPOSITO", url = url,
+    descripcion_archivo = "panorama_sociedades_deposito", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_panorama_sociedades_deposito_fecha
+  )
+}
+
+.bcr_nota_panorama_banco_central_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Panorama del Banco Central, fila",
+  "'Agosto',10 -> periodo_referencia 2026-07, rezago 1 mes); con",
+  "periodo_referencia_max = 2026-M07 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-08-01. Aproximada a 2026-08-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_panorama_banco_central <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/panorama-del-banco-central"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.PANORAMA_BANCO_CENTRAL", url = url,
+    descripcion_archivo = "panorama_banco_central", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_panorama_banco_central_fecha
+  )
+}
+
+.bcr_nota_balanza_comercial_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Balanza Comercial de Mercancías. Valores,",
+  "fila 'Agosto',27 -> periodo_referencia 2026-07, rezago 1 mes); con",
+  "periodo_referencia_max = 2026-M06 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-07-01. Aproximada a 2026-07-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_balanza_comercial <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/balanza-comercial"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.BALANZA_COMERCIAL", url = url,
+    descripcion_archivo = "balanza_comercial", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx, notas_vintage = .bcr_nota_balanza_comercial_fecha
+  )
+}
+
+.bcr_nota_reservas_internacionales_netas_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Reservas Internacionales Netas BCR, fila",
+  "'Agosto',7 -> periodo_referencia 2026-07, rezago 1 mes); con",
+  "periodo_referencia_max = 2026-M07 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-08-01. Aproximada a 2026-08-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_reservas_internacionales_netas <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/reservas-internacionales-netas-bcr"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.RESERVAS_INTERNACIONALES_NETAS", url = url,
+    descripcion_archivo = "reservas_internacionales_netas", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_reservas_internacionales_netas_fecha
+  )
+}
+
+.bcr_nota_indices_precios_comercio_exterior_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: Índices de Precios del Comercio Exterior -",
+  "Mensual, fila 'Agosto',31 -> periodo_referencia 2026-06, rezago 2 meses); con",
+  "periodo_referencia_max = 2026-M05 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-07-01. Aproximada a 2026-07-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_indices_precios_comercio_exterior <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indices-del-sector-externo-mensual"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR", url = url,
+    descripcion_archivo = "indices_precios_comercio_exterior", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_indices_precios_comercio_exterior_fecha
+  )
+}
+
+.bcr_nota_balanza_pagos_trimestral_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE, adaptado a periodicidad trimestral). Se aproxima por el",
+  "rezago del calendario del BCR (doc/calendario_divulgacion_bcr.csv: Balanza de",
+  "Pagos Trimestral, fila 'Septiembre',30 -> periodo_referencia 2026-T2, rezago 1",
+  "trimestre = 3 meses desde el cierre del trimestre); con periodo_referencia_max",
+  "= 2026-T1 (capturado 2026-08-26), el ciclo que la publicó cae ~2026-06-01",
+  "(marzo, cierre de T1, + 3 meses). Aproximada a 2026-06-01 (mes, día 01 por",
+  "convención). Decisión de Harold, 2026-08-25 (handoff Fase 2, Bloque 3)."
+)
+
+descargar_bcr_balanza_pagos_trimestral <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/ii-8-a-balanza-de-pagos-trimestral"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.BALANZA_PAGOS_TRIMESTRAL", url = url,
+    descripcion_archivo = "balanza_pagos_trimestral", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_balanza_pagos_trimestral_fecha
+  )
+}
