@@ -1,0 +1,80 @@
+publicacion_id: UT.DEMANDA_TOTAL_MENSUAL
+institucion_id: UT
+nombre: "Demanda Total de Electricidad (GWh) — serie mensual"
+periodicidad: mensual
+formato: "html / pdf / xls / csv (formulario de reportes, salida seleccionable por el usuario)"
+url: "https://www.ut.com.sv/reportes?p_p_id=MenuReportesEstadisticosPublicReports_WAR_PublicReports&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_MenuReportesEstadisticosPublicReports_WAR_PublicReports_reportName=14utdemtotal"
+cobertura_temporal: "1998 a 2026, verificado directamente por Harold contra el portal (2026-08-26). Confirmado: el formulario trae UN AÑO POR CONSULTA — no existe una consulta de rango completo. Una captura íntegra 1998-2026 requiere ~28 consultas manuales individuales, una por año."
+condiciones_uso: "No verificado — pendiente relevamiento (ADR-008). Institución nueva para el proyecto (agregada 2026-08-26), sin consulta enviada todavía. Aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo) hasta que se relevance."
+notas: |
+  Fuente: Unidad de Transacciones, S.A. de C.V. (UT), administrador del Mercado
+  Mayorista de Electricidad de El Salvador. Candidata al predictor mensual
+  "energía" que la senda §6.4 nombra explícitamente y que, hasta este
+  hallazgo, se había dado por no disponible (ver
+  doc/relevamiento_predictores_energia_turismo.md).
+
+  Mecanismo de captura: el formulario ("Formulario Reportes Estadisticos",
+  selector de Año + selector de salida embebido/html/pdf/xls/csv + botón
+  "ejecutar") es un generador de reportes parametrizado, NO un componente
+  vista-serie como la familia BCR — no se puede reusar bcr_captura.R sin
+  adaptación. El dominio completo (ut.com.sv) bloquea acceso automatizado:
+  confirmado dos veces — web_fetch de Claude chat (ROBOTS_DISALLOWED) y
+  formalmente con `polite::scrape()` (2026-08-26,
+  src/adquisicion/verificar_robots_ut.R): "The path is not scrapable for
+  this user-agent" tanto para el dominio base como para la ruta del
+  reporte; scrape() se negó a continuar sin force=TRUE. La captura queda
+  sujeta a la Regla 9 de CLAUDE.md, igual que
+  BCR.PIB_T.SERIE_RETROPOLADA_1990_2005: manual, sin scripts de descarga
+  desatendidos, con independencia de que existan herramientas (chromote)
+  capaces de evadir técnicamente el bloqueo — decisión de Harold,
+  2026-08-20, ya aplicada acá sin excepción.
+
+  Estructura confirmada por captura de pantalla de Harold (2026-08-26):
+  tabla de dos columnas, "MES" | "GWH", una fila por mes del año
+  seleccionado (ej. Enero 576.03, Febrero 522.86, ... Julio 689.48 para
+  2026). Confirmado por Harold: el formulario trae UN AÑO POR CONSULTA —
+  no hay opción de rango multi-año. Una captura completa 1998-2026 son
+  ~28 consultas manuales, una por año.
+
+  URL confirmada por Harold (2026-08-26) — es un portlet Liferay
+  (`p_p_id=MenuReportesEstadisticosPublicReports_WAR_PublicReports`), no
+  un endpoint REST simple; el parámetro `reportName=14utdemtotal`
+  identifica este reporte específico dentro del portal — sugiere que
+  otros reportes del mismo menú (p. ej. Precios) tienen su propio código
+  de `reportName`, útil si se investigan más adelante.
+
+  CONFIRMADO por Harold (2026-08-26, segunda captura): al ejecutar la
+  consulta (año 2026, salida embebido) la URL resultante es
+  `https://www.ut.com.sv/reportes?p_p_id=FormularioReportesEstadisticosPublicReports_WAR_PublicReports&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_FormularioReportesEstadisticosPublicReports_WAR_PublicReports_action=rendReport`
+  — portlet DISTINTO (`Formulario...`, no `Menu...`), sin año ni formato
+  de salida visibles como parámetros de la URL. Confirma que año/salida
+  se envían por POST al presionar "ejecutar", no por query string — un
+  enlace simple con parámetros no alcanza para reproducir una consulta
+  específica; hace falta interacción real con el formulario (selects +
+  envío), consistente con `p_p_lifecycle=1` (acción de portlet Liferay,
+  no una vista GET simple). Esto no es negociable para la manualidad de
+  la captura: aunque `robots.txt` no bloqueara el dominio (y de hecho lo
+  bloquea, verificado), la mecánica del formulario en sí ya exige clicks
+  reales, no solo una URL armada.
+
+  Pendiente antes de cualquier captura real: (1) confirmar si "salida
+  csv" da un archivo real descargable o solo cambia el render embebido
+  de la misma página; (2) decidir si esta publicación entra a L0 con el
+  mismo tratamiento manual que la retropolada (captura puntual, sin
+  recaptura automatizada) o si amerita algún mecanismo semi-manual
+  distinto dado que sí se actualiza mes a mes (a diferencia de la
+  retropolada, que es serie cerrada) — con ~28 consultas para el
+  histórico completo, además hay que decidir si vale la pena capturar
+  todo 1998-2026 de una vez o empezar con años recientes y completar el
+  histórico después.
+
+  Candidata adicional identificada, NO catalogada en esta pasada: "Precios"
+  dentro del mismo menú de Reportes Estadísticos — misma presentación
+  (un año por consulta, mismos formatos de exportación), con DOS tipos
+  de medición ("oficial" e "indicativa", sin verificar la diferencia
+  exacta entre ambas). Sería el predictor de precio de energía,
+  complementario a esta serie de cantidad (demanda). Otras secciones del
+  menú ("TBM: Transacciones Bilaterales Mensuales" también declara
+  mensual en el nombre; el resto — ofertas MRS, transacciones horarias,
+  niveles de embalse — es operación de mercado de grano fino, poco
+  relevante como predictor macroeconómico agregado) tampoco evaluadas.
