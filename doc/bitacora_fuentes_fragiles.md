@@ -267,3 +267,37 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   `timeout_s = 300` explícito solo en el paso de disparo del exportador; NSA/SA no cambian de
   comportamiento (ya completaban por debajo del default). Confirmado con `make raw`
   (`scripts/verificar_l0.R`) en 3/3 PASS tras el ajuste.
+
+## BCR — Reservas Internacionales y Liquidez en Moneda Extranjera: mecanismo distinto de `vista-serie`
+
+- **2026-08-26** (Claude Code, sondeo en vivo, handoff Fase 1 Bloque 4): la publicación
+  "Reservas Internacionales y Liquidez en Moneda Extranjera" **no** vive en el
+  componente `vista-serie` del portal. El único enlace encontrado en
+  `oferta-estadistica` para este nombre
+  (`https://estadisticas.bcr.gob.sv/serie/reservas-internacionales-y-liquidez-en-moneda-extranjera`)
+  devuelve **HTTP 500 (Server Error)** — enlace roto en el propio portal, confirmado
+  cargando la página en vivo con `chromote` (título de la página servida: "Server
+  Error", cuerpo "500 SERVER ERROR").
+  - Siguiendo el enlace real que sí resuelve (`enlaces_reservas` desde
+    `cartelera_es.html`, texto "Información sobre Reservas Internacionales y Liquidez
+    en Moneda Extranjera" → `https://www.bcr.gob.sv/documental/Inicio/busqueda/194`):
+    la fuente real de esta variable es una **fila dentro de la Cartelera Electrónica
+    del Boletín de Normas de Divulgación del FMI** (`cartelera_es.html`), no una
+    publicación `vista-serie` independiente. Confirmado navegando la cartelera en
+    vivo: es una página HTML estática (6 tablas, una por sección: Sector Real, Fiscal,
+    Monetario y Financiero, Externo, Población — sin componente Livewire), con
+    columnas "Última información" y "Período anterior" — es decir, **valores
+    puntuales de snapshot, no una serie histórica completa** por fila.
+  - La página sí tiene un único botón "Documento de Excel"
+    (`https://estadisticas.bcr.gob.sv/descargar-cartelera-xlsx/es`), pero descarga
+    **toda la cartelera** (decenas de variables de las 5 secciones, cada una con solo
+    último dato + dato anterior), no un archivo específico de esta fila. Capturar esta
+    variable con el mecanismo actual de L0 (una publicación = una URL = un `.xlsx` con
+    serie completa) no aplica sin antes decidir cómo tratar "una fila de una cartelera
+    compartida" como unidad de captura — no es un caso cubierto por `bcr_captura.R`.
+  - **No se escribe YAML en `01_publicaciones` para esta variable todavía**: falta
+    decidir el mecanismo de captura (¿se cataloga la cartelera completa como una
+    publicación de metadata operativa, como ya se hizo con el calendario de
+    divulgación en `doc/calendario_divulgacion_bcr.md`? ¿se captura solo la fila
+    relevante por lectura del HTML, renunciando a un `.xlsx` de origen?) antes de
+    prometer una publicación que hoy no sabemos cómo traer a L0.
