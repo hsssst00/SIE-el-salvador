@@ -1,0 +1,18 @@
+publicacion_id: BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR_TRIMESTRAL
+institucion_id: BCR
+nombre: "Índices de Precios del Comercio Exterior - Trimestral"
+periodicidad: trimestral
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/indices-de-precios-del-comercio-exterior-trimestral
+cobertura_temporal: "2005 I a 2026 I, confirmado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano — ver src/adquisicion/bcr_sondear_publicacion.R)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
+notas: |
+  Fuente: BCR. Variante trimestral de BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR
+  (mensual, ya catalogada). Nombrada así en el calendario de divulgación
+  (doc/calendario_divulgacion_bcr.md), sección Sector Externo — el
+  catálogo previo solo cubría la variante mensual del mismo concepto
+  (términos de intercambio); esta es una publicación distinta, no un
+  duplicado.
+
+  Sondeo en vivo (2026-08-26): id_publicacion=70, unidades="Índice",
+  nombre_cuadro coincide exactamente con el declarado acá.

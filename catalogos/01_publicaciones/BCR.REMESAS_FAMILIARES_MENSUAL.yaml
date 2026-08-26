@@ -1,0 +1,19 @@
+publicacion_id: BCR.REMESAS_FAMILIARES_MENSUAL
+institucion_id: BCR
+nombre: "Ingresos mensuales de remesas familiares"
+periodicidad: mensual
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/ingresos-mensuales-de-remesas-familiares
+cobertura_temporal: "1991 Enero a 2026 Junio, confirmado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano — ver src/adquisicion/bcr_sondear_publicacion.R)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
+notas: |
+  Fuente: BCR. Componente publicacion_id = "remesas-mensuales" del
+  calendario de divulgación (doc/calendario_divulgacion_bcr.md), sección
+  Sector Externo. Predictor nombrado explícitamente en la senda
+  metodológica §6.4 — a diferencia de la mayoría de las 68 entradas
+  previas de este catálogo, esta se agrega directamente motivada por un
+  hueco identificado en el cruce contra el calendario, no por
+  relevamiento general del portal.
+
+  Sondeo en vivo (2026-08-26): id_publicacion=64, unidades="Millones de
+  US$", nombre_cuadro coincide exactamente con el declarado acá.

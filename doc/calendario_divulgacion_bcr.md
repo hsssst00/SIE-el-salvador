@@ -59,22 +59,24 @@ y Harold confirmó el patrón contra el histórico antes de aceptarlo. Cada uso 
 excepción debe declarar en `notas_vintage` el cálculo completo y estar avalado
 explícitamente, no aplicarse por defecto.
 
-**Cruce contra `01_publicaciones` (2026-08-25).** De las 22 variables nombradas en el
-calendario, 15 tienen entrada existente en el catálogo (incluida `IPC`, que corresponde
-a `ONEC.IPC.BASE_2009`, no a una publicación del propio BCR). **7 no tienen entrada**:
+**Cruce contra `01_publicaciones` (2026-08-25, actualizado 2026-08-26).** De las 22
+variables nombradas en el calendario, 20 tienen entrada existente en el catálogo
+(incluida `IPC`, que corresponde a `ONEC.IPC.BASE_2009`, no a una publicación del
+propio BCR). **2 no tienen entrada todavía**:
 
-- Ingresos mensuales de remesas familiares — sin entrada; predictor nombrado
-  explícitamente en la senda §6.4, hoy no inventariado.
-- Deuda del Gobierno Central Trimestral — sin entrada exacta (el catálogo tiene
-  `DEUDA_PUBLICA_TOTAL_*`, mensual, "Total" no "Gobierno Central" — no asumir que es
-  la misma publicación).
-- Índices de Precios del Comercio Exterior - Trimestral — sin entrada (el catálogo
-  solo cubre la variante mensual del mismo nombre).
-- Saldo Bruto de la Deuda Externa Total — sin entrada.
-- Posición de Inversión Internacional — sin entrada.
-- IED: Flujo neto — sin entrada.
-- Reservas Internacionales y Liquidez en Moneda Extranjera — sin entrada (distinta de
-  `RESERVAS_INTERNACIONALES_NETAS`, que sí está).
+- IED: Flujo neto — ambigüedad entre dos publicaciones candidatas (por sector
+  económico receptor y por país de procedencia), ninguna de las dos un agregado sin
+  desagregar; pendiente de decisión de Harold (ver handoff Fase 1, Bloque 3).
+- Reservas Internacionales y Liquidez en Moneda Extranjera — sondeada en vivo
+  (2026-08-26): no es una publicación `vista-serie` sino una fila dentro de la
+  Cartelera Electrónica FMI (`cartelera_es.html`), con descarga de Excel a nivel de
+  toda la cartelera, no de la fila individual, y con valores puntuales (último dato +
+  dato del período anterior), no una serie histórica completa. Documentado en
+  `doc/bitacora_fuentes_fragiles.md`; no se cataloga todavía como publicación de
+  `01_publicaciones` hasta definir un mecanismo de captura para este tipo de fuente.
 
-Estos 7 quedan como pendiente de inventario (Fase 1 / adelanto declarado), no resueltos
-por esta nota.
+Las 5 variables restantes del cruce original (remesas familiares mensuales, deuda del
+Gobierno Central trimestral, índices de precios del comercio exterior trimestral,
+saldo bruto de la deuda externa total y posición de inversión internacional) ya
+cuentan con entrada en `01_publicaciones`, con `cobertura_temporal` confirmada por
+sondeo en vivo (`src/adquisicion/bcr_sondear_publicacion.R`, 2026-08-26).

@@ -1,0 +1,18 @@
+publicacion_id: BCR.SALDO_DEUDA_EXTERNA_TOTAL
+institucion_id: BCR
+nombre: "Saldo Bruto de la Deuda Externa Total En Millones de US$"
+periodicidad: trimestral
+formato: web / csv / xlsx
+url: https://estadisticas.bcr.gob.sv/serie/ii-5-saldo-bruto-de-la-deuda-externa-total-en-millones-de-us
+cobertura_temporal: "2003 II a 2026 I, confirmado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano — ver src/adquisicion/bcr_sondear_publicacion.R)."
+condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
+notas: |
+  Fuente: BCR. ID interno BCR: II.5. Nombrada como "Saldo Bruto de la
+  Deuda Externa Total" en el calendario de divulgación
+  (doc/calendario_divulgacion_bcr.md), sección Sector Externo. Es deuda
+  externa total (pública y privada) — no confundir con
+  BCR.DEUDA_PUBLICA_TOTAL_VIGENTE (mensual, solo deuda pública) ni con
+  BCR.DEUDA_GOBIERNO_CENTRAL_TRIMESTRAL (solo Gobierno Central).
+
+  Sondeo en vivo (2026-08-26): id_publicacion=91, unidades="Millones de
+  US$", nombre_cuadro coincide exactamente con el declarado acá.
