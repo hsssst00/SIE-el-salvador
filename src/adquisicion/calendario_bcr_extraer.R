@@ -1,9 +1,15 @@
 # calendario_bcr_extraer.R
 #
-# PROVISIONAL — pendiente de decisión de Harold sobre dónde vive el resultado
-# (L0 como publicación propia BCR.CALENDARIO_DIVULGACION, vs. doc/ como
-# metadata operativa). Este script solo hace el parseo; no escribe todavía a
-# ninguna ruta definitiva del repo.
+# Decisión de arquitectura (Claude chat, 2026-08-25, delegada por Harold):
+# este calendario vive en doc/, NO en L0. Es metadata operativa (cuándo
+# intentar una captura), no una publicación de datos que vaya a tener
+# serie_id ni pasar por L1-L4 — no encaja en el objeto "publicación" de
+# 01_publicaciones (periodicidad/cobertura no le calzan). Al ser CSV
+# versionado en doc/, el propio historial de Git funciona como registro de
+# revisiones del calendario (el BCR lo actualiza con el tiempo), sin
+# necesitar el aparato de manifiesto/checksum de L0 diseñado para binarios
+# no deterministas (.xlsx de series). Ver doc/calendario_divulgacion_bcr.md
+# para la nota de procedencia completa.
 #
 # Convierte calendario-anticipado.xlsx (descarga directa del BCR, botón
 # "Exportar" de https://estadisticas.bcr.gob.sv/calendario-de-divulgacion) de
@@ -105,6 +111,6 @@ extraer_calendario_bcr <- function(ruta_xlsx) {
   do.call(rbind, registros)
 }
 
-# Uso:
+# Uso (ruta definitiva dentro del repo, no L0):
 # tabla <- extraer_calendario_bcr("calendario-anticipado.xlsx")
-# write.csv(tabla, "calendario_bcr_largo.csv", row.names = FALSE)
+# write.csv(tabla, "doc/calendario_divulgacion_bcr.csv", row.names = FALSE)
