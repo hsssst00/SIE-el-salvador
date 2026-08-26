@@ -2,7 +2,7 @@ publicacion_id: BCR.IPRI.BASE_1990
 institucion_id: BCR
 nombre: "Índice de Precios Industriales (IPRI), base 1990"
 periodicidad: mensual
-formato: web
+formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-industriales-ipri-enero-1998-oct-2017
 cobertura_temporal: "ene-1998 a oct-2017. Verificado directamente por Harold contra el portal (2026-08-17): la URL cargó correctamente esta vez y la cobertura declarada es correcta."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
@@ -54,3 +54,11 @@ notas: |
   ("Enero 1998-oct.2017") coincide con lo ya registrado. No verificado
   en esta corrección: contenido de la nueva URL más allá del título de
   la fila que la origina.
+
+  Sondeo en vivo por Claude Code vía chromote (2026-08-26, homogenización
+  del catálogo 01_publicaciones): confirmado que la URL corregida sí es
+  un componente vista-serie completo, con exportador csv/xlsx igual al
+  resto de la familia (nombre_cuadro leído del componente: "Índice de
+  Precios Industriales (IPRI). Enero 1998-oct.2017", coincide). Campo
+  `formato` actualizado de "web" a "web / csv / xlsx". cobertura_temporal
+  reconfirmada sin cambios (ene-1998 a oct-2017 — serie cerrada).

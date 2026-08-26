@@ -4,7 +4,7 @@ nombre: "Tasas de Interés Promedio Ponderado — serie mensual (Metodología 20
 periodicidad: mensual
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/5-1-1-2-mensual-promedio-ponderado-metodologia-2022
-cobertura_temporal: "ene-2010 a jun-2026, verificado por Harold directamente contra el portal (2026-08-09)."
+cobertura_temporal: "ene-2010 a jul-2026. Verificado por Harold directamente contra el portal (2026-08-09): ene-2010 a jun-2026. Actualizado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano de homogenización): un mes más de dato disponible (jul-2026)."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Fuente: BCR. Vigente, Metodología 2022. Cowork identificó una serie

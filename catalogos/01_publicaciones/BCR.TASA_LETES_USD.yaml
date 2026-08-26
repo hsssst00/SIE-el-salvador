@@ -4,7 +4,7 @@ nombre: "Tasa Promedio Ponderada para Letras del Tesoro Emitida en Dólares"
 periodicidad: semanal
 formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/tasa-promedio-ponderada-para-letras-del-tesoro-emitida-en-dolares
-cobertura_temporal: "7-ene-2022 a 7-ago-2026, verificado por Harold directamente contra el portal (2026-08-12) — corrige la fecha de fin, previamente catalogada como 31-jul-2026 según relevamiento de Cowork."
+cobertura_temporal: "7-ene-2022 a 14-ago-2026. Verificado por Harold directamente contra el portal (2026-08-12): 7-ene-2022 a 7-ago-2026 — corrige la fecha de fin, previamente catalogada como 31-jul-2026 según relevamiento de Cowork. Actualizado por Claude Code vía chromote en vivo (2026-08-26, sondeo liviano de homogenización): una semana más de dato disponible (14-ago-2026), consistente con la periodicidad semanal de esta serie."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
 notas: |
   Clasificada por el BCR dentro de "6. Banco Central de Reserva"

@@ -2,7 +2,7 @@ publicacion_id: BCR.SPNF_SERIE_1994_2025
 institucion_id: BCR
 nombre: "Sector Público No Financiero (Serie 1994-2025)"
 periodicidad: mensual
-formato: web
+formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/sector-publico-no-financiero
 cobertura_temporal: "1994-01 a 2025 (datos recientes en proceso de conciliación), verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
@@ -18,3 +18,11 @@ notas: |
   ambas series, no solo de ventana temporal. Ver 09_rupturas.csv, R013.
   Identificado vía búsqueda externa por Claude (2026-08-11), no vía
   Cowork ni verificación directa de Harold contra el portal.
+
+  Sondeo en vivo por Claude Code vía chromote (2026-08-26, homogenización
+  del catálogo 01_publicaciones): confirmado que es un componente
+  vista-serie con exportador csv/xlsx igual al resto de la familia —
+  formato "web" reflejaba mecanismo no confirmado, no ausencia real de
+  exportador. Campo `formato` actualizado a "web / csv / xlsx".
+  cobertura_temporal reconfirmada sin cambios (1994 Enero a 2025
+  Diciembre).

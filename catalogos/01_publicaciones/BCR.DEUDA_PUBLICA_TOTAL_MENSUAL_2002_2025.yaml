@@ -2,7 +2,7 @@ publicacion_id: BCR.DEUDA_PUBLICA_TOTAL_MENSUAL_2002_2025
 institucion_id: BCR
 nombre: "Deuda Pública Total Mensual (Serie desde enero 2002-2025)"
 periodicidad: mensual
-formato: web
+formato: web / csv / xlsx
 url: https://estadisticas.bcr.gob.sv/serie/deuda-publica-total
 cobertura_temporal: "ene-2002 a dic-2025, verificado por Harold directamente contra el portal (2026-08-12)."
 condiciones_uso: "En gestión, no por relevamiento pendiente (ADR-008, enmienda 2026-08-12): consulta formal enviada al BCR el 2026-08-07, ampliada el 2026-08-12 a solicitud de la propia institución; fecha de corte 2026-10-12. Aplica mientras tanto el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Cronología completa y consecuencias del vencimiento sin respuesta en ADR-008."
@@ -18,3 +18,11 @@ notas: |
   desde 1991-2025", URL .../serie/deuda-publica-total-anual) identificada
   de paso en la misma búsqueda — NO catalogada en este lote, queda fuera
   de alcance.
+
+  Sondeo en vivo por Claude Code vía chromote (2026-08-26, homogenización
+  del catálogo 01_publicaciones): confirmado que es un componente
+  vista-serie con exportador csv/xlsx igual al resto de la familia — el
+  formato "web" (sin csv/xlsx) reflejaba que nadie había confirmado el
+  mecanismo directamente, no que la página careciera de él. Campo
+  `formato` actualizado a "web / csv / xlsx". cobertura_temporal
+  reconfirmada sin cambios (ene-2002 a dic-2025).
