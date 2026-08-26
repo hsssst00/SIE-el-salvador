@@ -384,3 +384,42 @@ descargar_bcr_balanza_pagos_trimestral <- function(fecha_publicacion) {
     notas_vintage = .bcr_nota_balanza_pagos_trimestral_fecha
   )
 }
+
+# -----------------------------------------------------------------------------
+# BCR.SPNF_VIGENTE (handoff Fase 2, 2026-08-26). Sondeada en vivo antes de esta
+# captura (bcr_sondear_publicacion.R): es_vista_serie = TRUE, nombre_cuadro =
+# "Sector Público No Financiero (Serie desde enero de 2020)" (coincide con el
+# `nombre` del YAML), unidades = "Millones de US$", cobertura 2020 Enero a 2026
+# Junio — mismo mecanismo vista-serie que el resto de la familia, no el de
+# BCR.SPNF_SERIE_1994_2025 (que sigue fuera de este patrón, ver
+# doc/bitacora_fuentes_fragiles.md).
+#
+# La fila del calendario "Sector Público No Financiero (Serie 1994-2025)" fue
+# corregida (2026-08-26, decisión de Harold) para apuntar a ESTA publicación —
+# ver doc/calendario_divulgacion_bcr.md, "Corrección de mapeo".
+# -----------------------------------------------------------------------------
+
+.bcr_nota_spnf_vigente_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: fila 'Sector Público No Financiero (Serie",
+  "1994-2025)', 'Agosto',31 -> periodo_referencia 2026-07, rezago 1 mes; esta fila",
+  "corresponde a BCR.SPNF_VIGENTE y no a BCR.SPNF_SERIE_1994_2025 - corrección de",
+  "mapeo del 2026-08-26, ver doc/calendario_divulgacion_bcr.md); con",
+  "periodo_referencia_max = 2026-M06 (capturado 2026-08-26), el ciclo que la",
+  "publicó cae ~2026-07-01. Aproximada a 2026-07-01 (mes, día 01 por convención).",
+  "Decisión de Harold, 2026-08-26 (handoff Fase 2, captura BCR.SPNF_VIGENTE)."
+)
+
+descargar_bcr_spnf_vigente <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/sector-publico-no-financiero-serie-desde-enero-de-2020"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.SPNF_VIGENTE", url = url,
+    descripcion_archivo = "spnf_vigente", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_spnf_vigente_fecha
+  )
+}

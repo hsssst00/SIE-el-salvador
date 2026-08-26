@@ -26,3 +26,18 @@ notas: |
   exportador. Campo `formato` actualizado a "web / csv / xlsx".
   cobertura_temporal reconfirmada sin cambios (1994 Enero a 2025
   Diciembre).
+
+  Corrección de mapeo (2026-08-26, decisión de Harold): la fila "Sector
+  Público No Financiero (Serie 1994-2025)" de
+  doc/calendario_divulgacion_bcr.csv corresponde a BCR.SPNF_VIGENTE, no a
+  esta publicación — resuelve la pendiente registrada en
+  doc/bitacora_fuentes_fragiles.md (sección "BCR — SPNF_SERIE_1994_2025:
+  fila del calendario de divulgación no corresponde a esta publicación").
+  Esta serie es la predecesora congelada (cobertura real hasta 2025-M12,
+  no avanza mes a mes) y por eso el patrón de rezago del calendario nunca
+  le aplicó; el nombre textual de la fila del calendario coincide con el
+  nombre de ESTA publicación por herencia histórica, pero la publicación
+  mensual activa que el BCR efectivamente anuncia en ese calendario es
+  BCR.SPNF_VIGENTE. Esta serie sigue sin captura recurrente por
+  `make raw` (queda de captura manual/única, mismo tratamiento que
+  BCR.PIB_T.SERIE_RETROPOLADA_1990_2005).

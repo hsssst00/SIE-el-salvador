@@ -333,3 +333,14 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     `check_l0_integrity.R`), o (b) si el calendario de divulgación debería apuntar esa
     fila a `BCR.SPNF_VIGENTE` en vez de a esta publicación — no es una decisión
     metodológica que corresponda resolver por inferencia (regla 4 de CLAUDE.md).
+  - **Resuelto (2026-08-26, decisión de Harold):** opción (b). El calendario de
+    divulgación ahora apunta la fila "Sector Público No Financiero (Serie
+    1994-2025)" a `BCR.SPNF_VIGENTE` — ver
+    `doc/calendario_divulgacion_bcr.md` ("Corrección de mapeo") y las notas de
+    ambos YAML en `catalogos/01_publicaciones/`. `BCR.SPNF_VIGENTE` quedó
+    capturada el mismo día vía `descargar_bcr_spnf_vigente()`
+    (`src/adquisicion/bcr.R`): `periodo_referencia_max = 2026-M06`,
+    `fecha_publicacion` aproximada a 2026-07-01 por el rezago de 1 mes de esa
+    fila. `BCR.SPNF_SERIE_1994_2025` sigue sin captura recurrente por
+    `make raw` (punto (a) queda tal cual: captura manual/única, mismo
+    tratamiento que `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`).

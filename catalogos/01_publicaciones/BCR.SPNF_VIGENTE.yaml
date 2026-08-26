@@ -16,3 +16,16 @@ notas: |
   Las publicaciones ya catalogadas de Hacienda (MH.INGRESOS_TOTALES_ANUAL,
   MH.DEUDA_SPNF_ANUAL, MH.PERFIL_DEUDA_SPNF, etc.) quedan como fuente
   SECUNDARIA — ver nota cruzada añadida en cada una de ellas.
+
+  Corrección de mapeo (2026-08-26, decisión de Harold): la fila "Sector
+  Público No Financiero (Serie 1994-2025)" de
+  doc/calendario_divulgacion_bcr.csv corresponde a ESTA publicación
+  (BCR.SPNF_VIGENTE), no a BCR.SPNF_SERIE_1994_2025 — resuelve la
+  pendiente registrada en doc/bitacora_fuentes_fragiles.md (sección "BCR
+  — SPNF_SERIE_1994_2025: fila del calendario de divulgación no
+  corresponde a esta publicación"). El nombre textual de la fila del
+  calendario quedó fijado al nombre histórico de la serie predecesora
+  (congelada en 2025-M12), pero la publicación mensual activa que el BCR
+  efectivamente anuncia en ese calendario es esta serie vigente. El
+  patrón de rezago del calendario (periodo_referencia_max + N meses) sí
+  aplica acá, a diferencia de la serie predecesora.

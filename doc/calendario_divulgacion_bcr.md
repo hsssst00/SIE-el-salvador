@@ -81,3 +81,14 @@ confirmada por sondeo en vivo (`src/adquisicion/bcr_sondear_publicacion.R`,
 `BCR.IED_FLUJO_NETO_POR_SECTOR` y `BCR.IED_FLUJO_NETO_POR_PAIS` — porque ninguna de
 las dos páginas del portal con ese nombre es un agregado sin desagregar; decisión de
 Harold (2026-08-26), detalle completo en las notas de ambos YAML.
+
+**Corrección de mapeo (2026-08-26, decisión de Harold).** La fila "Sector Público No
+Financiero (Serie 1994-2025)" de `calendario_divulgacion_bcr.csv` **no** corresponde a
+`BCR.SPNF_SERIE_1994_2025` — esa serie está congelada (cobertura real hasta 2025-M12,
+no avanza mes a mes) y el patrón de rezago del calendario nunca pudo aplicarle,
+según quedó documentado en `doc/bitacora_fuentes_fragiles.md` tras el lote de captura
+del 2026-08-26. La fila corresponde a `BCR.SPNF_VIGENTE`: el nombre textual heredó el
+nombre histórico de la serie predecesora, pero la publicación mensual activa que el
+BCR efectivamente anuncia en ese calendario es la serie vigente. Detalle completo en
+las notas de ambos YAML (`catalogos/01_publicaciones/BCR.SPNF_SERIE_1994_2025.yaml` y
+`BCR.SPNF_VIGENTE.yaml`).
