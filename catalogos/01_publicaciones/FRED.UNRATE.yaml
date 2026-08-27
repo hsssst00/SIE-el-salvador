@@ -1,0 +1,17 @@
+publicacion_id: FRED.UNRATE
+institucion_id: FRED
+nombre: "Tasa de desempleo de Estados Unidos (UNRATE), redistribuida por FRED"
+periodicidad: mensual
+formato: api (REST; JSON o XML)
+url: https://api.stlouisfed.org/fred/series/observations
+cobertura_temporal: "Confirmado por Claude Code (2026-08-18) vía GET directo a fred/series/observations?series_id=UNRATE: 1948-01-01 a 2026-07-01, 943 observaciones mensuales, 942 con valor — falta exactamente 2025-10-01. El hueco puntual y coincidente con CPIAUCSL (ambas de fuentes ligadas al gobierno federal de EE.UU. — BLS) en el mismo mes es consistente con la hipótesis de interrupción presupuestaria del gobierno de EE.UU. registrada en FRED.BEA_PIB_EEUU y en la ficha de familia; no se confirmó la causa contra un aviso oficial de FRED o BLS — queda como hipótesis razonable, no como hecho verificado."
+condiciones_uso: "Idénticas a las de FRED.INDICADORES_MENSUALES_EEUU.yaml (ficha de familia) y FRED.BEA_PIB_EEUU.yaml — ver esa ficha para el texto completo (API key personal obligatoria, avisos de no aval institucional, series con copyright de terceros). No repetido acá para evitar duplicación (senda §10.6)."
+notas: |
+  Fuente ORIGINAL: Bureau of Labor Statistics (BLS), programa Current Population
+  Survey (household survey). Canal de acceso: FRED.
+
+  Publicación individual desprendida de FRED.INDICADORES_MENSUALES_EEUU (ficha de
+  familia) — ver esa ficha para contexto compartido, y
+  doc/adr/ADR-007-politica-vintages.md, nota de seguimiento 2026-08-27, para el
+  motivo de la partición (colisión de vintage_id, un publicacion_id por serie
+  cuando la fuente publica por serie con calendario de divulgación propio).

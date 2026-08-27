@@ -157,3 +157,33 @@ El campo se llena siempre, sin casos especiales.
 operación de lectura para computar un hash estable; no altera el archivo de L0, que se sigue
 archivando crudo, tal como cae (con la salvedad de encuadre de `src/adquisicion/README.md` §2.1:
 para esta fuente, "crudo" ya es un artefacto del cliente, no del publicador).
+
+## Nota de seguimiento — granularidad de `publicacion_id` para fuentes por-serie (2026-08-27)
+
+**Disparador.** Al ejecutar el primer script de adquisición FRED, `FRED.INDICADORES_MENSUALES_EEUU`
+—una ficha paraguas sobre 4 series (`INDPRO`, `PAYEMS`, `UNRATE`, `CPIAUCSL`)— produjo
+una colisión de `vintage_id`: las 4 series, capturadas el mismo día, con observación más
+reciente publicada el mismo mes, derivan el mismo `vintage_id =
+{publicacion_id}.v{AAAA-MM}` (nota del 2026-08-20 de este ADR). La clave asumía
+implícitamente un `publicacion_id` = un flujo de publicación con un solo calendario de
+divulgación — supuesto válido para el BCR (una página `vista-serie` por publicación) y
+para `FRED.BEA_PIB_EEUU` (una serie, `GDPC1`), pero no para una ficha que agrupa varias
+series con calendarios de divulgación independientes.
+
+**Decisión: un `publicacion_id` por serie, cuando la fuente publica por serie con
+fechas de tiempo real nativas por serie.** FRED es ese caso — cada `series_id` es su
+propio endpoint, su propio calendario, y trae `realtime_start` nativo (concepto
+bitemporal propio de FRED/ALFRED, no sintetizado). Se modela `FRED.INDPRO`,
+`FRED.PAYEMS`, `FRED.UNRATE`, `FRED.CPIAUCSL` como publicaciones independientes,
+plano `FRED.<SERIES_ID>` — el `series_id` de FRED es ya el identificador canónico y
+estable de esta fuente. `FRED.BEA_PIB_EEUU` no se toca (1:1 con `GDPC1`, decisión de
+Harold de no renombrar). `FRED.INDICADORES_MENSUALES_EEUU.yaml` se conserva,
+re-encuadrada como ficha de familia/contexto — deja de ser objetivo de captura.
+
+**Consecuencias.** La gramática de `vintage_id` (nota del 2026-08-20) no cambia —
+sigue siendo `{publicacion_id}.v{AAAA-MM}`; lo que cambia es la granularidad de
+`publicacion_id` para fuentes de este tipo. `registrar_descarga()` y
+`check_l0_integrity.R` no requieren cambios (tratan `vintage_id` como cadena opaca).
+Regla hacia adelante: al catalogar una fuente nueva de API, si publica por serie con
+calendario propio por serie, usar un `publicacion_id` por serie desde el inicio — no
+esperar a la primera colisión para corregirlo, como pasó acá.

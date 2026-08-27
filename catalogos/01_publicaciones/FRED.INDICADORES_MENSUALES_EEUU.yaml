@@ -1,38 +1,34 @@
 publicacion_id: FRED.INDICADORES_MENSUALES_EEUU
 institucion_id: FRED
-nombre: "Indicadores mensuales de actividad, empleo y precios de Estados Unidos, redistribuidos por FRED"
+nombre: "Indicadores mensuales de actividad, empleo y precios de Estados Unidos, redistribuidos por FRED — ficha de familia"
 periodicidad: mensual
 formato: api (REST; JSON o XML)
 url: https://api.stlouisfed.org/fred/series/observations
-cobertura_temporal: "Confirmado por Claude Code (2026-08-18) vía GET directo a fred/series/observations para cada uno de los 4 códigos candidatos, por separado (ficha deliberadamente genérica, según su propia nota — no se elige uno solo): INDPRO 1919-01-01 a 2026-07-01, 1291 observaciones mensuales, todas con valor; PAYEMS 1939-01-01 a 2026-07-01, 1051 observaciones, todas con valor; UNRATE 1948-01-01 a 2026-07-01, 943 observaciones, 942 con valor — falta exactamente 2025-10-01; CPIAUCSL 1947-01-01 a 2026-07-01, 955 observaciones, 954 con valor — falta exactamente 2025-10-01. El hueco puntual y coincidente en UNRATE y CPIAUCSL (ambas de fuentes ligadas al gobierno federal de EE.UU. — BLS) en el mismo mes es consistente con el aviso de interrupción presupuestaria del gobierno de EE.UU. ya registrado en la ficha FRED.BEA_PIB_EEUU (esa fecha de aviso no se había podido fijar antes; este hueco la ancla aproximadamente a octubre de 2025), aunque no se confirmó la causa de forma directa contra un aviso oficial de FRED o BLS — queda como hipótesis razonable, no como hecho verificado."
-condiciones_uso: "Idénticas a FRED.BEA_PIB_EEUU — ver esa entrada. Atención especial al punto de copyright de terceros: FRED redistribuye series de decenas de fuentes y algunas son de propiedad privada. Antes de incorporar cualquier serie concreta debe verificarse si su campo de notas contiene la marca de copyright. Pendiente verificación directa de Harold."
+cobertura_temporal: "No aplica a esta ficha directamente — ver la cobertura de cada serie en su propia ficha (FRED.INDPRO, FRED.PAYEMS, FRED.UNRATE, FRED.CPIAUCSL)."
+condiciones_uso: "API key gratuita obligatoria (fredaccount.stlouisfed.org); cada usuario debe usar su propia clave, por lo que la clave NO puede comprometerse al repositorio. Los Términos de Uso de la API de FRED imponen dos obligaciones activas verificadas por Claude (2026-08-12): (i) colocar de forma prominente en la aplicación el aviso de que el producto usa la API de FRED pero no está avalado ni certificado por el Federal Reserve Bank of St. Louis; (ii) no afirmar ni sugerir respaldo institucional, y no usar marcas ni logos del banco. Además, las series accesibles vía FRED pueden pertenecer a terceros y estar sujetas a copyright que FRED no puede levantar — las series con copyright llevan la palabra Copyright en su campo de notas y son identificables por búsqueda. Se aplica el default conservador de ADR-008. Pendiente verificación directa de Harold."
 notas: |
-  Fuentes ORIGINALES: mayoritariamente Bureau of Labor Statistics (BLS)
-  y Junta de Gobernadores del Sistema de la Reserva Federal. Canal de
-  acceso: FRED.
+  RE-ENCUADRADA (2026-08-27) — ver doc/adr/ADR-007-politica-vintages.md, nota de
+  seguimiento 2026-08-27. Esta ficha YA NO es objetivo de captura: cada serie
+  individual (FRED.INDPRO, FRED.PAYEMS, FRED.UNRATE, FRED.CPIAUCSL) tiene su
+  propia ficha, propio publicacion_id, propios vintages. Motivo de la partición:
+  cada series_id de FRED es su propio flujo de publicación, con calendario de
+  divulgación y realtime_start nativo independientes — un publicacion_id
+  compartido producía colisión de vintage_id cuando dos o más series se
+  capturaban el mismo mes.
 
-  Justificación: senda §6.4 (frecuencia mixta y nowcasting) señala que
-  ignorar la frecuencia mensual desperdicia la principal ventaja
-  informativa del sistema. Los predictores mensuales estadounidenses
-  son el complemento externo natural de los predictores mensuales
-  salvadoreños ya catalogados (IVAE, IPI, remesas, comercio exterior).
+  Esta ficha documenta el contexto compartido del grupo: condiciones de uso
+  (ver arriba), justificación en el proyecto (senda §6.4, frecuencia mixta y
+  nowcasting — ignorar la frecuencia mensual desperdicia la principal ventaja
+  informativa del sistema), y sirve de punto de entrada para localizar las
+  fichas individuales. Las series de precios de importación/exportación (BLS)
+  mencionadas en la investigación original siguen sin ficha propia — candidatas
+  futuras, mismo patrón de partición si se incorporan.
 
-  Series candidatas identificadas por Claude, códigos NO verificados
-  contra la API:
-    - INDPRO — producción industrial
-    - PAYEMS — empleo no agrícola en nómina
-    - UNRATE — tasa de desempleo
-    - CPIAUCSL — índice de precios al consumidor
-    - Índices de precios de importación y exportación (BLS)
+  Distinción que se mantiene igual que antes de la partición: capturar L0 de una
+  serie candidata (Fase 2, lo que hace este handoff) NO es lo mismo que
+  seleccionarla como predictor del modelo (Fase 3, se registra en 03_series). La
+  partición del publicacion_id no compromete nada sobre qué series terminan
+  siendo predictores.
 
-  ADVERTENCIA DE ALCANCE: esta entrada es deliberadamente genérica
-  porque el conjunto definitivo de predictores mensuales estadounidenses
-  no está fijado y no debe fijarse acá. La construcción de la matriz de
-  predictores es entregable de Fase 3 (senda §4). Lo que corresponde a
-  Fase 1 es dejar constancia de que la fuente existe, es accesible por
-  API y tiene condiciones de uso conocidas. La selección concreta de
-  series se hace después, con criterio explícito, y se registra en
-  03_series.
-
-  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
-  Pendiente verificación directa de Harold contra la API.
+  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork. Pendiente
+  verificación directa de Harold contra la API.
