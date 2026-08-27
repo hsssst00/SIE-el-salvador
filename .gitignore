@@ -20,6 +20,8 @@ data/L0_raw/*
 .Rhistory
 .RData
 .Ruserdata
+# credenciales personales (FRED_API_KEY, etc.) — ver .Renviron.example
+.Renviron
 renv/library/
 renv/staging/
 

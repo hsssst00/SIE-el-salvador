@@ -1,0 +1,13 @@
+# Plantilla. Copiar a .Renviron (gitignoreado) y completar los valores.
+#
+# .Renviron NO se versiona: aloja credenciales personales. Cada usuario usa las
+# suyas. R lo lee al arrancar (antes que .Rprofile); no se recarga en caliente,
+# hay que reiniciar la sesion de R tras editarlo.
+#
+# RENV_PATHS_LIBRARY ya NO va aqui: se fija en .Rprofile (versionado).
+
+# Clave de la API de FRED. Gratuita, una por usuario, de:
+#   https://fredaccount.stlouisfed.org
+# Nunca se pasa como parte de una URL que se escriba a manifiesto.csv o a
+# 08_vintages.csv (ambos versionados) — ver src/adquisicion/fred.R.
+FRED_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
