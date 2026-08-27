@@ -4,7 +4,7 @@ nombre: "Demanda Total de Electricidad (GWh) — serie mensual"
 periodicidad: mensual
 formato: "html / pdf / xls / csv (formulario de reportes, salida seleccionable por el usuario)"
 url: "https://www.ut.com.sv/reportes?p_p_id=MenuReportesEstadisticosPublicReports_WAR_PublicReports&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&_MenuReportesEstadisticosPublicReports_WAR_PublicReports_reportName=14utdemtotal"
-cobertura_temporal: "Dato subyacente existe desde 1998 (confirmado por Harold: la vista embebida/html muestra valores mensuales para 1998-2001). Pero TODA exportación a archivo estructurado falla para esos 4 años — confirmado por Harold: CSV, PDF y XLS salen vacíos/fallan para 1998, 1999, 2000 y 2001; funcionan con normalidad desde 2002 en adelante. Solo la vista embebida (html en pantalla) muestra el dato de esos años — no hay ningún formato de archivo descargable que lo traiga. Rango capturable como archivo (CSV, confirmado por Harold como archivo real descargable): 2002-2026, 25 archivos (2002.csv-2026.csv), verificados exhaustivamente por Harold — 2002-2025 completos (12 meses, numéricos, sin duplicados), 2026 parcial (enero-julio). 1998-2001 quedan como HUECO EN TODO FORMATO CAPTURABLE COMO ARCHIVO, no en el dato subyacente — pendiente decisión de Harold: transcribir manualmente desde la vista embebida (única fuente disponible para esos años, de menor calidad evidencial que un archivo con checksum) o dejar 1998-2001 fuera de L0 por ahora. El formulario trae UN AÑO POR CONSULTA."
+cobertura_temporal: "Dato subyacente existe desde 1998 (confirmado por Harold: la vista embebida/html muestra valores mensuales para 1998-2001). Pero TODA exportación a archivo estructurado falla para esos 4 años — confirmado por Harold: CSV, PDF y XLS salen vacíos/fallan para 1998, 1999, 2000 y 2001; funcionan con normalidad desde 2002 en adelante. Rango capturado y en L0 (2026-08-26): 2002-2026, 25 archivos, 25 vintages en 08_vintages.csv (2002-2025 completos, 2026 parcial enero-julio). DECISIÓN CERRADA (Harold, 2026-08-27): 1998-2001 NO se transcriben manualmente — quedan permanentemente fuera de esta serie por ahora, documentados como hueco de formato capturable (no de dato subyacente), revisable solo si UT llega a corregir su mecanismo de exportación para años antiguos. Serie larga construida y validada en data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv (295 filas, 2002-M01 a 2026-M07) vía src/transformacion/ut_demanda_serie.R. Registrada en catalogos/03_series.csv como UT.DEMANDA_ELEC.GWH.NSA.M."
 condiciones_uso: "No verificado — pendiente relevamiento (ADR-008). Institución nueva para el proyecto (agregada 2026-08-26), sin consulta enviada todavía. Aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo) hasta que se relevance."
 notas: |
   Fuente: Unidad de Transacciones, S.A. de C.V. (UT), administrador del Mercado
@@ -52,16 +52,15 @@ notas: |
   trae solo enero-julio (año en curso). "Salida csv" confirmada como
   archivo real descargable, no solo un cambio de render en pantalla.
 
-  DECISIÓN PENDIENTE (Harold): qué hacer con 1998-2001, dado que NINGÚN
-  formato de archivo los exporta (opción de "probar otro formato" ya
-  agotada). Dos caminos, sin resolver acá: (a) transcribir manualmente
-  los 4 años (48 valores mensuales) desde la vista embebida, con una
-  nota epistémica clara de que el origen es transcripción de pantalla,
-  no archivo descargado — más propenso a error humano, sin el tipo de
-  trazabilidad hacia el archivo publicado que exige el principio de L0;
-  (b) dejar 1998-2001 fuera de L0 por ahora, documentado como hueco de
-  formato capturable (no de dato subyacente), revisable más adelante si
-  UT llega a corregir su mecanismo de exportación para años antiguos.
+  DECISIÓN CERRADA (Harold, 2026-08-27): 1998-2001 NO se transcriben
+  manualmente, dado que NINGÚN formato de archivo los exporta (CSV, PDF
+  y XLS fallan los tres). Quedan permanentemente fuera de esta serie
+  por ahora — la razón para no transcribir: transcripción manual desde
+  la vista embebida es una fuente de menor calidad evidencial que un
+  archivo con checksum (más propenso a error humano, sin la
+  trazabilidad hacia el archivo publicado que exige el principio de
+  L0). Revisable únicamente si UT corrige su mecanismo de exportación
+  para años antiguos en el futuro.
 
   ANOMALÍA DE CODIFICACIÓN, confirmada por Harold (2026-08-26): en
   `2002.csv` y `2003.csv`, el campo interno "Año" del propio archivo
@@ -102,19 +101,11 @@ notas: |
   bloquea, verificado), la mecánica del formulario en sí ya exige clicks
   reales, no solo una URL armada.
 
-  Pendiente antes de cualquier captura real: (1) decidir entre
-  transcripción manual o exclusión para 1998-2001 (ver "DECISIÓN
-  PENDIENTE" arriba — ya no hay una tercera opción de "probar otro
-  formato", los tres se probaron y fallan); (2) decidir si esta
-  publicación entra a L0 con el mismo tratamiento manual que la
-  retropolada (captura puntual, sin recaptura automatizada) o si
-  amerita algún mecanismo semi-manual distinto dado que sí se actualiza
-  mes a mes (a diferencia de la retropolada, que es serie cerrada) — 25
-  archivos CSV ya descargados por Harold (2002-2026) más lo que se
-  decida para 1998-2001; (3) escribir el parser del CSV real respetando
-  las filas de metadata previas al encabezado, la anomalía de 2002/2003
-  (usar siempre el nombre del archivo para el año, nunca el campo
-  interno), y el posible problema de encoding en esos dos archivos.
+  Estado final (2026-08-27): captura, serie larga y entrada en
+  03_series.csv completas para 2002-2026. Pendiente restante, no
+  bloqueante: `condiciones_uso` de UT sigue sin relevar (ADR-008,
+  default conservador); no existe todavía `metodologia_id` para UT en
+  02_metodologias (campo dejado vacío en 03_series.csv, no inventado).
 
   Candidata adicional identificada, NO catalogada en esta pasada: "Precios"
   dentro del mismo menú de Reportes Estadísticos — misma presentación

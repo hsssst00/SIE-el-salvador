@@ -34,15 +34,25 @@ Electricidad.** Verificado directamente por Harold contra el portal (2026-08-26)
 menú de "Reportes Estadísticos" con una serie **"Demanda Total (GWh)", mensual, con
 cobertura desde 1998**, exportable a html/pdf/xls/csv.
 
-**Energía sí entra al conjunto de predictores.** Ver
-`catalogos/01_publicaciones/UT.DEMANDA_TOTAL_MENSUAL.yaml` y la fila `UT` nueva en
-`catalogos/00_instituciones.csv`. Mecanismo de captura: **manual**, no automatizable
-— el dominio `ut.com.sv` bloquea acceso automatizado por `robots.txt`, confirmado dos
-veces (`web_fetch` de Claude chat con `ROBOTS_DISALLOWED`, y formalmente con
-`polite::scrape()` — ver `src/adquisicion/verificar_robots_ut.R`), lo que activa la
-Regla 9 de `CLAUDE.md` — mismo tratamiento que
-`BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`. Confirmado por Harold: el formulario trae
-**un año por consulta** — una captura íntegra 1998-2026 son ~28 consultas manuales.
+**Energía sí entra al conjunto de predictores — capturado y registrado (estado final,
+2026-08-27).** Ver `catalogos/01_publicaciones/UT.DEMANDA_TOTAL_MENSUAL.yaml`, la fila
+`UT` en `catalogos/00_instituciones.csv`, los 25 vintages en `catalogos/08_vintages.csv`
+(2002-2026), la serie larga validada en `data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv`
+(vía `src/transformacion/ut_demanda_serie.R`, 295 filas), y la entrada
+`UT.DEMANDA_ELEC.GWH.NSA.M` en `catalogos/03_series.csv`. Mecanismo de captura:
+**manual**, no automatizable — el dominio `ut.com.sv` bloquea acceso automatizado por
+`robots.txt`, confirmado dos veces (`web_fetch` de Claude chat con
+`ROBOTS_DISALLOWED`, y formalmente con `polite::scrape()` — ver
+`src/adquisicion/verificar_robots_ut.R`, sin recurrir a `chromote` pese a que
+técnicamente podría evadir el bloqueo), lo que activa la Regla 9 de `CLAUDE.md` —
+mismo tratamiento que `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`. El formulario trae **un
+año por consulta**; Harold descargó los 25 disponibles a mano.
+
+**1998-2001, decisión cerrada (Harold, 2026-08-27):** el dato subyacente existe (visible
+en la vista embebida del portal), pero ningún formato de archivo (CSV, PDF, XLS) lo
+exporta para esos 4 años. No se transcriben manualmente — quedan fuera de la serie por
+ahora, documentados en el YAML de la publicación, revisable solo si UT corrige su
+mecanismo de exportación para años antiguos.
 
 ## Consecuencia sobre la senda
 
@@ -52,7 +62,7 @@ dos categorías con relevamiento inicial negativo, una (turismo) queda confirmad
 no disponible a la frecuencia requerida; la otra (energía) resultó sí estar disponible,
 solo que en una institución que el relevamiento inicial no había cubierto. El conjunto
 de predictores mensuales del proyecto queda en IVAE, remesas, comercio exterior,
-precios, empleo cotizante y **energía (UT, pendiente de captura manual)** — seis de las
+precios, empleo cotizante y **energía (UT, capturado 2002-2026)** — seis de las
 siete categorías nombradas en senda §6.4, con turismo como la única excluida.
 
 ## Si la disponibilidad cambia en el futuro
