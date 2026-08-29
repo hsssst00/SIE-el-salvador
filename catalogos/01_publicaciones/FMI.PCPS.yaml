@@ -1,23 +1,38 @@
 publicacion_id: FMI.PCPS
 institucion_id: FMI
-nombre: "Primary Commodity Price System (PCPS) — precios internacionales de materias primas"
+nombre: "Primary Commodity Price System (PCPS) — precios internacionales de materias primas — ficha de familia"
 periodicidad: mensual
 formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0)
 url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001
-cobertura_temporal: "Confirmado por Claude Code (2026-08-18): el dataflow responde. CORRECCIÓN a una asunción previa de este mismo bloque de trabajo: PCPS SÍ tiene dimensión COUNTRY (orden de clave real: COUNTRY.INDICATOR.DATA_TRANSFORMATION.FREQUENCY, confirmado contra la DSD_PCPS vía /structure/datastructure con references=all) — no es 'sin dimensión país' como se asumió al plantear esta verificación. El código de país para series de precios internacionales es G001 ('World'). Consulta real GET https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.PALLFNF.INDEX.M (índice de todos los commodities, transformación INDEX, frecuencia mensual): rango real 1992-M01 a 2026-M07, 415 observaciones mensuales continuas, sin huecos. Indicadores de petróleo/alimentos identificados en el codelist real CL_PCPS_INDICATOR (136 códigos, vía /structure): POILAPSP, POILBRE, POILDUB, POILWTI, POPEC (crudo, varios benchmarks); PFOOD, PFANDB, PNFUEL, PALLFNF, PVOIL (alimentos y no-combustible). Los códigos existen pero NO son idénticos a los candidatos anotados en FMI.WEO — PCPS usa PALLFNF/PNFUEL/PFOOD (sin sufijo W), mientras que las notas de WEO especulaban PALLFNFW/PNFUELW/PFOODW; no asumir que son la misma serie con nombre distinto sin confirmarlo indicador por indicador."
-condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Pendiente verificación directa de Harold."
+cobertura_temporal: "No aplica a esta ficha directamente — ver la cobertura de cada indicador en su propia ficha (FMI.PCPS.POILAPSP, FMI.PCPS.PALLFNF, FMI.PCPS.PFOOD). La familia confirmó (Claude Code, 2026-08-18) rango 1992-M01 a 2026-M07 para PALLFNF.INDEX.M (415 obs mensuales continuas, sin huecos) con la misma estructura de clave; asumible pero no confirmado indicador por indicador."
+condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada (todos los derechos reservados, política separada de reuso libre no comercial con cita obligatoria; NO es licencia abierta tipo CC; se aplica el default conservador de ADR-008: script + checksum, no el archivo). Pendiente verificación directa de Harold."
 notas: |
+  RE-ENCUADRADA (2026-08-28) — ver doc/adr/ADR-007-politica-vintages.md, nota de
+  seguimiento 2026-08-27 (regla "un publicacion_id por serie/indicador para fuentes
+  de API que publican por serie"). Esta ficha YA NO es objetivo de captura directa:
+  cada indicador tiene su propia ficha, propio publicacion_id, propios vintages
+  (FMI.PCPS.POILAPSP, FMI.PCPS.PALLFNF, FMI.PCPS.PFOOD por ahora). Mismo patrón que
+  FRED.INDICADORES_MENSUALES_EEUU.yaml y BM.WDI.yaml. Acá se aplica preventivamente:
+  los ~10 indicadores candidatos de PCPS comparten dataflow y se refrescan juntos
+  (misma fecha bisecada de updatedAfter), así que bajo un solo publicacion_id
+  habrían colisionado en vintage_id igual que pasó con FRED.
+
   URL corregida 2026-08-28 — sin clave de país (`.../PCPS/+`) da HTTP 404;
   `.../PCPS/+/all` responde 200 pero con estructura sola, cero series. `G001`
   ('World') es el ÚNICO valor de la dimensión COUNTRY en este dataflow
-  (confirmado en el diagnóstico del handoff FMI/BM: la respuesta a
-  `.../PCPS/+/G001` trae COUNTRY con un solo valor) — no hay riesgo de traer
-  otros países. Esa consulta devuelve 1.270 series / ~222 mil observaciones /
-  7.7 MB; para captura definitiva, evaluar acotar por indicador y frecuencia
-  (p. ej. `.../PCPS/+/G001.PALLFNF.INDEX.M`) en vez de traer todo el dataflow.
+  (confirmado en el diagnóstico del handoff FMI/BM) — no hay riesgo de traer
+  otros países. La consulta de dataflow completo devuelve 1.270 series /
+  ~222 mil observaciones / 7.7 MB; por eso la captura es por indicador acotado
+  (`.../PCPS/+/G001.<COD>.INDEX.M`, ~25 KB cada una), no el dataflow entero.
 
   Fuente: FMI, Departamento de Investigación (agencia SDMX IMF.RES),
-  dataflow PCPS, versión 9.0.0 al momento del relevamiento.
+  dataflow PCPS, versión 9.0.0.
+
+  fecha_publicacion para las capturas de este grupo: NO hay fecha de dato legible
+  en la respuesta (ni meta, ni atributos, ni cabeceras HTTP, ni /structure —
+  diagnóstico 2026-08-29). Se usa la fecha bisecada del parámetro SDMX
+  `updatedAfter` (día más reciente con respuesta no vacía = último refresco de
+  datos del FMI). Mismo mecanismo aplicado a FMI.BOP y FMI.QNEA. Ver src/adquisicion/fmi.R.
 
   Candidata directa a predictor de frecuencia mensual (senda §6.4) y a
   insumo de escenarios exógenos del Ejercicio B (senda §1.3, que nombra
@@ -28,9 +43,16 @@ notas: |
   ya catalogada: el índice del BCR mide precios de importación efectivos
   de El Salvador, mientras que PCPS mide precios internacionales de
   materias primas. El primero es el precio que El Salvador efectivamente
-  paga; el segundo es el shock externo que lo determina en parte. Como
-  predictor de frecuencia mensual, PCPS tiene la ventaja de publicarse
-  con menos rezago.
+  paga; el segundo es el shock externo que lo determina en parte.
+
+  Indicadores del codelist CL_PCPS_INDICATOR (136 códigos, vía /structure):
+  crudo — POILAPSP (promedio spot, con ficha), POILBRE, POILDUB, POILWTI, POPEC;
+  no-combustible / alimentos — PALLFNF (todos los commodities sin combustible,
+  con ficha), PFOOD (alimentos, con ficha), PFANDB, PNFUEL, PVOIL. Los 7 sin
+  ficha propia son candidatos futuros, mismo patrón de partición si se
+  incorporan. Los códigos NO llevan sufijo W (a diferencia de lo que
+  especulaban las notas de FMI.WEO: PALLFNFW/PNFUELW/PFOODW) — no asumir
+  equivalencia sin confirmar indicador por indicador.
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
   Pendiente verificación directa de Harold contra la API.

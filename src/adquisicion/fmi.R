@@ -2,7 +2,7 @@
 #
 # Adquisicion FMI (SDMX 3.0, api.imf.org). Sin clave de API - REST publica.
 #
-# fecha_publicacion: BOP y QNEA NO traen ninguna fecha de dato legible
+# fecha_publicacion: BOP, QNEA y PCPS NO traen ninguna fecha de dato legible
 # (ni en meta, ni en atributos de serie/observacion, ni en cabeceras HTTP, ni en
 # /structure -esas estan congeladas a la version del esquema-, confirmado en el
 # diagnostico del 2026-08-29). El unico mecanismo de esta API que da una fecha
@@ -12,8 +12,9 @@
 # dataflows, del `asOf` que QNEA ya expone (QNEA soporta ambos).
 #
 # Parametro liviano para los sondeos de bisecion: `attributes=none&measures=none`
-# reduce la respuesta ~98% (BOP 2.5MB -> 35KB, QNEA 166KB -> 5.7KB). `detail=serieskeysonly`
-# NO reduce nada en SDMX 3.0 (confirmado - ver ficha de FMI.QNEA). Verificado por
+# reduce la respuesta ~98% (BOP 2.5MB -> 35KB, QNEA 166KB -> 5.7KB, serie PCPS
+# 25KB -> 0.8KB), UNIFORME para los tres dataflows. `detail=serieskeysonly` NO
+# reduce nada en SDMX 3.0 (confirmado - ver ficha de FMI.QNEA). Verificado por
 # Claude Code, Bloque 0 del handoff, 2026-08-29.
 #
 # Una respuesta vacia de esta API es un cuerpo HTTP genuinamente vacio (HTTP 200,
@@ -144,5 +145,70 @@ descargar_fmi_qnea <- function() {
   descargar_fmi_dataflow_completo(
     "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/~/SLV",
     "FMI.QNEA"
+  )
+}
+
+# --- Bloque 3: PCPS por indicador - un publicacion_id por indicador (ADR-007,
+# nota 2026-08-27, preventivo: los candidatos de PCPS comparten dataflow y fecha
+# de refresco, colisionarian igual que FRED.INDICADORES_MENSUALES_EEUU) ---
+
+descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
+  url_datos <- sprintf(
+    "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.%s.INDEX.M",
+    codigo_indicador
+  )
+  fecha_pub <- .fmi_bisecar_fecha_actualizacion(url_datos)
+
+  resp <- .fmi_perform(url_datos)
+  codigo_http <- httr2::resp_status(resp)
+  contenido_crudo <- httr2::resp_body_raw(resp)
+
+  verif <- function(c) {
+    j <- tryCatch(jsonlite::fromJSON(rawToChar(c), simplifyVector = FALSE), error = function(e) NULL)
+    if (is.null(j)) return(FALSE)
+    ds <- j$data$dataSets
+    if (is.null(ds) || length(ds) < 1 || length(ds[[1]]$series) != 1) return(FALSE)
+    length(ds[[1]]$series[[1]]$observations) > 0
+  }
+  if (!verif(contenido_crudo)) {
+    stop("FALLO VISIBLE [", publicacion_id, "]: la serie ", codigo_indicador,
+         " no trae una unica serie con observaciones. URL: ", url_datos)
+  }
+
+  json <- jsonlite::fromJSON(rawToChar(contenido_crudo), simplifyVector = FALSE)
+  st <- json$data$structures[[1]]
+  serie <- json$data$dataSets[[1]]$series[[1]]
+  tp <- vapply(st$dimensions$observation[[1]]$values, function(v) v$value, character(1))
+  idx_con_valor <- as.integer(names(Filter(
+    function(o) length(o) >= 1 && !is.null(o[[1]]) && nzchar(as.character(o[[1]])),
+    serie$observations
+  )))
+  if (length(idx_con_valor) == 0) {
+    stop("FALLO VISIBLE [", publicacion_id, "]: ninguna observacion con valor real.")
+  }
+  periodo_max <- tp[max(idx_con_valor) + 1L]
+
+  registrar_descarga(
+    fuente = "FMI",
+    publicacion_id = publicacion_id,
+    url = url_datos,
+    descripcion_archivo = tolower(codigo_indicador),
+    extension = "json",
+    contenido_crudo = contenido_crudo,
+    codigo_http = codigo_http,
+    fecha_publicacion = fecha_pub,
+    periodo_referencia_max = periodo_max,
+    verificacion_forma = verif,
+    notas_vintage = sprintf(
+      paste(
+        "Serie %s de PCPS (G001.%s.INDEX.M). fecha_publicacion = %s, fecha bisecada del",
+        "parametro SDMX updatedAfter (mismo mecanismo que BOP/QNEA - PCPS no trae fecha",
+        "de dato legible, diagnostico 2026-08-29). %d observaciones con valor, periodo",
+        "mas reciente %s. publicacion_id = %s, un publicacion_id por indicador desde el",
+        "inicio (ADR-007, nota 2026-08-27, preventivo: los candidatos de PCPS comparten",
+        "dataflow y fecha de refresco, colisionarian en vintage_id bajo una ficha comun)."
+      ),
+      codigo_indicador, codigo_indicador, fecha_pub, length(idx_con_valor), periodo_max, publicacion_id
+    )
   )
 }
