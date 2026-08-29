@@ -3,10 +3,16 @@ institucion_id: FMI
 nombre: "National Economic Accounts (NEA), Quarterly Data — cuentas nacionales trimestrales"
 periodicidad: trimestral
 formato: api (SDMX 3.0; SDMX-JSON 2.0.0 / SDMX-ML 3.0.0 / SDMX-CSV 2.0.0)
-url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/7.0.0
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/~/SLV
 cobertura_temporal: "2000-Q1 a 2026-Q1 (105 trimestres) para los agregados; 2005-Q1 a 2026-Q1 (85 trimestres) para las desagregaciones. Verificado por consulta directa a la API el 2026-08-13. El archivo de versiones históricas accesible vía el parámetro asOf arranca el 2025-03-29 — ver notas."
 condiciones_uso: "Mismas condiciones que FMI.WEO — ver esa entrada. Régimen de todos los derechos reservados con política de reuso no comercial; se aplica el default conservador de ADR-008 (script + checksum, no el archivo), conforme a la enmienda del 2026-08-12 de ese ADR. Pendiente verificación directa de Harold de la página de términos."
 notas: |
+  URL corregida 2026-08-28 — la versión explícita (7.0.0) combinada con el
+  token `~` de filtro de clave da HTTP 404; usar `~` sin versión explícita
+  (`.../QNEA/~/SLV`). También funcionan `.../QNEA/+/SLV` y
+  `.../QNEA/7.0.0/SLV` (versión explícita SIN `~`), byte-idénticas entre sí.
+  Encontrado en el diagnóstico del handoff de adquisición FMI/BM.
+
   Fuente: FMI, Departamento de Estadística (agencia SDMX IMF.STA),
   dataflow QNEA, versión 7.0.0.
 
