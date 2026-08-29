@@ -1,46 +1,53 @@
 publicacion_id: BM.WDI
 institucion_id: BM
-nombre: "World Development Indicators (WDI)"
+nombre: "World Development Indicators (WDI) — ficha de familia"
 periodicidad: anual
 formato: api (REST; JSON o XML) / csv / xlsx
 url: https://api.worldbank.org/v2/country/SLV/indicator
-cobertura_temporal: "Muchas series se remontan más de cincuenta años, según la documentación oficial de la API. Cobertura específica de El Salvador confirmada por Claude Code (2026-08-18) para 2 de los indicadores más relevantes del proyecto, vía GET directo a api.worldbank.org/v2/country/SLV/indicator/{código}: BX.TRF.PWKR.CD.DT (remesas personales recibidas) — 1976 a 2025, 50 años con valor no nulo, consecutivos, sin huecos internos (la respuesta trae 66 años en total, 1960-2025; los años 1960-1975 vienen con value=null); NY.GDP.MKTP.KD (PIB real, moneda constante 2015=100) — 1965 a 2025, 61 años con valor no nulo, consecutivos, sin huecos internos (1960-1964 vienen con value=null). No se probaron otros indicadores — no asumir que tienen la misma cobertura."
+cobertura_temporal: "No aplica a esta ficha directamente — ver la cobertura de cada indicador en su propia ficha (BM.WDI.BX_TRF_PWKR_CD_DT, BM.WDI.NY_GDP_MKTP_KD). Muchas series de WDI se remontan más de cincuenta años según la documentación oficial de la API; no asumir la misma cobertura para indicadores aún sin ficha."
 condiciones_uso: "LICENCIA ABIERTA — es el único caso así en el catálogo hasta la fecha. El Banco Mundial licencia por defecto sus datasets propios distribuidos como datos abiertos bajo Creative Commons Attribution 4.0 International (CC-BY 4.0), que permite copiar, modificar y distribuir en cualquier formato y para cualquier fin, incluido el comercial, con la sola obligación de dar crédito e indicar si se hicieron cambios. Aplican tres condiciones adicionales verificadas por Claude (2026-08-12): (i) una cláusula obligatoria y vinculante de mediación no vinculante para disputas; (ii) formato de atribución solicitado del tipo nombre del Banco Mundial, nombre del dataset, fuente original si se conoce; (iii) algunos datasets e indicadores provienen de terceros y NO pueden redistribuirse sin consentimiento del proveedor original — esas condiciones aparecen en los metadatos del indicador. Prohibido afirmar o sugerir respaldo del Banco Mundial. IMPLICACIÓN PARA ADR-008, pendiente de decisión de Harold: para los indicadores producidos por el propio Banco Mundial, el default conservador de script + checksum NO es obligatorio — los archivos L0 SÍ podrían comprometerse al repositorio público. Referencias: https://datacatalog.worldbank.org/public-licenses y https://data.worldbank.org/summary-terms-of-use. VERIFICACIÓN DIRECTA DE HAROLD (2026-08-17): ficha de metadatos oficial descargada directamente por Harold desde https://datacatalog.worldbank.org/search/dataset/0037712/world-development-indicators (dataset_unique_id 0037712), confirma 'License: Creative Commons Attribution 4.0' y 'Classification: Public'. Re-confirmado independientemente por Claude vía fetch directo de la misma URL — sin discrepancia. Con esto se satisface el estándar probatorio exigido en ADR-008 (nota preliminar 2026-08-12). La implicación para ADR-008 señalada arriba sigue pendiente de decisión de Harold, enganchada a la política de L0 aplazada — ver ADR-008, actualización 2026-08-17."
 notas: |
-  Fuente: Banco Mundial. Base de datos insignia de la Indicators API v2.
+  RE-ENCUADRADA (2026-08-28) — ver doc/adr/ADR-007-politica-vintages.md, nota de
+  seguimiento 2026-08-27 (regla "un publicacion_id por serie/indicador para fuentes
+  de API que publican por serie"). Esta ficha YA NO es objetivo de captura directa:
+  cada indicador tiene su propia ficha, propio publicacion_id, propios vintages
+  (BM.WDI.BX_TRF_PWKR_CD_DT, BM.WDI.NY_GDP_MKTP_KD por ahora). Mismo patrón aplicado
+  a FRED.INDICADORES_MENSUALES_EEUU. Acá se aplica preventivamente, sin esperar una
+  colisión de vintage_id.
 
-  Justificación: fuente anual de contraste y de variables que ninguna
-  fuente nacional publica con la misma armonización. El indicador de
-  mayor interés directo es el de remesas personales recibidas — las
-  remesas son, junto con la actividad de EE.UU., la variable externa
-  que la senda §1.3 identifica como dominante del error de pronóstico
-  a horizontes largos.
+  Esta ficha documenta el contexto compartido del grupo: condiciones de uso (ver
+  arriba — licencia CC-BY 4.0, único caso de licencia abierta del catálogo),
+  justificación en el proyecto, y sirve de punto de entrada para localizar las
+  fichas individuales.
 
-  Limitación estructural: frecuencia anual. Para el Ejercicio A
-  (h = 1 a 8 trimestres) es de utilidad marginal. Su valor está en el
-  Ejercicio B (escenarios) y en la validación cruzada de niveles.
-  Redundante en varios conceptos con BCR y con FMI.WEO; el BCR sigue
-  siendo la fuente primaria para todo dato salvadoreño con equivalente
-  nacional, conforme al criterio ya aplicado en este proyecto.
+  Justificación: fuente anual de contraste y de variables que ninguna fuente
+  nacional publica con la misma armonización. El indicador de mayor interés directo
+  es el de remesas personales recibidas — las remesas son, junto con la actividad
+  de EE.UU., la variable externa que la senda §1.3 identifica como dominante del
+  error de pronóstico a horizontes largos.
 
-  Estructura de llamada, verificada contra la documentación oficial
-  (2026-08-12): el patrón es /v2/country/{código}/indicator/{código de
-  indicador}, con formato por defecto XML y JSON disponible por
-  parámetro. Ejemplo documentado oficialmente:
-  https://api.worldbank.org/v2/country/all/indicator/SP.POP.TOTL
+  Limitación estructural del grupo: frecuencia anual. Para el Ejercicio A
+  (h = 1 a 8 trimestres) es de utilidad marginal. Su valor está en el Ejercicio B
+  (escenarios) y en la validación cruzada de niveles. Redundante en varios conceptos
+  con BCR y con FMI.WEO; el BCR sigue siendo la fuente primaria para todo dato
+  salvadoreño con equivalente nacional.
 
-  ADVERTENCIA DE VERIFICACIÓN: el identificador numérico de fuente de
-  WDI dentro de la API (habitualmente citado como id=2) NO pudo
-  confirmarse en esta sesión — la lectura del endpoint /v2/sources
-  devolvió solo la primera de dos páginas y WDI no aparecía en ella.
-  No es motivo de alarma, pero no debe darse por confirmado.
+  fecha_publicacion para las capturas de este grupo: campo `lastupdated` nativo de
+  la respuesta de la API v2 (objeto de metadatos de página) — verificado por Claude
+  Code el 2026-08-28 (Bloque 0 del handoff FMI/BM): "2026-07-13" para la base WDI
+  (fuente id=2). No es una fecha sintética. Decisión de Harold, 2026-08-28.
 
-  Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
-  Pendiente verificación directa de Harold contra la API.
+  Estructura de llamada, verificada contra la documentación oficial (2026-08-12) y
+  contra la API (2026-08-18, 2026-08-28): /v2/country/{código}/indicator/{código de
+  indicador}?format=json. El identificador numérico de fuente de WDI en la API es
+  id=2 (confirmado en el campo `sourceid` de las respuestas de datos, 2026-08-28).
+
+  Distinción que se mantiene: capturar L0 de un indicador candidato (Fase 2) NO es
+  lo mismo que seleccionarlo como predictor del modelo (Fase 3, se registra en
+  03_series). La partición del publicacion_id no compromete nada sobre qué
+  indicadores terminan siendo predictores.
 
   Re-confirmado independientemente por Claude vía fetch directo de
   https://datacatalog.worldbank.org/search/dataset/0037712/world-development-indicators
-  (2026-08-17): misma licencia (CC-BY 4.0) y clasificación ("Public")
-  que ya constaba del relevamiento del 2026-08-12 — sin discrepancia.
-  La página también declara cobertura_temporal "1960 - 2025" y
-  periodicidad "Annual", coherente con lo ya registrado.
+  (2026-08-17): misma licencia (CC-BY 4.0) y clasificación ("Public"). La página
+  también declara cobertura_temporal "1960 - 2025" y periodicidad "Annual".

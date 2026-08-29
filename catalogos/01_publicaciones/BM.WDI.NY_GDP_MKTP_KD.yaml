@@ -1,0 +1,30 @@
+publicacion_id: BM.WDI.NY_GDP_MKTP_KD
+institucion_id: BM
+nombre: "PIB (US$ constantes de 2015) (NY.GDP.MKTP.KD), World Development Indicators"
+periodicidad: anual
+formato: api (REST; JSON o XML)
+url: https://api.worldbank.org/v2/country/SLV/indicator/NY.GDP.MKTP.KD
+cobertura_temporal: "Confirmado por Claude Code (2026-08-18, re-confirmado 2026-08-28): 1965 a 2025, 61 años con valor no nulo, consecutivos, sin huecos internos (la respuesta trae 66 años en total, 1960-2025; 1960-1964 vienen con value=null)."
+condiciones_uso: "Idénticas a las de BM.WDI.yaml (ficha de familia) — ver esa ficha para el texto completo (licencia CC-BY 4.0, cláusula de mediación, formato de atribución, salvedad de datasets de terceros). No repetido acá para evitar duplicación (senda §10.6)."
+notas: |
+  Fuente: Banco Mundial, World Development Indicators. Publicación
+  individual desprendida de BM.WDI (ficha de familia) — un publicacion_id
+  por indicador desde el inicio, aplicando preventivamente la regla de
+  doc/adr/ADR-007-politica-vintages.md (nota de seguimiento 2026-08-27,
+  originada por la colisión de vintage_id en FRED.INDICADORES_MENSUALES_EEUU).
+
+  fecha_publicacion: se usa el campo `lastupdated` nativo de la respuesta de
+  la API v2 del Banco Mundial (objeto de metadatos de página), NO una fecha
+  de captura sintética. Verificado por Claude Code (2026-08-28, Bloque 0 del
+  handoff FMI/BM): `lastupdated` = "2026-07-13" para este indicador, en
+  formato ISO 8601. Es la fecha de última actualización de la base WDI
+  (fuente id=2) — común a todos los indicadores de esa base, no por
+  indicador ni por observación. Decisión de Harold, 2026-08-28 (ver la nota
+  homóloga en BM.WDI.BX_TRF_PWKR_CD_DT.yaml).
+
+  PIB real armonizado — sirve de contraste anual de nivel frente a la
+  variable objetivo del proyecto (BCR.PIB_T, referencia 2014) y frente a
+  FMI.WEO (NGDP_R / NGDP_RPCH) y FMI.QNEA. Bases de referencia distintas
+  (2015 acá, 2014 el BCR): comparar tasas de variación, no niveles. Utilidad
+  marginal para el Ejercicio A (trimestral); su valor está en el Ejercicio B
+  (escenarios) y en la validación cruzada de niveles (senda §1.3).
