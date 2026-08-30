@@ -29,7 +29,20 @@ paquetes <- c(
   "lightgbm",     # boosting
   "jsonlite",     # lectura de datapackage.json
   "here",         # rutas relativas al proyecto
-  "testthat"      # pruebas
+  "testthat",     # pruebas
+  # --- Fase 2, agregados despues de ADR-009 conforme fueron haciendo falta -------------
+  "httr2",        # clientes de API (FMI/FRED/BM) — import #15, ADR-009 2026-08-18
+  "xml2",         # lectura del XML interno de un .xlsx en verificar_fuente_celda.R
+  "chromote",     # navegador headless para el portal del BCR — ADR-009 2026-08-20
+  # Agregados el 2026-08-28 (hallazgo M1 de la auditoria de Fase 2): los tres se usan en
+  # codigo commiteado y ninguno estaba declarado. digest venia funcionando como dependencia
+  # transitiva ajena; con lib_adquisicion.R -el nucleo de Fase 2- haciendo library(digest),
+  # esa excepcion dejo de sostenerse (la propia salvedad de verificar_fuente_celda.R lo
+  # anticipaba). polite y readxl no estaban NI EN renv.lock: en una maquina limpia tras
+  # renv::restore(), verificar_robots_ut.R y calendario_bcr_extraer.R no arrancaban.
+  "digest",       # sha256 en lib_adquisicion.R, verificar_fuente_celda.R, verificar_l0_fisico.R
+  "polite",       # verificacion de robots.txt en verificar_robots_ut.R (regla 9)
+  "readxl"        # lectura del calendario de divulgacion en calendario_bcr_extraer.R
 )
 
 install.packages(paquetes)

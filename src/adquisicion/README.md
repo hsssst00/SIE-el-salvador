@@ -39,11 +39,20 @@ enumera qué cambió respecto del borrador y por qué; nada se corrigió en sile
 src/adquisicion/
 ├── README.md                  # este documento
 ├── lib_adquisicion.R          # funcion compartida: checksum, manifiesto, vintage
-├── bcr.R                      # una funcion por publicacion del BCR
-├── fmi.R                      # una funcion por publicacion del FMI (WEO, PCPS, BOP)   [pendiente]
-├── fred.R                     # una funcion por publicacion de FRED                    [pendiente]
-└── banco_mundial.R            # una funcion por publicacion del BM (GEP, GEM, WDI)     [pendiente]
+├── bcr_captura.R              # motor chromote de la familia vista-serie del portal
+├── bcr.R                      # una funcion por publicacion del BCR (16)
+├── bcr_sondear_publicacion.R  # sondeo liviano para inventario (Fase 1), no captura
+├── calendario_bcr_extraer.R   # calendario de divulgacion -> doc/, no L0
+├── fmi.R                      # FMI: dataflow completo (BOP, QNEA) + PCPS por indicador
+├── fred.R                     # una funcion generica por serie de FRED
+├── bm.R                       # una funcion por indicador del Banco Mundial (WDI)
+├── ut.R                       # registro de la captura manual de UT (sin fetch en vivo)
+└── verificar_robots_ut.R      # verificacion de robots.txt con polite (regla 9)
 ```
+
+Actualizado el 2026-08-28 (hallazgo M4 de la auditoria de Fase 2): este listado declaraba
+`fmi.R`, `fred.R` y `banco_mundial.R` como `[pendiente]` cuando los tres ya existian, y el
+del Banco Mundial se llama `bm.R`.
 
 **Un script por institución, con una función independiente por publicación adentro.** La senda
 §8 pide *"scripts modulares por publicación"* como mitigación contra que un cambio de estructura
@@ -231,6 +240,22 @@ hasta que todas las validaciones pasaron.**
 5. Agrega una fila al manifiesto y otra a `08_vintages.csv`. **Solo agrega filas, nunca reescribe
    una existente.**
 
+**`url` es la URL exacta consultada, con todos los parámetros.** Literalmente todos: la prueba es
+"¿pegando esta URL se obtiene el artefacto archivado?". Dos excepciones documentadas, ambas con
+su motivo asentado en la fila correspondiente de `08_vintages`:
+
+- **FRED omite `api_key`**, a propósito: el manifiesto y el catálogo se versionan en Git y la
+  clave es personal. La URL registrada es reproducible por cualquiera que ponga su propia clave.
+- **El FMI necesita, además de la URL, el header `Accept: application/vnd.sdmx.data+json`**, que
+  es lo que selecciona la representación en SDMX 3.0. Un header no es un parámetro y no cabe en
+  el campo `url`, así que se anota en `notas` — hallazgo M3 de la auditoría de Fase 2. Regla
+  hacia adelante: si la respuesta de una fuente depende de algo que la URL no lleva, ese algo va
+  en `notas`; la trazabilidad es "puedo reproducir esta respuesta", no "guardé una cadena".
+
+El Banco Mundial fue el caso que motivó explicitar esto: se consultaba con `per_page=1000` y se
+registraba sin él, de modo que la URL del manifiesto devolvía 50 de 66 observaciones (hallazgo
+A4, corregido el 2026-08-28).
+
 **Lo que esta función NO hace.** No decide `fecha_publicacion` ni `periodo_referencia_max`: los
 dos dependen del contenido de la fuente y no son inferibles genéricamente. Cada script por
 institución se los pasa, extraídos de la respuesta. Si una fuente no declara
@@ -269,29 +294,44 @@ script lo interpreta distinto.
 
 ## 5. Estado actual y qué falta
 
-**`lib_adquisicion.R`** — implementa el contrato de la sección 3. Commiteado y verificado, pero
-**no ejecutado nunca de punta a punta**, porque ningún script por institución llegó a completar
-una descarga.
+Reescrita el 2026-08-28 (hallazgo M4 de la auditoría de Fase 2). La versión anterior de esta
+sección describía el árbol de agosto 21 y se había vuelto falsa en cuatro puntos: decía que
+`lib_adquisicion.R` no se había ejecutado nunca (lleva 54 vintages), que `bcr.R` implementaba
+el enfoque `httr2` descartado (usa `chromote` desde el 2026-08-24), que `chromote` no estaba
+en `DESCRIPTION` ni en `renv.lock` (está en ambos) y que F1 seguía pendiente (se corrió el
+2026-08-21; su resultado está en §2.3).
 
-**`bcr.R`** — implementa el enfoque `httr2` que ADR-009 descartó el 2026-08-20. Se conserva
-hasta su reescritura sobre `chromote`; **no es el mecanismo vigente**. Su reescritura está
-condicionada a resolver antes el desfase de versión de `chromote` (binario CRAN 0.5.1 compilado
-bajo R 4.5.3, máquina de prueba en R 4.5.1) y a usar `$go_to()` en lugar de `Page$navigate()` +
-`Page$loadEventFired()`, ambas condiciones fijadas por ADR-009.
+**`lib_adquisicion.R`** — implementa el contrato de la sección 3. Ejecutado de punta a punta:
+54 vintages de 30 publicaciones en el manifiesto al 2026-08-28. Desde esa fecha tiene pruebas
+propias en `tests/test-adquisicion.R` (fallos de los pasos 0, 1, 3b y 4; literales exactos de
+`alcance_revision`; estabilidad de `sha256_norm` frente al empaquetado ZIP).
 
-**`chromote` no está en `DESCRIPTION` ni en `renv.lock`**, por decisión explícita de ADR-009: se
-incorpora recién con el primer script real que lo use.
+**`bcr.R` + `bcr_captura.R`** — mecanismo vigente: `chromote` sobre la familia `vista-serie`,
+con `$go_to()` y espera por predicado. 16 publicaciones cubiertas.
 
-**Pruebas F1 y F2 de §2.1, pendientes.** Determinismo del `.xlsx` de SheetJS y fidelidad
-numérica de su CSV. Se corren en la misma sesión, antes de la primera captura real, y su
-resultado se asienta en §2.1. F1 no es una curiosidad: si el `.xlsx` no es reproducible byte a
-byte, el mecanismo de detección de vintage del paso 3 deja de funcionar para esta fuente.
+**Verificación de L0 — tres scripts que responden preguntas distintas.** Conviene no
+confundirlos, porque cada uno deja pasar lo que cubre otro:
 
-**Pendientes de la librería, registrados y no urgentes** (ninguno bloquea, porque el script no
-corre todavía): `write.table()` con `quote = TRUE` por defecto citaría todas las columnas de
-texto al anexar, rompiendo el estilo visual de los dos CSV; y no hay guarda de salto de línea
-final antes de anexar, así que si un archivo terminara sin `\n` la fila nueva se concatenaría
-con la última.
+| Script | Pregunta | Red | CI |
+|---|---|---|---|
+| `scripts/check_l0_integrity.R` | ¿manifiesto y `08_vintages` concuerdan? | no | sí |
+| `scripts/verificar_l0_fisico.R` | ¿los archivos siguen en disco, íntegros? | no | no (local) |
+| `scripts/verificar_l0.R` | ¿la fuente sirve todavía lo mismo? | sí | no (local) |
+
+El segundo existe desde el 2026-08-28 (hallazgo B1): hasta entonces ninguna de las dos
+verificaciones miraba el disco, y la desaparición de 12 archivos de `data/L0_raw/` no disparó
+nada. `make raw` encadena el físico y el de red, en ese orden.
+
+**Prueba F2 de §2.1, pendiente.** Fidelidad numérica del CSV que exporta SheetJS (¿vuelca el
+valor almacenado o el mostrado?). F1 ya se corrió y su resultado —el `.xlsx` no es determinista
+byte a byte, de ahí los dos checksums— está en §2.3.
+
+**Pendientes de la librería.** `write.table()` con `quote = TRUE` por defecto cita todas las
+columnas de texto al anexar: el manifiesto quedó con las 4 filas iniciales sin comillas
+(escritas a mano antes de que existiera la función) y las 50 siguientes con comillas. Es legal
+como CSV y ningún lector del proyecto se entera, pero el archivo no es visualmente homogéneo.
+No hay guarda de salto de línea final antes de anexar: si un archivo terminara sin `\n`, la
+fila nueva se concatenaría con la última.
 
 **Restricción de volumen.** Regla 9 de `CLAUDE.md`, anclada en ADR-009: los mecanismos
 desatendidos capturan solo lo necesario, al ritmo real de publicación de cada fuente. No aplica

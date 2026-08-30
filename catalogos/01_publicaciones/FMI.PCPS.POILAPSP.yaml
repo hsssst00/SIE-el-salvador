@@ -4,7 +4,7 @@ nombre: "Average Petroleum Spot Price (POILAPSP), Primary Commodity Price System
 periodicidad: mensual
 formato: api (SDMX 3.0; JSON o XML)
 url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.POILAPSP.INDEX.M
-cobertura_temporal: "Confirmado por Claude Code (2026-08-29) vía captura real: 1992-M01 a 2026-M07, observaciones mensuales continuas (misma estructura y rango que PALLFNF.INDEX.M, ya verificada por la ficha de familia)."
+cobertura_temporal: "Confirmado por Claude Code (2026-08-28) vía captura real: 1992-M01 a 2026-M07, observaciones mensuales continuas (misma estructura y rango que PALLFNF.INDEX.M, ya verificada por la ficha de familia)."
 condiciones_uso: "Idénticas a las de FMI.PCPS.yaml (ficha de familia) y FMI.WEO.yaml — ver esa ficha para el texto completo (todos los derechos reservados, reuso libre no comercial con cita obligatoria, default conservador de ADR-008). No repetido acá para evitar duplicación (senda §10.6)."
 notas: |
   Fuente: FMI, Departamento de Investigación (agencia SDMX IMF.RES),
@@ -18,7 +18,7 @@ notas: |
   común igual que FRED.INDICADORES_MENSUALES_EEUU).
 
   fecha_publicacion: fecha bisecada del parámetro SDMX `updatedAfter` — PCPS
-  no trae fecha de dato legible (diagnóstico 2026-08-29). Ver src/adquisicion/fmi.R
+  no trae fecha de dato legible (diagnóstico 2026-08-28). Ver src/adquisicion/fmi.R
   y la nota homóloga en FMI.PCPS.yaml.
 
   Arranque con 3 de los ~10 candidatos de PCPS, eligiendo categorías de shock

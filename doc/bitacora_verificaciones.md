@@ -45,3 +45,71 @@ Cada entrada corresponde a una corrida real, no a una intención de correrla.
   `BCR.PIB_T.NOMINAL`: 29), por eso 0 NO_VERIFICABLE — no hay ninguna fila del catálogo, en este
   estado del proyecto, que apunte a una publicación sin archivo local todavía. Esto cambiará en
   cuanto se registren series de otras publicaciones sin `.xlsx` descargado.
+
+## 2026-08-28 — commit del catálogo: el commit de remediación de la auditoría de Fase 2 (padre: `7858a21`)
+
+- **Estado del árbol verificado:** el que introduce ese mismo commit — posterior a la corrección
+  de `verificar_fuente_celda.R` (hallazgos B2/B3) y a la enmienda de registro de las dos filas
+  de `BM.WDI.*` (hallazgo A4) y de la fecha `2026-08-29` en las notas de las cinco filas del FMI
+  (hallazgo M5). La corrida se hizo sobre el árbol de trabajo, antes de commitear; el hash no
+  puede ser autorreferencial, así que se identifica por su padre. Es el único commit de
+  `main` cuyo mensaje empieza con "Remedia la auditoría de Fase 2".
+- **Corrida:** `Rscript src/validacion/verificar_fuente_celda.R`, sin modificaciones sobre el
+  script más allá de la corrección que esta misma remediación introduce, con los 42 archivos
+  de `data/L0_raw/` presentes localmente.
+- **Resultado: 98 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 99 filas).
+  Código de salida 0.
+- **FUERA_DE_ALCANCE (1):** `UT.DEMANDA_ELEC.GWH.NSA.M` — el vintage vigente de
+  `UT.DEMANDA_TOTAL_MENSUAL` es `UT_demanda_total_2026_2026-08-26.csv`, no un `.xlsx`; este
+  verificador resuelve hoja/fila/rótulo dentro de un `.xlsx`. Estado nuevo, introducido en
+  esta misma corrección: antes esta fila daba `FAIL` (ver abajo). Su trazabilidad **no** la
+  comprueba este script.
+- **FAIL: ninguno.**
+
+**Lo que esta entrada asienta, y que es el motivo de que exista.** Entre el commit `0fbda08`
+(2026-08-26, alta de la fila de UT en `03_series.csv`) y esta corrida, este verificador
+**fallaba en `main`** con `1 FAIL` y código de salida 1, por dos causas distintas: (a) exigía
+que un `publicacion_id` tuviera una sola fila en el manifiesto, supuesto que el diseño
+append-only de ADR-007 contradice, y (b) no tenía forma de expresar "esta fila no la puedo
+verificar" para una serie derivada de CSV. No hubo entrada de bitácora en ese período —
+correcto según la regla 8, que prohíbe asentar corridas que no ocurrieron— pero el efecto
+práctico fue que el rojo pasó dos días inadvertido, porque el script no corre en CI (los
+`.xlsx` están en `.gitignore`, ADR-008) y su única evidencia posible es esta bitácora.
+
+**Verificación física de L0, en la misma sesión.** `Rscript scripts/verificar_l0_fisico.R`
+(script nuevo, hallazgo B1): **42 PASS / 0 FAIL / 12 AUSENTE** de 54 filas del manifiesto.
+Los 42 archivos presentes coinciden en `sha256` y en `tamano_bytes` con lo declarado —
+integridad intacta. Los 12 ausentes son el lote BCR completo del 2026-08-26; no están en
+`data/L0_raw/` ni en ninguna otra ruta de `D:\` o `C:\Users\harold`. Qué hacer con esas filas
+es decisión de política de L0, pendiente de Harold; el script sale con código 1 mientras tanto,
+que es lo correcto.
+
+**Verificación en vivo contra las fuentes de API.** `Rscript scripts/verificar_l0.R api`:
+**12/12 PASS** (5 FRED, 5 FMI, 2 BM) — `sha256_norm` recalculado coincide con el registrado.
+La rama BCR (16 publicaciones vía navegador headless) **no se corrió** en esta sesión: son 16
+renders completos de tabla y su ejecución es un acto deliberado del operador al ritmo de
+publicación de la fuente (regla 9 de `CLAUDE.md`), no algo que un agente dispare por su cuenta.
+Queda pendiente una corrida de `make raw` completa.
+
+## 2026-08-30 — recaptura parcial de los 12 archivos perdidos (hallazgo B1), INTERRUMPIDA
+
+Corrida de `Rscript scripts/restaurar_l0_perdido.R aplicar`, autorizada por Harold el
+2026-08-28 (opción "recapturar y cotejar `sha256_norm`"). **El proceso se detuvo a mitad**, en
+la sexta de doce publicaciones. Se asienta igual porque produjo evidencia real, y porque un
+resultado parcial que no se registra es indistinguible de no haber corrido.
+
+- **Cotejadas antes de la interrupción: 5 de 12, las 5 con `sha256_norm` IDÉNTICO al registrado**
+  — `BCR.IPI.VIGENTE`, `BCR.IPP`, `BCR.ISI`, `BCR.ITCER`, `BCR.PANORAMA_BANCO_CENTRAL`. Es decir:
+  el portal sigue sirviendo exactamente el mismo dato que se archivó el 2026-08-26, y esos cinco
+  vintages son restaurables. Interrumpida durante `BCR.BALANZA_COMERCIAL` (captura completada,
+  cotejo no alcanzado).
+- **No se escribió NADA:** ni un archivo en `data/L0_raw/` ni una fila de catálogo. El script
+  acumula las escrituras y las aplica juntas al final, precisamente para que una interrupción no
+  deje el catálogo a medio reescribir. Verificado después: 0 archivos del lote `2026-08-26` en
+  `data/L0_raw/`, y el diff de `manifiesto.csv` / `08_vintages.csv` sigue conteniendo solo las
+  correcciones A4 y M5.
+- **Estado:** los 12 siguen ausentes. `scripts/verificar_l0_fisico.R` sigue en 42 PASS / 12
+  AUSENTE, salida 1 — correcto.
+- **Pendiente:** volver a correr el script completo. Es idempotente respecto de lo ya hecho:
+  recalcula la lista de ausentes al arrancar, así que una corrida nueva reintenta las 12 (o las
+  que queden) sin necesitar limpieza previa.

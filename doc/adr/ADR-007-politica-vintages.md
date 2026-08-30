@@ -187,3 +187,89 @@ sigue siendo `{publicacion_id}.v{AAAA-MM}`; lo que cambia es la granularidad de
 Regla hacia adelante: al catalogar una fuente nueva de API, si publica por serie con
 calendario propio por serie, usar un `publicacion_id` por serie desde el inicio — no
 esperar a la primera colisión para corregirlo, como pasó acá.
+
+## Nota de seguimiento — a qué vintage se refiere una fila de `03_series.csv` (2026-08-28)
+
+**Disparador.** Hallazgos B2 y B3 de la auditoría de Fase 2. `src/validacion/verificar_fuente_celda.R`
+resolvía la fila del manifiesto correspondiente a un `publicacion_id` exigiendo que fuera **única**, y
+fallaba con *"deberia ser unico"* cuando había varias. Pero el manifiesto es *append-only con una fila
+por vintage*: tener varias filas por publicación no es una anomalía, es exactamente el estado que
+produce la captura prospectiva que este ADR ordena. Es decir, el verificador de la regla 8 de
+`CLAUDE.md` estaba construido sobre un supuesto que el mecanismo central de este ADR rompe la primera
+vez que hace su trabajo. Ya había empezado a ocurrir: `UT.DEMANDA_TOTAL_MENSUAL` tiene 25 filas y dejó
+el script en rojo en `main` desde el commit `0fbda08` (2026-08-26) sin que nada lo detectara —
+el verificador no corre en CI porque los `.xlsx` están en `.gitignore` (ADR-008).
+
+**Convención, que estaba implícita y ahora es explícita: una fila de `03_series.csv` describe la serie
+tal como la sirve el VINTAGE VIGENTE de su publicación, y el vintage vigente es la última fila del
+manifiesto para ese `publicacion_id`.** No es una decisión nueva: es la regla que ya aplicaban
+`registrar_descarga()` en su paso 3 (compara contra `filas_previas[nrow(filas_previas), ]`) y
+`scripts/verificar_l0.R`. Lo que cambia es que ahora los tres coinciden y está escrito. Los vintages
+anteriores no se re-verifican contra `03_series.csv`: el catálogo de series no lleva dimensión de
+vintage, y por diseño no debe llevarla — el eje bitemporal vive en `08_vintages`, no en `03_series`.
+
+**Lo que esta nota NO decide, y queda abierto.** Si en algún momento se quisiera que una fila de
+`03_series.csv` quedara anclada a un vintage concreto (por ejemplo, para que `fuente_celda` siga
+siendo verificable contra el archivo con el que se escribió, aunque la publicación haya avanzado),
+eso sí sería un cambio de modelo de datos —una columna `vintage_id` en `03_series`— y corresponde a
+una decisión de Harold, no a esta nota. La convención de acá es la que el código ya suponía; no
+pretende cerrar esa pregunta.
+
+**Alcance de la herramienta, delimitado en la misma corrección.** `verificar_fuente_celda.R` resuelve
+hoja → XML → `sharedStrings` dentro de un `.xlsx`. Una fila cuyo vintage vigente no es un `.xlsx`
+—hoy `UT.DEMANDA_ELEC.GWH.NSA.M`, serie derivada de 25 CSV cuyo `fuente_celda` describe la derivación
+en prosa— no es una verificación fallida sino una que esta herramienta no puede hacer: se reporta como
+`FUERA_DE_ALCANCE`, se lista una por una en cada corrida y no cuenta como `FAIL`. La distinción se hace
+por extensión del archivo de L0, no por `publicacion_id`, para no perder el fallo que sí importa: un
+`fuente_celda` malformado sobre una publicación que sí es `.xlsx` sigue siendo `FAIL`.
+
+**Corrección de registro asociada (hallazgo A4), sin efecto sobre política alguna.** Las dos filas de
+`BM.WDI.*` declaraban en `url` / `documento_fuente` una dirección sin `per_page=1000`, que es el
+parámetro con el que la consulta se hizo realmente; esa URL devuelve 50 de 66 observaciones y no
+reproduce el archivo de L0. Se corrigieron las dos filas en `manifiesto.csv` y en `08_vintages.csv`,
+con la corrección anotada en `notas`. **Ningún checksum ni archivo de L0 se tocó:** lo que estaba mal
+registrado era la consulta, no el dato. Verificado después de la corrección: la URL enmendada
+reproduce `sha256_norm` byte a byte (`make raw-api`, 12/12 PASS, 2026-08-28).
+
+## Nota de seguimiento — restauración de un archivo de L0 perdido (2026-08-30)
+
+**Disparador.** Hallazgo B1 de la auditoría de Fase 2: doce archivos de `data/L0_raw/` —el lote
+BCR completo del 2026-08-26— desaparecieron, con sus filas intactas en el manifiesto y en este
+catálogo. Decisión de Harold (2026-08-28): recapturar del portal y cotejar `sha256_norm`.
+
+**Por qué esto necesitó un mecanismo propio y no una llamada a `descargar_bcr_*()`.**
+`registrar_descarga()` está escrita para capturar *vintages nuevos*. Ante un contenido idéntico
+al último vintage registrado, su paso 3 retorna temprano con "sin cambios" y **no escribe nada**
+—que es lo correcto para una captura y exactamente lo contrario de lo que una restauración
+necesita— y si escribiera, usaría el nombre `{FUENTE}_{desc}_{HOY}.{ext}`, creando un archivo que
+ninguna fila del manifiesto menciona. La restauración vive en `scripts/restaurar_l0_perdido.R` y
+escribe con el **nombre registrado original**: no es un vintage nuevo, es el mismo vintage
+recuperado.
+
+**Criterio de identidad, y por qué `sha256_norm` alcanza para afirmarlo.** Un archivo restaurado
+se acepta si y solo si su `sha256_norm` coincide con el registrado. Ese hash se calcula sobre las
+entradas del ZIP ordenadas y descomprimidas, y es estable entre descargas del mismo dato (prueba
+F1, nota del 2026-08-21): que coincida es prueba de que el contenido es el mismo, no una
+suposición. Si no coincide, el portal ya sirve otro vintage y **el perdido es irrecuperable** —
+caso que el script reporta y no resuelve, porque qué hacer entonces con esa fila vuelve a ser
+decisión de Harold (regla 4 de `CLAUDE.md`).
+
+**Qué se reescribe y qué no.** De una fila restaurada cambian `sha256` y `tamano_bytes`, en el
+manifiesto y acá. No cambian `sha256_norm`, `vintage_id`, `fecha_publicacion`,
+`periodo_referencia_max` ni `fecha_descarga`. Reescribir `sha256` no es una concesión: ese campo
+declara la integridad *del archivo que está en disco* (nota del 2026-08-21), y el archivo en disco
+es materialmente otro, porque el empaquetado ZIP de SheetJS no es determinista. Dejar el valor
+viejo declararía la integridad de un archivo que ya no existe, que es peor que cambiarlo. El valor
+histórico no se pierde: queda asentado en `notas` junto con el motivo.
+
+**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. Es un procedimiento de
+recuperación ante pérdida, no una política de vintages. Y no debilita la regla 1 de `CLAUDE.md`:
+L0 sigue siendo inmutable — restaurar un archivo ausente no es editar uno existente, y el script
+falla si el archivo aparece durante la corrida.
+
+**Lección que sí conviene retener.** Entre el 2026-08-26 y el 2026-08-28 el repositorio perdió
+doce archivos de L0 y las dos verificaciones que existían siguieron en verde, porque ninguna
+miraba el disco. La captura prospectiva que este ADR declara compromiso firme no está protegida
+por registrar un checksum: está protegida por comprobar, periódicamente, que el archivo al que ese
+checksum se refiere sigue existiendo. Eso ahora lo hace `scripts/verificar_l0_fisico.R`, encadenado
+en `make raw`.

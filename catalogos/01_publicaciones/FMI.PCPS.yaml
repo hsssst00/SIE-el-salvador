@@ -30,7 +30,7 @@ notas: |
 
   fecha_publicacion para las capturas de este grupo: NO hay fecha de dato legible
   en la respuesta (ni meta, ni atributos, ni cabeceras HTTP, ni /structure —
-  diagnóstico 2026-08-29). Se usa la fecha bisecada del parámetro SDMX
+  diagnóstico 2026-08-28). Se usa la fecha bisecada del parámetro SDMX
   `updatedAfter` (día más reciente con respuesta no vacía = último refresco de
   datos del FMI). Mismo mecanismo aplicado a FMI.BOP y FMI.QNEA. Ver src/adquisicion/fmi.R.
 

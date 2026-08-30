@@ -18,4 +18,7 @@ Imports:
     xml2,
     httr2,
     chromote,
-    jsonlite
+    jsonlite,
+    digest,
+    polite,
+    readxl

@@ -27,15 +27,42 @@ source("src/adquisicion/lib_adquisicion.R")
   TRUE
 }
 
-descargar_bm_wdi_indicador <- function(codigo_indicador, publicacion_id) {
-  url <- sprintf("https://api.worldbank.org/v2/country/SLV/indicator/%s", codigo_indicador)
+.BM_PER_PAGE <- 1000L
 
-  resp <- httr2::request(url) |>
-    httr2::req_url_query(format = "json", per_page = 1000) |>
+# URL EXACTA de la consulta, con todos los parametros - es la que se registra y la que
+# scripts/verificar_l0.R vuelve a pedir. CORREGIDO el 2026-08-28 (hallazgo A4 de la
+# auditoria de Fase 2): hasta esa fecha se pedia con per_page=1000 pero se registraba solo
+# `?format=json`, de modo que la URL del manifiesto devolvia la primera pagina con el
+# default de 50 registros y NO reproducia la respuesta archivada. El contrato de
+# src/adquisicion/README.md S3 pide la URL exacta consultada, con todos los parametros.
+.bm_url_registrada <- function(codigo_indicador) {
+  sprintf("https://api.worldbank.org/v2/country/SLV/indicator/%s?format=json&per_page=%d",
+          codigo_indicador, .BM_PER_PAGE)
+}
+
+# Un solo lugar donde se arma la peticion, para que la captura y la verificacion de
+# scripts/verificar_l0.R no puedan divergir.
+.bm_fetch <- function(codigo_indicador) {
+  resp <- httr2::request(
+    sprintf("https://api.worldbank.org/v2/country/SLV/indicator/%s", codigo_indicador)
+  ) |>
+    httr2::req_url_query(format = "json", per_page = .BM_PER_PAGE) |>
     httr2::req_perform()
+  list(bytes = httr2::resp_body_raw(resp), codigo_http = httr2::resp_status(resp),
+       url_registrada = .bm_url_registrada(codigo_indicador))
+}
 
-  codigo_http <- httr2::resp_status(resp)
-  contenido_crudo <- httr2::resp_body_raw(resp)
+# Re-pide desde la URL guardada en el manifiesto, que ya lleva todos los parametros.
+# La usa scripts/verificar_l0.R; no registra nada.
+.bm_refetch <- function(url_registrada) {
+  httr2::resp_body_raw(httr2::req_perform(httr2::request(url_registrada)))
+}
+
+descargar_bm_wdi_indicador <- function(codigo_indicador, publicacion_id) {
+  obtenido <- .bm_fetch(codigo_indicador)
+  codigo_http <- obtenido$codigo_http
+  contenido_crudo <- obtenido$bytes
+  url <- obtenido$url_registrada
 
   if (!.bm_verificar_forma(contenido_crudo)) {
     stop("FALLO VISIBLE: ", codigo_indicador, " - respuesta sin datos, o JSON ",
@@ -65,7 +92,7 @@ descargar_bm_wdi_indicador <- function(codigo_indicador, publicacion_id) {
   registrar_descarga(
     fuente = "BM",
     publicacion_id = publicacion_id,
-    url = paste0(url, "?format=json"),
+    url = url,
     descripcion_archivo = tolower(gsub("\\.", "_", codigo_indicador)),
     extension = "json",
     contenido_crudo = contenido_crudo,
@@ -78,8 +105,10 @@ descargar_bm_wdi_indicador <- function(codigo_indicador, publicacion_id) {
         "Indicador %s via v2/country/SLV/indicator. fecha_publicacion = campo",
         "`lastupdated` NATIVO de la page-meta de la respuesta (%s, ISO 8601) - fecha",
         "de ultima actualizacion de la base WDI (fuente id=%s), comun a todos los",
-        "indicadores de esa base, no por observacion (a diferencia de FRED). NO es una",
-        "fecha sintetica de captura. %d observaciones con valor real (de %s en la",
+        "indicadores de esa base y no por indicador (mas gruesa que el `last_updated` por",
+        "serie de FRED). NO es una fecha sintetica de captura. La url registrada lleva",
+        "todos los parametros de la consulta, per_page incluido (hallazgo A4 de la",
+        "auditoria de Fase 2, 2026-08-28). %d observaciones con valor real (de %s en la",
         "respuesta; los anios sin dato vienen con value=null), anio mas reciente %s.",
         "publicacion_id = %s, un publicacion_id por indicador desde el inicio (ADR-007,",
         "nota 2026-08-27, aplicado preventivamente). periodo_referencia_max es un anio",

@@ -52,7 +52,9 @@ Ver `Makefile`. Objetivos previstos: `make raw | clean | master | eval | report`
 
 ## Stack (ADR-009)
 
-R vía `renv`. `renv.lock` está fijado (155 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (15 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`.
+R vía `renv`. `renv.lock` está fijado (155 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (20 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`, `chromote`, `jsonlite`, `digest`, `polite`, `readxl`.
+
+**Desfase conocido (2026-08-28, hallazgo M1 de la auditoría de Fase 2):** `polite` y `readxl` están declarados en `DESCRIPTION` y en `scripts/bootstrap_renv.R` pero **todavía no en `renv.lock`** — regenerarlo exige `renv::restore()` completo con acceso a CRAN y vuelve a fijar los 155 paquetes, así que es un acto deliberado, no un efecto colateral. Hasta que se haga, `src/adquisicion/verificar_robots_ut.R` y `src/adquisicion/calendario_bcr_extraer.R` no corren en una máquina limpia.
 
 ## Orden de fases (no te lo saltes)
 

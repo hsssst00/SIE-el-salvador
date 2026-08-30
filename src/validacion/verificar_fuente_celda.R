@@ -17,6 +17,27 @@
 # normal fuera de la maquina de Harold: los .xlsx estan en .gitignore, ver ADR-008) se
 # reportan como NO_VERIFICABLE — nunca como FAIL ni como advertencia silenciada — y se cuentan
 # aparte en el resumen final.
+#
+# QUE VINTAGE SE VERIFICA (corregido 2026-08-28, hallazgos B2/B3 de la auditoria de Fase 2).
+# El manifiesto es append-only con UNA FILA POR VINTAGE, no por publicacion: en cuanto una
+# publicacion tiene su segundo vintage -que es exactamente lo que ADR-007 se propone hacer con
+# la captura prospectiva- hay varias filas para el mismo publicacion_id. La version anterior
+# de este script trataba eso como FAIL ("deberia ser unico"), de modo que el mecanismo central
+# de ADR-007 rompia este verificador la primera vez que hiciera su trabajo. Ya habia empezado
+# a ocurrir: UT.DEMANDA_TOTAL_MENSUAL tiene 25 filas y dejaba el script en rojo.
+# Ahora se verifica contra la ULTIMA fila del manifiesto para ese publicacion_id -el vintage
+# vigente-, que es la misma convencion que ya usan registrar_descarga() (paso 3) y
+# scripts/verificar_l0.R. 03_series.csv describe la serie tal como se lee hoy; los vintages
+# anteriores no se re-verifican aca.
+#
+# QUE QUEDA FUERA DE ALCANCE. Este verificador resuelve hoja -> XML -> sharedStrings dentro de
+# un .xlsx. Una fila cuyo vintage vigente no es un .xlsx (p.ej. UT.DEMANDA_TOTAL_MENSUAL, serie
+# derivada de 25 CSV via src/transformacion/ut_demanda_serie.R, cuyo fuente_celda describe la
+# derivacion en prosa y no cita una celda) no es una verificacion fallida: es una verificacion
+# que esta herramienta no puede hacer. Se reporta como FUERA_DE_ALCANCE, se lista una por una
+# en el resumen para que un humano las lea, y no cuenta como FAIL. La distincion es por
+# extension del archivo de L0, no por publicacion_id: un fuente_celda malformado sobre una
+# publicacion que SI es .xlsx sigue siendo FAIL, que es el fallo que importa conservar.
 
 library(xml2)
 
@@ -174,29 +195,41 @@ verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto) {
       stringsAsFactors = FALSE
     ))
   }
-  if (nrow(pub) > 1) {
+  # Vintage VIGENTE = ultima fila del manifiesto para esa publicacion (append-only). Misma
+  # convencion que registrar_descarga() paso 3 y scripts/verificar_l0.R — ver cabecera.
+  vintage_vigente <- pub[nrow(pub), ]
+  sufijo_vintage <- if (nrow(pub) > 1) {
+    paste0(" [vintage vigente ", vintage_vigente$vintage_id, ", ", nrow(pub), " en el manifiesto]")
+  } else {
+    ""
+  }
+
+  # Fuera del alcance de esta herramienta: el vintage vigente no es un .xlsx, asi que no hay
+  # hoja ni sharedStrings que resolver. No es un FAIL — ver cabecera.
+  if (!grepl("\\.xlsx$", vintage_vigente$archivo, ignore.case = TRUE)) {
     return(data.frame(
-      serie_id = serie_id, estado = "FAIL",
+      serie_id = serie_id, estado = "FUERA_DE_ALCANCE",
       detalle = paste0(
-        "publicacion_id '", publicacion_id, "' tiene ", nrow(pub),
-        " filas en manifiesto.csv (deberia ser unico)"
+        "el vintage vigente de '", publicacion_id, "' es '", vintage_vigente$archivo,
+        "', no un .xlsx: este verificador resuelve hoja/fila/rotulo dentro de un .xlsx. ",
+        "La trazabilidad de esta fila se sostiene por otra via (ver su fuente_celda)", sufijo_vintage
       ),
       stringsAsFactors = FALSE
     ))
   }
 
-  ruta_archivo <- file.path(dir_l0, pub$archivo[1])
+  ruta_archivo <- file.path(dir_l0, vintage_vigente$archivo)
 
   if (!file.exists(ruta_archivo)) {
     return(data.frame(
       serie_id = serie_id, estado = "NO_VERIFICABLE",
-      detalle = "archivo ausente localmente",
+      detalle = paste0("archivo ausente localmente", sufijo_vintage),
       stringsAsFactors = FALSE
     ))
   }
 
   hash_real <- calcular_sha256(ruta_archivo)
-  hash_manifiesto <- tolower(pub$sha256[1])
+  hash_manifiesto <- tolower(vintage_vigente$sha256)
   if (!identical(hash_real, hash_manifiesto)) {
     return(data.frame(
       serie_id = serie_id, estado = "FAIL",
@@ -261,10 +294,11 @@ for (i in seq_len(nrow(resultados))) {
 n_pass <- sum(resultados$estado == "PASS")
 n_fail <- sum(resultados$estado == "FAIL")
 n_no_verificable <- sum(resultados$estado == "NO_VERIFICABLE")
+n_fuera_alcance <- sum(resultados$estado == "FUERA_DE_ALCANCE")
 
 message(sprintf(
-  "Resumen: %d PASS, %d FAIL, %d NO_VERIFICABLE (de %d filas en total).",
-  n_pass, n_fail, n_no_verificable, nrow(resultados)
+  "Resumen: %d PASS, %d FAIL, %d NO_VERIFICABLE, %d FUERA_DE_ALCANCE (de %d filas en total).",
+  n_pass, n_fail, n_no_verificable, n_fuera_alcance, nrow(resultados)
 ))
 
 if (n_fail > 0) {
@@ -283,6 +317,23 @@ if (n_no_verificable > 0) {
     ),
     n_no_verificable
   ))
+}
+
+# Las filas fuera de alcance se listan una por una, nunca se resumen en un numero: son
+# justamente las que ninguna herramienta esta comprobando, y tienen que quedar a la vista de
+# quien lea la corrida (y de la entrada de bitacora que la asienta, regla 8 de CLAUDE.md).
+if (n_fuera_alcance > 0) {
+  message(sprintf(
+    paste0(
+      "AVISO: %d fila(s) quedaron FUERA_DE_ALCANCE de este verificador (el vintage vigente de ",
+      "su publicacion no es un .xlsx). Su trazabilidad NO la comprueba este script:"
+    ),
+    n_fuera_alcance
+  ))
+  fuera <- resultados[resultados$estado == "FUERA_DE_ALCANCE", ]
+  for (i in seq_len(nrow(fuera))) {
+    message("  - ", fuera$serie_id[i], ": ", fuera$detalle[i])
+  }
 }
 
 message("OK: verificacion de fuente_celda completada sin FAIL.")

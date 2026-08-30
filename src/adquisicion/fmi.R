@@ -5,7 +5,7 @@
 # fecha_publicacion: BOP, QNEA y PCPS NO traen ninguna fecha de dato legible
 # (ni en meta, ni en atributos de serie/observacion, ni en cabeceras HTTP, ni en
 # /structure -esas estan congeladas a la version del esquema-, confirmado en el
-# diagnostico del 2026-08-29). El unico mecanismo de esta API que da una fecha
+# diagnostico del 2026-08-28). El unico mecanismo de esta API que da una fecha
 # real y sensible al dato es el parametro SDMX `updatedAfter`: se bisecta el rango
 # de fechas para hallar la mas reciente con respuesta NO vacia = fecha del ultimo
 # refresco de datos del lado del FMI para El Salvador. Es el analogo, para estos
@@ -15,7 +15,7 @@
 # reduce la respuesta ~98% (BOP 2.5MB -> 35KB, QNEA 166KB -> 5.7KB, serie PCPS
 # 25KB -> 0.8KB), UNIFORME para los tres dataflows. `detail=serieskeysonly` NO
 # reduce nada en SDMX 3.0 (confirmado - ver ficha de FMI.QNEA). Verificado por
-# Claude Code, Bloque 0 del handoff, 2026-08-29.
+# Claude Code, Bloque 0 del handoff, 2026-08-28.
 #
 # Una respuesta vacia de esta API es un cuerpo HTTP genuinamente vacio (HTTP 200,
 # sin content-length, sin cuerpo) - httr2::resp_body_raw() lanza "Can't retrieve
@@ -124,7 +124,11 @@ descargar_fmi_dataflow_completo <- function(url_datos, publicacion_id) {
         "esta API que da una fecha real y sensible al dato para BOP/QNEA (no traen fecha",
         "en meta ni en atributos de serie/observacion, ni en cabeceras HTTP, ni en",
         "/structure -esas estan congeladas a la version del esquema-; confirmado en el",
-        "diagnostico del 2026-08-29). Sondeos de bisecion con attributes=none&measures=none",
+        "diagnostico del 2026-08-28). La url NO basta para reproducir esta respuesta: el",
+        "formato lo decide el header Accept: application/vnd.sdmx.data+json (negociacion de",
+        "contenido de SDMX 3.0); la misma url sin ese header devuelve otra representacion",
+        "(hallazgo M3 de la auditoria de Fase 2, 2026-08-28).",
+        "Sondeos de bisecion con attributes=none&measures=none",
         "(reduce ~98%%, detail=serieskeysonly es inerte en SDMX 3.0). periodo_referencia_max",
         "queda VACIO deliberadamente: es un dataflow con muchas series y muchos periodos",
         "distintos, sin un valor unico representativo sin agregar de mas - no se inventa."
@@ -203,7 +207,10 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
       paste(
         "Serie %s de PCPS (G001.%s.INDEX.M). fecha_publicacion = %s, fecha bisecada del",
         "parametro SDMX updatedAfter (mismo mecanismo que BOP/QNEA - PCPS no trae fecha",
-        "de dato legible, diagnostico 2026-08-29). %d observaciones con valor, periodo",
+        "de dato legible, diagnostico 2026-08-28). La url NO basta para reproducir esta",
+        "respuesta: el formato lo decide el header Accept:",
+        "application/vnd.sdmx.data+json (hallazgo M3 de la auditoria de Fase 2,",
+        "2026-08-28). %d observaciones con valor, periodo",
         "mas reciente %s. publicacion_id = %s, un publicacion_id por indicador desde el",
         "inicio (ADR-007, nota 2026-08-27, preventivo: los candidatos de PCPS comparten",
         "dataflow y fecha de refresco, colisionarian en vintage_id bajo una ficha comun)."
