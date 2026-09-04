@@ -11,18 +11,18 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 ## Estructura
 
 ```
-doc/adr/             decisiones de arquitectura registradas (ADR-001 … ADR-009)
-doc/metodologia/     notas metodológicas específicas (empalme, shock 2020, protocolo, supuestos)
-doc/auditorias/      revisiones independientes del repositorio (sin autoridad decisoria)
-doc/bitacora_verificaciones.md   registro de corridas del verificador de fuente_celda
-doc/bitacora_fuentes_fragiles.md fragilidad de cada fuente y procedimiento de recuperación
+doc/adr/                               decisiones de arquitectura registradas (ADR-001 … ADR-009)
+doc/metodologia/                       notas metodológicas específicas (empalme, shock 2020, protocolo, supuestos)
+doc/auditorias/                        revisiones independientes del repositorio (sin autoridad decisoria)
+doc/bitacora_verificaciones.md         registro de corridas del verificador de fuente_celda
+doc/bitacora_fuentes_fragiles.md       fragilidad de cada fuente y procedimiento de recuperación
 doc/captura_bcr_livewire_hallazgo.md   hallazgo técnico de captura headless del portal del BCR (2026-08-24)
-catalogos/           las 9 tablas de metadatos del sistema, esquema en datapackage.json
-data/L0_raw … L4/    capas de datos unidireccionales — ver CLAUDE.md antes de tocar cualquiera
-src/                 código del pipeline, organizado por capa
-src/adquisicion/README.md        diseño de los scripts de captura de L0
-tests/               pruebas del pipeline
-scripts/             utilidades de configuración (bootstrap de entorno, etc.)
+catalogos/                             las 9 tablas de metadatos del sistema, esquema en datapackage.json
+data/L0_raw … L4/                      capas de datos unidireccionales — ver CLAUDE.md antes de tocar cualquiera
+src/                                   código del pipeline, organizado por capa
+src/adquisicion/README.md              diseño de los scripts de captura de L0
+tests/                                 pruebas del pipeline
+scripts/                               utilidades de configuración (bootstrap de entorno, etc.)
 ```
 
 ## Empezar
