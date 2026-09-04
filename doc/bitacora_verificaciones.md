@@ -113,3 +113,52 @@ resultado parcial que no se registra es indistinguible de no haber corrido.
 - **Pendiente:** volver a correr el script completo. Es idempotente respecto de lo ya hecho:
   recalcula la lista de ausentes al arrancar, así que una corrida nueva reintenta las 12 (o las
   que queden) sin necesitar limpieza previa.
+
+## 2026-08-30 (segunda sesión) — restauración de L0 completada: 6 de 12 recuperados
+
+Corrida completa de `scripts/restaurar_l0_perdido.R aplicar`, en cuatro tandas acotadas (se
+agregó el argumento de tanda y `--omitir=` precisamente después de que la corrida única del
+turno anterior muriera a mitad y perdiera su trabajo).
+
+**Resultado definitivo: 6 restaurados, 6 IRRECUPERABLES.**
+
+| Publicación | `sha256_norm` | Resultado |
+|---|---|---|
+| `BCR.IPI.VIGENTE` | idéntico | restaurado |
+| `BCR.IPP` | idéntico | restaurado |
+| `BCR.ISI` | idéntico | restaurado |
+| `BCR.PANORAMA_BANCO_CENTRAL` | idéntico | restaurado |
+| `BCR.RESERVAS_INTERNACIONALES_NETAS` | idéntico | restaurado |
+| `BCR.BALANZA_PAGOS_TRIMESTRAL` | idéntico | restaurado |
+| `BCR.ITCER` | distinto | **irrecuperable** — el portal pasó de 318 períodos (hasta 2026-M06) a 319 (hasta 2026-M07) |
+| `BCR.BALANZA_COMERCIAL` | distinto | **irrecuperable** |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | distinto | **irrecuperable** — mismo período final (2026-M06) y contenido distinto: es una **revisión**, no una extensión |
+| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | distinto | **irrecuperable** |
+| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | distinto | **irrecuperable** |
+| `BCR.SPNF_VIGENTE` | distinto | **irrecuperable** |
+
+**Un dato que la propia corrida produjo y que conviene no perder.** `BCR.ITCER` fue cotejado
+**dos veces el mismo día**: en la corrida interrumpida de la mañana dio `sha256_norm` idéntico
+(318 períodos, hasta 2026-M06) y en la de la tarde ya no (319 períodos, hasta 2026-M07). El BCR
+publicó el mes nuevo entre ambas. Es decir: la ventana de recuperación se cerró **durante** la
+propia remediación. Esto no es anecdótico — es la demostración empírica de la premisa de
+ADR-007: *"cada publicación del BCR no archivada desde hoy es información irrecuperable"*.
+
+De los 6 irrecuperables, `INDICES_PRECIOS_COMERCIO_EXTERIOR` es el caso más caro: su período de
+referencia no avanzó, así que lo que cambió fue el dato ya publicado. Se perdió el vintage
+anterior de una revisión, que es exactamente el objeto de estudio que el eje bitemporal existe
+para medir.
+
+**Estado tras la restauración:**
+
+- `scripts/verificar_l0_fisico.R`: **48 PASS / 0 FAIL / 6 AUSENTE**, salida 1 (era 42/0/12).
+- `scripts/check_l0_integrity.R`: salida 0.
+- `src/validacion/verificar_fuente_celda.R`: 98 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE, salida 0.
+- `testthat`: 58 PASS, 0 FAIL.
+
+De cada fila restaurada cambiaron `sha256` y, en un caso, `tamano_bytes`; `sha256_norm`,
+`vintage_id`, `fecha_publicacion`, `periodo_referencia_max` y `fecha_descarga` quedaron intactos.
+El motivo está anotado en `notas` de cada fila, con el valor histórico del `sha256`.
+
+**Pendiente, y es decisión de Harold (regla 4):** qué se hace con las 6 filas irrecuperables.
+Mientras no se resuelva, `verificar_l0_fisico.R` sale con código 1 — correctamente.

@@ -29,15 +29,43 @@
 # lo unico honesto: dejar el viejo declararia la integridad de un archivo que ya no existe.
 # El valor historico no se borra, queda en `notas`.
 #
+# POR TANDAS. Las escrituras se acumulan y se aplican JUNTAS al final de la corrida, para que
+# una interrupcion no deje el catalogo a medio reescribir - protegio de verdad el 2026-08-30,
+# cuando el proceso murio en la sexta de doce y no quedo ni un archivo ni una fila a medias.
+# El costo de esa garantia es que una corrida interrumpida no conserva NADA de su trabajo. Por
+# eso el segundo argumento acota cuantas publicaciones procesa una corrida: tandas cortas que
+# terminan y escriben valen mas que una tanda larga que se cae. El script es idempotente
+# -recalcula la lista de ausentes al arrancar-, asi que las tandas se encadenan solas.
+#
 # Uso:
-#   Rscript scripts/restaurar_l0_perdido.R          # informa que haria, no escribe (default)
-#   Rscript scripts/restaurar_l0_perdido.R aplicar  # recaptura y escribe
+#   Rscript scripts/restaurar_l0_perdido.R            # informa que haria, no escribe (default)
+#   Rscript scripts/restaurar_l0_perdido.R aplicar    # recaptura y escribe TODAS las ausentes
+#   Rscript scripts/restaurar_l0_perdido.R aplicar 4  # ... solo las primeras 4 de la lista
+#   Rscript scripts/restaurar_l0_perdido.R aplicar 4 --omitir=BCR.ITCER,BCR.IPP
+#
+# --omitir= existe por la regla 9 de CLAUDE.md, no por comodidad. Una publicacion cuya
+# recaptura ya probo ser IRRECUPERABLE seguira figurando como ausente hasta que se decida que
+# hacer con su fila, y el script la reintentaria en cada tanda: eso es golpear el portal para
+# obtener un resultado que ya se conoce. Se omite explicitamente, nombrandola.
 
 source("src/adquisicion/lib_adquisicion.R")
 
-.APLICAR <- local({
-  a <- commandArgs(trailingOnly = TRUE)
-  isTRUE(length(a) >= 1 && tolower(a[1]) == "aplicar")
+.ARGS <- commandArgs(trailingOnly = TRUE)
+.APLICAR <- isTRUE(length(.ARGS) >= 1 && tolower(.ARGS[1]) == "aplicar")
+.OMITIR <- local({
+  a <- grep("^--omitir=", .ARGS, value = TRUE)
+  if (length(a) == 0) return(character(0))
+  trimws(strsplit(sub("^--omitir=", "", a[1]), ",", fixed = TRUE)[[1]])
+})
+.MAX <- local({
+  posicionales <- .ARGS[!grepl("^--", .ARGS)]
+  if (length(posicionales) < 2) return(Inf)
+  n <- suppressWarnings(as.integer(posicionales[2]))
+  if (is.na(n) || n < 1) {
+    stop("FALLO VISIBLE [restaurar-l0]: el segundo argumento debe ser un entero >= 1 ",
+         "(cuantas publicaciones procesar en esta tanda). Recibido: '", posicionales[2], "'")
+  }
+  n
 })
 
 .FORMULA_BASE <- "0"
@@ -68,11 +96,31 @@ for (i in seq_len(nrow(ausentes))) {
 
 if (!.APLICAR) {
   message("\nModo informe (default). Para recapturar y escribir:\n",
-          "   Rscript scripts/restaurar_l0_perdido.R aplicar\n",
+          "   Rscript scripts/restaurar_l0_perdido.R aplicar      # las ", nrow(ausentes), "\n",
+          "   Rscript scripts/restaurar_l0_perdido.R aplicar 4    # solo las primeras 4\n",
           "Son ", nrow(ausentes), " capturas con navegador headless contra el portal del BCR; ",
           "algunas tardan minutos (regla 9 de CLAUDE.md: es un acto deliberado, al ritmo de ",
           "publicacion de la fuente, no una recoleccion repetida).")
   quit(status = 0)
+}
+
+if (length(.OMITIR) > 0) {
+  desconocidas <- setdiff(.OMITIR, ausentes$publicacion_id)
+  if (length(desconocidas) > 0) {
+    fallar("--omitir nombra publicacion(es) que no estan ausentes: ",
+           paste(desconocidas, collapse = ", "), ". Se falla en vez de ignorarlo en silencio: ",
+           "un id mal escrito haria creer que se omitio algo que en realidad se recapturo.")
+  }
+  ausentes <- ausentes[!ausentes$publicacion_id %in% .OMITIR, ]
+  message("\nOmitidas por pedido explicito (", length(.OMITIR), "): ",
+          paste(.OMITIR, collapse = ", "))
+}
+
+if (is.finite(.MAX) && .MAX < nrow(ausentes)) {
+  total_ausentes <- nrow(ausentes)
+  ausentes <- ausentes[seq_len(.MAX), ]
+  message("\nTanda acotada a ", nrow(ausentes), " publicacion(es) de las ", total_ausentes,
+          " ausentes. Volver a correr para continuar con el resto.")
 }
 
 source("src/adquisicion/bcr.R")  # arrastra bcr_captura.R (chromote)

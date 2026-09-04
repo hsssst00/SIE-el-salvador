@@ -45,9 +45,21 @@ Los doce se registraron con `sha256`, `sha256_norm` y `tamano_bytes` reales, y `
 
 **Decisión de Harold (2026-08-28): recapturar del portal y cotejar `sha256_norm`.** Si coincide, es el mismo dato y el vintage se restaura, aceptando que el `sha256` crudo de esas filas se reescriba al del archivo nuevo con el valor histórico anotado en `notas`. Si no coincide, el portal ya sirve otro vintage y el perdido es irrecuperable — eso vuelve a ser una decisión abierta, no algo que el script resuelva.
 
-**Ejecución (2026-08-30): INTERRUMPIDA a mitad, sin resolver.** Se corrió `scripts/restaurar_l0_perdido.R aplicar` y el proceso se detuvo en la sexta de doce publicaciones. Las **cinco cotejadas antes de la interrupción dieron `sha256_norm` idéntico al registrado** (`IPI.VIGENTE`, `IPP`, `ISI`, `ITCER`, `PANORAMA_BANCO_CENTRAL`), lo que indica que el portal sigue sirviendo el mismo dato y que la restauración es viable — pero es evidencia sobre 5 de 12, no una conclusión sobre el lote. **No se escribió nada:** el script acumula las escrituras y las aplica juntas al final, así que la interrupción no dejó estado parcial. Los doce siguen ausentes. Detalle en `doc/bitacora_verificaciones.md`, entrada del 2026-08-30.
+**Resultado (2026-08-30): 6 de 12 recuperados, 6 IRRECUPERABLES.**
 
-**El mecanismo (`scripts/restaurar_l0_perdido.R`), que sí queda entregado.** Es un script aparte y no una llamada a `descargar_bcr_*()` por una razón que conviene dejar registrada: **`registrar_descarga()` no puede restaurar un archivo perdido.** Está escrita para capturar vintages nuevos, así que si el contenido coincide con el último vintage registrado su paso 3 retorna temprano con "sin cambios" y no escribe nada — correcto para una captura, exactamente lo contrario de lo que hace falta acá. Y si escribiera, usaría el nombre con la fecha de hoy, creando un archivo que ninguna fila del manifiesto menciona. El script de restauración escribe con el **nombre registrado original**, porque no es un vintage nuevo sino el mismo vintage recuperado.
+| Recuperados (`sha256_norm` idéntico) | Irrecuperables (`sha256_norm` distinto) |
+|---|---|
+| `IPI.VIGENTE`, `IPP`, `ISI`, `PANORAMA_BANCO_CENTRAL`, `RESERVAS_INTERNACIONALES_NETAS`, `BALANZA_PAGOS_TRIMESTRAL` | `ITCER`, `BALANZA_COMERCIAL`, `INDICES_PRECIOS_COMERCIO_EXTERIOR`, `GOBIERNO_CENTRAL_CONSOLIDADO`, `PANORAMA_SOCIEDADES_DEPOSITO`, `SPNF_VIGENTE` |
+
+**El dato más importante que produjo la remediación no es el balance sino esto: `BCR.ITCER` se cotejó dos veces el mismo día, y cambió en el medio.** En la primera corrida (interrumpida) dio `sha256_norm` idéntico con 318 períodos hasta 2026-M06; horas después, 319 períodos hasta 2026-M07. **La ventana de recuperación se cerró durante la propia remediación.** Es la confirmación empírica —no argumental— de la premisa de ADR-007: *"cada publicación del BCR no archivada desde hoy es información irrecuperable"*. El costo de B1 no fue fijo desde el 2026-08-26: crecía cada día.
+
+De los seis perdidos, `INDICES_PRECIOS_COMERCIO_EXTERIOR` es el más caro. Su período de referencia **no avanzó** (sigue en 2026-M06) y el contenido cambió: fue una **revisión** del dato ya publicado. Es decir, se perdió el vintage previo de una revisión — exactamente el objeto de estudio que el eje bitemporal de este proyecto existe para medir, y que ADR-007 identifica como su aporte más original.
+
+De cada fila restaurada cambiaron `sha256` y, en un caso, `tamano_bytes`; `sha256_norm`, `vintage_id`, `fecha_publicacion`, `periodo_referencia_max` y `fecha_descarga` quedaron intactos, con el valor histórico anotado en `notas`. `verificar_l0_fisico.R` pasó de 42/0/12 a **48 PASS / 0 FAIL / 6 AUSENTE**.
+
+**Sigue pendiente y es decisión de Harold (regla 4):** qué se hace con las seis filas irrecuperables. Sus vintages existieron, están descritos con checksums reales, y su archivo no se puede reconstruir. Mientras no se resuelva, `verificar_l0_fisico.R` sale con código 1 — correctamente.
+
+**El mecanismo (`scripts/restaurar_l0_perdido.R`).** Es un script aparte y no una llamada a `descargar_bcr_*()` por una razón que conviene dejar registrada: **`registrar_descarga()` no puede restaurar un archivo perdido.** Está escrita para capturar vintages nuevos, así que si el contenido coincide con el último vintage registrado su paso 3 retorna temprano con "sin cambios" y no escribe nada — correcto para una captura, exactamente lo contrario de lo que hace falta acá. Y si escribiera, usaría el nombre con la fecha de hoy, creando un archivo que ninguna fila del manifiesto menciona. El script de restauración escribe con el **nombre registrado original**, porque no es un vintage nuevo sino el mismo vintage recuperado.
 
 #### B2. `verificar_fuente_celda.R` estaba en rojo en `main`, y el propio diseño lo hacía invisible
 
@@ -131,7 +143,9 @@ Se llegó a modificar `fred.R` para consultar `fred/series` y se llegó a enmend
 
 `polite` (`verificar_robots_ut.R`) y `readxl` (`calendario_bcr_extraer.R`) no estaban **ni en `DESCRIPTION` ni en `renv.lock`**: en una máquina limpia tras `renv::restore()`, esos dos scripts no arrancan. `digest` estaba solo como dependencia transitiva ajena, con una salvedad razonada en `verificar_fuente_celda.R` que decía *"si esto deja de sostenerse, corresponde declarar `digest` como import propio"* — dejó de sostenerse cuando `lib_adquisicion.R`, el núcleo de Fase 2, pasó a hacer `library(digest)`.
 
-**Remediado a medias, y así se declara:** los tres están ahora en `DESCRIPTION` y en la lista de `scripts/bootstrap_renv.R`. **`renv.lock` no se tocó:** regenerarlo exige `renv::restore()` completo con acceso a CRAN y vuelve a fijar los 155 paquetes, lo que es un acto deliberado y no un efecto colateral de una remediación. El desfase quedó anotado en `CLAUDE.md`.
+**Remediado (2026-08-30).** Los tres están en `DESCRIPTION` y en la lista de `scripts/bootstrap_renv.R`, y su árbol de dependencias quedó cerrado en `renv.lock`: **161 → 187 entradas, sin perder ninguna**. Se usó `renv::record()` y no `renv::snapshot()` a propósito — la biblioteca local estaba parcialmente desincronizada y un snapshot podía *borrar* entradas de paquetes no instalados, que es un daño mayor que el que se venía a reparar. Se verificó después que las 65 dependencias recursivas de `polite` y `readxl` están todas en el lockfile, y que los cuatro paquetes (`polite`, `readxl`, `digest`, `chromote`) cargan.
+
+Hallazgo lateral: `CLAUDE.md` declaraba 155 paquetes y el lockfile ya tenía 161 **antes** de esta sesión. El número llevaba tiempo desactualizado.
 
 #### M2. `registrar_descarga()` no tenía ninguna prueba
 
@@ -199,8 +213,9 @@ Vale la pena registrar lo que se comprobó y estaba bien, porque parte de ello e
 
 ### Estado del criterio de cierre de Fase 2
 
-**No satisfecho todavía**, por tres pendientes, dos de los cuales requieren a Harold:
+**No satisfecho todavía**, por dos pendientes encadenados. M1 quedó resuelto el 2026-08-30.
 
-1. **B1 — decisión de política sobre las 12 filas sin archivo.** Bloquea, porque `verificar_l0_fisico.R` sale con código 1 mientras existan, y con razón.
-2. **A1 — una corrida completa de `make raw`.** El cableado está y la rama de API da 12/12; faltan las 16 capturas del BCR, que son acto deliberado del operador (regla 9).
-3. **M1 — regeneración de `renv.lock`** con `polite` y `readxl`, para que el criterio *"sin pasos manuales"* valga también en una máquina limpia.
+1. **B1 — decisión de política sobre las 6 filas irrecuperables.** Bloquea: `verificar_l0_fisico.R` sale con código 1 mientras existan, y con razón. Requiere a Harold (regla 4).
+2. **A1 — una corrida completa de `make raw`.** El cableado está y la rama de API da 12/12. **Está encadenado a B1, no es independiente:** las 6 publicaciones irrecuperables tienen hoy en el portal un contenido distinto del registrado, así que una corrida completa reportaría `CAMBIO` para las 6 y fallaría — correctamente, pero por una causa ya conocida y ya diagnosticada. Correrla antes de resolver B1 sólo produciría 16 capturas headless para confirmar lo que la restauración ya estableció, que es justamente la carga inútil sobre el portal que la regla 9 prohíbe.
+
+Dicho de otro modo: el criterio de cierre de Fase 2 no está a una corrida de distancia, está a una decisión de distancia.

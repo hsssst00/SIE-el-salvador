@@ -610,6 +610,12 @@
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
       "Repository": "CRAN"
     },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "base64enc": {
       "Package": "base64enc",
       "Version": "0.1-6",
@@ -915,6 +921,12 @@
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
     },
+    "cellranger": {
+      "Package": "cellranger",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "chromote": {
       "Package": "chromote",
       "Version": "0.5.1",
@@ -1007,6 +1019,12 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut, cre], Hadley Wickham [ctb], Kirill Müller [ctb], Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Gábor Csárdi <gabor@posit.co>",
+      "Repository": "CRAN"
+    },
+    "clipr": {
+      "Package": "clipr",
+      "Version": "0.8.1",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "codetools": {
@@ -1179,6 +1197,12 @@
       "NeedsCompilation": "no",
       "Author": "Gábor Csárdi [aut, cre], Brodie Gaslam [ctb], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "credentials": {
+      "Package": "credentials",
+      "Version": "2.0.3",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "curl": {
@@ -1985,6 +2009,18 @@
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
       "Repository": "CRAN"
     },
+    "future": {
+      "Package": "future",
+      "Version": "1.75.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
+    "future.apply": {
+      "Package": "future.apply",
+      "Version": "1.20.2",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "generics": {
       "Package": "generics",
       "Version": "0.1.4",
@@ -2015,6 +2051,12 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Max Kuhn [aut], Davis Vaughan [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
+      "Repository": "CRAN"
+    },
+    "gert": {
+      "Package": "gert",
+      "Version": "2.4.1",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "getPass": {
@@ -2182,6 +2224,18 @@
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
       "Repository": "CRAN"
     },
+    "gh": {
+      "Package": "gh",
+      "Version": "1.6.1",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
+    "gitcreds": {
+      "Package": "gitcreds",
+      "Version": "0.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "glmnet": {
       "Package": "glmnet",
       "Version": "5.0",
@@ -2224,6 +2278,12 @@
       "NeedsCompilation": "yes",
       "Author": "Jerome Friedman [aut], Trevor Hastie [aut, cre], Rob Tibshirani [aut], Balasubramanian Narasimhan [aut], Kenneth Tay [aut], Noah Simon [aut], Junyang Qian [ctb], James Yang [aut], Jonathan Taylor [aut]",
       "Maintainer": "Trevor Hastie <hastie@stanford.edu>",
+      "Repository": "CRAN"
+    },
+    "globals": {
+      "Package": "globals",
+      "Version": "0.19.1",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "glue": {
@@ -2446,6 +2506,12 @@
       "Maintainer": "Yihui Xie <xie@yihui.name>",
       "Repository": "CRAN"
     },
+    "hms": {
+      "Package": "hms",
+      "Version": "1.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "htmltools": {
       "Package": "htmltools",
       "Version": "0.5.9",
@@ -2621,6 +2687,12 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd], Maximilian Girlich [ctb]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
+      "Repository": "CRAN"
+    },
+    "ini": {
+      "Package": "ini",
+      "Version": "0.3.1",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "isoband": {
@@ -3006,6 +3078,12 @@
       "Config/roxygen2/version": "8.0.0",
       "Author": "Yu Shi [aut], Guolin Ke [aut], Damien Soukhavong [aut], James Lamb [aut, cre], Qi Meng [aut], Thomas Finley [aut], Taifeng Wang [aut], Wei Chen [aut], Weidong Ma [aut], Qiwei Ye [aut], Tie-Yan Liu [aut], Nikita Titov [aut], Yachen Yan [ctb], Microsoft Corporation [cph], Dropbox, Inc. [cph], Alberto Ferreira [ctb], Daniel Lemire [ctb], Victor Zverovich [cph], IBM Corporation [ctb], David Cortes [aut], Michael Mayer [ctb]",
       "Maintainer": "James Lamb <jaylamb20@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "listenv": {
+      "Package": "listenv",
+      "Version": "1.0.0",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "litedown": {
@@ -3568,6 +3646,12 @@
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
     },
+    "parallelly": {
+      "Package": "parallelly",
+      "Version": "1.48.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.11.1",
@@ -3803,6 +3887,12 @@
       "Maintainer": "Richard Iannone <rich@posit.co>",
       "Repository": "CRAN"
     },
+    "polite": {
+      "Package": "polite",
+      "Version": "0.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "pracma": {
       "Package": "pracma",
       "Version": "2.4.6",
@@ -3852,6 +3942,12 @@
       "NeedsCompilation": "no",
       "Repository": "CRAN"
     },
+    "prettyunits": {
+      "Package": "prettyunits",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "processx": {
       "Package": "processx",
       "Version": "3.9.0",
@@ -3891,6 +3987,12 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut, cre, cph] (ORCID: <https://orcid.org/0000-0001-7098-9676>), Winston Chang [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Ascent Digital Services [cph, fnd]",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "progress": {
+      "Package": "progress",
+      "Version": "1.2.3",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "progressr": {
@@ -4235,6 +4337,12 @@
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
       "Repository": "CRAN"
     },
+    "ratelimitr": {
+      "Package": "ratelimitr",
+      "Version": "0.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "reactR": {
       "Package": "reactR",
       "Version": "0.6.1",
@@ -4309,6 +4417,18 @@
       "NeedsCompilation": "no",
       "Author": "Greg Lin [aut, cre], Tanner Linsley [ctb, cph] (React Table library), Emotion team and other contributors [ctb, cph] (Emotion library), Kent Russell [ctb, cph] (reactR package), Ramnath Vaidyanathan [ctb, cph] (htmlwidgets package), Joe Cheng [ctb, cph] (htmlwidgets package), JJ Allaire [ctb, cph] (htmlwidgets package), Yihui Xie [ctb, cph] (htmlwidgets package), Kenton Russell [ctb, cph] (htmlwidgets package), Facebook, Inc. and its affiliates [ctb, cph] (React library), FormatJS [ctb, cph] (FormatJS libraries), Feross Aboukhadijeh, and other contributors [ctb, cph] (buffer library), Roman Shtylman [ctb, cph] (process library), James Halliday [ctb, cph] (stream-browserify library), Posit Software, PBC [fnd, cph]",
       "Maintainer": "Greg Lin <glin@glin.io>",
+      "Repository": "CRAN"
+    },
+    "readxl": {
+      "Package": "readxl",
+      "Version": "1.5.0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
+    "rematch": {
+      "Package": "rematch",
+      "Version": "2.0.0",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "renv": {
@@ -4474,6 +4594,12 @@
       "Maintainer": "Yihui Xie <xie@yihui.name>",
       "Repository": "CRAN"
     },
+    "robotstxt": {
+      "Package": "robotstxt",
+      "Version": "0.7.15",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "rprojroot": {
       "Package": "rprojroot",
       "Version": "2.1.1",
@@ -4535,6 +4661,12 @@
       "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
       "Author": "Kevin Ushey [aut, cre], JJ Allaire [aut], Hadley Wickham [aut], Gary Ritchie [aut], RStudio [cph]",
+      "Repository": "CRAN"
+    },
+    "rvest": {
+      "Package": "rvest",
+      "Version": "1.0.5",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "sandwich": {
@@ -4695,6 +4827,12 @@
       "Maintainer": "Christoph Sax <christoph.sax@gmail.com>",
       "Repository": "CRAN"
     },
+    "selectr": {
+      "Package": "selectr",
+      "Version": "0.6-0",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "shape": {
       "Package": "shape",
       "Version": "1.4.6.1",
@@ -4713,6 +4851,12 @@
       "Description": "Functions for plotting graphical shapes such as ellipses, circles, cylinders, arrows, ...",
       "License": "GPL (>= 3)",
       "NeedsCompilation": "no",
+      "Repository": "CRAN"
+    },
+    "spiderbar": {
+      "Package": "spiderbar",
+      "Version": "0.2.5",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "stringi": {
@@ -5487,6 +5631,12 @@
       "Maintainer": "Bernhard Pfaff <bernhard@pfaffikus.de>",
       "Repository": "CRAN"
     },
+    "usethis": {
+      "Package": "usethis",
+      "Version": "3.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN"
+    },
     "utf8": {
       "Package": "utf8",
       "Version": "1.2.6",
@@ -5715,6 +5865,12 @@
       "NeedsCompilation": "yes",
       "Author": "Winston Chang [aut, cre], Joe Cheng [aut], Alan Dipert [aut], Barbara Borges [aut], Posit, PBC [cph], Peter Thorson [ctb, cph] (WebSocket++ library), René Nyffenegger [ctb, cph] (Base 64 library), Micael Hildenborg [ctb, cph] (SHA1 library), Aladdin Enterprises [cph] (MD5 library), Bjoern Hoehrmann [ctb, cph] (UTF8 Validation library)",
       "Maintainer": "Winston Chang <winston@posit.co>",
+      "Repository": "CRAN"
+    },
+    "whisker": {
+      "Package": "whisker",
+      "Version": "0.4.1",
+      "Source": "Repository",
       "Repository": "CRAN"
     },
     "withr": {
