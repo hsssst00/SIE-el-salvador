@@ -18,6 +18,14 @@ jobs:
           r-version: 'release'
           use-public-rspm: true
 
+      # Dependencias de SISTEMA, no de R. `polite` (verificación de robots.txt, regla 9)
+      # importa `usethis`, que importa `gert (>= 1.4.1)`, que enlaza contra libgit2. Sin
+      # esto, renv::restore() instala el binario de gert y falla al cargarlo:
+      # "libgit2.so.1.7: cannot open shared object file" (corridas 101 y 102, 2026-09-04).
+      # Cadena verificada en los DESCRIPTION reales, no supuesta.
+      - name: Instalar dependencias de sistema
+        run: sudo apt-get update && sudo apt-get install -y libgit2-dev
+
       - uses: r-lib/actions/setup-renv@v2
 
       - name: Validar esquema de catálogos

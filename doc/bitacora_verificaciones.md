@@ -162,3 +162,28 @@ El motivo está anotado en `notas` de cada fila, con el valor histórico del `sh
 
 **Pendiente, y es decisión de Harold (regla 4):** qué se hace con las 6 filas irrecuperables.
 Mientras no se resuelva, `verificar_l0_fisico.R` sale con código 1 — correctamente.
+
+### Corrección de alcance (2026-09-04)
+
+La entrada anterior rotula seis publicaciones como **IRRECUPERABLES**. El rótulo es correcto
+respecto de lo que se probó —el portal del BCR ya no sirve ese contenido— e **incorrecto si se
+lee como "el archivo se perdió para siempre"**. Harold reportó que conserva copias de archivos
+de L0 en otra máquina, sin acceso en el momento de esta corrida. La vía de recuperación no está
+agotada.
+
+Léase entonces: **"no recuperable desde el portal"**. Las seis filas quedan en espera de esa
+comprobación, no marcadas como pérdida.
+
+**Cómo comprobarlo cuando esa máquina esté disponible.** Calcular el `sha256` de cada archivo
+candidato y compararlo contra el valor **histórico** de su fila:
+
+- Para las seis **no restauradas**, el valor histórico es el que sigue hoy en la columna
+  `sha256` del manifiesto: no se tocó.
+- Para las seis **restauradas**, el valor histórico está en `notas` de su fila de
+  `08_vintages.csv`, porque la restauración reemplazó el de la columna por el del archivo
+  recapturado.
+
+Si aparece un original, lo correcto es reponerlo y devolver su `sha256` histórico desde la nota.
+Un archivo original vale más que uno recapturado aunque `sha256_norm` pruebe que el contenido es
+el mismo: es el artefacto que efectivamente se archivó, y es el único que hace verdadera la
+columna de integridad tal como se escribió el día de la captura.

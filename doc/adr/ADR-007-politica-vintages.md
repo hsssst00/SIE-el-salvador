@@ -273,3 +273,28 @@ miraba el disco. La captura prospectiva que este ADR declara compromiso firme no
 por registrar un checksum: está protegida por comprobar, periódicamente, que el archivo al que ese
 checksum se refiere sigue existiendo. Eso ahora lo hace `scripts/verificar_l0_fisico.R`, encadenado
 en `make raw`.
+
+### Enmienda a la nota anterior — "irrecuperable" es una afirmación sobre la fuente, no sobre el archivo (2026-09-04)
+
+La nota del 2026-08-30 dice que si el `sha256_norm` recapturado no coincide, "el portal ya sirve
+otro vintage y **el perdido es irrecuperable**". La primera mitad es lo que el script prueba; la
+segunda va más lejos de la evidencia y se corrige acá en vez de reescribirla.
+
+Lo que una recaptura fallida establece es que **esa fuente ya no sirve ese contenido**. No
+establece que el archivo no exista en ningún otro lado. En la corrida del 2026-08-30 seis
+publicaciones quedaron así rotuladas, y el 2026-09-04 Harold reportó que conserva copias de
+archivos de L0 en otra máquina: la vía de recuperación no estaba agotada cuando se escribió el
+rótulo.
+
+**Regla, hacia adelante.** Un vintage se declara perdido cuando se agotaron las vías de
+recuperación conocidas, no cuando falla la primera. El estado intermedio —"no recuperable desde
+la fuente, pendiente de otras vías"— es un estado real y hay que poder nombrarlo; colapsarlo en
+"perdido" produce un registro que afirma más de lo que se sabe, que es exactamente lo que la
+disciplina epistémica de este proyecto se propone evitar.
+
+**Consecuencia práctica sobre las filas ya restauradas.** La restauración reemplaza `sha256` por
+el del archivo recapturado y deja el histórico en `notas`. Si más adelante aparece el archivo
+**original**, corresponde reponerlo y devolver su `sha256` histórico desde la nota: el original es
+el artefacto que efectivamente se archivó, y es el único que hace verdadera la columna de
+integridad tal como se escribió el día de la captura. Un recapturado con `sha256_norm` idéntico
+prueba que el *contenido* es el mismo, que es una afirmación más débil.
