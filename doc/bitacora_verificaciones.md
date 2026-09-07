@@ -187,3 +187,31 @@ Si aparece un original, lo correcto es reponerlo y devolver su `sha256` históri
 Un archivo original vale más que uno recapturado aunque `sha256_norm` pruebe que el contenido es
 el mismo: es el artefacto que efectivamente se archivó, y es el único que hace verdadera la
 columna de integridad tal como se escribió el día de la captura.
+
+## 2026-09-07 — cierre de B1: los 12 originales aparecieron, se revierte la restauración parcial
+
+Verificado en la máquina de Harold que faltaba consultar (la reportada el 2026-09-04, sin
+acceso en ese momento). Los **12 archivos del lote del 2026-08-26 están ahí**, con sus fechas
+de modificación originales (09:56–10:45 del 26-ago) y **coinciden en `sha256` y `tamano_bytes`,
+byte a byte, con el manifiesto anterior a toda la remediación** (commit `7858a21`). Ninguno se
+había perdido.
+
+**Consecuencia para las 6 filas que la restauración del 2026-08-30 había "recuperado" por
+recaptura** (`IPI.VIGENTE`, `IPP`, `ISI`, `PANORAMA_BANCO_CENTRAL`,
+`RESERVAS_INTERNACIONALES_NETAS`, `BALANZA_PAGOS_TRIMESTRAL`): esa restauración fue innecesaria
+y dejó el manifiesto declarando el `sha256` de un archivo recapturado en vez del original, que
+nunca había desaparecido. Se revirtió: `sha256` vuelve al valor original en las 6 filas de
+`manifiesto.csv` y `08_vintages.csv` (ya estaba anotado en `notas` desde la restauración, así
+que la reversión es exacta, no una suposición), y el archivo original reemplaza al recapturado
+en `data/L0_raw/`. `tamano_bytes` no requirió cambio: ya coincidía. Las notas de cada fila NO se
+borraron — se les agregó la corrección al final, con el `sha256` original citado.
+
+**Las otras 6 filas** (`ITCER`, `BALANZA_COMERCIAL`, `INDICES_PRECIOS_COMERCIO_EXTERIOR`,
+`GOBIERNO_CENTRAL_CONSOLIDADO`, `PANORAMA_SOCIEDADES_DEPOSITO`, `SPNF_VIGENTE`) nunca se habían
+tocado — seguían con su `sha256` histórico intacto — y coinciden sin cambios.
+
+**Estado final: `scripts/verificar_l0_fisico.R` en esta máquina — 12 PASS / 0 FAIL** sobre las
+12 filas del lote BCR (el resto de las 42 AUSENTE son archivos de otras fuentes que esta
+máquina nunca tuvo localmente, no una regresión). `check_l0_integrity.R`: OK, 54 vintages
+consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-26 están
+íntegros y coinciden con lo registrado.

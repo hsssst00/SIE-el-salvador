@@ -298,3 +298,26 @@ el del archivo recapturado y deja el histórico en `notas`. Si más adelante apa
 el artefacto que efectivamente se archivó, y es el único que hace verdadera la columna de
 integridad tal como se escribió el día de la captura. Un recapturado con `sha256_norm` idéntico
 prueba que el *contenido* es el mismo, que es una afirmación más débil.
+
+### Cierre de B1 — los 12 originales aparecieron, se revierte la restauración parcial (2026-09-07)
+
+La enmienda del 2026-09-04 dejó abierta la comprobación pendiente en la máquina de Harold sin
+acceso en ese momento. Verificado: los 12 archivos del lote del 2026-08-26 estaban ahí,
+coincidiendo en `sha256` y `tamano_bytes` con el manifiesto anterior a toda esta remediación.
+Ninguno se había perdido — la restauración por recaptura del 2026-08-30 fue una respuesta a un
+diagnóstico prematuro, no a una pérdida real.
+
+**Corrección aplicada.** Las 6 filas que la recaptura había "restaurado" (`sha256` reemplazado
+por el del archivo recapturado) se revirtieron a su `sha256` original, recuperado de la propia
+nota que la restauración había dejado. El archivo original reemplaza al recapturado en
+`data/L0_raw/`. Las otras 6 filas —las que la recaptura del 2026-08-30 ya había marcado
+irrecuperables desde el portal— no requerían corrección: seguían con su valor histórico intacto,
+y el hallazgo de esta sesión confirma que ese valor es correcto.
+
+**Lección, además de la ya asentada en la enmienda del 2026-09-04.** El costo de tratar "no
+recuperable desde una vía" como "perdido" no es solo epistémico: en este caso produjo una
+reescritura de checksum sobre seis archivos que nunca habían dejado de existir. La regla que
+queda de esto, para cualquier incidente futuro de L0 aparentemente ausente: agotar las vías de
+recuperación conocidas —incluida la más simple, preguntar dónde más pudo haber quedado una
+copia— antes de recapturar y reescribir un checksum. Recapturar es la vía de último recurso, no
+la primera.
