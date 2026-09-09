@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico clean master eval report validate test
+.PHONY: setup raw raw-api raw-plan raw-fisico clean master eval report validate test audit
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -51,6 +51,11 @@ report:
 
 test:
 	Rscript -e 'testthat::test_dir("tests")'
+
+# Factsheet de orientación pre-auditoría: conteos, integridad referencial,
+# L0, ADR, auditorías, claves y licencias. No es validación — no detiene nada.
+audit:
+	Rscript scripts/auditoria_mecanica.R
 
 clean:
 	rm -rf data/L1_staging/* data/L2_validated/* data/L3_master/* data/L4_experiments/*
