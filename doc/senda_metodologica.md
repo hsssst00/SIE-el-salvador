@@ -377,9 +377,10 @@ segunda, con esta lectura:
   Su verde total solo existe en la ventana breve posterior a una captura; exigirlo como
   condición de cierre obligaría a perseguir un blanco móvil en cada re-verificación.
 - **Fase 2 cierra cuando** `make raw` corre de punta a punta sin pasos manuales sobre una
-  máquina con L0 materializada completa, los dos checks offline pasan en verde, y toda entrada
-  `CAMBIO`/`ERROR` del monitor en vivo queda triada y registrada (vintage nuevo → backlog de
-  captura; `ERROR` → causa identificada).
+  máquina con L0 materializada completa y sale 0: los dos checks offline en verde, cero `ERROR`
+  en el monitor en vivo, y cada `CAMBIO` anotado en `doc/backlog_captura_vintages.md` como
+  vintage nuevo por capturar. Un `ERROR` aborta `make raw` y hay que resolverlo antes de
+  cerrar; un `CAMBIO` no aborta —es la señal de captura prospectiva— pero se registra.
 
 Esto resuelve el hallazgo A1 de la auditoría de Fase 2
 (`doc/auditorias/auditoria_fase2_SIE-el-salvador.md`), que dejaba el cierre "a una corrida de

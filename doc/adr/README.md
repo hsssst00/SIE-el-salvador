@@ -180,20 +180,28 @@ una captura.
 - `scripts/verificar_l0_fisico.R`: **54 PASS / 0 FAIL / 0 AUSENTE**, salida 0.
 - `scripts/check_l0_integrity.R`: OK, 54 vintages consistentes, salida 0.
 - `testthat::test_dir("tests")`: **556 PASS / 0 FAIL**.
-- `make raw-api` (rama de API, sin navegador): BM 2/2 PASS; `FMI.BOP`, `FMI.QNEA` PASS;
-  `FMI.PCPS.PALLFNF/PFOOD/POILAPSP` → `CAMBIO` (vintage mensual nuevo, asentado en
-  `doc/backlog_captura_vintages.md`); FRED → `ERROR` por `FRED_API_KEY` sin configurar en esa
-  corrida (artefacto de entorno, no de la fuente).
+- `make raw-api` (rama de API, sin navegador): **7 PASS / 5 `CAMBIO` / 0 `ERROR`, salida 0**.
+  PASS: BM ×2, `FMI.BOP`, `FMI.QNEA`, `FRED.BEA_PIB_EEUU`, `FRED.CPIAUCSL`, `FRED.INDPRO`.
+  `CAMBIO`: `FMI.PCPS.PALLFNF/PFOOD/POILAPSP`, `FRED.PAYEMS`, `FRED.UNRATE` — vintages mensuales
+  nuevos, en `doc/backlog_captura_vintages.md`.
+- Corrida completa de `make raw` (Harold, interactiva, 2026-09-09): **54/54 offline, 15
+  `CAMBIO`, 0 `ERROR`** — las 15 son series mensuales con un mes nuevo publicado; ver el
+  desglose y la confirmación por lo que *no* cambió en `doc/backlog_captura_vintages.md`.
+
+**Cambio de comportamiento aplicado en este período (decisión de Harold, 2026-09-09).**
+`scripts/verificar_l0.R` dejó de abortar ante un `CAMBIO`: lo reporta con un bloque para el
+backlog y `make raw` sale 0 si los checks offline pasan y no hubo `ERROR`. Solo `ERROR` es
+fatal. Sin esto, la vía "verifica su integridad" sería inalcanzable como estado estable (habría
+que recapturar cada serie mensual y correr `make raw` antes de que se moviera la siguiente).
+Registrado en ADR-007, nota del 2026-09-09.
 
 **Lo que falta para certificar:**
 
-1. Una corrida completa de `make raw` (incluye los 16 renders headless del BCR) sobre la
-   máquina con L0 completa y `FRED_API_KEY` configurada, sin pasos manuales.
-2. Triaje y registro en `doc/backlog_captura_vintages.md` de cada `CAMBIO`/`ERROR` que esa
-   corrida reporte.
-3. Herramienta nueva de este período, sin abrir ninguna decisión D1–D9:
+1. Una corrida completa de `make raw` **capturada como evidencia** (salida guardada), sobre la
+   máquina con L0 completa y `FRED_API_KEY` configurada, con salida 0.
+2. Herramienta nueva de este período, sin abrir ninguna decisión D1–D9:
    `scripts/materializar_l0.R` + `make materializar-l0` — repuebla `data/L0_raw/` desde un
    almacén canónico local (copia de trabajo de un repo **privado** de L0; un repo privado no
    redistribuye, así que no toca ADR-008). Verificada por round-trip el 2026-09-09.
-4. CI en verde sobre el commit de cierre; luego tag `v0.5.0-fase2` sobre el commit que ya
+3. CI en verde sobre el commit de cierre; luego tag `v0.5.0-fase2` sobre el commit que ya
    contenga esta certificación finalizada y la nota de senda §4.

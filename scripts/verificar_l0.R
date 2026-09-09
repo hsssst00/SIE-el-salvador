@@ -2,11 +2,25 @@
 # Motor de `make raw` (Fase 2, Decision 1b - 2026-08-25): VERIFICACION, no captura.
 # Re-pide cada publicacion a su fuente, recalcula sha256_norm y lo compara contra el
 # manifiesto. NO agrega vintages: la captura de un vintage nuevo es un acto deliberado y
-# fechado via descargar_*() (ADR-007). Falla de forma visible (regla 6 de CLAUDE.md) si la
-# fuente difiere de lo registrado en L0.
+# fechado via descargar_*() (ADR-007).
+#
+# QUE ABORTA Y QUE NO (lectura de cierre de Fase 2, senda S4, nota del 2026-09-09; ADR-007,
+# nota del 2026-09-09):
+#   - ERROR  -> la fuente no respondio o respondio algo que no se pudo procesar. Es un fallo
+#              de verificacion: stop() visible (regla 6 de CLAUDE.md), sale != 0.
+#   - CAMBIO -> la fuente re-pidio bien pero su sha256_norm difiere del registrado: hay un
+#              vintage nuevo. NO es un defecto de L0 -el archivo archivado sigue siendo el
+#              vintage que era- sino la senal de captura prospectiva que ADR-007 declara
+#              compromiso firme. Se reporta fuerte, con un bloque para doc/backlog_captura_
+#              vintages.md, y NO aborta: `make raw` sale 0 si offline paso y no hubo ERROR.
+#   - PASS   -> la fuente sigue sirviendo el mismo vintage.
+# Este script es un MONITOR DE DERIVA, no el certificador de integridad de L0: eso lo hacen
+# los dos checks offline de abajo.
 #
 # Cubre la rama de VERIFICACION del criterio de cierre de Fase 2 (senda S4: "make raw
-# reconstruye la capa L0 desde cero O verifica su integridad, sin pasos manuales").
+# reconstruye la capa L0 desde cero O verifica su integridad, sin pasos manuales"): `make
+# raw` en verde = L0 integra en disco (verificar_l0_fisico.R) + toda fuente en vivo o
+# coincide o tiene su vintage nuevo listado para capturar.
 #
 # COBERTURA (corregida 2026-08-28, hallazgo A1 de la auditoria de Fase 2). Hasta esa fecha
 # este script verificaba 3 publicaciones de una lista fija y cerraba con un "3/3 PASS"
@@ -182,23 +196,30 @@ n_pass   <- sum(resultados$estado == "PASS")
 n_cambio <- sum(resultados$estado == "CAMBIO")
 n_error  <- sum(resultados$estado == "ERROR")
 
+if (n_cambio > 0) {
+  hoy <- format(Sys.Date())
+  message("\n== ", n_cambio, " CAMBIO: vintage nuevo en la fuente, por capturar ==")
+  message("No es un defecto de L0. Registrar en doc/backlog_captura_vintages.md y capturar ",
+          "deliberadamente con descargar_*() al ritmo de publicacion de la fuente (regla 9). ",
+          "Bloque para el backlog:\n")
+  for (pid in resultados$publicacion_id[resultados$estado == "CAMBIO"]) {
+    fila <- resultados[resultados$publicacion_id == pid, ]
+    message("| `", pid, "` | ", hoy, " | `CAMBIO` | ", fila$detalle, " | Pendiente de captura | — |")
+  }
+}
+
 if (n_error > 0) {
   stop("FALLO VISIBLE: ", n_error, " publicacion(es) no se pudieron re-pedir: ",
        paste(resultados$publicacion_id[resultados$estado == "ERROR"], collapse = ", "),
-       ". No es lo mismo que 'cambio': la fuente no respondio o respondio algo inesperado. ",
+       ". No es lo mismo que 'CAMBIO': la fuente no respondio o respondio algo inesperado. ",
        "Ver el detalle arriba antes de concluir nada sobre L0.")
 }
 
-if (n_cambio > 0) {
-  stop("FALLO VISIBLE: ", n_cambio, " publicacion(es) con sha256_norm distinto del ",
-       "registrado en L0: ",
-       paste(resultados$publicacion_id[resultados$estado == "CAMBIO"], collapse = ", "),
-       ". La fuente cambio respecto del vintage registrado. Si es un vintage nuevo ",
-       "legitimo, capturarlo deliberadamente con la funcion descargar_*() correspondiente ",
-       "pasando la fecha de publicacion correcta - NO desde make raw (Decision 1b, ADR-007).")
-}
-
-message("\nOK: L0 integra frente a la fuente - ", n_pass, "/", nrow(trabajo), " PASS",
-        if (.ALCANCE != "todo") paste0(" (alcance parcial '", .ALCANCE,
-                                        "': el criterio de cierre de Fase 2 exige la corrida completa)") else "",
-        ".")
+message("\nOK verificar-l0: ", n_pass, " PASS, ", n_cambio, " CAMBIO, 0 ERROR (de ",
+        nrow(trabajo), " en vivo",
+        if (.ALCANCE != "todo") paste0("; alcance parcial '", .ALCANCE,
+                                        "', el criterio de cierre de Fase 2 exige la corrida completa") else "",
+        "). ",
+        if (n_cambio > 0) paste0(n_cambio, " vintage(s) nuevo(s) por registrar en el backlog; ")
+        else "",
+        "L0 integra frente a la fuente en lo que no cambio.")

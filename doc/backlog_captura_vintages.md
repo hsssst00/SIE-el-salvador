@@ -10,7 +10,9 @@ Fase 3 y más allá, al ritmo real de publicación de cada fuente.
 ## Reglas
 
 - Un `CAMBIO` significa que la fuente publicó un vintage nuevo. **No es un defecto de L0** — el
-  archivo archivado sigue siendo el vintage que era (ver ADR-007, nota del 2026-09-09).
+  archivo archivado sigue siendo el vintage que era (ver ADR-007, nota del 2026-09-09). Desde el
+  2026-09-09 `verificar_l0.R` no aborta ante un `CAMBIO`: lo reporta y `make raw` sale 0. Solo un
+  `ERROR` hace fallar `make raw`.
 - Capturar una entrada pendiente es un acto deliberado vía `descargar_*()` de
   `src/adquisicion/`, al ritmo de publicación de la fuente (trimestral para el PIB, mensual
   para la mayoría del BCR y los índices de precios de commodities del FMI, etc.). **Nunca en
@@ -26,23 +28,55 @@ Fase 3 y más allá, al ritmo real de publicación de cada fuente.
 
 ## Entradas
 
-| Publicación | Detectado | Estado del monitor | `sha256_norm` registrado → observado | Acción | Capturado |
-|---|---|---|---|---|---|
-| `FMI.PCPS.PALLFNF` | 2026-09-09 | `CAMBIO` | `6d64a2cf…2724128f` → `f38ef529…3b02628b` | Pendiente de captura | — |
-| `FMI.PCPS.PFOOD` | 2026-09-09 | `CAMBIO` | `0a5e5018…f8ac2ce9` → `cb0472cf…923cc536` | Pendiente de captura | — |
-| `FMI.PCPS.POILAPSP` | 2026-09-09 | `CAMBIO` | `a87c6118…b29702f3` → `04d0f81b…ca03b7cc2` | Pendiente de captura | — |
+15 `CAMBIO` detectados en la primera corrida completa de `make raw` bajo la semántica de
+Opción B (máquina de Harold, L0 completa, 2026-09-09). Captura original entre el 2026-08-25 y
+el 2026-08-28. Todas son series de **frecuencia mensual** con un mes nuevo publicado en las ~2
+semanas transcurridas — cero sorpresas (ver nota de grupo abajo).
 
-### Notas por entrada
+| Publicación | Detectado | Estado | Acción | Capturado |
+|---|---|---|---|---|
+| `BCR.BALANZA_COMERCIAL` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.ISI` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.ITCER` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.IVAE.VIGENTE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.PANORAMA_BANCO_CENTRAL` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.RESERVAS_INTERNACIONALES_NETAS` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.SPNF_VIGENTE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `FRED.PAYEMS` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `FRED.UNRATE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `FMI.PCPS.PALLFNF` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `FMI.PCPS.PFOOD` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `FMI.PCPS.POILAPSP` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
 
-**`FMI.PCPS.*` — 3 series de precios de commodities (2026-09-09).** Detectadas en una corrida de
-`make raw-api` el 2026-09-09; captura original 2026-08-28. Las tres son índices de precios de
-actualización mensual (`PALLFNF` = todos los productos primarios sin combustibles, `PFOOD` =
-alimentos, `POILAPSP` = petróleo, promedio spot). Un vintage nuevo mensual es el comportamiento
-esperado de la fuente. `FMI.BOP` y `FMI.QNEA`, capturadas el mismo día, siguieron en `PASS`.
-Pendiente: confirmar en la corrida completa de `make raw` (máquina con L0 completa) y capturar
-el vintage de septiembre de las tres.
+El `sha256_norm` observado de cada uno queda en la salida de la corrida; el valor definitivo
+del vintage nuevo lo escribe `registrar_descarga()` en `manifiesto.csv` / `08_vintages.csv` al
+capturarlo. `sha256_norm` observado el 2026-09-09 (registrado → observado, en corto):
 
-**FRED — `ERROR` en la corrida del 2026-09-09, no concluyente.** Las 5 publicaciones de FRED
-dieron `ERROR` ("`FRED_API_KEY` no está definida") porque la máquina donde se corrió no tiene
-`.Renviron` configurado. No es un `ERROR` de la fuente: es un artefacto del entorno. Se
-re-verifica en la corrida completa de `make raw` sobre la máquina con la clave configurada.
+- `FMI.PCPS.PALLFNF`  `6d64a2cf…` → `f38ef529…`
+- `FMI.PCPS.PFOOD`    `0a5e5018…` → `cb0472cf…`
+- `FMI.PCPS.POILAPSP` `a87c6118…` → `04d0f81b…`
+- `FRED.PAYEMS`       `68dea9ce…` → `9d759f6b…`
+- `FRED.UNRATE`       `3c730395…` → `5de16554…`
+
+(las 10 del BCR: el `sha256_norm` observado quedó en la salida de la corrida completa de
+Harold; se fija al capturar cada una.)
+
+### Notas por grupo
+
+**Las 15, en conjunto (2026-09-09).** Todas mensuales; el corte de captura fue 25–28 de agosto y
+la corrida de verificación 9 de septiembre, con un mes de publicación de por medio. Lo que **no**
+cambió lo confirma: `BCR.PIB_T.*` (NSA/SA/NOMINAL) y `BCR.BALANZA_PAGOS_TRIMESTRAL` son
+trimestrales sin trimestre nuevo; `BCR.IPI.VIGENTE`, `BCR.IPP`, `FRED.INDPRO`, `FRED.CPIAUCSL`,
+`FRED.BEA_PIB_EEUU`, `BM.WDI.*`, `FMI.BOP`, `FMI.QNEA` son o trimestrales o mensuales cuya
+próxima publicación aún no salió. Ninguna serie tiene fila en `03_series.csv` todavía (son de
+las 25 publicaciones capturadas sin catalogar, hallazgo L6 de la auditoría de Fase 2), así que
+ningún `CAMBIO` de esta tanda toca una variable ya admitida al proyecto.
+
+**Ritmo de captura.** No hay urgencia de capturarlas todas de una: el BCR es la única fuente
+donde un vintage no capturado es irrecuperable (ADR-007), y aun ahí la política es capturar al
+ritmo de publicación, no en respuesta inmediata a cada `CAMBIO`. FRED y FMI son recuperables a
+demanda. Se capturan cuando se catalogue una serie suya (Fase 3) o en la próxima ventana de
+captura prospectiva, lo que ocurra primero.

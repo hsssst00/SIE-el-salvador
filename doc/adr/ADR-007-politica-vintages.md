@@ -353,12 +353,26 @@ entrada nueva en `doc/backlog_captura_vintages.md`; capturarla es un acto delibe
 `descargar_*()`, al ritmo real de publicación de la fuente y nunca en bucle (regla 9 de
 `CLAUDE.md`).
 
+**Cambio de comportamiento del script (2026-09-09, decisión de Harold).** Hasta este commit
+`verificar_l0.R` hacía `stop()` ante cualquier `CAMBIO` — semántica coherente con la lectura
+pre-Opción-B, en la que `make raw` era una compuerta y un `CAMBIO` un fallo. Bajo la lectura de
+cierre de Fase 2 fijada hoy, eso obligaría a recapturar cada serie mensual y correr `make raw`
+dentro de la ventana breve antes de que se moviera la siguiente — un blanco móvil. Desde ahora:
+**`CAMBIO` se reporta de forma prominente (con un bloque copiable para el backlog) y NO aborta;
+solo `ERROR` es fatal.** `make raw` sale 0 cuando los checks offline pasan y no hubo `ERROR`. La
+primera corrida completa bajo esta semántica (máquina de Harold, 2026-09-09) dio 54/54 offline,
+**15 `CAMBIO`** —todas series de frecuencia mensual con un mes nuevo publicado en las ~2 semanas
+desde la captura— y **0 `ERROR`**. Esto refina la Decisión 1b del 2026-08-25 (que definía
+`verificar_l0.R` como "verificación, no captura"): sigue sin capturar nada, pero ya no confunde
+"la fuente avanzó" con "L0 está rota".
+
 **El backlog (`doc/backlog_captura_vintages.md`).** Registra cada `CAMBIO`/`ERROR` observado, su
 fecha de detección, y si ya se capturó o sigue pendiente. No es un entregable de Fase 2 más: es
 el registro operativo permanente de la captura prospectiva, y sigue vivo en Fase 3 y más allá.
 Que una entrada quede pendiente un tiempo no bloquea nada — bloquear sería capturar en bucle,
 que es lo que la regla 9 prohíbe.
 
-**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. `verificar_l0.R` ya
-funcionaba así desde el hallazgo A1 de la auditoría de Fase 2; lo que se registra ahora es su
-lectura conceptual y el hecho de que un `CAMBIO` es trabajo de captura, no un fallo a corregir.
+**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. El eje bitemporal, el
+compromiso de captura prospectiva y la inmutabilidad de L0 quedan como están; lo que se ajusta
+es la reacción de una herramienta de monitoreo ante un evento (vintage nuevo) que el propio ADR
+declara esperado y deseado.
