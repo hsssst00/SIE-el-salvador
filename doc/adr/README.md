@@ -143,3 +143,19 @@ el run de CI sobre el commit de cierre queda en verde antes de tagear.
 **Tag: `v0.4.0-fase1`,** sobre el commit que ya contiene esta certificación y la nota
 de cierre de la senda §4 — nunca antes, para no repetir la corrección de alcance de
 tag que hubo que hacer en Fase 0. El tag certifica el estado completo y propagado.
+
+## Sprint de automatización — Fase 1/2  (2026-09-03 al 2026-09-09)
+
+Tres guards y herramientas de automatización añadidos en este período, sin abrir
+ninguna decisión D1–D9 ni modificar ADR existentes:
+
+- `tests/test-adr-indice.R` (commit `7dfcd38`): guard CI contra deriva de
+  propagación ADR → índice. Implementa la regla ya escrita en este índice
+  ("en Fase 3 corresponde un test_that() que lo compruebe automáticamente").
+- `tests/test-integridad-referencial.R` (commit `330a7d1`): guard CI de
+  integridad referencial entre catálogos. Adelanto de Fase 3 por decisión de
+  Harold; reemplazable por pointblank sin deuda.
+- `scripts/auditoria_mecanica.R` + `make audit` (commit `b73c7b5`): factsheet
+  de orientación pre-auditoría. Herramienta de Harold, no parte del pipeline.
+
+Próxima ronda de automatización: validación pointblank de catálogos en Fase 3.

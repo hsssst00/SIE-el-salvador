@@ -50,6 +50,12 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 —inventario del ecosiste
 
 Ver `Makefile`. Objetivos previstos: `make raw | clean | master | eval | report`. Muchos aún no tienen script detrás — no lo inventes de una vez; impleméntalo cuando la fase correspondiente lo requiera, conforme al orden de fases de la senda metodológica (§4).
 
+`make audit` — factsheet de orientación pre-auditoría (`scripts/auditoria_mecanica.R`):
+conteos de catálogo, integridad referencial cuantitativa, L0/vintages, ADR,
+auditorías, claves canónicas YAML y snapshot de licencias. No es validación — no
+detiene nada. Correr antes de una auditoría o tras cambios sustanciales en
+catálogos.
+
 ## Stack (ADR-009)
 
 R vía `renv`. `renv.lock` está fijado (187 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (20 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`, `chromote`, `jsonlite`, `digest`, `polite`, `readxl`.
@@ -59,3 +65,13 @@ R vía `renv`. `renv.lock` está fijado (187 paquetes) y verificado en CI sobre 
 ## Orden de fases (no te lo saltes)
 
 Fase 0 → 1 (inventario) → 2 (adquisición) → 3 (normalización/validación) → 4 (protocolo de evaluación, probado con datos sintéticos **antes** de estimar nada) → 5 (estimación) → 6 (proyección condicional) → 7 (publicación). El criterio de cierre de cada fase está en la senda metodológica §4. No implementes estimación de modelos (Fase 5) antes de que el motor de evaluación de Fase 4 esté probado — es la regla más importante del documento.
+
+## Guards de CI activos
+
+`tests/test-adr-indice.R` — celda Estado del índice de ADR debe ser copia literal
+de la línea `**Estado:**` del ADR correspondiente. Falla ante cualquier enmienda
+que no se propague al índice.
+
+`tests/test-integridad-referencial.R` — 7 aristas FK entre catálogos. Adelanto
+de la validación pointblank de Fase 3 (decisión de Harold, 2026-09-03); cuando
+Fase 3 implemente esa validación, este test puede subsumirse sin deuda.
