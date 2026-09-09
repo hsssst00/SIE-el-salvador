@@ -28,10 +28,11 @@ Fase 3 y más allá, al ritmo real de publicación de cada fuente.
 
 ## Entradas
 
-15 `CAMBIO` detectados en la primera corrida completa de `make raw` bajo la semántica de
-Opción B (máquina de Harold, L0 completa, 2026-09-09). Captura original entre el 2026-08-25 y
-el 2026-08-28. Todas son series de **frecuencia mensual** con un mes nuevo publicado en las ~2
-semanas transcurridas — cero sorpresas (ver nota de grupo abajo).
+15 `CAMBIO` detectados en la corrida completa de `make raw` que certificó el cierre de Fase 2
+(máquina de Harold, L0 completa, 2026-09-09; salida en `doc/evidencia_cierre_fase2.txt`).
+Captura original entre el 2026-08-25 y el 2026-08-28. Todas son series de **frecuencia
+mensual** con un mes nuevo publicado en las ~2 semanas transcurridas — cero sorpresas (ver
+nota de grupo abajo). El set coincide exactamente con el de la corrida previa del mismo día.
 
 | Publicación | Detectado | Estado | Acción | Capturado |
 |---|---|---|---|---|
@@ -51,18 +52,25 @@ semanas transcurridas — cero sorpresas (ver nota de grupo abajo).
 | `FMI.PCPS.PFOOD` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
 | `FMI.PCPS.POILAPSP` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
 
-El `sha256_norm` observado de cada uno queda en la salida de la corrida; el valor definitivo
-del vintage nuevo lo escribe `registrar_descarga()` en `manifiesto.csv` / `08_vintages.csv` al
-capturarlo. `sha256_norm` observado el 2026-09-09 (registrado → observado, en corto):
+El valor definitivo del vintage nuevo lo escribe `registrar_descarga()` en `manifiesto.csv` /
+`08_vintages.csv` al capturarlo. `sha256_norm` **registrado → observado el 2026-09-09**
+(prefijos; el detalle completo está en `doc/evidencia_cierre_fase2.txt`):
 
-- `FMI.PCPS.PALLFNF`  `6d64a2cf…` → `f38ef529…`
-- `FMI.PCPS.PFOOD`    `0a5e5018…` → `cb0472cf…`
-- `FMI.PCPS.POILAPSP` `a87c6118…` → `04d0f81b…`
-- `FRED.PAYEMS`       `68dea9ce…` → `9d759f6b…`
-- `FRED.UNRATE`       `3c730395…` → `5de16554…`
-
-(las 10 del BCR: el `sha256_norm` observado quedó en la salida de la corrida completa de
-Harold; se fija al capturar cada una.)
+- `BCR.BALANZA_COMERCIAL`                `47d26c43…` → `94cb9e0e…`
+- `BCR.GOBIERNO_CENTRAL_CONSOLIDADO`     `90269076…` → `8ac40917…`
+- `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` `012a9fcc…` → `0b697ddc…`
+- `BCR.ISI`                              `8a98a0fa…` → `65386e49…`
+- `BCR.ITCER`                            `34ce75cf…` → `5569f982…`
+- `BCR.IVAE.VIGENTE`                     `72a6766f…` → `94159781…`
+- `BCR.PANORAMA_BANCO_CENTRAL`           `4582fc9a…` → `19013c44…`
+- `BCR.PANORAMA_SOCIEDADES_DEPOSITO`     `97b8daa0…` → `abd5f270…`
+- `BCR.RESERVAS_INTERNACIONALES_NETAS`   `078ecdcd…` → `76502a0c…`
+- `BCR.SPNF_VIGENTE`                     `925d2ecf…` → `5d713308…`
+- `FRED.PAYEMS`                          `68dea9ce…` → `9d759f6b…`
+- `FRED.UNRATE`                          `3c730395…` → `5de16554…`
+- `FMI.PCPS.PALLFNF`                     `6d64a2cf…` → `f38ef529…`
+- `FMI.PCPS.PFOOD`                       `0a5e5018…` → `cb0472cf…`
+- `FMI.PCPS.POILAPSP`                    `a87c6118…` → `04d0f81b…`
 
 ### Notas por grupo
 

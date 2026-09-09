@@ -160,48 +160,54 @@ ninguna decisión D1–D9 ni modificar ADR existentes:
 
 Próxima ronda de automatización: validación pointblank de catálogos en Fase 3.
 
-## Cierre de Fase 2 — en curso (2026-09-09)
+## Cierre de Fase 2 (2026-09-09)
 
-**Aún no certificado.** Esta sección registra la decisión de cómo se cierra y el estado del
-pendiente; se finaliza cuando la evidencia esté completa y con CI en verde, nunca antes (misma
-disciplina que la corrección de alcance de tag de Fase 0).
+**Criterio de cierre de Fase 2 (senda metodológica §4): SATISFECHO,** por la vía "verifica su
+integridad" del criterio ("`make raw` reconstruye la capa L0 desde cero *o* verifica su
+integridad, sin pasos manuales"), con la lectura fijada en la nota de cierre de Fase 2 de la
+senda (v0.5, 2026-09-09).
 
-**Decisión de Harold (2026-09-09): se cierra por la vía "verifica su integridad" del criterio
-de senda §4, con la lectura fijada en la nota de cierre de Fase 2 de ese documento (v0.5).** La
-integridad de L0 la certifican los dos checks offline —`verificar_l0_fisico.R` y
-`check_l0_integrity.R`, ambos parte de `make raw`—; `verificar_l0.R` en vivo es un monitor de
-deriva (ADR-007, nota del 2026-09-09) cuyo verde total es transitorio y no es compuerta de
-cierre. Esto resuelve el hallazgo A1 de la auditoría de Fase 2, que fijaba el cierre "a una
-corrida de distancia" sin advertir que esa corrida solo da verde total en la ventana breve tras
-una captura.
+**La lectura, en breve.** La integridad de L0 —regla 1, L0 inmutable— la certifican los dos
+checks offline, ambos parte de `make raw`: `verificar_l0_fisico.R` (el archivo en disco es byte
+a byte el registrado) y `check_l0_integrity.R` (`manifiesto.csv` ↔ `08_vintages.csv`).
+`verificar_l0.R` en vivo es un monitor de deriva (ADR-007, nota del 2026-09-09): un `CAMBIO` es
+un vintage nuevo por capturar, no un defecto de L0, y desde el 2026-09-09 no aborta `make raw`
+—solo `ERROR` lo hace—. Esto resuelve el hallazgo A1 de la auditoría de Fase 2, que fijaba el
+cierre "a una corrida de distancia" sin advertir que el verde total en vivo solo existe en la
+ventana breve tras una captura.
 
-**Evidencia ya reunida (máquina de Harold, L0 completa materializada, 2026-09-09):**
+**Evidencia (máquina de Harold, L0 completa materializada, `FRED_API_KEY` configurada,
+2026-09-09):**
 
 - `scripts/verificar_l0_fisico.R`: **54 PASS / 0 FAIL / 0 AUSENTE**, salida 0.
 - `scripts/check_l0_integrity.R`: OK, 54 vintages consistentes, salida 0.
 - `testthat::test_dir("tests")`: **556 PASS / 0 FAIL**.
-- `make raw-api` (rama de API, sin navegador): **7 PASS / 5 `CAMBIO` / 0 `ERROR`, salida 0**.
-  PASS: BM ×2, `FMI.BOP`, `FMI.QNEA`, `FRED.BEA_PIB_EEUU`, `FRED.CPIAUCSL`, `FRED.INDPRO`.
-  `CAMBIO`: `FMI.PCPS.PALLFNF/PFOOD/POILAPSP`, `FRED.PAYEMS`, `FRED.UNRATE` — vintages mensuales
-  nuevos, en `doc/backlog_captura_vintages.md`.
-- Corrida completa de `make raw` (Harold, interactiva, 2026-09-09): **54/54 offline, 15
-  `CAMBIO`, 0 `ERROR`** — las 15 son series mensuales con un mes nuevo publicado; ver el
-  desglose y la confirmación por lo que *no* cambió en `doc/backlog_captura_vintages.md`.
+- **Corrida completa de `make raw`** (los 16 renders headless del BCR incluidos): **54/54
+  offline → 13 PASS / 15 `CAMBIO` / 0 `ERROR` en vivo (de 28 publicaciones; 2 excluidas por
+  diseño) → salida 0.** Salida guardada en `doc/evidencia_cierre_fase2.txt` — `make raw` no
+  corre en CI (el navegador headless sale a la red; ADR-008 mantiene los `.xlsx` en
+  `.gitignore`), así que ese archivo es su única evidencia, mismo patrón que
+  `doc/bitacora_verificaciones.md`.
+- Los 15 `CAMBIO` son series de frecuencia mensual con un mes nuevo publicado en las ~2 semanas
+  desde la captura; ninguna tiene fila en `03_series.csv`. Desglose, triaje y `sha256_norm`
+  observados en `doc/backlog_captura_vintages.md`.
 
-**Cambio de comportamiento aplicado en este período (decisión de Harold, 2026-09-09).**
-`scripts/verificar_l0.R` dejó de abortar ante un `CAMBIO`: lo reporta con un bloque para el
-backlog y `make raw` sale 0 si los checks offline pasan y no hubo `ERROR`. Solo `ERROR` es
-fatal. Sin esto, la vía "verifica su integridad" sería inalcanzable como estado estable (habría
-que recapturar cada serie mensual y correr `make raw` antes de que se moviera la siguiente).
-Registrado en ADR-007, nota del 2026-09-09.
+**Cambios de este período, sin abrir ninguna decisión D1–D9:**
 
-**Lo que falta para certificar:**
+- `scripts/verificar_l0.R`: `CAMBIO` dejó de ser fatal (decisión de Harold, 2026-09-09; ADR-007,
+  nota del 2026-09-09). Sin esto la vía "verifica su integridad" sería inalcanzable como estado
+  estable.
+- `scripts/materializar_l0.R` + `make materializar-l0`: repuebla `data/L0_raw/` en una máquina
+  nueva desde un almacén canónico local (copia de trabajo de un repo **privado** de L0; un repo
+  privado no redistribuye, no toca ADR-008). Verificada por round-trip.
+- `doc/backlog_captura_vintages.md`: registro operativo permanente de la captura prospectiva
+  (no un entregable que se cierre; sigue vivo en Fase 3 y más allá).
 
-1. Una corrida completa de `make raw` **capturada como evidencia** (salida guardada), sobre la
-   máquina con L0 completa y `FRED_API_KEY` configurada, con salida 0.
-2. Herramienta nueva de este período, sin abrir ninguna decisión D1–D9:
-   `scripts/materializar_l0.R` + `make materializar-l0` — repuebla `data/L0_raw/` desde un
-   almacén canónico local (copia de trabajo de un repo **privado** de L0; un repo privado no
-   redistribuye, así que no toca ADR-008). Verificada por round-trip el 2026-09-09.
-3. CI en verde sobre el commit de cierre; luego tag `v0.5.0-fase2` sobre el commit que ya
-   contenga esta certificación finalizada y la nota de senda §4.
+**Reproducibilidad.** El cierre se apoya en los checks offline (reproducibles en cualquier
+máquina con L0 materializada) y en el testthat que sí corre en CI. La rama en vivo de `make raw`
+es intrínsecamente no reproducible bit a bit (las fuentes publican); su evidencia es la salida
+guardada, no una corrida repetible.
+
+**Tag: `v0.5.0-fase2`,** sobre el commit que ya contiene esta certificación, la evidencia y la
+nota de senda §4 — nunca antes (misma disciplina que la corrección de alcance de tag de Fase 0).
+Confirmar que el run de CI sobre el commit de cierre queda en verde antes de tagear.

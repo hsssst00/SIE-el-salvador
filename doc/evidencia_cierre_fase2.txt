@@ -1,0 +1,66 @@
+EVIDENCIA DE CIERRE DE FASE 2 — corrida completa de `make raw`
+================================================================
+
+Máquina: la de Harold, con L0 materializada completa (54/54) y FRED_API_KEY
+         configurada en .Renviron.
+Fecha:   2026-09-09
+Commit:  ver el commit de cierre de Fase 2 (esta evidencia se agrega en él).
+Comando: make raw   -> scripts/verificar_l0_fisico.R ; scripts/verificar_l0.R
+Código de salida: 0
+
+`make raw` no corre en CI (el navegador headless del BCR sale a la red; ADR-008
+mantiene los .xlsx en .gitignore). Este archivo es su única evidencia, mismo
+patrón que doc/bitacora_verificaciones.md para verificar_fuente_celda.R.
+
+Bajo la lectura de cierre de Fase 2 (senda §4, nota del 2026-09-09; Opción B):
+la integridad de L0 la certifican los checks offline; `verificar_l0.R` en vivo
+es un monitor de deriva, y un CAMBIO es un vintage nuevo por capturar, no un
+defecto. `make raw` sale 0 si offline pasa y no hay ERROR.
+
+----------------------------------------------------------------
+PASO 1 — scripts/verificar_l0_fisico.R  (offline)
+----------------------------------------------------------------
+
+OK verificar-l0-fisico: 54/54 archivo(s) de L0 presentes, integros y del tamano declarado.
+
+----------------------------------------------------------------
+PASO 2 — scripts/verificar_l0.R  (en vivo, alcance: todo)
+----------------------------------------------------------------
+
+== 15 CAMBIO: vintage nuevo en la fuente, por capturar ==
+No es un defecto de L0. Registrar en doc/backlog_captura_vintages.md y capturar
+deliberadamente con descargar_*() al ritmo de publicacion de la fuente (regla 9).
+Bloque para el backlog:
+
+| `FMI.PCPS.PALLFNF` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 6d64a2cf62beffe3cbe95f5bcdc9b4de610baca4cad452bc905490182724128f, obtenido f38ef529d88f5ae2d79141626a4588ec6493ddf17fd263640b8a2f013b02628b | Pendiente de captura | — |
+| `FMI.PCPS.PFOOD` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 0a5e5018bf00d80c5ae66bcdd3168c5e4ec04e36d6b4e450bacd56a4f8ac2ce9, obtenido cb0472cfed4311186bceb51a778d478c24371fff9e559c236812d759923cc536 | Pendiente de captura | — |
+| `FMI.PCPS.POILAPSP` | 2026-09-09 | `CAMBIO` | sha256_norm esperado a87c61181f98bb5e2ec3bca0c278516cb85e4a5d5cf46e8d3e148605b29702f3, obtenido 04d0f81bd39d5ff66af7b5f1a6fc3770f647eb11fc1d7d4bf4608caca03b7cc2 | Pendiente de captura | — |
+| `FRED.PAYEMS` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 68dea9ce00252bb7494d645bcf7bf5fcd454a48d01c7ec387406b6ff6bfd2815, obtenido 9d759f6b850b74da7ca78e9c6625a974631cc3363491b1b3a194403454cc8e51 | Pendiente de captura | — |
+| `FRED.UNRATE` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 3c730395e89f4c283457644fe643249b87fcbbfce1ab822a9f6779c4077cdb61, obtenido 5de165542934d06d8b3a937f4e69fd36f0b11698fd617bdd05808ea29a5f7319 | Pendiente de captura | — |
+| `BCR.BALANZA_COMERCIAL` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 47d26c4364259118f602c5e20547351fc3d7619461bcdebc5b28ef11124256eb, obtenido 94cb9e0e145ad776869ec572e987b1c95cd3bfb253d4787800603549ee0445b7 | Pendiente de captura | — |
+| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 902690762490b83b52f2faaee22795b4b08ebcd45fc2a8dec585464e8537bfa3, obtenido 8ac40917a1ff23138f0625d972d933cb73307ce988ab13a645ba5349a3e7263c | Pendiente de captura | — |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 012a9fccb7e2c9c9dde2f85725dd43d29aede3255b40f77f7cde75bea04d1b55, obtenido 0b697ddc9e611a296c134240bd49d095a024adfa7a69ce81d43a3c516b6069c4 | Pendiente de captura | — |
+| `BCR.ISI` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 8a98a0fa1e209e4ca2d34f9b0f2862b9eac703ef3c0783bbea6765c850718413, obtenido 65386e4933c9faacc488ecfc1a650ddc795a3c77757ab104a8fc021384e128db | Pendiente de captura | — |
+| `BCR.ITCER` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 34ce75cfc365ec14502c937dd99622bcac16ff0b6e7a2bc80150ea9572d8f2cd, obtenido 5569f9822964ac444d002ff85c943c60283dc7654ea6a2a453b787b8211315dc | Pendiente de captura | — |
+| `BCR.IVAE.VIGENTE` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 72a6766f7683b8456535817d8b94c7e281cfc3af86aff253993c6069b0e8ace3, obtenido 94159781d730166f77e2d5c183dadaef0714f4d603a3c1a0a0a7eb824dc24976 | Pendiente de captura | — |
+| `BCR.PANORAMA_BANCO_CENTRAL` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 4582fc9ae0b5ed57a69e6ce17bb1ea99dcd460dce13b9655413dfa02260a56eb, obtenido 19013c44a6f6f3097d8595a16ec95b6c3eb039d6c5d96988f203a0a8aadcdda6 | Pendiente de captura | — |
+| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 97b8daa015430222730210bdf5f8d19c3c40c04aef8e60e1173d2d6db8cd8ab0, obtenido abd5f270cbb95418836cd04fab62225f39d859bbd8ee74ab0df0b7cdda12e383 | Pendiente de captura | — |
+| `BCR.RESERVAS_INTERNACIONALES_NETAS` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 078ecdcdef4c74a8c1a013a0964c74e7de1a03c11347602ec17facbc94baca71, obtenido 76502a0c627c8125a6cce543fa6cde6fda8b7fc64a204f5d6a424d446e08ce1f | Pendiente de captura | — |
+| `BCR.SPNF_VIGENTE` | 2026-09-09 | `CAMBIO` | sha256_norm esperado 925d2ecf46ea63b56fa958a26b9fcc11a94fcc50a9a5efd62f0b579977e2f976, obtenido 5d713308f2843d24e1a62e286427ef018d1cdd5235869c224f2663104394f39d | Pendiente de captura | — |
+
+OK verificar-l0: 13 PASS, 15 CAMBIO, 0 ERROR (de 28 en vivo). 15 vintage(s) nuevo(s) por registrar en el backlog; L0 integra frente a la fuente en lo que no cambio.
+
+----------------------------------------------------------------
+LECTURA
+----------------------------------------------------------------
+
+- 54/54 archivos de L0 en disco, integros (sha256 + tamano). L0 inmutable: OK.
+- 28 publicaciones verificadas en vivo (2 excluidas por diseno: la retropolada
+  estatica y UT por robots.txt). 13 PASS + 15 CAMBIO = 28. Sin huecos.
+- 0 ERROR: ninguna fuente dejo de responder ni respondio algo no procesable.
+- Los 15 CAMBIO son series de frecuencia mensual con un mes nuevo publicado en
+  las ~2 semanas desde la captura. Ninguna tiene fila en 03_series.csv todavia.
+  Detalle y triaje en doc/backlog_captura_vintages.md.
+- `make raw` salio 0.
+
+Criterio de cierre de Fase 2 (senda §4, via "verifica su integridad"): SATISFECHO.
