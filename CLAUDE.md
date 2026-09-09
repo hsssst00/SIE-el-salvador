@@ -56,6 +56,12 @@ auditorías, claves canónicas YAML y snapshot de licencias. No es validación �
 detiene nada. Correr antes de una auditoría o tras cambios sustanciales en
 catálogos.
 
+`make materializar-l0` — repuebla `data/L0_raw/` en una máquina nueva copiando los
+archivos que falten desde un almacén canónico local (`scripts/materializar_l0.R`;
+requiere `SIE_L0_STORE` apuntando a una copia de trabajo del repo **privado** de
+L0), y encadena `verificar_l0_fisico.R`. No descarga de ninguna fuente ni toca el
+manifiesto. Un repo privado no redistribuye: no toca ADR-008.
+
 ## Stack (ADR-009)
 
 R vía `renv`. `renv.lock` está fijado (187 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (20 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`, `chromote`, `jsonlite`, `digest`, `polite`, `readxl`.

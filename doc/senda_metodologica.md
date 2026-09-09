@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.4 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4)
+**Versión:** 0.5 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -17,6 +17,12 @@
   `01_publicaciones`) usada para certificar el cierre. El registro del cierre —con la evidencia
   de cobertura, trazabilidad y N— está en `doc/adr/README.md`, "Cierre de Fase 1". Sin otros
   cambios de contenido.
+- **0.5** (2026-09-09): añade a §4 la nota de cierre de Fase 2, que fija la lectura de la vía
+  "`make raw` … verifica su integridad" del criterio: la integridad de L0 la certifican los dos
+  checks offline (`verificar_l0_fisico.R`, `check_l0_integrity.R`), ambos parte de `make raw`;
+  `verificar_l0.R` en vivo es un monitor de deriva cuyo verde total es transitorio por diseño y
+  no es compuerta de cierre. Resuelve el hallazgo A1 de la auditoría de Fase 2. El registro del
+  cierre está en `doc/adr/README.md`, "Cierre de Fase 2". Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -352,6 +358,35 @@ Actividades: desarrollo de *scripts* de descarga por publicación; implementaci�
 Entregables: `src/adquisicion/` funcional; capa L0 poblada; catálogo `08` inicializado; bitácora de fuentes frágiles.
 
 **Criterio de cierre:** ejecutar `make raw` reconstruye la capa L0 desde cero o verifica su integridad, sin pasos manuales.
+
+**Nota de cierre — lectura de "verifica su integridad" (2026-09-09).** El criterio ofrece dos
+vías alternativas ("reconstruye … *o* verifica su integridad"). El proyecto cierra por la
+segunda, con esta lectura:
+
+- **La integridad de L0 la certifican los dos checks offline, ambos invocados por `make raw`:**
+  `scripts/verificar_l0_fisico.R` —cada fila del manifiesto tiene su archivo en disco, byte a
+  byte idéntico al `sha256` y `tamano_bytes` declarados— y `scripts/check_l0_integrity.R`
+  —`manifiesto.csv` ↔ `08_vintages.csv` consistentes—. Son la garantía de la regla 1 de
+  `CLAUDE.md` (L0 inmutable) y no dependen de la red.
+- **`scripts/verificar_l0.R` (re-pedido en vivo a la fuente) es un monitor de deriva, no un
+  check de integridad de L0.** Compara la fuente *actual* contra el `sha256_norm` registrado y
+  clasifica cada publicación en `PASS` (la fuente sigue sirviendo el mismo vintage), `CAMBIO`
+  (publicó uno nuevo) o `ERROR` (fuente inaccesible o respuesta inesperada). Un `CAMBIO` no es
+  un defecto de L0: es la señal de que hay un vintage nuevo por capturar, y alimenta la cola de
+  captura prospectiva que ADR-007 declara compromiso firme (ver `doc/backlog_captura_vintages.md`).
+  Su verde total solo existe en la ventana breve posterior a una captura; exigirlo como
+  condición de cierre obligaría a perseguir un blanco móvil en cada re-verificación.
+- **Fase 2 cierra cuando** `make raw` corre de punta a punta sin pasos manuales sobre una
+  máquina con L0 materializada completa, los dos checks offline pasan en verde, y toda entrada
+  `CAMBIO`/`ERROR` del monitor en vivo queda triada y registrada (vintage nuevo → backlog de
+  captura; `ERROR` → causa identificada).
+
+Esto resuelve el hallazgo A1 de la auditoría de Fase 2
+(`doc/auditorias/auditoria_fase2_SIE-el-salvador.md`), que dejaba el cierre "a una corrida de
+distancia" sin advertir que esa corrida solo da verde total en la ventana breve tras una
+captura. El registro del cierre, con su evidencia, está en `doc/adr/README.md`, "Cierre de
+Fase 2". La naturaleza de `verificar_l0.R` como monitor está en ADR-007, nota de seguimiento
+del 2026-09-09.
 
 ### Fase 3 — Normalización, validación y series maestras
 

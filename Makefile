@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico clean master eval report validate test audit
+.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master eval report validate test audit
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -31,6 +31,13 @@ raw-api: raw-fisico
 # No pide nada a ninguna fuente: solo lista qué se verificaría y qué está excluido.
 raw-plan:
 	Rscript scripts/verificar_l0.R plan
+
+# Repuebla data/L0_raw/ desde el almacén canónico local (copia de trabajo del repo privado
+# de L0), luego verifica integridad. Requiere SIE_L0_STORE apuntando a ese directorio. No
+# descarga de ninguna fuente ni toca el manifiesto — ver scripts/materializar_l0.R.
+materializar-l0:
+	Rscript scripts/materializar_l0.R
+	Rscript scripts/verificar_l0_fisico.R
 
 # Fase 3 — L0 -> L1 -> L2 -> L3, transformaciones y series maestras.
 master: validate

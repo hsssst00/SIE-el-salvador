@@ -321,3 +321,44 @@ queda de esto, para cualquier incidente futuro de L0 aparentemente ausente: agot
 recuperación conocidas —incluida la más simple, preguntar dónde más pudo haber quedado una
 copia— antes de recapturar y reescribir un checksum. Recapturar es la vía de último recurso, no
 la primera.
+
+## Nota de seguimiento — `verificar_l0.R` en vivo es un monitor de deriva; los `CAMBIO` son la cola de captura prospectiva (2026-09-09)
+
+**Disparador.** Hallazgo A1 de la auditoría de Fase 2 y la lectura del criterio de cierre de esa
+fase fijada en `doc/senda_metodologica.md` §4 (nota del 2026-09-09). Esta nota registra, del
+lado de este ADR, qué es `scripts/verificar_l0.R` y qué relación tiene con el compromiso de
+captura prospectiva de la sección Decisión.
+
+**Qué hace `verificar_l0.R`.** Vuelve a pedir a la fuente en vivo el contenido de cada
+publicación capturada y compara su `sha256_norm` contra el registrado en el manifiesto. Clasifica:
+
+- `PASS` — la fuente sigue sirviendo el mismo vintage; nada que hacer.
+- `CAMBIO` — el `sha256_norm` difiere: la fuente publicó un vintage nuevo desde la última
+  captura. **No es un defecto de L0.** El archivo archivado sigue siendo el vintage que era; lo
+  que cambió está afuera. Es, exactamente, el evento que la captura prospectiva existe para
+  atrapar.
+- `ERROR` — la fuente no respondió o respondió algo inesperado (p. ej. `FRED_API_KEY` sin
+  definir, portal caído). Requiere triaje antes de concluir nada sobre L0.
+
+**Por qué es un monitor y no un check de integridad.** La integridad de L0 —que el archivo en
+disco es byte a byte el que se archivó— la comprueban `verificar_l0_fisico.R` y
+`check_l0_integrity.R`, sin red. `verificar_l0.R` responde una pregunta distinta: "¿la fuente
+todavía sirve esto?", y la respuesta honesta es "no, para siempre" — toda serie viva se revisa
+y se extiende. Su estado todo-`PASS` sólo existe en la ventana breve posterior a una captura.
+
+**Relación con la Decisión de este ADR.** El enfoque híbrido adoptado (captura prospectiva como
+compromiso firme, reconstrucción retrospectiva como mejor empeño) necesita un disparador: *cuándo*
+toca capturar. `verificar_l0.R` es ese disparador. Un `CAMBIO` que aparece en una corrida es una
+entrada nueva en `doc/backlog_captura_vintages.md`; capturarla es un acto deliberado vía
+`descargar_*()`, al ritmo real de publicación de la fuente y nunca en bucle (regla 9 de
+`CLAUDE.md`).
+
+**El backlog (`doc/backlog_captura_vintages.md`).** Registra cada `CAMBIO`/`ERROR` observado, su
+fecha de detección, y si ya se capturó o sigue pendiente. No es un entregable de Fase 2 más: es
+el registro operativo permanente de la captura prospectiva, y sigue vivo en Fase 3 y más allá.
+Que una entrada quede pendiente un tiempo no bloquea nada — bloquear sería capturar en bucle,
+que es lo que la regla 9 prohíbe.
+
+**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. `verificar_l0.R` ya
+funcionaba así desde el hallazgo A1 de la auditoría de Fase 2; lo que se registra ahora es su
+lectura conceptual y el hecho de que un `CAMBIO` es trabajo de captura, no un fallo a corregir.

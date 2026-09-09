@@ -159,3 +159,41 @@ ninguna decisión D1–D9 ni modificar ADR existentes:
   de orientación pre-auditoría. Herramienta de Harold, no parte del pipeline.
 
 Próxima ronda de automatización: validación pointblank de catálogos en Fase 3.
+
+## Cierre de Fase 2 — en curso (2026-09-09)
+
+**Aún no certificado.** Esta sección registra la decisión de cómo se cierra y el estado del
+pendiente; se finaliza cuando la evidencia esté completa y con CI en verde, nunca antes (misma
+disciplina que la corrección de alcance de tag de Fase 0).
+
+**Decisión de Harold (2026-09-09): se cierra por la vía "verifica su integridad" del criterio
+de senda §4, con la lectura fijada en la nota de cierre de Fase 2 de ese documento (v0.5).** La
+integridad de L0 la certifican los dos checks offline —`verificar_l0_fisico.R` y
+`check_l0_integrity.R`, ambos parte de `make raw`—; `verificar_l0.R` en vivo es un monitor de
+deriva (ADR-007, nota del 2026-09-09) cuyo verde total es transitorio y no es compuerta de
+cierre. Esto resuelve el hallazgo A1 de la auditoría de Fase 2, que fijaba el cierre "a una
+corrida de distancia" sin advertir que esa corrida solo da verde total en la ventana breve tras
+una captura.
+
+**Evidencia ya reunida (máquina de Harold, L0 completa materializada, 2026-09-09):**
+
+- `scripts/verificar_l0_fisico.R`: **54 PASS / 0 FAIL / 0 AUSENTE**, salida 0.
+- `scripts/check_l0_integrity.R`: OK, 54 vintages consistentes, salida 0.
+- `testthat::test_dir("tests")`: **556 PASS / 0 FAIL**.
+- `make raw-api` (rama de API, sin navegador): BM 2/2 PASS; `FMI.BOP`, `FMI.QNEA` PASS;
+  `FMI.PCPS.PALLFNF/PFOOD/POILAPSP` → `CAMBIO` (vintage mensual nuevo, asentado en
+  `doc/backlog_captura_vintages.md`); FRED → `ERROR` por `FRED_API_KEY` sin configurar en esa
+  corrida (artefacto de entorno, no de la fuente).
+
+**Lo que falta para certificar:**
+
+1. Una corrida completa de `make raw` (incluye los 16 renders headless del BCR) sobre la
+   máquina con L0 completa y `FRED_API_KEY` configurada, sin pasos manuales.
+2. Triaje y registro en `doc/backlog_captura_vintages.md` de cada `CAMBIO`/`ERROR` que esa
+   corrida reporte.
+3. Herramienta nueva de este período, sin abrir ninguna decisión D1–D9:
+   `scripts/materializar_l0.R` + `make materializar-l0` — repuebla `data/L0_raw/` desde un
+   almacén canónico local (copia de trabajo de un repo **privado** de L0; un repo privado no
+   redistribuye, así que no toca ADR-008). Verificada por round-trip el 2026-09-09.
+4. CI en verde sobre el commit de cierre; luego tag `v0.5.0-fase2` sobre el commit que ya
+   contenga esta certificación finalizada y la nota de senda §4.
