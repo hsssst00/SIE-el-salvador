@@ -230,6 +230,7 @@ del modo de falla ya visto en C2 (Fase 0) y C1 (Fase 1). Remediado el mismo día
   `renv::restore()` fallaba en la máquina de Harold; sin causa raíz diagnosticada, solo se igualó
   a la versión ya instalada localmente. CI (run 117, ubuntu-latest) confirmó verde tras el cambio.
 
-**Tag: `v0.5.1-fase2`,** sobre el commit que incorpora esta remediación (`4a1465b`). No sustituye
-a `v0.5.0-fase2`, que se conserva sin modificar por disciplina de trazabilidad (mismo patrón que
-`v0.2.0-fase0-enmendado` → `v0.2.1-fase0-enmendado`).
+**Tag: `v0.5.1-fase2`,** sobre el commit que ya contiene esta nota de remediación — nunca antes,
+misma disciplina que `v0.5.0-fase2`. No sustituye a `v0.5.0-fase2`, que se conserva sin modificar
+por disciplina de trazabilidad (mismo patrón que `v0.2.0-fase0-enmendado` →
+`v0.2.1-fase0-enmendado`).
