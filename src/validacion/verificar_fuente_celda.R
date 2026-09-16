@@ -30,16 +30,34 @@
 # scripts/verificar_l0.R. 03_series.csv describe la serie tal como se lee hoy; los vintages
 # anteriores no se re-verifican aca.
 #
-# QUE QUEDA FUERA DE ALCANCE. Este verificador resuelve hoja -> XML -> sharedStrings dentro de
-# un .xlsx. Una fila cuyo vintage vigente no es un .xlsx (p.ej. UT.DEMANDA_TOTAL_MENSUAL, serie
+# QUE QUEDA FUERA DE ALCANCE. Este verificador resuelve hoja -> readxl -> fila dentro de un
+# .xlsx. Una fila cuyo vintage vigente no es un .xlsx (p.ej. UT.DEMANDA_TOTAL_MENSUAL, serie
 # derivada de 25 CSV via src/transformacion/ut_demanda_serie.R, cuyo fuente_celda describe la
 # derivacion en prosa y no cita una celda) no es una verificacion fallida: es una verificacion
 # que esta herramienta no puede hacer. Se reporta como FUERA_DE_ALCANCE, se lista una por una
 # en el resumen para que un humano las lea, y no cuenta como FAIL. La distincion es por
 # extension del archivo de L0, no por publicacion_id: un fuente_celda malformado sobre una
 # publicacion que SI es .xlsx sigue siendo FAIL, que es el fallo que importa conservar.
+#
+# POR QUE LA LECTURA DE FILA USA readxl Y NO XML CRUDO (corregido 2026-09-16, ver bitacora).
+# La version anterior de este script resolvia "fila N" contra el atributo @r="N" del XML crudo
+# de la hoja. Eso asume que "fila N" en fuente_celda/fila_dato significa "la N-esima fila fisica
+# de Excel" -- pero fila_dato es, por diseno, el indice de fila que src/transformacion/
+# extraer_bcr_pib.R obtiene de read_excel(), y ambos NO siempre coinciden: si la hoja tiene una
+# fila inicial sin ninguna celda hija (<row r="1"/> vacia, confirmado en
+# BCR_pib_t_retropolado_1990_2005_2026-08-06.xlsx, hojas T1/T2), readxl la omite del todo y
+# recorre el resto corrido una posicion, mientras que el XML crudo sigue contando esa fila vacia
+# como la 1. El desfase resultante (verificador contra XML: fila N: extractor contra readxl:
+# fila N-1) genero un FAIL en las 13 filas *.RETRO la primera vez que este script corrio tras la
+# estructuracion de fuente_celda (commit db91582) -- un falso positivo: los valores que
+# extraer_bcr_pib.R ya produce con fila_dato tal como esta declarado coinciden con la serie
+# nativa del BCR dentro de la tolerancia documentada en doc/metodologia/
+# empalme_cuentas_nacionales.md, o sea que fila_dato SI apunta a la celda correcta bajo la
+# convencion de readxl. La correccion es leer con la misma libreria y la misma convencion que el
+# extractor, para que este verificador confirme lo que el extractor realmente hace, no una
+# indexacion distinta que por coincidencia suele dar el mismo numero.
 
-library(xml2)
+library(readxl)
 
 ruta_series <- "catalogos/03_series.csv"
 ruta_manifiesto <- "data/L0_raw/manifiesto.csv"
@@ -62,110 +80,41 @@ calcular_sha256 <- function(ruta_archivo) {
   tolower(digest::digest(object = ruta_archivo, algo = "sha256", file = TRUE))
 }
 
-cache_extraccion <- new.env(parent = emptyenv())
+cache_lectura <- new.env(parent = emptyenv())
 
-# unzip() de R base (§ estilo del script): `zip` no esta en renv.lock como transitiva,
-# a diferencia de `digest`, asi que no corresponde usarlo aqui.
-extraer_xlsx <- function(ruta_archivo) {
-  clave <- normalizePath(ruta_archivo, mustWork = TRUE)
-  if (exists(clave, envir = cache_extraccion, inherits = FALSE)) {
-    return(get(clave, envir = cache_extraccion, inherits = FALSE))
+# Lee la hoja completa vía readxl (misma libreria y misma convencion de indices de fila que
+# src/transformacion/extraer_bcr_pib.R), cacheada por archivo+hoja para no releer la misma hoja
+# una vez por fila de 03_series.csv.
+leer_hoja <- function(ruta_archivo, nombre_hoja) {
+  clave <- paste0(normalizePath(ruta_archivo, mustWork = TRUE), "::", nombre_hoja)
+  if (exists(clave, envir = cache_lectura, inherits = FALSE)) {
+    return(get(clave, envir = cache_lectura, inherits = FALSE))
   }
-  dir_destino <- tempfile(pattern = "xlsx_")
-  dir.create(dir_destino)
-  utils::unzip(clave, exdir = dir_destino)
-  assign(clave, dir_destino, envir = cache_extraccion)
-  dir_destino
-}
-
-# Resuelve el nombre de hoja citado en fuente_celda (p.ej. "worksheet", "T1", "T2") a la
-# ruta real del XML de esa hoja, vía xl/workbook.xml (nombre -> r:id) y
-# xl/_rels/workbook.xml.rels (r:id -> archivo). No asumir que la hoja N es sheetN.xml: en
-# el archivo retropolado el orden de r:id no coincide necesariamente con el de <sheets>.
-resolver_ruta_hoja <- function(dir_extraido, nombre_hoja) {
-  wb <- read_xml(file.path(dir_extraido, "xl", "workbook.xml"))
-  ns <- xml_ns(wb)
-
-  nodos_hoja <- xml_find_all(wb, "//*[local-name()='sheet']")
-  nombres_hoja <- xml_attr(nodos_hoja, "name")
-  rids_hoja <- xml_attr(nodos_hoja, "r:id", ns = ns)
-
-  idx <- which(nombres_hoja == nombre_hoja)
-  if (length(idx) == 0) {
-    stop(
-      "la hoja '", nombre_hoja, "' no existe en workbook.xml (hojas disponibles: ",
-      paste(nombres_hoja, collapse = ", "), ")"
-    )
-  }
-  rid_objetivo <- rids_hoja[idx[1]]
-
-  rels <- read_xml(file.path(dir_extraido, "xl", "_rels", "workbook.xml.rels"))
-  nodos_rel <- xml_find_all(rels, "//*[local-name()='Relationship']")
-  idx_rel <- which(xml_attr(nodos_rel, "Id") == rid_objetivo)
-  if (length(idx_rel) == 0) {
-    stop(
-      "el r:id '", rid_objetivo, "' de la hoja '", nombre_hoja,
-      "' no tiene relacion declarada en workbook.xml.rels"
-    )
-  }
-  file.path(dir_extraido, "xl", xml_attr(nodos_rel[idx_rel[1]], "Target"))
-}
-
-leer_shared_strings <- function(dir_extraido) {
-  ruta_sst <- file.path(dir_extraido, "xl", "sharedStrings.xml")
-  if (!file.exists(ruta_sst)) {
-    return(character(0))
-  }
-  sst <- read_xml(ruta_sst)
-  # xml_text() concatena todo el texto descendiente de cada <si>, incluidas las citas con
-  # varios <r><t> (texto en mas de un run, p.ej. un rotulo mas un marcador de nota al pie en
-  # superindice) — sin esto, rotulos como "Formacion Bruta de Capital Fijo 2/" se leerian
-  # truncados en el primer run.
-  xml_text(xml_find_all(sst, "//*[local-name()='si']"))
-}
-
-texto_celda <- function(nodo_celda, shared_strings) {
-  tipo <- xml_attr(nodo_celda, "t")
-  if (!is.na(tipo) && tipo == "s") {
-    nodo_v <- xml_find_first(nodo_celda, "./*[local-name()='v']")
-    if (inherits(nodo_v, "xml_missing")) return(NA_character_)
-    idx <- suppressWarnings(as.integer(xml_text(nodo_v)))
-    if (is.na(idx) || idx < 0 || idx >= length(shared_strings)) return(NA_character_)
-    return(shared_strings[idx + 1])
-  }
-  if (!is.na(tipo) && tipo == "inlineStr") {
-    nodo_is <- xml_find_first(nodo_celda, "./*[local-name()='is']")
-    if (inherits(nodo_is, "xml_missing")) return(NA_character_)
-    return(xml_text(nodo_is))
-  }
-  nodo_v <- xml_find_first(nodo_celda, "./*[local-name()='v']")
-  if (inherits(nodo_v, "xml_missing")) return(NA_character_)
-  xml_text(nodo_v)
+  datos <- readxl::read_excel(ruta_archivo, sheet = nombre_hoja, col_names = FALSE, .name_repair = "minimal")
+  assign(clave, datos, envir = cache_lectura)
+  datos
 }
 
 # Busca, entre todas las celdas de la fila num_fila (sin asumir columna fija: varia entre
-# "worksheet" y "T1"/"T2"), una cuyo texto tras trimws() sea igual a rotulo_esperado.
-verificar_rotulo_en_fila <- function(ruta_hoja, dir_extraido, num_fila, rotulo_esperado) {
-  hoja <- read_xml(ruta_hoja)
-  shared_strings <- leer_shared_strings(dir_extraido)
+# "worksheet" y "T1"/"T2"), una cuyo texto tras trimws() sea igual a rotulo_esperado. num_fila
+# es el indice de fila tal como lo devuelve readxl -- ver nota de cabecera sobre por que no es
+# necesariamente el atributo @r del XML crudo.
+verificar_rotulo_en_fila <- function(ruta_archivo, nombre_hoja, num_fila, rotulo_esperado) {
+  datos <- leer_hoja(ruta_archivo, nombre_hoja)
+  num_fila <- as.integer(num_fila)
 
-  nodo_fila <- xml_find_first(hoja, paste0("//*[local-name()='row'][@r='", num_fila, "']"))
-  if (inherits(nodo_fila, "xml_missing")) {
-    filas_r <- suppressWarnings(as.integer(xml_attr(xml_find_all(hoja, "//*[local-name()='row']"), "r")))
-    max_fila <- suppressWarnings(max(filas_r, na.rm = TRUE))
+  if (is.na(num_fila) || num_fila < 1 || num_fila > nrow(datos)) {
     return(list(
       ok = FALSE,
       motivo = paste0(
         "la hoja tiene menos filas que ", num_fila,
-        " (ultima fila declarada: ", max_fila, ")"
+        " (readxl leyo ", nrow(datos), " filas de datos)"
       )
     ))
   }
 
-  nodos_celda <- xml_find_all(nodo_fila, "./*[local-name()='c']")
-  textos <- vapply(nodos_celda, function(nodo_c) {
-    v <- texto_celda(nodo_c, shared_strings)
-    if (is.na(v)) "" else trimws(v)
+  textos <- vapply(datos[num_fila, ], function(v) {
+    if (is.na(v)) "" else trimws(as.character(v))
   }, character(1))
 
   if (rotulo_esperado %in% textos) {
@@ -176,11 +125,11 @@ verificar_rotulo_en_fila <- function(ruta_hoja, dir_extraido, num_fila, rotulo_e
   motivo <- if (length(textos_no_vacios) > 0) {
     paste0(
       "no se encontro el rotulo exacto en la fila ", num_fila,
-      "; celdas de texto encontradas: ",
+      " (lectura via readxl); celdas de texto encontradas: ",
       paste(sprintf('"%s"', textos_no_vacios), collapse = "; ")
     )
   } else {
-    paste0("no se encontro el rotulo exacto en la fila ", num_fila, "; la fila no tiene celdas de texto")
+    paste0("no se encontro el rotulo exacto en la fila ", num_fila, " (lectura via readxl); la fila no tiene celdas de texto")
   }
   list(ok = FALSE, motivo = motivo)
 }
@@ -253,9 +202,7 @@ verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto) {
     num_fila <- grupos[3]
     rotulo_esperado <- grupos[4]
 
-    dir_extraido <- extraer_xlsx(ruta_archivo)
-    ruta_hoja <- resolver_ruta_hoja(dir_extraido, nombre_hoja)
-    res <- verificar_rotulo_en_fila(ruta_hoja, dir_extraido, num_fila, rotulo_esperado)
+    res <- verificar_rotulo_en_fila(ruta_archivo, nombre_hoja, num_fila, rotulo_esperado)
     res$nombre_hoja <- nombre_hoja
     res$num_fila <- num_fila
     res

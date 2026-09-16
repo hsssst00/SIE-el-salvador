@@ -43,9 +43,11 @@ materializar-l0:
 master: validate
 	Rscript src/transformacion/extraer_bcr_pib.R
 	Rscript src/transformacion/ut_demanda_serie.R
+	Rscript src/transformacion/extraer_bcr_ivae.R
 	Rscript src/validacion/validar_l2_pib.R
 	Rscript src/transformacion/l3_pib_objetivo.R
-	@echo "Pendiente: L3 para la matriz de predictores (desagregacion temporal/deflactacion, ADR-010) (Fase 3)"
+	Rscript src/transformacion/l3_predictores.R
+	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE (ADR-010) (Fase 3)"
 
 # Validación de esquema de catálogos — pointblank contra catalogos/datapackage.json.
 validate:

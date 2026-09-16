@@ -215,3 +215,52 @@ tocado — seguían con su `sha256` histórico intacto — y coinciden sin cambi
 máquina nunca tuvo localmente, no una regresión). `check_l0_integrity.R`: OK, 54 vintages
 consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-26 están
 íntegros y coinciden con lo registrado.
+
+## 2026-09-16 — alta de BCR.IVAE.VOL.SA.M y corrección de un falso positivo en el propio verificador
+
+- **Estado del árbol verificado:** el commit que agrega la fila `BCR.IVAE.VOL.SA.M` a
+  `03_series.csv` (primer predictor de la matriz, senda §6.4) y corrige
+  `src/validacion/verificar_fuente_celda.R` (padre: `4126457`). El hash no puede ser
+  autorreferencial — mismo patrón que la entrada del 2026-08-28.
+- **Primera corrida** (`Rscript src/validacion/verificar_fuente_celda.R`, script tal como
+  estaba antes de esta sesión, con los archivos de `data/L0_raw/` presentes localmente):
+  **86 PASS / 13 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 100 filas). Las 13 FAIL son
+  exactamente las 13 filas `*.RETRO` (hojas `T1`/`T2` de
+  `BCR_pib_t_retropolado_1990_2005_2026-08-06.xlsx`): `BCR.PIB.VOL.NSA.Q.RETRO`,
+  `BCR.CONSUMO_FINAL/PRIV/PUB.VOL.NSA.Q.RETRO`, `BCR.FBKF.VOL.NSA.Q.RETRO`,
+  `BCR.EXPORT/IMPORT.VOL.NSA.Q.RETRO` y sus equivalentes `NOM`. `BCR.IVAE.VOL.SA.M` (la fila
+  nueva) dio **PASS** en esta misma corrida.
+- **Diagnóstico, no asumido: se verificó celda por celda contra el XML crudo del `.xlsx` y
+  contra `readxl::read_excel()` en paralelo (ver script de diagnóstico, no versionado).** Las
+  hojas `T1`/`T2` de ese archivo tienen una fila 1 física sin ninguna celda hija
+  (`<row r="1"/>` vacía, confirmado). `readxl` omite esa fila vacía de su salida y recorre el
+  resto de las filas una posición hacia arriba; el XML crudo sigue contando esa fila vacía como
+  la fila 1. Resultado: para esas dos hojas, "fila N" vale una cosa distinta según se lea con
+  `readxl` (lo que hace `src/transformacion/extraer_bcr_pib.R`, el extractor real) o contra el
+  atributo `@r` del XML crudo (lo que hacía la versión anterior de este verificador). Las demás
+  hojas (`worksheet`, usada por las tres publicaciones NSA/SA/NOMINAL) no tienen esa fila vacía
+  inicial, por eso sus 86 filas ya daban PASS bajo cualquiera de las dos convenciones.
+- **No es un defecto de dato.** `fila_dato` de las 13 filas `*.RETRO` ya apunta a la fila
+  correcta bajo la convención de `readxl` — la misma que usa el extractor — y los valores que
+  `extraer_bcr_pib.R` produce con esos `fila_dato` coinciden con la serie nativa del BCR dentro
+  de la tolerancia ya documentada en `doc/metodologia/empalme_cuentas_nacionales.md` (máx.
+  0.0078 sobre índices ~80, atribuible a redondeo de publicación, no a fila equivocada). El FAIL
+  era del verificador, no de `03_series.csv`.
+- **Es, con alta probabilidad, la causa real de las dos "correcciones" previas de estas mismas
+  filas** (commit `c60e808`, 2026-08-13, y la re-corrección del 2026-09-15 documentada en las
+  notas de `03_series.csv`): ambas rondas describen desplazamientos de una fila en `T1`/`T2` sin
+  identificar por qué el conteo parecía moverse. Esta sesión no reabre esas correcciones —
+  `fila_dato` no cambió — pero deja registrada la explicación estructural que faltaba.
+- **Corrección aplicada:** `verificar_fuente_celda.R` ahora lee la fila citada en `fuente_celda`
+  con `readxl::read_excel()` (misma librería y misma convención de índice que el extractor), en
+  vez de resolver hoja → XML → `sharedStrings` a mano. Se eliminaron `resolver_ruta_hoja()`,
+  `leer_shared_strings()`, `texto_celda()` y el `unzip()` a un directorio temporal — quedan sin
+  uso una vez que la lectura de fila pasa por `readxl`. El cálculo de checksum (`digest`, sobre
+  el archivo crudo) no cambió.
+- **Segunda corrida, sobre el árbol de trabajo con la corrección aplicada:**
+  **99 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 100 filas). Código de salida
+  0. FUERA_DE_ALCANCE: `UT.DEMANDA_ELEC.GWH.NSA.M` (sin cambios — su vintage vigente sigue
+  siendo un `.csv`, no un `.xlsx`).
+- **`testthat::test_dir("tests")` tras la corrección: 598 PASS / 0 FAIL** (no hay test que
+  ejercite `verificar_fuente_celda.R` directamente — no corre en CI, ver cabecera de este
+  archivo — pero la batería completa sigue en verde).

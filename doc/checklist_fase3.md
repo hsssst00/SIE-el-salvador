@@ -6,7 +6,8 @@
 > cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (migración
 > parcial a pointblank de la batería L2 PIB + reporte de calidad de datos;
 > ADR-010 resuelve el método de transformación L3 de la matriz de predictores;
-> L3 de la variable objetivo materializado — ver "Transformaciones L3" abajo).
+> L3 de la variable objetivo materializado; ADR-008 gana tramo UT; primer
+> predictor (BCR.IVAE) admitido y materializado — ver secciones abajo).
 
 ## Actividades (senda §4)
 
@@ -45,29 +46,66 @@
   `doc/metodologia/empalme_cuentas_nacionales.md`), sin reabrir ADR-003.
   `tests/test-l3-pib-objetivo.R` cubre ambas funciones con datos sintéticos
   (15 aserciones), incluida una corrida real de X-13ARIMA-SEATS sobre un
-  shock inyectado. **Pendiente:** la matriz de predictores (ADR-010:
-  `tempdisagg` para desagregación temporal, deflactación caso por caso, sin
-  outliers propios) — ningún predictor tiene su transformación implementada
-  todavía.
+  shock inyectado.
+  **Primer predictor materializado (2026-09-16): `BCR.IVAE.VOL.SA.M/.Q`**
+  (Índice de Volumen de la Actividad Económica, senda §6.4). Ya es índice de
+  volumen y ya viene SA de fuente — sin deflactación ni ajuste estacional
+  propio. `src/transformacion/l3_predictores.R` +
+  `l3_predictores_reglas.R` (`agregar_trimestral_promedio()`) conservan la
+  serie mensual tal cual y agregan a trimestral por promedio simple de 3
+  meses (ADR-010: la agregación alta→baja frecuencia es aritmética
+  determinista, no usa `tempdisagg`, reservado para desagregación
+  baja→alta). Salida: `BCR_IVAE_VOL_SA_M.csv` (257 obs) +
+  `BCR_IVAE_VOL_SA_Q.csv` (85 obs, 2026-Q2 excluido por incompleto).
+  `tests/test-l3-predictores.R` (7 aserciones). **Pendiente:** el resto de la
+  matriz de predictores — ningún otro predictor tiene extractor ni
+  transformación todavía.
 - [ ] **Análisis exploratorio y de estacionariedad.**
-- [ ] **Construcción de la matriz de predictores.**
+- [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
+  `BCR.IVAE.VOL.SA.M/.Q` (ver arriba). Camino para el siguiente predictor:
+  (1) estructurar `fuente_celda` en `03_series.csv` con verificación real de
+  `verificar_fuente_celda.R` + entrada en `doc/bitacora_verificaciones.md`
+  (regla 8); (2) extractor L0→L1 dedicado; (3) transformación L3 según
+  ADR-010; (4) filas en `04_transformaciones`/`05_series_master`. El BCR ya
+  tiene ~35 publicaciones más adquiridas en L0 (`catalogos/01_publicaciones/
+  BCR.*.yaml`) bajo el mismo default conservador de ADR-008 que IVAE —
+  candidatos de la senda §6.4 sin compuerta nueva: remesas
+  (`BCR.REMESAS_FAMILIARES_MENSUAL`), comercio exterior
+  (`BCR.BALANZA_COMERCIAL`, `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`), precios
+  (`BCR.IPP`, `BCR.IPRI.BASE_1990`, `BCR.ITCER`).
+- [x] **Hallazgo de esta sesión, corregido: `extraer_bcr_pib.R` y
+  `validar_l2_pib.R` filtraban `03_series.csv` con una lista de EXCLUSIÓN**
+  (`publicacion_id != "UT.DEMANDA_TOTAL_MENSUAL"`) en vez de inclusión — al
+  agregar la fila de `BCR.IVAE.VIGENTE`, ambos scripts intentaban procesarla
+  como si fuera PIB (parsear "Ene"/"Feb" como trimestre romano) y rompían la
+  cadena de `make master`. Corregido a lista de inclusión (las 4
+  publicaciones de PIB, explícitas) en ambos scripts — un predictor nuevo ya
+  no puede volver a romper esto en silencio.
+- [x] **Hallazgo de esta sesión, corregido: `verificar_fuente_celda.R` daba
+  falsos FAIL en las 13 filas `*.RETRO`** (bug propio del verificador, no de
+  los datos — ver `doc/bitacora_verificaciones.md`, entrada 2026-09-16, y
+  detalle en el propio script). Corregido: ahora lee la fila vía `readxl`
+  (misma convención que el extractor real) en vez de contra el atributo `@r`
+  del XML crudo.
 
 ## Entregables (senda §4)
 
-- [ ] Catálogo `03_series` poblado — **parcial**: ya tiene los 6 campos
-  estructurados de `fuente_celda` (hoja, fila_dato, col_inicio/fin,
-  fila_anios/trimestres), pero falta el mapeo completo para la reconciliación
-  29-vs-28 de variables de volumen (`doc/bitacora_fuentes_fragiles.md`,
-  señalado como pendiente de Fase 3 en la nota de cierre de Fase 1).
-- [~] Catálogo `04_transformaciones` poblado — 2 filas (T001, T002), ambas con
-  `script_path`/`funcion` reales tras la materialización de 2026-09-16; faltan
-  las filas de la matriz de predictores (ADR-010).
-- [~] Catálogo `05_series_master` poblado — 2 filas (`PIB.SA.PROPIO.Q`,
-  `PIB.SA.OFICIAL.Q`), ambas materializadas; faltan las filas de predictores.
-- [~] Base maestra bitemporal — `data/L3_master/` ya no está vacío
+- [~] Catálogo `03_series` poblado — 100 filas (98 PIB + 1 UT + 1
+  `BCR.IVAE.VOL.SA.M`, alta 2026-09-16, verificada 99 PASS / 0 FAIL / 1
+  FUERA_DE_ALCANCE). Falta el mapeo completo para la reconciliación 29-vs-28
+  de variables de volumen de PIB (`doc/bitacora_fuentes_fragiles.md`,
+  pendiente de Fase 1) y el resto de la matriz de predictores.
+- [~] Catálogo `04_transformaciones` poblado — 3 filas (T001, T002, T003),
+  todas con `script_path`/`funcion` reales; faltan las filas del resto de la
+  matriz de predictores (ADR-010).
+- [~] Catálogo `05_series_master` poblado — 4 filas (`PIB.SA.PROPIO.Q`,
+  `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M`, `BCR.IVAE.VOL.SA.Q`), todas
+  materializadas; faltan las filas del resto de predictores.
+- [~] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
   (`PIB_SA_PROPIO_Q.csv`, `PIB_SA_PROPIO_Q_outliers.csv`,
-  `PIB_SA_OFICIAL_Q.csv`), pero cubre solo la variable objetivo, no la matriz
-  de predictores. L4 sigue vacío salvo `.gitkeep`.
+  `PIB_SA_OFICIAL_Q.csv`) y el primer predictor (`BCR_IVAE_VOL_SA_M.csv`,
+  `BCR_IVAE_VOL_SA_Q.csv`), pero cubre solo eso, no el resto de la matriz de
+  predictores. L4 sigue vacío salvo `.gitkeep`.
 - [x] **Reporte de calidad de datos** (2026-09-16) — `pointblank::export_report()`
   sobre el agente de `validar_l2()`, escrito a `data/L2_validated/reporte_calidad_l2_pib.html`
   (HTML autocontenido) en cada corrida de `src/validacion/validar_l2_pib.R`, tanto
@@ -75,7 +113,8 @@
   se extiende el extractor a otras publicaciones (ver decisión 3 abajo), este
   reporte se extiende con ellas.
 - [ ] Reporte exploratorio.
-- [ ] Matriz de predictores mensuales y trimestrales con cobertura documentada.
+- [~] Matriz de predictores mensuales y trimestrales con cobertura documentada
+  — 1 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, mensual y trimestral).
 
 ## Guards de CI a subsumir
 
@@ -92,8 +131,9 @@
 - [x] Catálogos base completos (`00`–`09` + `datapackage.json`).
 - [x] Dependencias declaradas: `pointblank`, `duckdb`, `seasonal`,
   `tempdisagg` en `DESCRIPTION` y `renv.lock` (ADR-009 cerrado).
-- [x] `make master` encadena `validate` → extractores L0→L1 → validación L2 →
-  `l3_pib_objetivo.R` (variable objetivo).
+- [x] `make master` encadena `validate` → extractores L0→L1 (PIB, UT, IVAE) →
+  validación L2 → `l3_pib_objetivo.R` (variable objetivo) →
+  `l3_predictores.R` (matriz de predictores).
 
 ## Decisiones metodológicas pendientes — NO asumir, preguntar
 
@@ -112,10 +152,16 @@ inferencia, no como tarea a resolver de una vez:
    sin tratamiento de outlier propio en L3 para predictoras (se decide por
    modelo en Fase 5). No afecta el tratamiento de la variable objetivo
    primaria, que sigue rigiéndose por ADR-001/ADR-004.
-3. **Extensión del extractor L0→L1 más allá de BCR PIB** (a UT completo, a
-   otras fuentes) — cada fuente nueva dispara la compuerta *just-in-time* de
-   ADR-008; no generalizar el extractor sin revisar esa compuerta fuente por
-   fuente.
+3. ~~Extensión del extractor L0→L1 más allá de BCR PIB~~ **Parcialmente
+   resuelto 2026-09-16:** `BCR.IVAE.VOL.SA.M` admitida con extractor propio
+   (`extraer_bcr_ivae.R`) — no disparó compuerta nueva de ADR-008 porque es
+   la misma institución (BCR) ya cubierta por el default conservador
+   aplicado a PIB. El tramo UT (institución nueva) sí requería compuerta
+   propia — abierta y cerrada en la misma sesión (ADR-008, enmienda "UT",
+   default conservador, mismo patrón que MH/ONEC/SECMCA). Sigue en pie para
+   *instituciones* genuinamente nuevas (ninguna serie de otra fuente ha
+   entrado todavía): cada una dispara su propia compuerta *just-in-time* de
+   ADR-008 antes de admitirse en `03_series.csv`.
 4. **Reemplazo o coexistencia de `tests/test-integridad-referencial.R`** con
    los checks pointblank de Fase 3 — decidir si se subsume sin deuda (como
    ya está anotado) o si se mantiene como doble verificación.

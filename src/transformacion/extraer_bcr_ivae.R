@@ -1,20 +1,17 @@
-# Extractor genérico L0 -> L1 para las 98 series de las cuatro publicaciones de
-# PIB del BCR (NSA, SA, NOMINAL, RETRO) en catalogos/03_series.csv. Usa los
-# campos estructurados hoja/fila_dato/col_inicio/col_fin/fila_anios/
-# fila_trimestres (poblados por scripts/estructurar_fuente_celda.R desde
-# fuente_celda, corregidos por scripts/corregir_offset_retro.R para RETRO) para
-# ubicar mecánicamente cada serie en su archivo XLSX de data/L0_raw/, sin volver
-# a parsear el texto libre de fuente_celda.
+# Extractor L0 -> L1 para BCR.IVAE.VOL.SA.M (Indice de Volumen de la Actividad Economica,
+# serie desestacionalizada, BCR) -- primer predictor de la matriz (senda SS6.4), catalogado en
+# catalogos/03_series.csv (publicacion_id = BCR.IVAE.VIGENTE).
 #
-# No cubre UT.DEMANDA_TOTAL_MENSUAL (ver src/transformacion/ut_demanda_serie.R,
-# extracción de 25 CSV, no de una celda XLSX).
+# Mismo mecanismo que src/transformacion/extraer_bcr_pib.R (usa los campos estructurados
+# hoja/fila_dato/col_inicio/col_fin/fila_anios/fila_trimestres de 03_series.csv para ubicar la
+# celda mecanicamente, sin volver a parsear fuente_celda), adaptado a una publicacion mensual:
+# fila_trimestres aqui contiene la fila de meses abreviados "Ene".."Dic", no de numeros romanos.
 #
-# Salida: data/L1_staging/BCR_PIB_series_largo.csv en formato largo
-# (serie_id, periodo, valor, provisional) — una fila por observación, todas las
-# series apiladas. "provisional" marca trimestres publicados como preliminares
-# o estimados ("(p)"/"(e)" en el encabezado de trimestre de la fuente); no se
-# descarta esa información porque revisiones futuras (nuevo vintage) pueden
-# cambiar el valor.
+# Salida: data/L1_staging/BCR_IVAE_series_largo.csv, formato largo (serie_id, periodo, valor,
+# provisional). periodo en formato "YYYY-Mnn", mismo formato ya usado por
+# UT.DEMANDA_TOTAL_MENSUAL (src/transformacion/ut_demanda_serie.R) -- no "YYYY-nn": ver nota de
+# consistencia en doc/checklist_fase3.md sobre la convencion de periodos mensuales realmente en
+# uso en el proyecto.
 
 library(readxl)
 
@@ -23,7 +20,8 @@ col_to_idx <- function(s) {
          strsplit(s, "")[[1]], accumulate = FALSE, init = 0L)
 }
 
-TRIM_ROMANO <- c(I = 1L, II = 2L, III = 3L, IV = 4L)
+MESES_ABREV <- c(Ene = 1L, Feb = 2L, Mar = 3L, Abr = 4L, May = 5L, Jun = 6L,
+                  Jul = 7L, Ago = 8L, Sep = 9L, Oct = 10L, Nov = 11L, Dic = 12L)
 
 extraer_serie <- function(path, hoja, fila_dato, col_inicio, col_fin,
                            fila_anios, fila_trimestres, serie_id) {
@@ -37,10 +35,10 @@ extraer_serie <- function(path, hoja, fila_dato, col_inicio, col_fin,
   }
   anios <- suppressWarnings(as.integer(anios_raw))
 
-  trims_raw <- as.character(unlist(raw[fila_trimestres, ci:cf]))
-  trim_etiqueta <- trimws(sub("\\s*\\(.\\)$", "", trims_raw))
-  trim_num <- unname(TRIM_ROMANO[trim_etiqueta])
-  provisional <- grepl("\\(p\\)|\\(e\\)", trims_raw)
+  meses_raw <- as.character(unlist(raw[fila_trimestres, ci:cf]))
+  mes_etiqueta <- trimws(sub("\\s*\\(.\\)$", "", meses_raw))
+  mes_num <- unname(MESES_ABREV[mes_etiqueta])
+  provisional <- grepl("\\(p\\)|\\(e\\)", meses_raw)
 
   vals_raw <- as.character(unlist(raw[fila_dato, ci:cf]))
   vals <- suppressWarnings(as.numeric(vals_raw))
@@ -49,10 +47,10 @@ extraer_serie <- function(path, hoja, fila_dato, col_inicio, col_fin,
     stop("FALLO VISIBLE [", serie_id, "]: año no parseable en ", path,
          " hoja ", hoja, ", fila ", fila_anios)
   }
-  if (any(is.na(trim_num))) {
-    stop("FALLO VISIBLE [", serie_id, "]: trimestre no parseable en ", path,
+  if (any(is.na(mes_num))) {
+    stop("FALLO VISIBLE [", serie_id, "]: mes no parseable en ", path,
          " hoja ", hoja, ", fila ", fila_trimestres, " (valores: ",
-         paste(unique(trims_raw), collapse = ", "), ")")
+         paste(unique(meses_raw), collapse = ", "), ")")
   }
   faltantes_reales <- is.na(vals) & !is.na(vals_raw) & trimws(vals_raw) != ""
   if (any(faltantes_reales)) {
@@ -62,37 +60,30 @@ extraer_serie <- function(path, hoja, fila_dato, col_inicio, col_fin,
 
   data.frame(
     serie_id = serie_id,
-    periodo = sprintf("%d-Q%d", anios, trim_num),
+    periodo = sprintf("%d-M%02d", anios, mes_num),
     valor = vals,
     provisional = provisional,
     stringsAsFactors = FALSE
   )
 }
 
-# Lista de inclusión, no de exclusión (corregido 2026-09-16): con una exclusión (p.ej. "todo
-# menos UT") este extractor intentaría procesar cualquier publicación nueva que se agregue a
-# 03_series.csv -- ya ocurrió con la primera fila de BCR.IVAE.VIGENTE, que rompía este script al
-# parsear "Ene"/"Feb" como si fueran trimestres romanos. Las 4 publicaciones de PIB son fijas;
-# una publicación nueva de PIB requeriría añadirla aquí explícitamente, no aparecer sola.
-PUBLICACIONES_PIB <- c(
-  "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA",
-  "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA",
-  "BCR.PIB_T.NOMINAL",
-  "BCR.PIB_T.SERIE_RETROPOLADA_1990_2005"
-)
-
 series <- read.csv("catalogos/03_series.csv", stringsAsFactors = FALSE, na.strings = "")
-series <- series[series$publicacion_id %in% PUBLICACIONES_PIB, ]
+series <- series[series$publicacion_id == "BCR.IVAE.VIGENTE", ]
+
+if (nrow(series) == 0) {
+  stop("FALLO VISIBLE: no hay filas de BCR.IVAE.VIGENTE en catalogos/03_series.csv.")
+}
 
 vintages <- read.csv("catalogos/08_vintages.csv", stringsAsFactors = FALSE, na.strings = "")
 
 archivo_de_publicacion <- function(pub_id) {
   fila <- vintages[vintages$publicacion_id == pub_id, ]
-  if (nrow(fila) != 1) {
-    stop("FALLO VISIBLE: se esperaba exactamente 1 vintage para ", pub_id,
-         ", se encontraron ", nrow(fila))
+  if (nrow(fila) < 1) {
+    stop("FALLO VISIBLE: no se encontró ningún vintage para ", pub_id, " en 08_vintages.csv")
   }
-  file.path("data/L0_raw", fila$archivo_raw)
+  # Vintage vigente = última fila (manifiesto append-only, mismo criterio que
+  # src/validacion/verificar_fuente_celda.R y scripts/verificar_l0.R).
+  file.path("data/L0_raw", fila$archivo_raw[nrow(fila)])
 }
 
 resultados <- vector("list", nrow(series))
@@ -131,7 +122,7 @@ if (n_series_obtenidas != n_series_esperadas) {
 
 dir.create("data/L1_staging", showWarnings = FALSE, recursive = TRUE)
 largo <- largo[order(largo$serie_id, largo$periodo), ]
-write.csv(largo, "data/L1_staging/BCR_PIB_series_largo.csv", row.names = FALSE, na = "")
+write.csv(largo, "data/L1_staging/BCR_IVAE_series_largo.csv", row.names = FALSE, na = "")
 
 cat("OK:", nrow(largo), "observaciones,", n_series_obtenidas, "series ->",
-    "data/L1_staging/BCR_PIB_series_largo.csv\n")
+    "data/L1_staging/BCR_IVAE_series_largo.csv\n")

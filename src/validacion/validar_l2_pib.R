@@ -29,9 +29,20 @@
 
 source(here::here("src", "validacion", "l2_pib_reglas.R"))
 
+# Lista de inclusión, no de exclusión (corregido 2026-09-16, mismo motivo que
+# src/transformacion/extraer_bcr_pib.R): valida solo el tramo de 03_series.csv que
+# BCR_PIB_series_largo.csv realmente cubre, sin importar qué otras publicaciones se agreguen
+# después al catálogo (p.ej. BCR.IVAE.VIGENTE).
+PUBLICACIONES_PIB <- c(
+  "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA",
+  "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA",
+  "BCR.PIB_T.NOMINAL",
+  "BCR.PIB_T.SERIE_RETROPOLADA_1990_2005"
+)
+
 l1 <- read.csv("data/L1_staging/BCR_PIB_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
 catalogo <- read.csv("catalogos/03_series.csv", stringsAsFactors = FALSE, na.strings = "")
-catalogo <- catalogo[catalogo$publicacion_id != "UT.DEMANDA_TOTAL_MENSUAL", ]
+catalogo <- catalogo[catalogo$publicacion_id %in% PUBLICACIONES_PIB, ]
 
 resultado <- validar_l2(l1, catalogo)
 errores <- resultado$errores

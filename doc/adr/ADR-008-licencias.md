@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS, MH, ONEC/DIGESTYC y SECMCA resueltos por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16)
+**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -263,6 +263,30 @@ ADR-008.
 **Puede revisitarse** si alguna de estas tres fuentes se vuelve candidata central de modelación
 (p. ej. SECMCA para deuda pública) y el costo de una consulta formal se justifica frente al de
 hoy — mismo criterio de reversibilidad ya fijado para ISSS.
+
+## Enmienda — condiciones de la fuente UT: resuelta por decisión, no por relevamiento (2026-09-16)
+
+**Hallazgo de registro, mismo modo de falla que SECMCA (enmienda 2026-08-18).** UT (Unidad de
+Transacciones, S.A. de C.V., operador del Mercado Mayorista de Electricidad) aparece en
+`catalogos/00_instituciones.csv` desde el 2026-08-26 con la nota "condiciones_uso NO
+verificadas todavía — pendiente relevamiento (ADR-008), aplica el default conservador mientras
+tanto", y `src/transformacion/ut_demanda_serie.R` ya extrae su publicación
+`UT.DEMANDA_TOTAL_MENSUAL` a `data/L1_staging/` desde antes de esta enmienda. Pese a eso, UT
+nunca tuvo una sección propia en este ADR: no estaba mal resuelta, directamente no estaba
+registrada como fuente con licencia por determinar — detectado al revisar la compuerta *just-in-time*
+antes de admitir esta serie en `03_series.csv` (Fase 3, matriz de predictores).
+
+**Decisión de Harold:** no se persigue relevamiento adicional de condiciones de uso con UT —
+mismo patrón que ISSS/MH/ONEC/DIGESTYC/SECMCA. Se aplica el default conservador de este ADR a
+la única publicación de UT: el repositorio publica el *script* de descarga
+(`src/adquisicion/ut.R`) y el *checksum* (SHA-256) de cada archivo; los 25 archivos crudos de
+L0 de UT no se comprometen al repositorio público. Tramo cerrado.
+
+**Nota de contexto, no de licencia.** El dominio `ut.com.sv` bloquea acceso automatizado
+(`robots.txt`, ver `00_instituciones.csv` y `src/adquisicion/verificar_robots_ut.R`); la captura
+es manual por diseño (regla 9 de `CLAUDE.md`), no por esta decisión de licencia. Ambas
+restricciones son independientes: aunque UT autorizara redistribución mañana, la captura
+seguiría siendo manual.
 
 **Pendiente:** ninguno de licencias por fuente. Este ADR permanece en estado **Parcial** solo
 por BCR (corte 2026-10-12) y CEPAL (corte 2026-10-16), y por la decisión de arquitectura de L0
