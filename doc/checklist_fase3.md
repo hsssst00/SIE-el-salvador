@@ -3,11 +3,13 @@
 > Deriva de `doc/senda_metodologica.md` §4 (Fase 3). No sustituye la senda ni el
 > índice de ADR (`doc/adr/README.md`) — es un tablero de seguimiento operativo,
 > vivo, para no perder de vista qué falta antes de poder escribir la nota de
-> cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (migración
-> parcial a pointblank de la batería L2 PIB + reporte de calidad de datos;
-> ADR-010 resuelve el método de transformación L3 de la matriz de predictores;
-> L3 de la variable objetivo materializado; ADR-008 gana tramo UT; primer
-> predictor (BCR.IVAE) admitido y materializado — ver secciones abajo).
+> cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (segunda
+> sesión del día: segundo predictor de la matriz, remesas —nominal y real—,
+> más su deflactor IPC; ver secciones abajo. Sesión anterior del mismo día:
+> migración parcial a pointblank de la batería L2 PIB + reporte de calidad de
+> datos; ADR-010 resuelve el método de transformación L3 de la matriz de
+> predictores; L3 de la variable objetivo materializado; ADR-008 gana tramo
+> UT; primer predictor, BCR.IVAE, admitido y materializado).
 
 ## Actividades (senda §4)
 
@@ -57,22 +59,57 @@
   determinista, no usa `tempdisagg`, reservado para desagregación
   baja→alta). Salida: `BCR_IVAE_VOL_SA_M.csv` (257 obs) +
   `BCR_IVAE_VOL_SA_Q.csv` (85 obs, 2026-Q2 excluido por incompleto).
-  `tests/test-l3-predictores.R` (7 aserciones). **Pendiente:** el resto de la
-  matriz de predictores — ningún otro predictor tiene extractor ni
-  transformación todavía.
+  `tests/test-l3-predictores.R` (7 aserciones).
+  **Segundo predictor materializado (2026-09-16, segunda sesión):
+  `BCR.REMESAS.NOM/REAL.NSA.M/.Q`** (Ingresos mensuales de remesas
+  familiares, senda §6.4, sector externo). A diferencia de IVAE, esta
+  publicación no tenía archivo en `data/L0_raw/` antes de esta sesión — se
+  capturó en vivo, just-in-time, con `src/adquisicion/bcr.R`
+  (`descargar_bcr_remesas()`), mismo mecanismo que el resto de la familia
+  BCR (chromote + interceptación de descarga real). Es una serie NOMINAL
+  (millones de US$ corrientes) y NSA, no un índice SA como IVAE. Por
+  decisión de Harold (AskUserQuestion de esta sesión), se materializa en
+  dos versiones: nominal (pass-through) y real, deflactada por un índice de
+  precios (`ONEC.IPC.IDX.NSA.M`, capturado también just-in-time esta
+  sesión — la URL de su ficha en `01_publicaciones` había devuelto 404 en
+  el intento de verificación de Harold del 2026-08-12; reintentada en vivo,
+  respondió con normalidad, ver esa ficha). Al ser flujos (no niveles), la
+  agregación mensual→trimestral usa SUMA (`agregar_trimestral_suma()`,
+  ADR-010), no promedio — la función compartida `.agregar_trimestral()`
+  también se corrigió para no tratar como hueco un trimestre incompleto en
+  el PRIMER borde de la serie (necesario porque `deflactar_serie()` puede
+  arrancar a mitad de trimestre). Salidas: `BCR_REMESAS_NOM_NSA_M.csv` (427
+  obs, 1991-M01 a 2026-M07), `BCR_REMESAS_NOM_NSA_Q.csv` (142 obs),
+  `BCR_REMESAS_REAL_NSA_M.csv` (200 obs, acotada por el arranque de
+  `ONEC.IPC.BASE_2009` en dic-2009), `BCR_REMESAS_REAL_NSA_Q.csv` (66 obs).
+  `tests/test-l3-predictores.R` ampliado con 7 `test_that` nuevos
+  (`agregar_trimestral_suma()`, `deflactar_serie()`, borde inicial de
+  `agregar_trimestral_promedio()`). **Pendiente:** el resto de la matriz de
+  predictores — comercio exterior, precios (más allá de IPC), empleo
+  cotizante, energía, turismo, recaudación (senda §6.4) siguen sin
+  extractor ni transformación.
 - [ ] **Análisis exploratorio y de estacionariedad.**
 - [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
-  `BCR.IVAE.VOL.SA.M/.Q` (ver arriba). Camino para el siguiente predictor:
-  (1) estructurar `fuente_celda` en `03_series.csv` con verificación real de
+  `BCR.IVAE.VOL.SA.M/.Q`, extendida el mismo día con
+  `BCR.REMESAS.NOM/REAL.NSA.M/.Q` (ver arriba). Camino para el siguiente
+  predictor: (1) capturar L0 en vivo si no existe aún (`src/adquisicion/
+  bcr.R`, patrón `descargar_bcr_*`/`descargar_onec_*`); (2) estructurar
+  `fuente_celda` en `03_series.csv` con verificación real de
   `verificar_fuente_celda.R` + entrada en `doc/bitacora_verificaciones.md`
-  (regla 8); (2) extractor L0→L1 dedicado; (3) transformación L3 según
-  ADR-010; (4) filas en `04_transformaciones`/`05_series_master`. El BCR ya
-  tiene ~35 publicaciones más adquiridas en L0 (`catalogos/01_publicaciones/
-  BCR.*.yaml`) bajo el mismo default conservador de ADR-008 que IVAE —
-  candidatos de la senda §6.4 sin compuerta nueva: remesas
-  (`BCR.REMESAS_FAMILIARES_MENSUAL`), comercio exterior
-  (`BCR.BALANZA_COMERCIAL`, `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`), precios
-  (`BCR.IPP`, `BCR.IPRI.BASE_1990`, `BCR.ITCER`).
+  (regla 8); (3) extractor L0→L1 dedicado; (4) transformación L3 según
+  ADR-010 (deflactar si corresponde, agregar por promedio si es nivel o por
+  suma si es flujo); (5) filas en `04_transformaciones`/`05_series_master`.
+  El BCR ya tiene ~35 publicaciones más adquiridas en L0
+  (`catalogos/01_publicaciones/BCR.*.yaml`) bajo el mismo default
+  conservador de ADR-008 que IVAE/REMESAS — candidatos de la senda §6.4 sin
+  compuerta nueva: comercio exterior (`BCR.BALANZA_COMERCIAL`,
+  `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`), precios (`BCR.IPP`,
+  `BCR.IPRI.BASE_1990`, `BCR.ITCER`) — remesas ya no está en esta lista,
+  admitida el 2026-09-16. `ONEC.IPC.IDX.NSA.M` (índice general de precios al
+  consumidor) también ya tiene extractor y fila en `03_series.csv` — entró
+  como deflactor de remesas, no como predictor propio; no tiene fila en
+  `05_series_master` todavía (podría promoverse a predictor de inflación en
+  una sesión futura, decisión no tomada).
 - [x] **Hallazgo de esta sesión, corregido: `extraer_bcr_pib.R` y
   `validar_l2_pib.R` filtraban `03_series.csv` con una lista de EXCLUSIÓN**
   (`publicacion_id != "UT.DEMANDA_TOTAL_MENSUAL"`) en vez de inclusión — al
@@ -90,22 +127,25 @@
 
 ## Entregables (senda §4)
 
-- [~] Catálogo `03_series` poblado — 100 filas (98 PIB + 1 UT + 1
-  `BCR.IVAE.VOL.SA.M`, alta 2026-09-16, verificada 99 PASS / 0 FAIL / 1
+- [~] Catálogo `03_series` poblado — 102 filas (98 PIB + 1 UT + 1
+  `BCR.IVAE.VOL.SA.M` + 1 `BCR.REMESAS.NOM.NSA.M` + 1 `ONEC.IPC.IDX.NSA.M`,
+  las tres últimas altas de 2026-09-16, verificadas 101 PASS / 0 FAIL / 1
   FUERA_DE_ALCANCE). Falta el mapeo completo para la reconciliación 29-vs-28
   de variables de volumen de PIB (`doc/bitacora_fuentes_fragiles.md`,
   pendiente de Fase 1) y el resto de la matriz de predictores.
-- [~] Catálogo `04_transformaciones` poblado — 3 filas (T001, T002, T003),
-  todas con `script_path`/`funcion` reales; faltan las filas del resto de la
+- [~] Catálogo `04_transformaciones` poblado — 6 filas (T001–T006), todas
+  con `script_path`/`funcion` reales; faltan las filas del resto de la
   matriz de predictores (ADR-010).
-- [~] Catálogo `05_series_master` poblado — 4 filas (`PIB.SA.PROPIO.Q`,
-  `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M`, `BCR.IVAE.VOL.SA.Q`), todas
+- [~] Catálogo `05_series_master` poblado — 8 filas (`PIB.SA.PROPIO.Q`,
+  `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M/.Q`,
+  `BCR.REMESAS.NOM.NSA.M/.Q`, `BCR.REMESAS.REAL.NSA.M/.Q`), todas
   materializadas; faltan las filas del resto de predictores.
 - [~] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
   (`PIB_SA_PROPIO_Q.csv`, `PIB_SA_PROPIO_Q_outliers.csv`,
-  `PIB_SA_OFICIAL_Q.csv`) y el primer predictor (`BCR_IVAE_VOL_SA_M.csv`,
-  `BCR_IVAE_VOL_SA_Q.csv`), pero cubre solo eso, no el resto de la matriz de
-  predictores. L4 sigue vacío salvo `.gitkeep`.
+  `PIB_SA_OFICIAL_Q.csv`) y dos predictores (`BCR_IVAE_VOL_SA_M/_Q.csv`,
+  `BCR_REMESAS_NOM_NSA_M/_Q.csv`, `BCR_REMESAS_REAL_NSA_M/_Q.csv`), pero
+  cubre solo eso, no el resto de la matriz de predictores. L4 sigue vacío
+  salvo `.gitkeep`.
 - [x] **Reporte de calidad de datos** (2026-09-16) — `pointblank::export_report()`
   sobre el agente de `validar_l2()`, escrito a `data/L2_validated/reporte_calidad_l2_pib.html`
   (HTML autocontenido) en cada corrida de `src/validacion/validar_l2_pib.R`, tanto
@@ -114,7 +154,8 @@
   reporte se extiende con ellas.
 - [ ] Reporte exploratorio.
 - [~] Matriz de predictores mensuales y trimestrales con cobertura documentada
-  — 1 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, mensual y trimestral).
+  — 2 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
+  real, mensual y trimestral).
 
 ## Guards de CI a subsumir
 
@@ -131,8 +172,8 @@
 - [x] Catálogos base completos (`00`–`09` + `datapackage.json`).
 - [x] Dependencias declaradas: `pointblank`, `duckdb`, `seasonal`,
   `tempdisagg` en `DESCRIPTION` y `renv.lock` (ADR-009 cerrado).
-- [x] `make master` encadena `validate` → extractores L0→L1 (PIB, UT, IVAE) →
-  validación L2 → `l3_pib_objetivo.R` (variable objetivo) →
+- [x] `make master` encadena `validate` → extractores L0→L1 (PIB, UT, IVAE,
+  REMESAS, IPC) → validación L2 → `l3_pib_objetivo.R` (variable objetivo) →
   `l3_predictores.R` (matriz de predictores).
 
 ## Decisiones metodológicas pendientes — NO asumir, preguntar
@@ -165,3 +206,12 @@ inferencia, no como tarea a resolver de una vez:
 4. **Reemplazo o coexistencia de `tests/test-integridad-referencial.R`** con
    los checks pointblank de Fase 3 — decidir si se subsume sin deuda (como
    ya está anotado) o si se mantiene como doble verificación.
+5. ~~¿Se deflacta `BCR.REMESAS_FAMILIARES_MENSUAL` (nominal, USD corrientes)
+   a términos reales?~~ **Resuelto 2026-09-16** (decisión de Harold, primera
+   aplicación concreta del principio "caso por caso" de ADR-010): ambas —
+   nominal como serie base (pass-through) y real como derivada
+   (`T004_DEFLACTAR_REMESAS`, deflactada por `ONEC.IPC.IDX.NSA.M`). Sienta
+   precedente operativo, no metodológico nuevo: ADR-010 ya cubría la
+   decisión general: cada predictor nominal que se admita de acá en
+   adelante requiere la misma pregunta explícita (deflactar, no deflactar, o
+   ambas), no se infiere del tipo de serie.

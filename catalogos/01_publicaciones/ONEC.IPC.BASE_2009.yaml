@@ -4,7 +4,7 @@ nombre: "Índice de Precios al Consumidor (IPC), base diciembre 2009"
 periodicidad: mensual
 formato: web / csv / xlsx (Base de Datos Económica y Financiera) / pdf (boletín narrativo)
 url: https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc
-cobertura_temporal: "dic-2009 (mes base, índice=100 por construcción, compartido con el último dato de BASE_1992) + observaciones medidas de 2010-01 a 2026-06 (verificado)."
+cobertura_temporal: "dic-2009 (mes base, índice=100 por construcción, compartido con el último dato de BASE_1992) + observaciones medidas de 2010-01 a 2026-08 (verificado 2026-09-16 por captura real, ver nota RESUELTO más abajo; esta línea decía 2026-06 antes de esa verificación)."
 condiciones_uso: "Resuelto por decisión, no por relevamiento (ADR-008, enmienda 2026-08-18): mismo patrón que ISSS — no se persigue esclarecimiento adicional con ONEC/DIGESTYC; aplica el default conservador de ADR-008 (script + checksum, sin comprometer el archivo crudo). Detalle y motivo por institución en ADR-008."
 notas: |
   Serie vigente. Producida originalmente por DIGESTYC, heredada por ONEC.
@@ -32,3 +32,17 @@ notas: |
   https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc
   devolvió error 404 — no se pudo confirmar. Pendiente reintentar o
   localizar la URL correcta.
+
+  RESUELTO (2026-09-16, Fase 3, captura de BCR.REMESAS.NOM.NSA.M y su
+  deflactor): la misma URL, reintentada en vivo por Claude Code vía
+  bcr_sondear_publicacion.R y luego con la captura real
+  (src/adquisicion/bcr.R, descargar_onec_ipc_base2009()), respondió con
+  normalidad: id_publicacion=48, nombre_cuadro="Índice de Precios al
+  Consumidor (IPC)", unidades="Indice Diciembre 2009=100" — coincide
+  exactamente con lo ya declarado en esta ficha. El 404 de agosto fue una
+  falla puntual de red o del portal en ese momento, no una URL incorrecta
+  ni un cambio de estructura de la fuente. Cobertura confirmada por lectura
+  directa del archivo descargado: dic-2009=100 (ancla) y observaciones
+  medidas hasta 2026-08 (no 2026-06 como decía la línea de
+  cobertura_temporal de esta ficha, que quedó desactualizada — dato
+  vigente: ver catalogos/03_series.csv, serie ONEC.IPC.IDX.NSA.M).

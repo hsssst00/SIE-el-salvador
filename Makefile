@@ -44,10 +44,12 @@ master: validate
 	Rscript src/transformacion/extraer_bcr_pib.R
 	Rscript src/transformacion/ut_demanda_serie.R
 	Rscript src/transformacion/extraer_bcr_ivae.R
+	Rscript src/transformacion/extraer_bcr_remesas.R
+	Rscript src/transformacion/extraer_onec_ipc.R
 	Rscript src/validacion/validar_l2_pib.R
 	Rscript src/transformacion/l3_pib_objetivo.R
 	Rscript src/transformacion/l3_predictores.R
-	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE (ADR-010) (Fase 3)"
+	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS (ADR-010) (Fase 3)"
 
 # Validación de esquema de catálogos — pointblank contra catalogos/datapackage.json.
 validate:

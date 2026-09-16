@@ -264,3 +264,40 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
 - **`testthat::test_dir("tests")` tras la corrección: 598 PASS / 0 FAIL** (no hay test que
   ejercite `verificar_fuente_celda.R` directamente — no corre en CI, ver cabecera de este
   archivo — pero la batería completa sigue en verde).
+
+## 2026-09-16 (segunda sesión) — alta de BCR.REMESAS.NOM.NSA.M y ONEC.IPC.IDX.NSA.M
+
+- **Estado del árbol verificado:** el commit que agrega las filas `BCR.REMESAS.NOM.NSA.M` y
+  `ONEC.IPC.IDX.NSA.M` a `03_series.csv` (padre: `f2f7894`). El hash no puede ser
+  autorreferencial — mismo patrón que las dos entradas anteriores.
+- **Contexto:** segundo predictor de la matriz (senda §6.4, sector externo: remesas), más su
+  deflactor (ADR-010: deflactación caso por caso). Ninguna de las dos publicaciones tenía
+  archivo en `data/L0_raw/` antes de esta sesión — a diferencia de `BCR.IVAE.VOL.SA.M`, no
+  venían de los lotes de captura de Fase 2 (Bloque 2/3). Se capturaron en vivo, just-in-time,
+  con el mismo mecanismo de `src/adquisicion/bcr_captura.R` (chromote + interceptación de
+  descarga real) ya usado para el resto de la familia BCR — captura puntual de dos
+  publicaciones nuevas, no recolección de volumen (regla 9 de `CLAUDE.md`).
+  - `BCR.REMESAS_FAMILIARES_MENSUAL`: id_publicación 64 (coincide con el sondeo ya registrado
+    en `01_publicaciones/BCR.REMESAS_FAMILIARES_MENSUAL.yaml`), 427 períodos (1991-01 a
+    2026-07). Registrada como `BCR_remesas_familiares_mensual_2026-09-16.xlsx`,
+    `BCR.REMESAS_FAMILIARES_MENSUAL.v2026-08`.
+  - `ONEC.IPC.BASE_2009`: la URL declarada en su ficha de `01_publicaciones` había devuelto 404
+    en el intento de verificación directa de Harold (2026-08-12, ver nota "Pendiente reintentar
+    o localizar la URL correcta" en esa ficha). Reintentada en vivo el 2026-09-16: la URL
+    respondió con normalidad (id_publicación 48, unidades "Indice Diciembre 2009=100", coincide
+    con lo declarado) — el 404 de agosto fue una falla puntual, no un cambio de estructura ni
+    una URL incorrecta. 212 períodos (2009-01 a 2026-08; enero-noviembre de 2009 son celdas
+    vacías por construcción — confirmado, consistente con la nota ya registrada en esa ficha).
+    Registrada como `BCR_ipc_base_2009_2026-09-16.xlsx`, `ONEC.IPC.BASE_2009.v2026-09`.
+- Archivos `.xlsx` verificados (checksum SHA-256 contra `manifiesto.csv`):
+  - `BCR_remesas_familiares_mensual_2026-09-16.xlsx`:
+    `589488e326c9ded098dcd7291068fd7dcf48bd4431bae2785a13ee03550cc60d`
+  - `BCR_ipc_base_2009_2026-09-16.xlsx`:
+    `ec9bdabd7e78e7bcf0103952027f6cbc6b49a328988af094a3aee892b148bb75`
+- **Resultado: 101 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 102 filas).
+  `BCR.REMESAS.NOM.NSA.M` y `ONEC.IPC.IDX.NSA.M` ambas **PASS** en la primera corrida —
+  `fuente_celda` se redactó y verificó contra el archivo real antes de admitir las filas, no al
+  revés. FUERA_DE_ALCANCE: `UT.DEMANDA_ELEC.GWH.NSA.M` (sin cambios).
+- Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
+  Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
+  verificador (a diferencia de la sesión anterior el mismo día).

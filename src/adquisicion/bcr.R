@@ -423,3 +423,78 @@ descargar_bcr_spnf_vigente <- function(fecha_publicacion) {
     notas_vintage = .bcr_nota_spnf_vigente_fecha
   )
 }
+
+# -----------------------------------------------------------------------------
+# BCR.REMESAS_FAMILIARES_MENSUAL (Fase 3, matriz de predictores, 2026-09-16).
+# Predictor nombrado explícitamente en la senda §6.4 (ver
+# catalogos/01_publicaciones/BCR.REMESAS_FAMILIARES_MENSUAL.yaml). A diferencia
+# de IVAE, esta publicación no fue capturada en los lotes de Fase 2 (Bloque
+# 2/3) — no tenía fila en el manifiesto ni archivo en data/L0_raw/ antes de
+# esta captura. Se captura ahora, just-in-time, para admitir la serie en
+# 03_series.csv, mismo patrón operativo que el resto de esta familia. No
+# dispara compuerta nueva de ADR-008: BCR ya está bajo el default conservador
+# (script + checksum) que rige el resto de esta fuente.
+# -----------------------------------------------------------------------------
+
+.bcr_nota_remesas_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: remesas-mensuales; ver id_publicacion=64",
+  "confirmado en el sondeo de 01_publicaciones/BCR.REMESAS_FAMILIARES_MENSUAL.yaml)",
+  "aplicado al periodo_referencia_max realmente capturado. Aproximada al mes",
+  "siguiente al periodo_referencia_max, día 01 por convención (mismo patrón que",
+  ".bcr_nota_fecha_aproximada). Decisión de Harold, patrón ya fijado 2026-08-25."
+)
+
+descargar_bcr_remesas <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/ingresos-mensuales-de-remesas-familiares"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "BCR", publicacion_id = "BCR.REMESAS_FAMILIARES_MENSUAL", url = url,
+    descripcion_archivo = "remesas_familiares_mensual", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_remesas_fecha
+  )
+}
+
+# -----------------------------------------------------------------------------
+# ONEC.IPC.BASE_2009 (Fase 3, 2026-09-16). Deflactor de BCR.REMESAS.NOM.NSA.M
+# (decisión de Harold: ADR-010, deflactación caso por caso). institucion_id es
+# ONEC (ver catalogos/01_publicaciones/ONEC.IPC.BASE_2009.yaml), pero la serie
+# numérica está alojada en el mismo portal del BCR (estadisticas.bcr.gob.sv,
+# Sector Real) y se sirve con el mismo componente vista-serie — de ahí que esta
+# función viva en bcr.R y use bcr_capturar_xlsx, no un mecanismo propio de
+# ONEC/DIGESTYC. fuente = "ONEC" en registrar_descarga porque así lo declara
+# institucion_id, no "BCR" — el archivo se atribuye a quien produce el dato, no
+# a quien lo aloja.
+#
+# La URL declarada en la ficha de 01_publicaciones había devuelto 404 en el
+# intento de verificación directa de Harold (2026-08-12). Reintentada en vivo
+# el 2026-09-16: respondió con normalidad (id_publicacion=48, unidades
+# "Indice Diciembre 2009=100", coincide con lo declarado) — el 404 de agosto
+# fue una falla puntual, no una URL incorrecta ni un cambio de estructura.
+# -----------------------------------------------------------------------------
+
+.bcr_nota_ipc_base2009_fecha <- paste(
+  "fecha_publicacion NO observada directamente en la fuente (mismo patrón que",
+  "BCR.IVAE.VIGENTE). Se aproxima por el rezago del calendario del BCR",
+  "(doc/calendario_divulgacion_bcr.csv: fila IPC, 'Septiembre',7 ->",
+  "periodo_referencia 2026-08, rezago 1 mes); con periodo_referencia_max =",
+  "2026-M08 (capturado 2026-09-16), el ciclo que la publicó cae ~2026-09-01.",
+  "Aproximada a 2026-09-01 (mes, día 01 por convención)."
+)
+
+descargar_onec_ipc_base2009 <- function(fecha_publicacion) {
+  url <- "https://estadisticas.bcr.gob.sv/serie/indice-de-precios-al-consumidor-ipc"
+  cap <- bcr_capturar_xlsx(url, formula = "0")
+  registrar_descarga(
+    fuente = "ONEC", publicacion_id = "ONEC.IPC.BASE_2009", url = url,
+    descripcion_archivo = "ipc_base_2009", extension = "xlsx",
+    contenido_crudo = cap$bytes, codigo_http = 200L,
+    fecha_publicacion = fecha_publicacion, periodo_referencia_max = cap$periodo_referencia_max,
+    verificacion_forma = verificacion_xlsx,
+    notas_vintage = .bcr_nota_ipc_base2009_fecha
+  )
+}
