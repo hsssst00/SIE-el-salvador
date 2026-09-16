@@ -44,7 +44,8 @@ master: validate
 	Rscript src/transformacion/extraer_bcr_pib.R
 	Rscript src/transformacion/ut_demanda_serie.R
 	Rscript src/validacion/validar_l2_pib.R
-	@echo "Pendiente: L3 (transformaciones) (Fase 3)"
+	Rscript src/transformacion/l3_pib_objetivo.R
+	@echo "Pendiente: L3 para la matriz de predictores (desagregacion temporal/deflactacion, ADR-010) (Fase 3)"
 
 # Validación de esquema de catálogos — pointblank contra catalogos/datapackage.json.
 validate:

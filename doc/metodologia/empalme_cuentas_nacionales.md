@@ -41,3 +41,30 @@ No es calibración ni coincidencia de publicación: es consecuencia estructural 
 - [x] ~~Localizar y citar la nota metodológica específica del BCR que documenta el método de retropolación utilizado.~~ Resuelto (2026-08-09) — ver "Método de retropolación del BCR" arriba.
 - [x] ~~Confirmar si la superposición de 4 trimestres corresponde a un período de calibración/validación documentado por el BCR, o si es una coincidencia de publicación.~~ Resuelto (2026-08-09) — ver "Por qué la superposición es de 4 trimestres exactos" arriba.
 - [ ] Registrar el número de observaciones al momento de cada actualización trimestral (crece con el tiempo).
+
+## Precisión numérica de la superposición (Fase 3, 2026-09-16)
+
+Al implementar `src/transformacion/l3_pib_objetivo.R` (T001_CONCAT_PIB_NSA,
+`catalogos/04_transformaciones.csv`) se verificó numéricamente, por primera
+vez a nivel de código, el empalme de 2005-T1 a 2005-T4 que ADR-003 describe
+como "valores idénticos verificados". El resultado exacto:
+
+| Período | RETRO | Nativo | Diferencia |
+|---|---|---|---|
+| 2005-Q1 | 77.0577674 | 77.05 | +0.0078 |
+| 2005-Q2 | 84.7870395 | 84.79 | -0.0030 |
+| 2005-Q3 | 82.5236399 | 82.53 | -0.0064 |
+| 2005-Q4 | 87.7274269 | 87.73 | -0.0026 |
+
+Las diferencias (hasta 0.0078, sobre índices de magnitud ~80) no contradicen
+la caracterización de ADR-003: la tabla nativa del BCR publica solo 2
+decimales, mientras que RETRO conserva la precisión completa de su cómputo
+de retropolación (Hernández 2018, método de interpolación de series, ver
+arriba) — una diferencia de hasta una unidad del último decimal publicado es
+el resultado esperado de comparar un valor redondeado para publicación contra
+uno de precisión completa, no evidencia de que las series describan
+magnitudes distintas. `concatenar_pib_nsa()` usa tolerancia 0.01 en vez de
+0.005 (media unidad del decimal publicado) precisamente por este margen
+verificado. No reabre ADR-003: la decisión (usar la retropolación oficial tal
+cual, sin empalme propio) sigue siendo la misma; esto solo documenta, con
+precisión numérica exacta, algo que antes se verificó solo a 2 decimales.

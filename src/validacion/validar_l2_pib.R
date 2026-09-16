@@ -7,6 +7,11 @@
 #
 # Reglas en src/validacion/l2_pib_reglas.R (validar_l2()), para que
 # tests/test-validar-l2-pib.R las ejerza con datos sintéticos sin tocar disco.
+# validar_l2() devuelve list(errores, agente): agente es el ptblank_agent ya
+# interrogado, árbitro unificado de los 5 checks. Acá se usa $errores para la
+# decisión de fallar y $agente para escribir el reporte de calidad de datos
+# (entregable de Fase 3, senda §4) como HTML autocontenido en data/L2_validated/
+# -- capa generada, no se versiona (ver .gitignore) -- se reescribe en cada corrida.
 # Checks, en el orden de §3.5:
 #   1. Esquema: campos, tipos, dominio de "periodo" (trimestral ISO 8601).
 #   2. Integridad referencial con catalogos/03_series.csv (en ambas direcciones:
@@ -28,12 +33,22 @@ l1 <- read.csv("data/L1_staging/BCR_PIB_series_largo.csv", stringsAsFactors = FA
 catalogo <- read.csv("catalogos/03_series.csv", stringsAsFactors = FALSE, na.strings = "")
 catalogo <- catalogo[catalogo$publicacion_id != "UT.DEMANDA_TOTAL_MENSUAL", ]
 
-errores <- validar_l2(l1, catalogo)
+resultado <- validar_l2(l1, catalogo)
+errores <- resultado$errores
+
+pointblank::export_report(
+  resultado$agente,
+  filename = "reporte_calidad_l2_pib.html",
+  path = "data/L2_validated",
+  quiet = TRUE
+)
 
 if (length(errores) > 0) {
   cat("\nVALIDACIÓN L2 FALLIDA (", length(errores), " problema(s)):\n\n", sep = "")
   for (e in errores) cat("  - ", e, "\n", sep = "")
+  cat("\nReporte de calidad de datos: data/L2_validated/reporte_calidad_l2_pib.html\n")
   stop("L1 no pasa la batería de validaciones L2.")
 }
 
 message("Validación L2 OK: esquema, integridad referencial, duplicados, continuidad e identidad contable cumplen.")
+message("Reporte de calidad de datos: data/L2_validated/reporte_calidad_l2_pib.html")
