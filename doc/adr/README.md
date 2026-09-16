@@ -211,3 +211,25 @@ guardada, no una corrida repetible.
 **Tag: `v0.5.0-fase2`,** sobre el commit que ya contiene esta certificación, la evidencia y la
 nota de senda §4 — nunca antes (misma disciplina que la corrección de alcance de tag de Fase 0).
 Confirmar que el run de CI sobre el commit de cierre queda en verde antes de tagear.
+
+## Remediación de la auditoría independiente de Fase 2 (2026-09-15)
+
+`v0.5.0-fase2` certificó el fondo técnico del cierre, pero `doc/auditorias/auditoria_independiente_fase2_SIE-el-salvador.md`
+(primera revisión de ese cierre contra un clon fresco, por un tercero) encontró un CRÍTICO: `CLAUDE.md`
+seguía declarando "Fase 1 … en curso" y `README.md` omitía Fase 2 por completo — tercera reincidencia
+del modo de falla ya visto en C2 (Fase 0) y C1 (Fase 1). Remediado el mismo día:
+
+- `CLAUDE.md` y `README.md` declaran Fase 1 y Fase 2 cerradas, con sus tags.
+- `tests/test-adr-indice.R` gana un segundo `test_that` que compara la fase declarada en ambos
+  archivos contra el último "Cierre de Fase N" de este índice, para que una cuarta reincidencia
+  falle en CI en vez de esperar a la próxima auditoría.
+- `doc/bitacora_fuentes_fragiles.md` se completa con FMI, FRED/Banco Mundial y UT (hallazgo I1).
+- La auditoría independiente queda incorporada a `doc/auditorias/` (cierra I2).
+- `CITATION.cff` (M1) y el nombre del paso de CI de validación de catálogos (M2), cosméticos.
+- `renv.lock`: `Matrix` 1.7-3 → 1.7-6 — ajuste no relacionado con la auditoría, hecho porque
+  `renv::restore()` fallaba en la máquina de Harold; sin causa raíz diagnosticada, solo se igualó
+  a la versión ya instalada localmente. CI (run 117, ubuntu-latest) confirmó verde tras el cambio.
+
+**Tag: `v0.5.1-fase2`,** sobre el commit que incorpora esta remediación (`4a1465b`). No sustituye
+a `v0.5.0-fase2`, que se conserva sin modificar por disciplina de trazabilidad (mismo patrón que
+`v0.2.0-fase0-enmendado` → `v0.2.1-fase0-enmendado`).
