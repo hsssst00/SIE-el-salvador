@@ -70,3 +70,57 @@ test_that("la celda Estado del índice coincide con la línea **Estado:** de cad
     )
   }
 })
+
+# Guard hermano: ataca la reincidencia (tercera vez) del mismo modo de falla, pero
+# en CLAUDE.md y el README.md raíz — los dos archivos que un tercero (y los tres
+# agentes) leen primero, y que el test de arriba no cubre porque no son un ADR.
+# Ver auditoría independiente de Fase 2 (hallazgo C1, 2026-09-15): CLAUDE.md seguía
+# diciendo "Fase 1 … en curso" y el README omitía Fase 2, dos cierres después de
+# que doc/adr/README.md ya los certificaba.
+test_that("CLAUDE.md y README.md declaran cerrada la última fase que doc/adr/README.md certifica", {
+  ruta_indice <- here::here("doc", "adr", "README.md")
+  lineas_indice <- .leer_utf8(ruta_indice)
+
+  encabezados_cierre <- grep("^## Cierre de Fase (\\d+)", lineas_indice, value = TRUE)
+  expect_gt(length(encabezados_cierre), 0L)
+
+  numeros_fase <- as.integer(sub("^## Cierre de Fase (\\d+).*$", "\\1", encabezados_cierre))
+  fase_max <- max(numeros_fase)
+
+  ruta_claude  <- here::here("CLAUDE.md")
+  ruta_readme  <- here::here("README.md")
+  texto_claude <- paste(.leer_utf8(ruta_claude), collapse = " ")
+  texto_readme <- paste(.leer_utf8(ruta_readme), collapse = " ")
+
+  # La fase más reciente cerrada en el índice de ADR debe aparecer como cerrada
+  # (no "en curso") en ambos archivos de primera lectura.
+  patron_cerrada <- sprintf("Fase %d[^.]*?cerrada", fase_max)
+  expect_true(
+    grepl(patron_cerrada, texto_claude, ignore.case = TRUE, perl = TRUE),
+    info = sprintf(
+      "CLAUDE.md no declara cerrada la Fase %d, pese a que doc/adr/README.md ya la certifica.",
+      fase_max
+    )
+  )
+  expect_true(
+    grepl(patron_cerrada, texto_readme, ignore.case = TRUE, perl = TRUE),
+    info = sprintf(
+      "README.md no declara cerrada la Fase %d, pese a que doc/adr/README.md ya la certifica.",
+      fase_max
+    )
+  )
+
+  # Ninguna fase ya cerrada en el índice puede seguir descrita como "en curso"
+  # en ninguno de los dos archivos (el modo exacto de la reincidencia C1).
+  for (n in numeros_fase) {
+    patron_en_curso <- sprintf("Fase %d[^.]*?en curso", n)
+    expect_false(
+      grepl(patron_en_curso, texto_claude, ignore.case = TRUE, perl = TRUE),
+      info = sprintf("CLAUDE.md describe la Fase %d como \"en curso\", pero ya está cerrada.", n)
+    )
+    expect_false(
+      grepl(patron_en_curso, texto_readme, ignore.case = TRUE, perl = TRUE),
+      info = sprintf("README.md describe la Fase %d como \"en curso\", pero ya está cerrada.", n)
+    )
+  }
+})

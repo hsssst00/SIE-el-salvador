@@ -28,7 +28,7 @@ jobs:
 
       - uses: r-lib/actions/setup-renv@v2
 
-      - name: Validar esquema de catálogos
+      - name: Comprobación mínima de catálogos (esquema de Fase 3 pendiente)
         run: Rscript src/validacion/validate_catalogs.R
         continue-on-error: false
 

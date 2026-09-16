@@ -4,7 +4,7 @@ title: "Sistema de Información Estadística y modelos de proyección del PIB tr
 authors:
   - family-names: "Montano"
     given-names: "Harold"
-date-released: 2026-08-06
-version: 0.1.0
+date-released: 2026-09-09
+version: 0.5.0
 repository-code: "https://github.com/hsssst00/SIE-el-salvador"
 license: MIT

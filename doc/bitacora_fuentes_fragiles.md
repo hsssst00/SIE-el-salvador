@@ -344,3 +344,58 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     fila. `BCR.SPNF_SERIE_1994_2025` sigue sin captura recurrente por
     `make raw` (punto (a) queda tal cual: captura manual/única, mismo
     tratamiento que `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`).
+
+## FMI — `c[TIME_PERIOD]` con parámetros mal puestos rompe la consulta en silencio
+
+Fragilidad de forma, no de bloqueo: la API SDMX 3.0 del FMI, ante un filtro
+`c[TIME_PERIOD]` mal formado, no devuelve un error — responde HTTP 200 con
+cero series u observaciones, indistinguible en el código de estado de una
+consulta legítima sin datos para ese rango. Un script que solo chequee
+`codigo_http == 200` guarda "cero resultados" como si fuera una descarga
+exitosa. `fmi.R` falla de forma visible ante esto verificando activamente el
+conteo de series/observaciones tras el parseo, no solo el código HTTP (ver
+`src/adquisicion/README.md` §4). Sin incidente de bloqueo registrado contra
+esta fuente — el FMI es una API abierta, sin detección de bots observada.
+
+**Procedimiento de recuperación:** re-pedido idempotente vía el mecanismo
+normal de `lib_adquisicion.R` (`registrar_descarga()`); si el conteo vuelve a
+salir en cero, revisar los parámetros del filtro `c[TIME_PERIOD]` antes de
+reintentar, no asumir que la fuente no tiene datos para ese período.
+
+## FRED y Banco Mundial — el Banco Mundial responde un objeto de error con HTTP 200
+
+Ambas son API JSON vía `httr2`, sin incidente de bloqueo registrado. La única
+fragilidad de forma documentada es del Banco Mundial: ante un parámetro
+inválido devuelve un objeto de error en lugar del array `[metadata, datos]`
+de dos elementos que es su forma normal de respuesta — hay que verificar la
+forma activamente, no asumirla (ver `src/adquisicion/README.md` §4). El
+hallazgo A4 de la auditoría de Fase 2 (2026-08-28) es una instancia concreta
+de esta clase de fragilidad: se consultaba sin `per_page=1000` y la URL
+registrada en el manifiesto devolvía 50 de 66 observaciones en vez de la
+serie completa, sin que ningún código de error lo señalara.
+
+**Procedimiento de recuperación:** re-pedido idempotente vía
+`registrar_descarga()`; para el Banco Mundial, confirmar que la consulta
+incluye `per_page=1000` (o el valor que cubra el total de observaciones)
+antes de reintentar ante una respuesta que parezca truncada.
+
+## UT — `robots.txt` excluye la fuente de todo mecanismo desatendido, captura manual permanente
+
+No es una fragilidad técnica de la fuente sino una restricción de acceso
+confirmada: `robots.txt` de `ut.com.sv` no permite el scraping de la ruta de
+Reportes Estadísticos, verificado con `polite::scrape()` el 2026-08-26
+(`src/adquisicion/verificar_robots_ut.R`). La regla 9 de `CLAUDE.md` prohíbe
+evadirlo aunque `chromote` pudiera hacerlo técnicamente. Por eso
+`UT.DEMANDA_TOTAL_MENSUAL` (25 archivos, 2002-2026) se capturó manualmente el
+2026-08-26 por Harold desde el formulario público, y `ut.R` no hace ningún
+`fetch` en vivo — solo registra en L0 los bytes ya obtenidos, mismo patrón
+que `BCR.PIB_T.SERIE_RETROPOLADA_1990_2005`. `scripts/verificar_l0.R` la
+excluye explícitamente de la verificación en vivo, con el motivo asentado en
+`.EXCLUIDAS`.
+
+**Procedimiento de recuperación:** no aplica re-pedido automatizado, por
+diseño. La integridad se verifica por la vía cruzada offline
+(`scripts/check_l0_integrity.R`) y física (`scripts/verificar_l0_fisico.R`);
+una captura nueva requiere descarga manual repetida por Harold desde el
+formulario de UT, al ritmo real de publicación (anual), nunca recolección de
+volumen (regla 9).

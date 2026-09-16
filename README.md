@@ -8,6 +8,8 @@ Sistema de información estadística macroeconómica documentado, trazable, vers
 
 **Fase 1 — cerrada.** Inventario del ecosistema estadístico. El criterio de cierre (senda §4) se satisface sobre las variables *admitidas*: las 98 series de `catalogos/03_series.csv` (las cuatro publicaciones de PIB del BCR) con cobertura verificada y trazabilidad `fuente_celda` 98 PASS, y la variable objetivo con N=145 observaciones documentado (D3 / empalme). Se cierra bajo la interpretación de "ingresa al proyecto" = variable admitida, no inventario completo — ver la nota de §4 de la senda y el registro de cierre en [`doc/adr/README.md`](doc/adr/README.md). Quedan abiertas, sin bloquear el cierre, la cobertura de las publicaciones inventariadas sin serie admitida (compuerta *just-in-time* de Fase 3) y las condiciones de uso (vía ADR-008). Tag `v0.4.0-fase1`.
 
+**Fase 2 — cerrada.** Adquisición. El criterio de cierre (senda §4) se satisface por la vía "`make raw` verifica la integridad de L0" (una de las dos ramas del criterio, fijada en la nota de cierre de Fase 2 de la senda, v0.5): 54 archivos de L0 con integridad cruzada 54/54 offline (`scripts/check_l0_integrity.R`, en CI) y física (`scripts/verificar_l0_fisico.R`, local); 30 publicaciones, 25 de ellas UT de captura manual por `robots.txt` (regla 9 de este archivo). Ver el registro "Cierre de Fase 2" en [`doc/adr/README.md`](doc/adr/README.md). Tag `v0.5.0-fase2`.
+
 ## Estructura
 
 ```

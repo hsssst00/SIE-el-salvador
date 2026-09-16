@@ -15,9 +15,11 @@ Su función en el repositorio es hacer resolubles las citas por código de halla
 | `auditoria_fase1_SIE-el-salvador.md` | 2026-08-17 | `f7bae345` | I1–I3, M1–M4 | Commit `35c89aa9` |
 | `verificacion_remediacion_fase1_SIE-el-salvador.md` | 2026-08-17 | `35c89aa9` / `bde69f68` | C1, I1–I2, M1–M5 | `5dc2a1af` y `6c1d559e` |
 | `auditoria_fase2_SIE-el-salvador.md` | 2026-08-28 | `7858a21` | B1–B3, A1, A4, M1–M5, L1–L6 (A2 retirado por falso) | B2, B3, A4, M1–M5, L2, L5 remediados en la misma sesión (commit `e3c810e`); M1 cerrado en `5af9a98`; B1 cerrado el 2026-09-07 — ver `doc/adr/ADR-007-politica-vintages.md`, "Cierre de B1", y `doc/bitacora_verificaciones.md`, entrada 2026-09-07: los 12 archivos nunca se habían perdido, estaban en una segunda máquina de Harold; A1 cerrado el 2026-09-09: el defecto de código está remediado en `e3c810e`; la interpretación del criterio de cierre (Opción B) se fijó en senda §4 y la corrida completa de `make raw` que la certifica está en `doc/evidencia_cierre_fase2.txt` (54/54 offline, 13 PASS / 15 CAMBIO / 0 ERROR, salida 0). Ver `doc/adr/README.md`, "Cierre de Fase 2" |
+| `auditoria_independiente_fase2_SIE-el-salvador.md` | 2026-09-15 | `23c1064` (`v0.5.0-fase2`) | C1, I1–I2, M1–M2 | Todos remediados el mismo día — ver la nota de remediación al final del propio informe |
 
-**Salvedad sobre la de Fase 2.** A diferencia de las tres anteriores, no es independiente: la
+**Salvedad sobre la interna de Fase 2.** A diferencia de las otras tres, no fue independiente: la
 ejecutó el mismo agente que aplicó las correcciones, en la misma sesión y sobre el árbol de
 trabajo, no sobre un clon fresco. Uno de sus hallazgos (A2) resultó falso y fue retirado tras
 verificación adicional; el episodio se conserva documentado dentro del propio informe, conforme
-a la regla de esta carpeta.
+a la regla de esta carpeta. La auditoría independiente de Fase 2 (2026-09-15) es la primera
+revisión de ese cierre contra un clon fresco por un tercero, y cierra esa brecha (I2).
