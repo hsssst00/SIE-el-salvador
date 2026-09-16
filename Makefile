@@ -41,11 +41,14 @@ materializar-l0:
 
 # Fase 3 — L0 -> L1 -> L2 -> L3, transformaciones y series maestras.
 master: validate
-	@echo "Pendiente: src/transformacion/ (Fase 3)"
+	Rscript src/transformacion/extraer_bcr_pib.R
+	Rscript src/transformacion/ut_demanda_serie.R
+	Rscript src/validacion/validar_l2_pib.R
+	@echo "Pendiente: L3 (transformaciones) (Fase 3)"
 
 # Validación de esquema de catálogos — pointblank contra catalogos/datapackage.json.
 validate:
-	@echo "Pendiente: src/validacion/ (Fase 3)"
+	Rscript src/validacion/validate_catalogs.R
 
 # Fase 4/5 — motor de evaluación y estimación. No implementar Fase 5 antes de que
 # el motor de Fase 4 esté probado en datos sintéticos.
