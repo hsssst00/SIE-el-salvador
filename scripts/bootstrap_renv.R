@@ -42,7 +42,11 @@ paquetes <- c(
   # renv::restore(), verificar_robots_ut.R y calendario_bcr_extraer.R no arrancaban.
   "digest",       # sha256 en lib_adquisicion.R, verificar_fuente_celda.R, verificar_l0_fisico.R
   "polite",       # verificacion de robots.txt en verificar_robots_ut.R (regla 9)
-  "readxl"        # lectura del calendario de divulgacion en calendario_bcr_extraer.R
+  "readxl",       # lectura del calendario de divulgacion en calendario_bcr_extraer.R
+  # Agregado 2026-09-17 (ADR-009, nota de seguimiento "pruebas formales de estacionariedad"):
+  # ur.df()/ur.kpss() para el analisis exploratorio de Fase 3. Ya estaba en renv.lock como
+  # transitiva de vars/tsDyn -- no amplia la superficie real de instalacion.
+  "urca"          # ADF (selectlags="BIC") y KPSS en src/analisis/estacionariedad_reglas.R
 )
 
 install.packages(paquetes)

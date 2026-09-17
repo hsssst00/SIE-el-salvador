@@ -3,8 +3,19 @@
 > Deriva de `doc/senda_metodologica.md` §4 (Fase 3). No sustituye la senda ni el
 > índice de ADR (`doc/adr/README.md`) — es un tablero de seguimiento operativo,
 > vivo, para no perder de vista qué falta antes de poder escribir la nota de
-> cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (quinta
-> sesión del día: quinto y sexto predictor de la matriz, BCR.ITCER —tipo de
+> cierre en `doc/adr/README.md`. Última actualización: 2026-09-17 (segunda
+> sesión del día): "análisis exploratorio y de estacionariedad" completado
+> por entero — la mitad "estacionariedad" (ADF+KPSS confirmatorio, BIC, 4
+> transformaciones por serie) se resolvió vía `AskUserQuestion` con Harold y
+> se materializó en `src/analisis/estacionariedad.R`, incorporando `urca`
+> como nueva dependencia (ADR-009, nota de seguimiento). Sesión anterior del
+> mismo día: arrancó la mitad "exploratorio" descriptiva
+> (`src/analisis/exploracion_series.R`), se diagnosticó y luego se resolvió
+> la decisión #4 (`src/validacion/validar_integridad_catalogos.R`,
+> pointblank, subsume 6 de las 7 aristas del guard de integridad
+> referencial). Ver detalle en las secciones correspondientes. Sesión
+> anterior (2026-09-16, quinta del día): quinto y
+> sexto predictor de la matriz, BCR.ITCER —tipo de
 > cambio efectivo real, serie global— y BCR.IPM —índice de precios de
 > importación—, admitidos sin `AskUserQuestion` por instrucción explícita de
 > Harold de proceder sin supervisión turno a turno para el resto de la
@@ -178,7 +189,60 @@
   Importaciones/Balanza de `BCR.BALANZA_COMERCIAL` (todas declinadas, no
   descartadas), empleo cotizante, energía, turismo, recaudación (senda §6.4)
   siguen sin extractor ni transformación.
-- [ ] **Análisis exploratorio y de estacionariedad.**
+- [x] **Análisis exploratorio y de estacionariedad.** (2026-09-17) Ambas
+  mitades completas. "Exploratorio": `src/analisis/exploracion_series.R` +
+  `exploracion_series_reglas.R` leen las 16 series de `data/L3_master/`
+  (target + matriz de predictores completa a la fecha) y calculan cobertura,
+  huecos internos (distintos de un simple borde de arranque/cierre tardío) y
+  momentos muestrales de nivel y primera diferencia. Salidas: `data/L3_master/
+  reporte_exploratorio_resumen.csv` (una fila por serie) y
+  `data/L3_master/exploracion/<serie>.png` (nivel + primera diferencia) —
+  capa generada, no versionada, mismo criterio que el resto de `L3_master`.
+  Corrida real (2026-09-17): 16/16 series sin huecos internos — consistente
+  con que los extractores ya fallan de forma visible ante huecos reales
+  (regla 7 de `CLAUDE.md`), así que este resultado confirma, no descubre.
+  `tests/test-exploracion-series.R` (4 aserciones, datos sintéticos,
+  incluye borde de año en mensual y un hueco interno real inyectado).
+  **Mitad "estacionariedad" resuelta y materializada (2026-09-17, decisión
+  de Harold vía `AskUserQuestion`):** estrategia ADF + KPSS confirmatorio
+  (Kwiatkowski et al. 1992 — estacionaria solo si ambas coinciden en ese
+  sentido, no_estacionaria solo si coinciden en el contrario, ambigua si
+  discrepan), selección de rezagos BIC/SIC para ADF, sobre 4 transformaciones
+  por serie (nivel, log-nivel, diferencia, diferencia del log). **Corrección
+  de precisión (2026-09-17, encontrada al redactar el reporte narrativo):**
+  ADR-001 NO deja abierta la unidad de modelación en general — ya fijó
+  "logaritmo del nivel" como raíz para la variable objetivo específicamente
+  (título del ADR: "variable objetivo"). Lo que sigue genuinamente abierto es
+  la unidad de modelación para las PREDICTORAS: ADR-010 (transformaciones L3
+  de predictores) no menciona logaritmo ni unidad de modelación en ningún
+  punto — cubre desagregación, deflactación y outliers, no esto. El alcance
+  de 4 transformaciones sigue siendo el correcto (da evidencia para esa
+  decisión pendiente de predictoras, y de paso valida empíricamente la ya
+  tomada para el objetivo — ver reporte narrativo), pero el motivo que
+  documentaba el código y el resumen de decisión #`AskUserQuestion` original
+  lo describía de forma imprecisa. Implementado en `src/analisis/
+  estacionariedad_reglas.R` + `estacionariedad.R`
+  (`tests/test-estacionariedad.R`, 19 aserciones con ruido blanco y paseo
+  aleatorio como casos de libro de texto). Requirió una dependencia nueva
+  (`urca`, único paquete de los dos evaluados que soporta `selectlags="BIC"`
+  en `ur.df()`) — no cerré esto por mi cuenta: es sobre el stack cerrado de
+  ADR-009, así que se resolvió con una nota de seguimiento en ese ADR (mismo
+  mecanismo ya usado para `httr2`/`xml2`/`chromote`), no con inferencia ni
+  con un ADR nuevo. `urca` ya estaba en `renv.lock` como transitiva de
+  `vars`/`tsDyn` — el conteo de 187 paquetes no cambió, solo el de imports
+  declarados (20→21, `DESCRIPTION`/`CLAUDE.md` actualizados).
+  **Dos aproximaciones declaradas, no correspondencias exactas** (documentadas
+  en el código): el techo de búsqueda de rezagos de ADF usa la regla de
+  Schwert (`urca::ur.df(lags=...)` por defecto casi no busca nada); KPSS no
+  tiene un análogo exacto de BIC, se usó `lags="short"` como la opción más
+  parsimoniosa disponible. Especificación determinística (trend para
+  nivel/log-nivel, drift para las diferencias) fijada por convención
+  económica estándar, no preguntada por separado. Salida real (16 series x
+  hasta 4 transformaciones = 64 filas): `data/L3_master/
+  reporte_estacionariedad.csv` — 31 "estacionaria" (mayormente diferencias,
+  como se espera de una I(1) tras diferenciar), 22 "no_estacionaria"
+  (mayormente niveles con tendencia), 11 "ambigua" — patrón econométricamente
+  coherente con series macro trending, no una sorpresa.
 - [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
   `BCR.IVAE.VOL.SA.M/.Q`, extendida el mismo día con
   `BCR.REMESAS.NOM/REAL.NSA.M/.Q`, luego con `BCR.IPP.IDX.NSA.M/.Q`, luego
@@ -264,7 +328,13 @@
   si pasa como si falla. Capa generada, no versionada. Cubre solo BCR PIB — si
   se extiende el extractor a otras publicaciones (ver decisión 3 abajo), este
   reporte se extiende con ellas.
-- [ ] Reporte exploratorio.
+- [x] Reporte exploratorio. Resumen tabular y gráfico (mitad "exploratorio"),
+  prueba formal de estacionariedad (mitad "estacionariedad") y documento
+  narrativo que interpreta ambos:
+  `doc/metodologia/reporte_exploratorio_fase3.md` (2026-09-17). Corrige, de
+  paso, una imprecisión propia sobre el alcance de ADR-001 (ver nota arriba)
+  y valida empíricamente esa decisión para el objetivo, dejando la de las
+  predictoras explícitamente abierta (regla 4 de `CLAUDE.md`).
 - [~] Matriz de predictores mensuales y trimestrales con cobertura documentada
   — 6 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
   real, `BCR.IPP`, `BCR.EXPORT_FOB`, `BCR.ITCER`, `BCR.IPM`, mensual y
@@ -275,9 +345,18 @@
 
 ## Guards de CI a subsumir
 
-- [ ] `tests/test-integridad-referencial.R` — explícitamente marcado como
+- [x] `tests/test-integridad-referencial.R` — explícitamente marcado como
   "adelanto de Fase 3, reemplazable por pointblank sin deuda" (CLAUDE.md,
-  `doc/adr/README.md`). Sigue activo; no se ha reemplazado.
+  `doc/adr/README.md`). **Subsumido parcialmente 2026-09-17** (decisión de
+  Harold, sobre el diagnóstico de la decisión #4 abajo): las 6 aristas
+  tabulares migraron a `src/validacion/validar_integridad_catalogos.R` +
+  `integridad_catalogos_reglas.R` (pointblank, `make validate`, falla visible
+  por regla 7). El test se recortó a la única arista que no es tabular
+  (`01_publicaciones/*.yaml` contra `00_instituciones`/`02_metodologias`,
+  no calza con `create_agent(tbl=...)`, mismo motivo que dejó huecos/
+  identidad de L2 en R base). Suite completa 344/344 tras el recorte (antes
+  672 — la diferencia es la cuenta de aserciones por fila que ahora vive
+  dentro del agente pointblank, no un hallazgo).
 
 ## Prerrequisitos ya satisfechos
 
@@ -320,9 +399,43 @@ inferencia, no como tarea a resolver de una vez:
    *instituciones* genuinamente nuevas (ninguna serie de otra fuente ha
    entrado todavía): cada una dispara su propia compuerta *just-in-time* de
    ADR-008 antes de admitirse en `03_series.csv`.
-4. **Reemplazo o coexistencia de `tests/test-integridad-referencial.R`** con
-   los checks pointblank de Fase 3 — decidir si se subsume sin deuda (como
-   ya está anotado) o si se mantiene como doble verificación.
+4. ~~Reemplazo o coexistencia de `tests/test-integridad-referencial.R` con
+   los checks pointblank de Fase 3~~ **Resuelto 2026-09-17** (decisión de
+   Harold, sobre el diagnóstico de abajo: "hacelo"). Se construyó el
+   validador de FK entre catálogos que el diagnóstico identificó como
+   faltante — `src/validacion/validar_integridad_catalogos.R` +
+   `integridad_catalogos_reglas.R`, pointblank, corre en `make validate` —
+   y se recortó el test a la única arista no tabular. Detalle en "Guards de
+   CI a subsumir" arriba. Cada arista de valor único resultó ser el caso de
+   uso nativo de `col_vals_in_set()` (mejor encaje que L2, que sí necesitó
+   `specially()` para todo); solo las dos aristas multi-valor
+   (`series_insumo_ids`, `series_afectadas`) necesitaron precómputo en R
+   base, mismo patrón que huecos/identidad de L2.
+   **Diagnóstico original (2026-09-17, informó la decisión):**
+   verificado contra el código real, no por analogía. `test-integridad-
+   referencial.R` cubre 7 aristas FK entre catálogos (`03→01`, `03→02`,
+   `08→01`, `05→04`, `05→03`, `09→03`/`01` según `tipo_referencia`,
+   `01→00`/`02` vía YAML). Ninguna pointblank existente las cubre hoy:
+   `src/validacion/validate_catalogs.R` (el único validador de catálogos
+   contra `datapackage.json`, invocado por `make validate`) sólo implementa
+   `required`/`unique`/`enum` — pese a importar `pointblank`, no usa
+   `ptblank_agent` ni ningún `col_vals_*`, son bucles en R base. La batería
+   L2 de `validar_l2_pib.R` (la que sí migró a pointblank, 2026-09-16) valida
+   otra cosa: filas de `L1` contra `03_series`, no integridad entre
+   catálogos. **Hallazgo adicional de paso:** `datapackage.json` sí declara
+   `"foreignKeys"` para `03_series` (`publicacion_id`→`01_publicaciones`,
+   `metodologia_id`→`02_metodologias`) — pero `validate_catalogs.R` ignora
+   ese campo del esquema por completo, y ningún otro recurso del
+   `datapackage.json` declara `foreignKeys` (ni `04`, `05`, `08`, `09`,
+   pese a que el test sí verifica esas aristas). Es decir: el esquema
+   declarado ya está incompleto respecto a lo que el test cubre, y lo poco
+   que declara no se aplica. **Conclusión del diagnóstico:** hoy no hay nada
+   que subsumir — la pregunta real no es "¿reemplazo o coexistencia?" sino
+   si construir primero el validador de FK entre catálogos (extender
+   `validate_catalogs.R` + completar `foreignKeys` en `datapackage.json`
+   para los 5 recursos que faltan) antes de poder decidir si el test se
+   vuelve redundante. No tomé esa decisión — es la misma clase de elección
+   de alcance de validación que ya se marcó como pendiente.
 5. ~~¿Se deflacta `BCR.REMESAS_FAMILIARES_MENSUAL` (nominal, USD corrientes)
    a términos reales?~~ **Resuelto 2026-09-16** (decisión de Harold, primera
    aplicación concreta del principio "caso por caso" de ADR-010): ambas —

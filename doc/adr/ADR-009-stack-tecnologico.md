@@ -215,3 +215,41 @@ automatizado bloqueado por *robots.txt*"): esa restricción **no se reconsidera*
 no se usa para evadir *robots.txt* en esa ni en ninguna otra fuente — el mecanismo desatendido
 que este ADR adopta está acotado por esta regla, no es una vía general para superar
 cualquier restricción de acceso que se encuentre.
+
+## Nota de seguimiento — pruebas formales de estacionariedad (2026-09-17)
+
+**Contexto.** La actividad "análisis exploratorio y de estacionariedad" de la senda §4 (Fase 3)
+llegó a la mitad "estacionariedad" (`doc/checklist_fase3.md`). Harold decidió, vía
+`AskUserQuestion`, la estrategia (ADF + KPSS confirmatorio), el criterio de selección de rezagos
+(BIC/SIC) y el alcance (nivel, log-nivel, diferencia y diferencia del log, para las 16 series de
+`data/L3_master/`). Ninguno de los trece paquetes originales de este ADR implementa pruebas de
+raíz unitaria.
+
+**Alternativas consideradas:**
+
+- **`tseries::adf.test()`/`tseries::kpss.test()`:** interfaz más simple, pero `adf.test()` no
+  soporta selección de rezagos por BIC/AIC — usa una regla fija (Said-Dickey,
+  `trunc((n-1)^(1/3))`), incompatible con el criterio ya decidido.
+- **`urca::ur.df()`/`urca::ur.kpss()`:** sí soporta `selectlags = "BIC"` en `ur.df()`
+  directamente, y expone `type` ("none"/"drift"/"trend") de forma explícita para fijar la
+  especificación determinística por transformación (trend para nivel/log-nivel, drift para
+  diferencia/diferencia del log) — control más fino, alineado con lo que la regla 4 de
+  `CLAUDE.md` exige fijar de forma explícita, no implícita en una librería que decide por
+  default.
+
+**Decisión: `urca`.** Es la única de las dos que soporta el criterio BIC ya decidido para ADF; no
+tiene un análogo exacto de BIC para el rezago truncado de KPSS (no es una prueba basada en
+regresión con rezagos seleccionables, sino un estimador de varianza de largo plazo con un
+parámetro de truncamiento) — se usa `lags = "short"` (regla de Schwert, la opción más
+parsimoniosa de las dos que ofrece `ur.kpss()`) como análogo más cercano al espíritu "menos
+rezagos" de la decisión BIC. Esta equivalencia es una aproximación declarada, no una
+correspondencia exacta — documentada en `src/analisis/estacionariedad_reglas.R`.
+
+**Registro de la dependencia.** `urca` ya estaba en `renv.lock` como dependencia transitiva (de
+`vars`/`tsDyn`, que la usan internamente) — no amplía la superficie real de instalación, mismo
+patrón que `xml2`. Se incorpora como import #21 de `DESCRIPTION`, fijado con `renv::record()`
+(no `snapshot()`, mismo motivo que `httr2`/la remediación de `digest`/`polite`/`readxl`: la
+librería local puede estar parcialmente desincronizada).
+
+**Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota es
+sobre qué paquete de R implementa las pruebas de raíz unitaria, no sobre el lenguaje.

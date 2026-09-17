@@ -81,7 +81,7 @@
         "fields": [
           {"name": "series_master_id", "type": "string", "constraints": {"required": true, "unique": true}},
           {"name": "transf_id", "type": "string"},
-          {"name": "series_insumo_ids", "type": "string"},
+          {"name": "series_insumo_ids", "type": "string", "description": "Lista de serie_id separados por coma-espacio (03_series.csv). FK multi-valor -- Frictionless Table Schema no tiene forma estándar de declarar esto en \"foreignKeys\" (que asume una referencia de valor único por fila); validado por src/validacion/integridad_catalogos_reglas.R (pointblank specially(), no col_vals_in_set)."},
           {"name": "rol", "type": "string", "constraints": {"enum": ["target_primary", "target_robustness", "predictor"]}},
           {"name": "freq", "type": "string"},
           {"name": "unit_measure", "type": "string"},
@@ -90,6 +90,9 @@
           {"name": "fin", "type": "string"},
           {"name": "linaje_l0", "type": "string"},
           {"name": "notas", "type": "string"}
+        ],
+        "foreignKeys": [
+          {"fields": "transf_id", "reference": {"resource": "04_transformaciones", "fields": "transf_id"}}
         ]
       }
     },
@@ -130,6 +133,9 @@
           {"name": "sha256_norm", "type": "string"},
           {"name": "alcance_revision", "type": "string"},
           {"name": "notas", "type": "string"}
+        ],
+        "foreignKeys": [
+          {"fields": "publicacion_id", "reference": {"resource": "01_publicaciones", "fields": "publicacion_id"}}
         ]
       }
     },
@@ -143,7 +149,7 @@
           {"name": "periodo", "type": "string"},
           {"name": "descripcion", "type": "string"},
           {"name": "tipo", "type": "string"},
-          {"name": "series_afectadas", "type": "string"},
+          {"name": "series_afectadas", "type": "string", "description": "Lista de serie_id o publicacion_id separados por coma-espacio, según tipo_referencia. FK multi-valor Y condicional (el catálogo destino depende de otro campo de la misma fila) -- tampoco representable como \"foreignKeys\" estándar; validado por src/validacion/integridad_catalogos_reglas.R."},
           {
             "name": "tipo_referencia",
             "type": "string",

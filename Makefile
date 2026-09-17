@@ -55,9 +55,10 @@ master: validate
 	Rscript src/transformacion/l3_predictores.R
 	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS/IPP/EXPORT_FOB/ITCER/IPM (ADR-010) (Fase 3)"
 
-# Validación de esquema de catálogos — pointblank contra catalogos/datapackage.json.
+# Validación de esquema de catálogos (columnas/tipos) e integridad referencial entre ellos.
 validate:
 	Rscript src/validacion/validate_catalogs.R
+	Rscript src/validacion/validar_integridad_catalogos.R
 
 # Fase 4/5 — motor de evaluación y estimación. No implementar Fase 5 antes de que
 # el motor de Fase 4 esté probado en datos sintéticos.

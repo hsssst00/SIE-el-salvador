@@ -64,9 +64,11 @@ manifiesto. Un repo privado no redistribuye: no toca ADR-008.
 
 ## Stack (ADR-009)
 
-R vía `renv`. `renv.lock` está fijado (187 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (20 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`, `chromote`, `jsonlite`, `digest`, `polite`, `readxl`.
+R vía `renv`. `renv.lock` está fijado (187 paquetes) y verificado en CI sobre `ubuntu-latest`; `renv::restore()` reproduce el entorno en una máquina limpia. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile a partir de `DESCRIPTION`, por si hace falta regenerarlo. Paquetes (21 imports declarados en `DESCRIPTION`): `pointblank`, `duckdb`, `seasonal`, `tempdisagg`, `fable`, `tsibble`, `vars`, `tsDyn`, `BVAR`, `midasr`, `glmnet`, `ranger`, `lightgbm`, `xml2`, `httr2`, `chromote`, `jsonlite`, `digest`, `polite`, `readxl`, `urca`.
 
 **Nota sobre el conteo (2026-08-30, remediación del hallazgo M1 de la auditoría de Fase 2).** Este archivo declaraba 155 paquetes y el lockfile ya tenía 161 antes de esta sesión: el número se había quedado atrás. `digest`, `polite` y `readxl` se usaban en código commiteado sin estar declarados, y los dos últimos tampoco estaban en `renv.lock`, de modo que `verificar_robots_ut.R` y `calendario_bcr_extraer.R` no arrancaban en una máquina limpia. Se agregaron los tres a `DESCRIPTION` y a `scripts/bootstrap_renv.R`, y se cerró su árbol de dependencias en el lockfile con `renv::record()` — 161 → 187, sin perder ninguna entrada. Se usó `record()` y no `snapshot()` a propósito: la biblioteca local estaba parcialmente desincronizada y un snapshot podía *borrar* entradas de paquetes no instalados.
+
+**`urca` (2026-09-17, ADR-009 nota de seguimiento "pruebas formales de estacionariedad").** Import #21 — ya estaba en `renv.lock` como transitiva de `vars`/`tsDyn`, así que el conteo de 187 no cambió, solo el de imports declarados (20 → 21). Registrado con `renv::record()`, mismo motivo que arriba.
 
 ## Orden de fases (no te lo saltes)
 

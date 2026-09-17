@@ -1,0 +1,69 @@
+# Analisis exploratorio de Fase 3 (senda §4) sobre la base maestra en data/L3_master/. Reglas
+# puras en src/analisis/exploracion_series_reglas.R, ejercidas con datos sinteticos en
+# tests/test-exploracion-series.R.
+#
+# Alcance: estadistica descriptiva y grafica (cobertura, huecos internos, momentos de nivel y
+# primera diferencia, series de tiempo en nivel y en diferencia). Deliberadamente NO incluye
+# pruebas formales de estacionariedad (ADF/KPSS/PP) -- ver nota en exploracion_series_reglas.R.
+#
+# Requiere `make master` ya corrido (data/L3_master/ poblado). Salidas (capa generada, no
+# versionada, mismo criterio que el resto de L3_master):
+#   data/L3_master/reporte_exploratorio_resumen.csv  -- una fila por serie
+#   data/L3_master/exploracion/<serie>.png           -- nivel + primera diferencia
+
+source(here::here("src", "analisis", "exploracion_series_reglas.R"))
+
+dir_l3 <- "data/L3_master"
+dir_out <- file.path(dir_l3, "exploracion")
+dir.create(dir_out, showWarnings = FALSE, recursive = TRUE)
+
+archivos <- list.files(dir_l3, pattern = "\\.csv$", full.names = FALSE)
+# Excluye subproductos que no son series L3 en si (huecos de outliers, resumenes previos).
+archivos <- archivos[!grepl("_outliers\\.csv$|^reporte_exploratorio", archivos)]
+
+resumenes <- list()
+
+for (a in archivos) {
+  freq <- if (grepl("_Q\\.csv$", a)) "Q" else if (grepl("_M\\.csv$", a)) "M" else NA_character_
+  if (is.na(freq)) {
+    message("Omitido (sin sufijo _M/_Q reconocible): ", a)
+    next
+  }
+
+  serie_id <- sub("\\.csv$", "", a)
+  df <- read.csv(file.path(dir_l3, a), stringsAsFactors = FALSE, na.strings = "")
+  df <- df[!is.na(df$valor), c("periodo", "valor")]
+
+  if (nrow(df) < 2) {
+    message("Omitido (menos de 2 obs no ausentes): ", a)
+    next
+  }
+
+  resumenes[[serie_id]] <- resumen_serie(df, serie_id, freq)
+
+  png(file.path(dir_out, paste0(serie_id, ".png")), width = 1000, height = 500, res = 120)
+  op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+  plot(seq_len(nrow(df)), df$valor, type = "l",
+       main = paste0(serie_id, " (nivel)"), xlab = "obs #", ylab = "valor")
+  plot(seq_len(nrow(df) - 1), diff(df$valor), type = "l",
+       main = paste0(serie_id, " (1a diferencia)"), xlab = "obs #", ylab = "diff")
+  par(op)
+  dev.off()
+}
+
+resumen_tabla <- do.call(rbind, resumenes)
+resumen_tabla <- resumen_tabla[order(resumen_tabla$serie_id), ]
+write.csv(resumen_tabla, file.path(dir_l3, "reporte_exploratorio_resumen.csv"),
+          row.names = FALSE, na = "")
+
+cat("OK: resumen exploratorio de ", nrow(resumen_tabla), " serie(s) -> ",
+    file.path(dir_l3, "reporte_exploratorio_resumen.csv"), "\n", sep = "")
+cat("OK: ", nrow(resumen_tabla), " grafico(s) -> ", dir_out, "/\n", sep = "")
+
+huecos_reales <- resumen_tabla[resumen_tabla$n_hueco > 0, c("serie_id", "n_hueco", "huecos")]
+if (nrow(huecos_reales) > 0) {
+  cat("\nATENCION -- huecos internos detectados (periodos ausentes entre inicio y fin, no de borde):\n")
+  print(huecos_reales, row.names = FALSE)
+} else {
+  cat("Sin huecos internos en ninguna serie.\n")
+}
