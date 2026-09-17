@@ -104,3 +104,34 @@ ADR existente → detenerse y preguntar, no inferir).
   cada serie predictora admitida es trabajo incremental, caso por caso, a
   medida que cada serie se incorpora al extractor — no se resuelve de una
   sola vez en este ADR.
+
+## Enmienda — ajuste estacional en series predictoras (2026-09-16, sesión posterior)
+
+**Hallazgo de omisión.** Este ADR fija desagregación temporal, deflactación y
+tratamiento de outliers para la matriz de predictores, pero no se pronunció
+sobre **ajuste estacional**. La omisión no se notó al admitir
+`BCR.IVAE.VOL.SA.M` (primer predictor) porque esa serie ya viene
+desestacionalizada de la fuente — la pregunta no se planteaba. Se hizo visible
+al admitir `BCR.REMESAS.NOM.NSA.M`, la primera predictora genuinamente NSA de
+la matriz (el BCR no publica una versión desestacionalizada de remesas, a
+diferencia de IVAE/IPI/ISI/ITCER/SPNF): la serie se materializó en L3 (nominal
+y real) sin que Claude Code se detuviera a preguntar, pese a que la regla 4 de
+`CLAUDE.md` exige detenerse ante una decisión metodológica no cubierta por
+ningún ADR. Detectado por Harold, no por el propio proceso — corregido acá
+antes de que se repita con la siguiente predictora NSA.
+
+**Decisión de Harold:** sin ajuste estacional propio en L3 para series
+predictoras. Se extiende a la estacionalidad el mismo razonamiento ya fijado
+en la Decisión 3 (outliers): cada modelo de Fase 5 tiene su propia superficie
+de decisión frente a la estacionalidad (dummies estacionales, comparaciones
+interanuales/YoY en vez de niveles, modelos que ya incorporan un componente
+estacional, etc.), y fijar un tratamiento único en L3 impondría una decisión
+de modelado aguas arriba de donde corresponde. No aplica a la variable
+objetivo primaria, que sigue rigiéndose sin cambios por ADR-001/ADR-004.
+
+**Consecuencia.** Las series predictoras entran a L3/L4 en el ajuste con que
+las publica su fuente — SA si la fuente ya la publica así (p. ej. IVAE), NSA
+si no (p. ej. REMESAS) — sin ningún paso de ajuste estacional propio del
+proyecto en ninguno de los dos casos. El campo `adjustment` de
+`03_series.csv`/`05_series_master.csv` para cada predictora refleja
+simplemente lo que la fuente entrega, no una elección del proyecto.

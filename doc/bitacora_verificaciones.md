@@ -301,3 +301,100 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
 - Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
   Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
   verificador (a diferencia de la sesión anterior el mismo día).
+
+## 2026-09-16 (tercera sesión) — alta de BCR.IPP.IDX.NSA.M
+
+- **Estado del árbol verificado:** árbol de trabajo local de Harold, sobre el commit que agrega
+  la fila `BCR.IPP.IDX.NSA.M` a `03_series.csv` (tercer predictor de la matriz, senda §6.4,
+  precios; padre: `e585e70`). Corrida antes de commitear, mismo patrón que la entrada del
+  2026-08-28 — el hash no puede ser autorreferencial.
+- **Contexto:** a diferencia de `BCR.REMESAS`/`ONEC.IPC` (capturadas just-in-time la sesión
+  anterior), `BCR_ipp_2026-08-26.xlsx` ya estaba en `data/L0_raw/` desde el lote de Fase 2
+  (Bloque 3) — no requirió captura nueva. Es un índice de precios (nivel, no flujo), con el
+  mismo patrón estructural de `ONEC.IPC.IDX.NSA.M` (arranca dic-2009=100 por construcción, once
+  celdas vacías ene-nov 2009 antes de la primera observación real, `col_inicio="M"`). `fuente_celda`
+  se redactó y verificó contra el archivo real antes de admitir la fila.
+- Archivo `.xlsx` verificado (checksum SHA-256 contra `manifiesto.csv`):
+  - `BCR_ipp_2026-08-26.xlsx`: `1949c55a464f87c55e2703610e7ec9af1616ae7541f579688fd0fca09ca70eec`
+- **Resultado: 102 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 103 filas).
+  `BCR.IPP.IDX.NSA.M` **PASS** en la primera corrida. FUERA_DE_ALCANCE: `UT.DEMANDA_ELEC.GWH.NSA.M`
+  (sin cambios). Código de salida 0.
+- `testthat::test_dir("tests")` tras esta alta: **640 PASS / 0 FAIL** — no se agregó ningún test
+  nuevo (el extractor reutiliza `agregar_trimestral_promedio()`, ya cubierta por
+  `tests/test-l3-predictores.R`; el ajuste de forward-fill extendido en
+  `extraer_bcr_ipp.R` copia el de `extraer_onec_ipc.R`, ya probado en producción).
+- Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
+  Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
+  verificador.
+
+## 2026-09-16 (cuarta sesión) — alta de BCR.EXPORT_FOB.NOM.NSA.M
+
+- **Estado del árbol verificado:** árbol de trabajo local de Harold, sobre el commit que agrega
+  la fila `BCR.EXPORT_FOB.NOM.NSA.M` a `03_series.csv` (cuarto predictor de la matriz, senda
+  §6.4, comercio exterior). Corrida antes de commitear, mismo patrón que entradas anteriores —
+  el hash no puede ser autorreferencial.
+- **Contexto:** `BCR_balanza_comercial_2026-08-26.xlsx` ya estaba en `data/L0_raw/` desde el
+  lote de Fase 2 (Bloque 3) — no requirió captura nueva. La publicación trae tres series de
+  cabecera (Exportaciones FOB, Importaciones CIF, Balanza Comercial/saldo); por decisión de
+  Harold (`AskUserQuestion` de esta sesión), se admite solo Exportaciones. Es la Balanza
+  Comercial de Mercancías (solo mercancías, valoración FOB, mensual) — **no** la misma serie que
+  `BCR.EXPORT.NOM.NSA.Q` ya catalogada (Cuentas Nacionales/SCN2008, bienes y servicios,
+  trimestral), de ahí el concepto distinto `EXPORT_FOB` en el `serie_id` para no colisionar.
+  `fuente_celda` se redactó y verificó contra el archivo real antes de admitir la fila.
+- Archivo `.xlsx` verificado (checksum SHA-256 contra `manifiesto.csv`):
+  - `BCR_balanza_comercial_2026-08-26.xlsx`: `d38efe6cabd4391ab22563657d59106745e6629d4820d02a93c1b29ae09246ce`
+- **Resultado: 103 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 104 filas).
+  `BCR.EXPORT_FOB.NOM.NSA.M` **PASS** en la primera corrida. FUERA_DE_ALCANCE:
+  `UT.DEMANDA_ELEC.GWH.NSA.M` (sin cambios). Código de salida 0.
+- `testthat::test_dir("tests")` tras esta alta: **644 PASS / 0 FAIL** (el incremento de 640 a
+  644 viene de aserciones paramétricas sobre filas de catálogo — p.ej.
+  `tests/test-integridad-referencial.R` — que escalan con el número de filas, no de tests
+  nuevos escritos a mano; ningún `test_that` nuevo se agregó, el extractor reutiliza
+  `agregar_trimestral_suma()`, ya cubierta).
+- Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
+  Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
+  verificador.
+
+## 2026-09-16 (quinta sesión) — alta de BCR.ITCER.IDX.NSA.M y BCR.IPM.IDX.NSA.M
+
+- **Estado del árbol verificado:** árbol de trabajo local de Harold, sobre el commit que agrega
+  ambas filas a `03_series.csv` (quinto y sexto predictor de la matriz, senda §6.4: tipo de
+  cambio real y precios de importación). Corrida antes de commitear — el hash no puede ser
+  autorreferencial.
+- **Contexto:** Harold instruyó proceder con el resto de la matriz de predictores sin
+  supervisión turno a turno ("realiza el procedimiento para las restantes, ya no necesitas
+  supervisión", 2026-09-16). Ambos `.xlsx` ya estaban en `data/L0_raw/` desde el lote de Fase 2
+  (Bloque 3) — no requirieron captura nueva. Ambas publicaciones traen más de una serie de
+  cabecera; se admitió solo una de cada una, siguiendo el mismo criterio ya establecido
+  (serie más agregada/directa, o la que el propio catálogo ya señalaba):
+  - `BCR.ITCER`: tres series (global, bilateral EEUU, con Centroamérica) — se admitió
+    **global**. Bilaterales quedan disponibles, no descartadas.
+  - `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`: tres series (Exportación, Importación, Términos de
+    Intercambio) — se admitió **Importación**, que `01_publicaciones/
+    BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR.yaml` ya señalaba como el candidato de la senda §1.3;
+    no fue una elección nueva de esta sesión. Exportación y Términos de Intercambio quedan
+    disponibles, no descartadas.
+  - Se crearon dos entradas nuevas en `catalogos/02_metodologias/` (`ITCER_BASE2014.yaml`,
+    `IPCE_BASE2005.yaml`) para poder declarar `base_year`/`metodologia_id` en `03_series.csv`,
+    con el año base confirmado empíricamente (promedio de los 12 meses del año base ≈ 100 en
+    ambos casos) en vez de solo citado de la nota de pie del archivo.
+  - **Corrección de paso:** al verificar el patrón de URLs con sufijo
+    `serie-desestacionalizada`, se encontró que una nota ya existente en la fila
+    `BCR.REMESAS.NOM.NSA.M` (de la segunda sesión del día) afirmaba incorrectamente que
+    IVAE/IPI/ISI/ITCER/SPNF llevaban ese sufijo — verificado contra las 5 fichas de
+    `01_publicaciones`, solo IVAE e IPI realmente lo llevan. Corregido in situ en esa fila con
+    una nota de corrección fechada; no cambia la clasificación NSA de ninguna fila (esa
+    clasificación nunca dependió de esa lista).
+- Archivos `.xlsx` verificados (checksum SHA-256 contra `manifiesto.csv`):
+  - `BCR_itcer_2026-08-26.xlsx`: `0e675be1b357ffe0792d656b558cba7e0f1c3719063efb0b92669882d046173a`
+  - `BCR_indices_precios_comercio_exterior_2026-08-26.xlsx`:
+    `8b758835bb582e20b12c3122f5bfa4edb7d06a9203dc71bcb980b3cf14d4c706`
+- **Resultado: 105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 106 filas).
+  `BCR.ITCER.IDX.NSA.M` y `BCR.IPM.IDX.NSA.M` ambas **PASS** en la primera corrida.
+  FUERA_DE_ALCANCE: `UT.DEMANDA_ELEC.GWH.NSA.M` (sin cambios). Código de salida 0.
+- `testthat::test_dir("tests")` tras estas altas: **654 PASS / 0 FAIL** — ningún `test_that`
+  nuevo escrito a mano; ambos extractores reutilizan `agregar_trimestral_promedio()`, ya
+  cubierta.
+- Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
+  Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
+  verificador.

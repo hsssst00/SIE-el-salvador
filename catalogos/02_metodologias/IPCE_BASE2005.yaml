@@ -1,0 +1,8 @@
+metodologia_id: IPCE_BASE2005
+nombre: "Índices de Precios del Comercio Exterior (Exportación, Importación, Términos de Intercambio), referencia 2005"
+vigencia_desde: "2005-01"
+vigencia_hasta: ""
+documento_referencia: "Nota al pie del archivo fuente (BCR_indices_precios_comercio_exterior_2026-08-26.xlsx, fila 10): \"La metodología utilizada en el cálculo de los Índices de Precios de Exportación, Importación y Términos de Intercambio publicados mensualmente para el período 2005 hasta la actualidad, cuentan con vigencia a partir del año 2017.\" -- pendiente localizar el documento metodológico dedicado del BCR"
+predecesor_id: ""
+sucesor_id: ""
+notas: "Base = promedio de 2005 (verificado empíricamente: promedio de los 12 valores mensuales de 2005 del Índice de Precios de Importación = 100.003). La nota de pie del BCR es ambigua sobre si 'vigencia a partir del año 2017' significa que la metodología actual se adoptó en 2017 y se aplicó retroactivamente hasta 2005, u otra cosa -- transcrita literalmente, no interpretada; no se preguntó a Harold por no ser bloqueante para admitir la serie (la cobertura y el valor de cada celda no dependen de esa ambigüedad). Sin predecesor catalogado en este proyecto -- no se afirma que no exista, solo que no se ha identificado ni documentado. Esta metodología cubre las tres series de la publicación (Exportación, Importación, Términos de Intercambio), no solo la admitida en 03_series.csv."

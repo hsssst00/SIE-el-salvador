@@ -3,13 +3,21 @@
 > Deriva de `doc/senda_metodologica.md` §4 (Fase 3). No sustituye la senda ni el
 > índice de ADR (`doc/adr/README.md`) — es un tablero de seguimiento operativo,
 > vivo, para no perder de vista qué falta antes de poder escribir la nota de
-> cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (segunda
-> sesión del día: segundo predictor de la matriz, remesas —nominal y real—,
-> más su deflactor IPC; ver secciones abajo. Sesión anterior del mismo día:
-> migración parcial a pointblank de la batería L2 PIB + reporte de calidad de
-> datos; ADR-010 resuelve el método de transformación L3 de la matriz de
-> predictores; L3 de la variable objetivo materializado; ADR-008 gana tramo
-> UT; primer predictor, BCR.IVAE, admitido y materializado).
+> cierre en `doc/adr/README.md`. Última actualización: 2026-09-16 (quinta
+> sesión del día: quinto y sexto predictor de la matriz, BCR.ITCER —tipo de
+> cambio efectivo real, serie global— y BCR.IPM —índice de precios de
+> importación—, admitidos sin `AskUserQuestion` por instrucción explícita de
+> Harold de proceder sin supervisión turno a turno para el resto de la
+> matriz; ver secciones abajo. Sesión anterior del mismo día: cuarto
+> predictor, BCR.EXPORT_FOB —exportaciones FOB de la Balanza Comercial de
+> Mercancías—. Sesión anterior a esa: tercer predictor, BCR.IPP —índice de
+> precios al productor—. Sesión anterior a esa: enmienda de ADR-010 sobre
+> ajuste estacional en predictoras, y segundo predictor de la matriz, remesas
+> —nominal y real—, más su deflactor IPC. Sesión anterior a esa: migración
+> parcial a pointblank de la batería L2 PIB + reporte de calidad de datos;
+> ADR-010 resuelve el método de transformación L3 de la matriz de
+> predictores; L3 de la variable objetivo materializado; ADR-008
+> gana tramo UT; primer predictor, BCR.IVAE, admitido y materializado).
 
 ## Actividades (senda §4)
 
@@ -84,32 +92,130 @@
   `ONEC.IPC.BASE_2009` en dic-2009), `BCR_REMESAS_REAL_NSA_Q.csv` (66 obs).
   `tests/test-l3-predictores.R` ampliado con 7 `test_that` nuevos
   (`agregar_trimestral_suma()`, `deflactar_serie()`, borde inicial de
-  `agregar_trimestral_promedio()`). **Pendiente:** el resto de la matriz de
-  predictores — comercio exterior, precios (más allá de IPC), empleo
-  cotizante, energía, turismo, recaudación (senda §6.4) siguen sin
-  extractor ni transformación.
+  `agregar_trimestral_promedio()`).
+  **Tercer predictor materializado (2026-09-16, tercera sesión):
+  `BCR.IPP.IDX.NSA.M/.Q`** (Índice de Precios al Productor, senda §6.4,
+  precios). El `.xlsx` ya estaba en `data/L0_raw/` desde el lote de Fase 2
+  (Bloque 3, `BCR_ipp_2026-08-26.xlsx`) — no requirió captura nueva, a
+  diferencia de remesas/IPC. Mismo patrón estructural que
+  `ONEC.IPC.IDX.NSA.M`: el índice arranca dic-2009=100 por construcción,
+  con once celdas vacías (ene-nov 2009) antes de la primera observación
+  real, así que `03_series.csv` usa `col_inicio="M"` y
+  `src/transformacion/extraer_bcr_ipp.R` reutiliza el forward-fill
+  extendido de `extraer_onec_ipc.R` (sin él, la celda de año en `M` queda
+  `NA` porque el rótulo del año solo se escribe en enero). Es un índice de
+  NIVEL, no un flujo (a diferencia de `BCR.REMESAS`): se agrega a
+  trimestral por PROMEDIO (`agregar_trimestral_promedio()`, ya probada),
+  no por suma, mismo criterio que `BCR.IVAE.VOL.SA.Q`
+  (`T007_AGREGACION_TRIMESTRAL_IPP`). NSA de fuente, sin ajuste estacional
+  propio (ADR-010, enmienda de la sesión anterior) y sin deflactar (ya es
+  un índice de precios, no una serie monetaria nominal — la pregunta de
+  deflactación de ADR-010 no aplica). Salidas: `BCR_IPP_IDX_NSA_M.csv` (200
+  obs, 2009-M12 a 2026-M07) + `BCR_IPP_IDX_NSA_Q.csv` (66 obs, 2010-Q1 a
+  2026-Q2; 2009-Q4 y 2026-Q3 excluidos por borde de cobertura, mismo patrón
+  que `BCR.REMESAS.REAL.NSA.Q`). No se agregó ningún `test_that` nuevo: la
+  única función pura que usa (`agregar_trimestral_promedio()`) ya estaba
+  cubierta.
+  **Cuarto predictor materializado (2026-09-16, cuarta sesión):
+  `BCR.EXPORT_FOB.NOM.NSA.M/.Q`** (Exportaciones FOB, Balanza Comercial de
+  Mercancías, senda §6.4, comercio exterior). El `.xlsx` ya estaba en
+  `data/L0_raw/` desde el lote de Fase 2 (Bloque 3,
+  `BCR_balanza_comercial_2026-08-26.xlsx`) — no requirió captura nueva. La
+  publicación trae tres series de cabecera en la misma hoja (Exportaciones
+  FOB fila 6, Importaciones CIF fila 16, Balanza Comercial/saldo fila 20) más
+  subpartidas (café, azúcar, algodón, camarón, Centroamérica/fuera de
+  Centroamérica, maquila); ADR-010 no se pronuncia sobre cuál admitir, así
+  que se preguntó explícitamente (`AskUserQuestion`, mismo patrón que la
+  pregunta de deflactación de remesas) en vez de asumir todas o solo la
+  primera. **Decisión de Harold: solo Exportaciones** en esta pasada —
+  Importaciones y el saldo quedan como candidatos futuros, no una omisión.
+  Es una serie DISTINTA de `BCR.EXPORT.NOM.NSA.Q` (Cuentas
+  Nacionales/SCN2008, bienes y servicios, trimestral, ya catalogada desde
+  Fase 1): esta es solo mercancías, valoración FOB, mensual — de ahí el
+  concepto `EXPORT_FOB` (no `EXPORT`) en el `serie_id`, para no colisionar.
+  Es un FLUJO mensual (como REMESAS, no un índice como IVAE/IPP): se agrega
+  a trimestral por SUMA (`T008_AGREGACION_TRIMESTRAL_EXPORT_FOB`). NSA de
+  fuente, sin ajuste estacional propio (ADR-010, enmienda) y sin deflactar
+  en esta pasada (solo nominal; a diferencia de remesas no se preguntó por
+  una versión real). Salidas: `BCR_EXPORT_FOB_NOM_NSA_M.csv` (390 obs,
+  1994-M01 a 2026-M06) + `BCR_EXPORT_FOB_NOM_NSA_Q.csv` (130 obs, 1994-Q1 a
+  2026-Q2 — los únicos 130 trimestres son todos completos, la serie mensual
+  arranca y termina exactamente en borde de trimestre, a diferencia de
+  REMESAS/IPP). No se agregó ningún `test_that` nuevo: reutiliza
+  `agregar_trimestral_suma()`, ya cubierta.
+  **Quinto y sexto predictor materializados (2026-09-16, quinta sesión):
+  `BCR.ITCER.IDX.NSA.M/.Q`** (tipo de cambio efectivo real, serie global) **y
+  `BCR.IPM.IDX.NSA.M/.Q`** (índice de precios de importación, senda §6.4).
+  Primera tanda admitida **sin `AskUserQuestion`** — instrucción explícita de
+  Harold ("realiza el procedimiento para las restantes, ya no necesitas
+  supervisión") de proceder de forma autónoma para el resto de la matriz.
+  Ambos `.xlsx` ya estaban en `data/L0_raw/` desde el lote de Fase 2 (Bloque
+  3). Ambas publicaciones traen tres series de cabecera cada una; se admitió
+  solo una por publicación, con el mismo criterio ya usado en
+  `BCR.BALANZA_COMERCIAL` (serie más agregada/directa) — para ITCER, la
+  **global** (no bilateral EEUU ni Centroamérica); para
+  `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`, **Importación** (no Exportación ni
+  Términos de Intercambio), que la propia ficha de `01_publicaciones` ya
+  señalaba como el candidato de la senda §1.3 — no una elección nueva. Ambos
+  son índices de NIVEL (como IVAE/IPP): se agregan a trimestral por
+  PROMEDIO (`T009_AGREGACION_TRIMESTRAL_ITCER`,
+  `T010_AGREGACION_TRIMESTRAL_IPM`). Se crearon dos metodologías nuevas
+  (`catalogos/02_metodologias/ITCER_BASE2014.yaml`, `IPCE_BASE2005.yaml`)
+  con el año base confirmado empíricamente (promedio de los 12 meses del año
+  base ≈ 100 en ambos casos), siguiendo el mismo patrón que
+  `IVAE_CIIU_REV4`/`IPP_BASE2009`. **Hallazgo de paso, corregido:** una nota
+  en la fila `BCR.REMESAS.NOM.NSA.M` afirmaba que IVAE/IPI/ISI/ITCER/SPNF
+  comparten el sufijo de URL `serie-desestacionalizada`; verificado contra
+  las 5 fichas, solo IVAE e IPI lo llevan — corregido in situ, no cambia
+  ninguna clasificación NSA existente. Salidas: `BCR_ITCER_IDX_NSA_M.csv`
+  (318 obs, 2000-M01 a 2026-M06) + `_Q.csv` (106 obs, 2000-Q1 a 2026-Q2, sin
+  bordes incompletos) + `BCR_IPM_IDX_NSA_M.csv` (257 obs, 2005-M01 a
+  2026-M05) + `_Q.csv` (85 obs, 2005-Q1 a 2026-Q1; 2026-Q2 excluido por
+  borde, solo abril-mayo). No se agregó ningún `test_that` nuevo: ambos
+  reutilizan `agregar_trimestral_promedio()`, ya cubierta. **Pendiente:** el
+  resto de la matriz de predictores — Exportación/Términos de Intercambio de
+  `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`, bilaterales de `BCR.ITCER`,
+  Importaciones/Balanza de `BCR.BALANZA_COMERCIAL` (todas declinadas, no
+  descartadas), empleo cotizante, energía, turismo, recaudación (senda §6.4)
+  siguen sin extractor ni transformación.
 - [ ] **Análisis exploratorio y de estacionariedad.**
 - [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
   `BCR.IVAE.VOL.SA.M/.Q`, extendida el mismo día con
-  `BCR.REMESAS.NOM/REAL.NSA.M/.Q` (ver arriba). Camino para el siguiente
-  predictor: (1) capturar L0 en vivo si no existe aún (`src/adquisicion/
-  bcr.R`, patrón `descargar_bcr_*`/`descargar_onec_*`); (2) estructurar
-  `fuente_celda` en `03_series.csv` con verificación real de
-  `verificar_fuente_celda.R` + entrada en `doc/bitacora_verificaciones.md`
-  (regla 8); (3) extractor L0→L1 dedicado; (4) transformación L3 según
-  ADR-010 (deflactar si corresponde, agregar por promedio si es nivel o por
-  suma si es flujo); (5) filas en `04_transformaciones`/`05_series_master`.
-  El BCR ya tiene ~35 publicaciones más adquiridas en L0
-  (`catalogos/01_publicaciones/BCR.*.yaml`) bajo el mismo default
-  conservador de ADR-008 que IVAE/REMESAS — candidatos de la senda §6.4 sin
-  compuerta nueva: comercio exterior (`BCR.BALANZA_COMERCIAL`,
-  `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`), precios (`BCR.IPP`,
-  `BCR.IPRI.BASE_1990`, `BCR.ITCER`) — remesas ya no está en esta lista,
-  admitida el 2026-09-16. `ONEC.IPC.IDX.NSA.M` (índice general de precios al
-  consumidor) también ya tiene extractor y fila en `03_series.csv` — entró
-  como deflactor de remesas, no como predictor propio; no tiene fila en
-  `05_series_master` todavía (podría promoverse a predictor de inflación en
-  una sesión futura, decisión no tomada).
+  `BCR.REMESAS.NOM/REAL.NSA.M/.Q`, luego con `BCR.IPP.IDX.NSA.M/.Q`, luego
+  con `BCR.EXPORT_FOB.NOM.NSA.M/.Q` y luego con `BCR.ITCER.IDX.NSA.M/.Q` +
+  `BCR.IPM.IDX.NSA.M/.Q` (ver arriba) — con esto se agotan los candidatos de
+  la senda §6.4 que no requieren una compuerta ADR-008 nueva (todas
+  publicaciones de BCR, misma institución ya cubierta por PIB/IVAE). Camino
+  para el siguiente predictor, si se retoma: (1) capturar L0 en vivo si no
+  existe aún (`src/adquisicion/bcr.R`, patrón
+  `descargar_bcr_*`/`descargar_onec_*`) o abrir compuerta ADR-008 si es
+  institución nueva; (2) estructurar `fuente_celda` en `03_series.csv` con
+  verificación real de `verificar_fuente_celda.R` + entrada en
+  `doc/bitacora_verificaciones.md` (regla 8); (3) extractor L0→L1 dedicado;
+  (4) transformación L3 según ADR-010; (5) filas en
+  `04_transformaciones`/`05_series_master`. Lo que queda disponible, no
+  descartado:
+  - **Sub-series de publicaciones ya admitidas**, reutilizando el mismo
+    archivo L0 y el mismo extractor con otra fila en vez de la ya admitida:
+    Importaciones (CIF, fila 16) y Balanza Comercial/saldo (fila 20) de
+    `BCR.BALANZA_COMERCIAL` (Importaciones/Balanza fueron una elección
+    explícita de Harold vía `AskUserQuestion`, no una omisión de tiempo —
+    retomarlas requiere la misma pregunta, no una inferencia); Índice de
+    Precios de Exportación y de Términos de Intercambio de
+    `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`; bilateral con EEUU y con
+    Centroamérica de `BCR.ITCER`.
+  - **Instituciones genuinamente nuevas** (empleo cotizante, energía,
+    turismo, recaudación, senda §6.4): ninguna identificada con
+    publicación/fuente concreta todavía — cada una dispararía su propia
+    compuerta *just-in-time* de ADR-008 antes de admitirse, igual que UT.
+  `BCR.IPRI.BASE_1990` queda descartada como candidato (no solo declinada):
+  serie cerrada (oct-2017), predecesora de IPP, sin tabla de concordancia
+  verificada (09_rupturas.csv R010) — admitirla exigiría resolver el
+  empalme, no solo catalogarla. `ONEC.IPC.IDX.NSA.M` (índice general de
+  precios al consumidor) también ya tiene extractor y fila en
+  `03_series.csv` — entró como deflactor de remesas, no como predictor
+  propio; no tiene fila en `05_series_master` todavía (podría promoverse a
+  predictor de inflación en una sesión futura, decisión no tomada).
 - [x] **Hallazgo de esta sesión, corregido: `extraer_bcr_pib.R` y
   `validar_l2_pib.R` filtraban `03_series.csv` con una lista de EXCLUSIÓN**
   (`publicacion_id != "UT.DEMANDA_TOTAL_MENSUAL"`) en vez de inclusión — al
@@ -127,25 +233,31 @@
 
 ## Entregables (senda §4)
 
-- [~] Catálogo `03_series` poblado — 102 filas (98 PIB + 1 UT + 1
-  `BCR.IVAE.VOL.SA.M` + 1 `BCR.REMESAS.NOM.NSA.M` + 1 `ONEC.IPC.IDX.NSA.M`,
-  las tres últimas altas de 2026-09-16, verificadas 101 PASS / 0 FAIL / 1
-  FUERA_DE_ALCANCE). Falta el mapeo completo para la reconciliación 29-vs-28
-  de variables de volumen de PIB (`doc/bitacora_fuentes_fragiles.md`,
-  pendiente de Fase 1) y el resto de la matriz de predictores.
-- [~] Catálogo `04_transformaciones` poblado — 6 filas (T001–T006), todas
+- [~] Catálogo `03_series` poblado — 106 filas (98 PIB + 1 UT + 1
+  `BCR.IVAE.VOL.SA.M` + 1 `BCR.REMESAS.NOM.NSA.M` + 1 `ONEC.IPC.IDX.NSA.M` +
+  1 `BCR.IPP.IDX.NSA.M` + 1 `BCR.EXPORT_FOB.NOM.NSA.M` + 1
+  `BCR.ITCER.IDX.NSA.M` + 1 `BCR.IPM.IDX.NSA.M`, las siete últimas altas de
+  2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE). Falta el
+  mapeo completo para la reconciliación 29-vs-28 de variables de volumen de
+  PIB (`doc/bitacora_fuentes_fragiles.md`, pendiente de Fase 1) y el resto de
+  la matriz de predictores.
+- [~] Catálogo `04_transformaciones` poblado — 10 filas (T001–T010), todas
   con `script_path`/`funcion` reales; faltan las filas del resto de la
   matriz de predictores (ADR-010).
-- [~] Catálogo `05_series_master` poblado — 8 filas (`PIB.SA.PROPIO.Q`,
+- [~] Catálogo `05_series_master` poblado — 16 filas (`PIB.SA.PROPIO.Q`,
   `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M/.Q`,
-  `BCR.REMESAS.NOM.NSA.M/.Q`, `BCR.REMESAS.REAL.NSA.M/.Q`), todas
-  materializadas; faltan las filas del resto de predictores.
+  `BCR.REMESAS.NOM.NSA.M/.Q`, `BCR.REMESAS.REAL.NSA.M/.Q`,
+  `BCR.IPP.IDX.NSA.M/.Q`, `BCR.EXPORT_FOB.NOM.NSA.M/.Q`,
+  `BCR.ITCER.IDX.NSA.M/.Q`, `BCR.IPM.IDX.NSA.M/.Q`), todas materializadas;
+  faltan las filas del resto de predictores.
 - [~] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
   (`PIB_SA_PROPIO_Q.csv`, `PIB_SA_PROPIO_Q_outliers.csv`,
-  `PIB_SA_OFICIAL_Q.csv`) y dos predictores (`BCR_IVAE_VOL_SA_M/_Q.csv`,
-  `BCR_REMESAS_NOM_NSA_M/_Q.csv`, `BCR_REMESAS_REAL_NSA_M/_Q.csv`), pero
-  cubre solo eso, no el resto de la matriz de predictores. L4 sigue vacío
-  salvo `.gitkeep`.
+  `PIB_SA_OFICIAL_Q.csv`) y seis predictores (`BCR_IVAE_VOL_SA_M/_Q.csv`,
+  `BCR_REMESAS_NOM_NSA_M/_Q.csv`, `BCR_REMESAS_REAL_NSA_M/_Q.csv`,
+  `BCR_IPP_IDX_NSA_M/_Q.csv`, `BCR_EXPORT_FOB_NOM_NSA_M/_Q.csv`,
+  `BCR_ITCER_IDX_NSA_M/_Q.csv`, `BCR_IPM_IDX_NSA_M/_Q.csv`), pero cubre solo
+  eso, no el resto de la matriz de predictores. L4 sigue vacío salvo
+  `.gitkeep`.
 - [x] **Reporte de calidad de datos** (2026-09-16) — `pointblank::export_report()`
   sobre el agente de `validar_l2()`, escrito a `data/L2_validated/reporte_calidad_l2_pib.html`
   (HTML autocontenido) en cada corrida de `src/validacion/validar_l2_pib.R`, tanto
@@ -154,8 +266,12 @@
   reporte se extiende con ellas.
 - [ ] Reporte exploratorio.
 - [~] Matriz de predictores mensuales y trimestrales con cobertura documentada
-  — 2 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
-  real, mensual y trimestral).
+  — 6 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
+  real, `BCR.IPP`, `BCR.EXPORT_FOB`, `BCR.ITCER`, `BCR.IPM`, mensual y
+  trimestral). Se agotaron los candidatos de BCR sin compuerta ADR-008
+  nueva — lo que sigue (sub-series declinadas, o instituciones nuevas para
+  empleo/energía/turismo/recaudación) requiere una decisión explícita, no
+  una continuación mecánica del mismo procedimiento.
 
 ## Guards de CI a subsumir
 
@@ -173,8 +289,9 @@
 - [x] Dependencias declaradas: `pointblank`, `duckdb`, `seasonal`,
   `tempdisagg` en `DESCRIPTION` y `renv.lock` (ADR-009 cerrado).
 - [x] `make master` encadena `validate` → extractores L0→L1 (PIB, UT, IVAE,
-  REMESAS, IPC) → validación L2 → `l3_pib_objetivo.R` (variable objetivo) →
-  `l3_predictores.R` (matriz de predictores).
+  REMESAS, IPC, IPP, EXPORT_FOB, ITCER, IPM) → validación L2 →
+  `l3_pib_objetivo.R` (variable objetivo) → `l3_predictores.R` (matriz de
+  predictores).
 
 ## Decisiones metodológicas pendientes — NO asumir, preguntar
 
@@ -215,3 +332,51 @@ inferencia, no como tarea a resolver de una vez:
    decisión general: cada predictor nominal que se admita de acá en
    adelante requiere la misma pregunta explícita (deflactar, no deflactar, o
    ambas), no se infiere del tipo de serie.
+6. ~~¿Se ajusta estacionalmente `BCR.REMESAS` en L3?~~ **Resuelto 2026-09-16**
+   (decisión de Harold, en respuesta a una pregunta del propio Harold, no de
+   Claude Code — hallazgo de omisión: ADR-010 nunca cubrió ajuste estacional
+   para predictoras, solo desagregación/deflactación/outliers; la omisión no
+   se notó con IVAE porque esa serie ya viene SA de fuente). Sin ajuste
+   estacional propio en L3 para predictoras — mismo razonamiento que ya
+   regía outliers, extendido a estacionalidad. Ver ADR-010, enmienda
+   "ajuste estacional en series predictoras". Corregido antes de que el
+   mismo hueco se repitiera con la siguiente predictora NSA.
+7. **`BCR.IPP` (tercer predictor, 2026-09-16) no disparó ninguna pregunta
+   nueva** — se verificó explícitamente contra las decisiones 2, 5 y 6 antes
+   de admitirlo, en vez de asumir por analogía con IVAE/REMESAS: (a)
+   agregación por promedio, no suma — es un índice de nivel, mismo criterio
+   ya fijado para IVAE; (b) sin deflactar — la pregunta "caso por caso" de la
+   decisión 5 aplica a series monetarias nominales (dólares), no a un índice
+   de precios, que no es una magnitud que se exprese en términos reales; (c)
+   sin ajuste estacional propio pese a ser NSA — ya cubierto en general por
+   la decisión 6, no específico de remesas. No es una decisión nueva; se dejó
+   constancia de que se revisó, no que se infirió.
+8. ~~¿Qué serie(s) de `BCR.BALANZA_COMERCIAL` se admiten como predictor?~~
+   **Resuelto 2026-09-16** (decisión de Harold, `AskUserQuestion`): la
+   publicación trae tres series de cabecera (Exportaciones FOB, Importaciones
+   CIF, Balanza Comercial/saldo) y ADR-010 no se pronuncia sobre cuál(es)
+   catalogar como predictor — es la misma clase de decisión de "definición de
+   variable nueva" que la regla 4 de `CLAUDE.md` exige preguntar, no una
+   pregunta de transformación como las anteriores. **Solo Exportaciones
+   (FOB)** en esta pasada; Importaciones y Balanza quedan disponibles en el
+   mismo archivo L0, declinadas por ahora, no descartadas. No se preguntó
+   además por una versión real (deflactada) de exportaciones, a diferencia
+   de remesas — queda abierto si se retoma esta serie en una sesión futura.
+9. **Autorización de Harold para proceder sin supervisión turno a turno**
+   ("realiza el procedimiento para las restantes, ya no necesitas
+   supervisión", 2026-09-16) — cubre el resto de la tanda de predictores de
+   esta sesión (`BCR.ITCER`, `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`), no
+   una autorización general permanente para futuras decisiones
+   metodológicas. Bajo esa instrucción, la elección de cuál serie de
+   cabecera admitir de cada publicación multi-serie (decisión de la misma
+   clase que la 8) se resolvió por criterio propio en vez de
+   `AskUserQuestion` — global para ITCER, Importación para
+   `INDICES_PRECIOS_COMERCIO_EXTERIOR` (esta última ya señalada por el
+   propio catálogo, no una elección nueva) — siguiendo el mismo patrón ya
+   validado por Harold en la decisión 8 (serie más agregada/directa,
+   resto declinado no descartado). Documentado con el mismo nivel de
+   detalle que si se hubiera preguntado, para que sea revisable. No se
+   extendió el alcance a instituciones nuevas (empleo/energía/turismo/
+   recaudación) ni a las sub-series que la decisión 8 ya había declinado
+   explícitamente — eso excede "las restantes" tal como se entendió esta
+   instrucción.

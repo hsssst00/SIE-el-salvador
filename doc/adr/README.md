@@ -15,7 +15,7 @@ Cada decisión fundacional (D1–D8, senda metodológica §2) se registra como u
 | [007](./ADR-007-politica-vintages.md) | Política de versiones de publicación (vintages) | Cerrado |
 | [008](./ADR-008-licencias.md) | Licencias y condiciones de redistribución | Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16) |
 | [009](./ADR-009-stack-tecnologico.md) | Stack tecnológico | Cerrado |
-| [010](./ADR-010-transformaciones-l3-predictores.md) | Método de transformación L3 de la matriz de predictores (desagregación temporal, deflactación, outliers) | Cerrado |
+| [010](./ADR-010-transformaciones-l3-predictores.md) | Método de transformación L3 de la matriz de predictores (desagregación temporal, deflactación, outliers, ajuste estacional) | Cerrado |
 
 > **Regla de este índice.** La celda "Estado" de cada fila es copia literal de la línea
 > `**Estado:**` del ADR correspondiente. Si divergen, el ADR manda y el índice está

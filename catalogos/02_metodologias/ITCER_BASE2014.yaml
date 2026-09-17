@@ -1,0 +1,8 @@
+metodologia_id: ITCER_BASE2014
+nombre: "Índice de Tipo de Cambio Efectivo Real (ITCER), referencia 2014"
+vigencia_desde: "2000-01"
+vigencia_hasta: ""
+documento_referencia: "Nota al pie del archivo fuente (BCR_itcer_2026-08-26.xlsx, fila 10): \"El Índice de Tipo de Cambio Real actualizado tiene como año base 2014 y ponderaciones móviles del comercio internacional de El Salvador con sus principales socios comerciales\" -- pendiente localizar el documento metodológico dedicado del BCR"
+predecesor_id: ""
+sucesor_id: ""
+notas: "Base = promedio de 2014 (verificado empíricamente: promedio de los 12 valores mensuales de 2014 de la serie global = 100.01), no un mes puntual fijado a 100 como IPP_BASE2009/IPC_BASE2009 -- mismo tipo de referencia anual que IVAE_CIIU_REV4. Socios comerciales ponderados (móvil): Estados Unidos, Guatemala, Honduras, Nicaragua, Costa Rica, México, República Dominicana, Canadá, Japón, Corea del Sur y China. Sin predecesor catalogado en este proyecto -- no se afirma que no exista, solo que no se ha identificado ni documentado."
