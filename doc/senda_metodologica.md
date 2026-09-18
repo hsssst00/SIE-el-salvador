@@ -241,6 +241,17 @@ El flujo de datos se organiza en capas unidireccionales. **Ninguna capa se edita
 
 **Principio de inmutabilidad de L0.** Es la piedra angular de la reproducibilidad. El BCR no ofrece una API estable; los enlaces cambian, los formatos cambian, las series se reorganizan. Sin una copia local archivada con *checksum*, la reproducibilidad es aspiracional. Todo *script* de descarga debe (i) descargar, (ii) calcular SHA-256, (iii) comparar con el manifiesto, (iv) registrar si el archivo cambió respecto de la descarga anterior, (v) nunca sobrescribir.
 
+**L2 es una compuerta de validación, no una capa persistida.** A diferencia de L1/L3/L4, L2 no
+materializa un archivo de datos que L3 lea de vuelta: `src/validacion/validar_l2_pib.R` y
+`validar_l2_predictores.R` leen L1, corren la batería de checks del §3.5 sobre ese data frame en
+memoria, y si pasa, L3 vuelve a leer el mismo L1 directamente — no un "L2" intermedio. Lo único
+que `data/L2_validated/` contiene es el reporte HTML de calidad de datos (entregable de Fase 3),
+no una capa de datos. Esta es una decisión deliberada (evita persistir una copia redundante de
+L1 solo para que L3 la vuelva a leer sin cambios) y no una desviación del diagrama de arriba: la
+lectura correcta de "cada capa se produce a partir de la anterior" es que L2 *certifica* L1 antes
+de que L3 la consuma, no que L2 sea un artefacto de datos propio. Aclarado 2026-09-18
+(remediación del hallazgo M1 de la revisión independiente de Fase 3, 2026-09-17).
+
 ### 3.2 Modelo conceptual de entidades
 
 ```mermaid

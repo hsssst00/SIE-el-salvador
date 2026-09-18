@@ -82,7 +82,7 @@
           {"name": "series_master_id", "type": "string", "constraints": {"required": true, "unique": true}},
           {"name": "transf_id", "type": "string"},
           {"name": "series_insumo_ids", "type": "string", "description": "Lista de serie_id separados por coma-espacio (03_series.csv). FK multi-valor -- Frictionless Table Schema no tiene forma estándar de declarar esto en \"foreignKeys\" (que asume una referencia de valor único por fila); validado por src/validacion/integridad_catalogos_reglas.R (pointblank specially(), no col_vals_in_set)."},
-          {"name": "rol", "type": "string", "constraints": {"enum": ["target_primary", "target_robustness", "predictor"]}},
+          {"name": "rol", "type": "string", "constraints": {"enum": ["target_primary", "target_robustness", "predictor", "intermediate"]}},
           {"name": "freq", "type": "string"},
           {"name": "unit_measure", "type": "string"},
           {"name": "adjustment", "type": "string"},
