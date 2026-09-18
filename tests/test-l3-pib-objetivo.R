@@ -109,10 +109,35 @@ test_that("ajustar_estacional_propio produce una serie SA completa y declara un 
   valores[idx_shock] <- valores[idx_shock] + 15
 
   concat <- data.frame(periodo = periodos, valor = valores, stringsAsFactors = FALSE)
-  ajuste <- ajustar_estacional_propio(concat)
+  # outliers_esperados = NULL: desactiva el check contra OUTLIERS_T002_DECLARADOS (hallazgo M2),
+  # que compara contra la especificación real de BCR.PIB -- no aplica a esta serie sintética.
+  ajuste <- ajustar_estacional_propio(concat, outliers_esperados = NULL)
 
   expect_equal(nrow(ajuste$sa), n)
   expect_false(anyNA(ajuste$sa$valor))
   expect_true(all(c("periodo", "tipo") %in% names(ajuste$outliers)))
   expect_true("2010-Q3" %in% ajuste$outliers$periodo)
+})
+
+test_that("ajustar_estacional_propio falla de forma visible si los outliers no calzan con lo declarado", {
+  x13_disponible <- tryCatch({
+    invisible(seasonal::seas(ts(rnorm(40, 100, 1), start = c(2000, 1), frequency = 4)))
+    TRUE
+  }, error = function(e) FALSE)
+  skip_if_not(x13_disponible, "X-13ARIMA-SEATS no disponible en este entorno")
+
+  set.seed(42)
+  n <- 60
+  periodos <- .periodos_q(2000, 1, n)
+  tendencia <- 100 + seq_len(n) * 0.3
+  estacional <- rep(c(0, 2, -1, 1.5), length.out = n)
+  ruido <- rnorm(n, sd = 0.3)
+  valores <- tendencia + estacional + ruido
+  idx_shock <- which(periodos == "2010-Q3")
+  valores[idx_shock] <- valores[idx_shock] + 15
+
+  concat <- data.frame(periodo = periodos, valor = valores, stringsAsFactors = FALSE)
+  # outliers_esperados por defecto (OUTLIERS_T002_DECLARADOS: 2020-Q2/2020-Q3 AO) no calza con
+  # el shock sintético de 2010-Q3 -- exactamente el escenario que M2 quiere que falle visible.
+  expect_error(ajustar_estacional_propio(concat), "FALLO VISIBLE.*T002_AJUSTE_ESTACIONAL_PROPIO")
 })

@@ -40,8 +40,9 @@ PUBLICACIONES_PIB <- c(
   "BCR.PIB_T.SERIE_RETROPOLADA_1990_2005"
 )
 
-l1 <- read.csv("data/L1_staging/BCR_PIB_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-catalogo <- read.csv("catalogos/03_series.csv", stringsAsFactors = FALSE, na.strings = "")
+l1 <- read.csv(here::here("data", "L1_staging", "BCR_PIB_series_largo.csv"),
+                stringsAsFactors = FALSE, na.strings = "")
+catalogo <- read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
 catalogo <- catalogo[catalogo$publicacion_id %in% PUBLICACIONES_PIB, ]
 
 resultado <- validar_l2(l1, catalogo)
@@ -50,7 +51,7 @@ errores <- resultado$errores
 pointblank::export_report(
   resultado$agente,
   filename = "reporte_calidad_l2_pib.html",
-  path = "data/L2_validated",
+  path = here::here("data", "L2_validated"),
   quiet = TRUE
 )
 

@@ -1,17 +1,46 @@
 # Valida cada catálogo CSV en catalogos/ contra su esquema declarado en datapackage.json.
 # Debe FALLAR (stop con exit non-zero), no advertir, ante cualquier incumplimiento —
 # conforme al principio de §3.5 de la senda metodológica.
+#
+# Remediación del hallazgo I2 de la revisión independiente de Fase 3 (2026-09-17): el `type` de
+# cada campo se leía y nunca se usaba (80 campos con tipo declarado en datapackage.json --
+# 73 string, 4 integer, 2 date, 1 boolean -- ninguno se verificaba). Se agrega el check de tipo
+# (Cheque 0) vía pointblank col_vals_regex(), sobre el valor crudo leído como texto (evita
+# depender de la inferencia de tipos de read.csv, que es ambigua para "date" -- Frictionless lo
+# declara como string ISO 8601, no hay clase Date nativa que inferir). required/enum también se
+# migraron a pasos nativos de pointblank (col_vals_not_null/col_vals_in_set); unique se queda en
+# R base porque su semántica -- ignorar vacíos, no contarlos como duplicado entre sí -- no es la
+# de rows_distinct() sin más trabajo, y el resultado se registra igual como paso `specially()`
+# del mismo agente para que el reporte quede unificado (mismo patrón que
+# src/validacion/l2_serie_larga_reglas.R).
+#
+# Nota pendiente (no resuelta en esta sesión, requiere decisión -- ver CLAUDE.md regla 4): las
+# dos únicas foreignKeys declaradas en datapackage.json (03_series -> 01_publicaciones,
+# 03_series -> 02_metodologias) referencian recursos que no están declarados como `resources` en
+# este archivo, y no podrían estarlo tal cual -- 01_publicaciones/ y 02_metodologias/ son
+# directorios de YAML por publicación, no un único CSV tabular como el resto de recursos. Ningún
+# validador conforme a Frictionless puede resolver esas FKs hoy. La integridad referencial real
+# la cubre tests/test-integridad-referencial.R (adelanto explícito, ver su cabecera). Corregir
+# esto bien requiere decidir si se modela una vista tabular sintética de esos directorios como
+# recurso, o si se retiran esas dos FKs de datapackage.json dejando la referencial en el test --
+# es una decisión de diseño de catálogo, no una corrección mecánica.
 
 library(jsonlite)
 library(pointblank)
-library(dplyr)
 
-dp <- fromJSON("catalogos/datapackage.json", simplifyVector = FALSE)
+dp <- fromJSON(here::here("catalogos", "datapackage.json"), simplifyVector = FALSE)
 
 errores <- list()
 
+TIPO_REGEX <- list(
+  integer = "^-?[0-9]+$",
+  boolean = "^(true|false|TRUE|FALSE)$",
+  date = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+  # "string": sin restricción de formato -- cualquier valor no vacío es válido.
+)
+
 for (r in dp$resources) {
-  ruta <- file.path("catalogos", r$path)
+  ruta <- here::here("catalogos", r$path)
   cat_name <- r$name
 
   if (!file.exists(ruta)) {
@@ -19,10 +48,21 @@ for (r in dp$resources) {
     next
   }
 
-  df <- read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
+  # colClasses = "character": conserva el valor crudo del CSV para los checks de formato
+  # (Cheque 0) y no depende de qué tipo infiera read.csv por columna.
+  df <- read.csv(ruta, stringsAsFactors = FALSE, na.strings = "", colClasses = "character")
   schema <- r$schema$fields
 
-  # Validar cada campo del esquema
+  agente <- create_agent(tbl = df, label = cat_name)
+  idx_pasos <- list()
+  paso_i <- 0L
+  registrar <- function(nombre, agente_nuevo) {
+    paso_i <<- paso_i + 1L
+    idx_pasos[[nombre]] <<- paso_i
+    agente_nuevo
+  }
+
+  campos_presentes <- list()
   for (field in schema) {
     fname <- field$name
     ftype <- field$type
@@ -34,21 +74,62 @@ for (r in dp$resources) {
       errores[[cat_name]] <- c(cat_errors, paste("Campo faltante:", fname))
       next
     }
+    campos_presentes[[fname]] <- list(ftype = ftype, constraints = constraints)
 
-    col <- df[[fname]]
-
-    # Cheque 2: Validar restricción "required"
-    if (isTRUE(constraints$required)) {
-      missing_count <- sum(is.na(col) | col == "")
-      if (missing_count > 0) {
-        cat_errors <- errores[[cat_name]] %||% character(0)
-        errores[[cat_name]] <- c(cat_errors,
-          paste0(fname, ": ", missing_count, " valor(es) ausente(s) pero required=true"))
-      }
+    # Cheque 0: tipo declarado (nuevo -- I2). Solo sobre valores no vacíos: un campo opcional
+    # vacío no es un valor del tipo incorrecto, es un ausente (cubierto por Cheque 2 si aplica).
+    regex_tipo <- TIPO_REGEX[[ftype]]
+    if (!is.null(regex_tipo)) {
+      agente <- registrar(paste0("tipo__", fname), agente |>
+        col_vals_regex(columns = fname, regex = regex_tipo, na_pass = TRUE,
+                        label = paste0("tipo (", ftype, "): ", fname)))
     }
 
-    # Cheque 3: Validar restricción "unique"
-    if (isTRUE(constraints$unique)) {
+    # Cheque 2: restricción "required"
+    if (isTRUE(constraints$required)) {
+      agente <- registrar(paste0("required__", fname), agente |>
+        col_vals_not_null(columns = fname, label = paste0("required: ", fname)))
+    }
+
+    # Cheque 4: restricción "enum"
+    if (!is.null(constraints$enum) && length(constraints$enum) > 0) {
+      agente <- registrar(paste0("enum__", fname), agente |>
+        col_vals_in_set(columns = fname, set = unlist(constraints$enum), na_pass = TRUE,
+                         label = paste0("enum: ", fname)))
+    }
+  }
+
+  agente <- interrogate(agente)
+  reporte <- get_agent_report(agente, display_table = FALSE)
+  extractos <- get_data_extracts(agente)
+  fallo <- function(nombre) {
+    fila <- reporte[reporte$i == idx_pasos[[nombre]], ]
+    is.na(fila$f_pass) || fila$f_pass < 1
+  }
+  extracto <- function(nombre) extractos[[as.character(idx_pasos[[nombre]])]]
+
+  for (fname in names(campos_presentes)) {
+    info <- campos_presentes[[fname]]
+    col <- df[[fname]]
+
+    if (paste0("tipo__", fname) %in% names(idx_pasos) && fallo(paste0("tipo__", fname))) {
+      ext <- extracto(paste0("tipo__", fname))
+      cat_errors <- errores[[cat_name]] %||% character(0)
+      errores[[cat_name]] <- c(cat_errors,
+        paste0(fname, ": ", nrow(ext), " valor(es) no calzan con el tipo declarado (",
+               info$ftype, ")"))
+    }
+
+    if (paste0("required__", fname) %in% names(idx_pasos) && fallo(paste0("required__", fname))) {
+      ext <- extracto(paste0("required__", fname))
+      cat_errors <- errores[[cat_name]] %||% character(0)
+      errores[[cat_name]] <- c(cat_errors,
+        paste0(fname, ": ", nrow(ext), " valor(es) ausente(s) pero required=true"))
+    }
+
+    # Cheque 3: "unique" -- ignora vacíos (un campo opcional vacío repetido no es una
+    # violación de unicidad), semántica que rows_distinct() no da sin trabajo adicional.
+    if (isTRUE(info$constraints$unique)) {
       non_na <- col[!is.na(col) & col != ""]
       dup_count <- sum(duplicated(non_na))
       if (dup_count > 0) {
@@ -58,18 +139,14 @@ for (r in dp$resources) {
       }
     }
 
-    # Cheque 4: Validar restricción "enum"
-    if (!is.null(constraints$enum) && length(constraints$enum) > 0) {
-      non_na <- col[!is.na(col) & col != ""]
-      invalid <- non_na[!non_na %in% unlist(constraints$enum)]
-      if (length(invalid) > 0) {
-        cat_errors <- errores[[cat_name]] %||% character(0)
-        invalid_unique <- unique(invalid)
-        errores[[cat_name]] <- c(cat_errors,
-          paste0(fname, ": valor(es) inválido(s) ",
-                paste(sQuote(invalid_unique), collapse=", "),
-                " (enum: ", paste(sQuote(unlist(constraints$enum)), collapse=", "), ")"))
-      }
+    if (paste0("enum__", fname) %in% names(idx_pasos) && fallo(paste0("enum__", fname))) {
+      ext <- extracto(paste0("enum__", fname))
+      invalid_unique <- unique(ext[[fname]])
+      cat_errors <- errores[[cat_name]] %||% character(0)
+      errores[[cat_name]] <- c(cat_errors,
+        paste0(fname, ": valor(es) inválido(s) ",
+              paste(sQuote(invalid_unique), collapse=", "),
+              " (enum: ", paste(sQuote(unlist(info$constraints$enum)), collapse=", "), ")"))
     }
   }
 }

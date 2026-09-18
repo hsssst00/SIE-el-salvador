@@ -2,147 +2,109 @@
 # src/transformacion/l3_predictores_reglas.R, para que tests/test-l3-predictores.R las ejerza
 # con datos sinteticos.
 #
-# Primer predictor: BCR.IVAE.VOL.SA.M (senda §6.4). Ya es un índice de volumen (real) y ya
-# viene desestacionalizado (SA) de la publicación del BCR — no requiere deflactación ni ajuste
-# estacional propio (a diferencia de la variable objetivo, ver l3_pib_objetivo.R). Se conserva
-# la frecuencia mensual (senda §4: "matriz de predictores mensuales y trimestrales") y se agrega
-# a trimestral por promedio simple (BCR.IVAE.VOL.SA.Q), sin tratamiento de outlier (ADR-010).
+# Catalogo-dirigido (2026-09-17, remediacion del hallazgo I4 de la revision independiente de
+# Fase 3): antes, este script repetia a mano un bloque de seis lineas por serie -- con el nombre
+# de la funcion y el de la serie producto escritos en el codigo, duplicando lo que
+# catalogos/04_transformaciones.csv ya declara por fila (series_insumo, serie_producto, funcion).
+# Ahora el catalogo ES la especificacion ejecutable: este script itera las filas cuyo
+# script_path es este archivo y resuelve `funcion` con match.fun(). Añadir un predictor nuevo
+# que agregue o deflacte con las funciones ya existentes en l3_predictores_reglas.R es una fila
+# de catalogo, no un bloque de codigo copiado.
 #
-# Segundo predictor: BCR.REMESAS.NOM.NSA.M (senda §6.4, sector externo). A diferencia de IVAE,
-# es una serie NOMINAL (millones de US$ corrientes), no un índice, y es un FLUJO, no un nivel —
-# por eso se agrega a trimestral por SUMA (agregar_trimestral_suma()), no por promedio. Por
-# decisión de Harold (2026-09-16), se materializa en dos versiones: nominal (pass-through) y
-# real (deflactada por ONEC.IPC.IDX.NSA.M, T004_DEFLACTAR_REMESAS) — ver 04_transformaciones.
-# La serie real solo cubre desde 2009-M12 (arranque de ONEC.IPC.BASE_2009), aunque la nominal
-# cubre desde 1991-M01 — deflactar_serie() recorta a la intersección, no inventa el tramo previo.
+# La justificacion metodologica por predictor (por que suma vs promedio, por que se deflacta o
+# no, decisiones de Harold sobre que serie de cabecera admitir de una publicacion multi-serie)
+# vive en la columna `justificacion` de 04_transformaciones.csv, fila por fila -- no se repite
+# aca. Contexto que el catalogo no captura, porque es sobre el conjunto y no sobre una fila:
 #
-# Tercer predictor: BCR.IPP.IDX.NSA.M (senda §6.4, precios). Igual que IVAE, es un índice de
-# NIVEL (no un flujo) -- se agrega a trimestral por PROMEDIO, no por suma. A diferencia de IVAE,
-# es NSA (la fuente no lo publica desestacionalizado); por la enmienda de ADR-010 (2026-09-16),
-# eso no dispara ningún ajuste estacional propio en L3 -- ver ADR-010. No se deflacta: ya es un
-# índice de precios, no una serie monetaria nominal (la pregunta de deflactación de ADR-010
-# aplica a valores monetarios, no a índices de precios en sí mismos).
+# - IVAE (T003) ya es volumen SA de la publicacion del BCR: no requiere deflactacion ni ajuste
+#   estacional propio, a diferencia de la variable objetivo (ver l3_pib_objetivo.R).
+# - REMESAS (T004-T006) es la unica serie que se materializa en dos versiones -- nominal y real
+#   -- por decision de Harold (2026-09-16); T006 encadena sobre el producto de T004, no sobre L1.
+# - EXPORT_FOB (T008) es la unica de las tres series de cabecera de Balanza Comercial
+#   (Exportaciones/Importaciones/Balanza) admitida esta sesion (decision de Harold, AskUserQuestion,
+#   2026-09-16); no se deflacta (solo nominal, por ahora).
+# - ITCER e IPM (T009-T010) siguen el mismo criterio de "serie de cabecera mas directa/agregada"
+#   ya fijado para IPP/EXPORT_FOB, sin volver a preguntar caso por caso (autorizacion de Harold,
+#   2026-09-16) -- el detalle de cual serie es la de cabecera esta en 03_series.csv.
 #
-# Cuarto predictor: BCR.EXPORT_FOB.NOM.NSA.M (senda §6.4, comercio exterior). Exportaciones FOB
-# de la Balanza Comercial de Mercancías -- distinta de BCR.EXPORT.NOM.NSA.Q (Cuentas
-# Nacionales/SCN2008, bienes Y servicios, trimestral). Es un FLUJO mensual (como REMESAS), no un
-# índice de nivel -- se agrega a trimestral por SUMA. Por decisión de Harold (2026-09-16,
-# AskUserQuestion), esta sesión admite solo Exportaciones de las tres series de cabecera de la
-# publicación (Exportaciones/Importaciones/Balanza); no se deflacta (solo nominal, por ahora).
-#
-# Salidas en data/L3_master/ (capa generada, no versionada):
-#   BCR_IVAE_VOL_SA_M.csv / _Q.csv         -- pass-through mensual / promedio trimestral
-#   BCR_REMESAS_NOM_NSA_M.csv / _Q.csv     -- pass-through mensual / suma trimestral
-#   BCR_REMESAS_REAL_NSA_M.csv / _Q.csv    -- deflactada por IPC, mensual / suma trimestral
-#   BCR_IPP_IDX_NSA_M.csv / _Q.csv         -- pass-through mensual / promedio trimestral
-#   BCR_EXPORT_FOB_NOM_NSA_M.csv / _Q.csv  -- pass-through mensual / suma trimestral
-#
-# Quinto y sexto predictor (2026-09-16, misma sesión): BCR.ITCER.IDX.NSA.M (tipo de cambio real,
-# serie global) y BCR.IPM.IDX.NSA.M (índice de precios de importación, de la publicación
-# BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR). Ambos son índices de NIVEL como IVAE/IPP -- se agregan
-# a trimestral por PROMEDIO. Sesión autorizada por Harold a proceder sin pregunta explícita por
-# cada predictor (a diferencia de IPP/EXPORT_FOB); la elección de cuál serie de cabecera admitir
-# de cada publicación multi-serie sigue el mismo criterio ya fijado (la más directa/agregada, ver
-# 03_series.csv de cada una para el detalle).
-#   BCR_ITCER_IDX_NSA_M.csv / _Q.csv       -- pass-through mensual / promedio trimestral
-#   BCR_IPM_IDX_NSA_M.csv / _Q.csv         -- pass-through mensual / promedio trimestral
+# Salidas en data/L3_master/ (capa generada, no versionada): un CSV por serie_id (mensual o
+# trimestral), con el punto reemplazado por guion bajo -- p.ej. BCR.IVAE.VOL.SA.Q ->
+# BCR_IVAE_VOL_SA_Q.csv. El pass-through mensual de una serie L1 solo se materializa cuando esa
+# serie tiene su propia fila de agregacion trimestral en el catalogo (evita escribir a L3 series
+# que solo existen como insumo intermedio de otra transformacion, p.ej. ONEC.IPC.IDX.NSA.M).
 
 source(here::here("src", "transformacion", "l3_predictores_reglas.R"))
 
-ivae_m <- read.csv("data/L1_staging/BCR_IVAE_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-ivae_m <- ivae_m[ivae_m$serie_id == "BCR.IVAE.VOL.SA.M", c("periodo", "valor")]
-ivae_m <- ivae_m[order(ivae_m$periodo), ]
+FUENTE_L1 <- list(
+  "BCR.IVAE.VOL.SA.M" = here::here("data", "L1_staging", "BCR_IVAE_series_largo.csv"),
+  "BCR.REMESAS.NOM.NSA.M" = here::here("data", "L1_staging", "BCR_REMESAS_series_largo.csv"),
+  "ONEC.IPC.IDX.NSA.M" = here::here("data", "L1_staging", "ONEC_IPC_series_largo.csv"),
+  "BCR.IPP.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_IPP_series_largo.csv"),
+  "BCR.EXPORT_FOB.NOM.NSA.M" = here::here("data", "L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv"),
+  "BCR.ITCER.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_ITCER_series_largo.csv"),
+  "BCR.IPM.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv")
+)
 
-ivae_q <- agregar_trimestral_promedio(ivae_m, etiqueta = "BCR.IVAE.VOL.SA.Q")
+ruta_l3 <- function(serie_id) here::here("data", "L3_master", paste0(gsub("\\.", "_", serie_id), ".csv"))
 
-dir.create("data/L3_master", showWarnings = FALSE, recursive = TRUE)
-write.csv(ivae_m, "data/L3_master/BCR_IVAE_VOL_SA_M.csv", row.names = FALSE, na = "")
-write.csv(ivae_q, "data/L3_master/BCR_IVAE_VOL_SA_Q.csv", row.names = FALSE, na = "")
+dir.create(here::here("data", "L3_master"), showWarnings = FALSE, recursive = TRUE)
 
-cat("OK: BCR.IVAE.VOL.SA.M (", nrow(ivae_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_IVAE_VOL_SA_M.csv\n", sep = "")
-cat("OK: BCR.IVAE.VOL.SA.Q (", nrow(ivae_q), " obs, promedio trimestral) -> ",
-    "data/L3_master/BCR_IVAE_VOL_SA_Q.csv\n", sep = "")
+transformaciones <- read.csv(here::here("catalogos", "04_transformaciones.csv"), stringsAsFactors = FALSE, na.strings = "")
+transformaciones <- transformaciones[transformaciones$script_path == "src/transformacion/l3_predictores.R", ]
+if (nrow(transformaciones) == 0) {
+  stop("FALLO VISIBLE: catalogos/04_transformaciones.csv no tiene ninguna fila con ",
+       "script_path == 'src/transformacion/l3_predictores.R'")
+}
 
-remesas_nom_m <- read.csv("data/L1_staging/BCR_REMESAS_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-remesas_nom_m <- remesas_nom_m[remesas_nom_m$serie_id == "BCR.REMESAS.NOM.NSA.M", c("periodo", "valor")]
-remesas_nom_m <- remesas_nom_m[order(remesas_nom_m$periodo), ]
+insumos_por_fila <- lapply(transformaciones$series_insumo, function(x) trimws(strsplit(x, ",")[[1]]))
+series_con_agregacion_propia <- unique(unlist(insumos_por_fila[lengths(insumos_por_fila) == 1]))
 
-ipc_m <- read.csv("data/L1_staging/ONEC_IPC_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-ipc_m <- ipc_m[ipc_m$serie_id == "ONEC.IPC.IDX.NSA.M", c("periodo", "valor")]
-ipc_m <- ipc_m[order(ipc_m$periodo), ]
+registro <- new.env(parent = emptyenv())
 
-remesas_real_m <- deflactar_serie(remesas_nom_m, ipc_m, etiqueta = "BCR.REMESAS.REAL.NSA.M")
+leer_l1 <- function(serie_id) {
+  archivo <- FUENTE_L1[[serie_id]]
+  if (is.null(archivo)) {
+    stop("FALLO VISIBLE [", serie_id, "]: no hay archivo L1 registrado para esta serie en ",
+         "l3_predictores.R (FUENTE_L1)")
+  }
+  l1 <- read.csv(archivo, stringsAsFactors = FALSE, na.strings = "")
+  l1 <- l1[l1$serie_id == serie_id, c("periodo", "valor")]
+  l1[order(l1$periodo), ]
+}
 
-remesas_nom_q <- agregar_trimestral_suma(remesas_nom_m, etiqueta = "BCR.REMESAS.NOM.NSA.Q")
-remesas_real_q <- agregar_trimestral_suma(remesas_real_m, etiqueta = "BCR.REMESAS.REAL.NSA.Q")
+resolver_insumo <- function(serie_id) {
+  if (exists(serie_id, envir = registro, inherits = FALSE)) {
+    return(get(serie_id, envir = registro))
+  }
+  serie <- leer_l1(serie_id)
+  assign(serie_id, serie, envir = registro)
+  if (serie_id %in% series_con_agregacion_propia) {
+    archivo <- ruta_l3(serie_id)
+    write.csv(serie, archivo, row.names = FALSE, na = "")
+    cat("OK: ", serie_id, " (", nrow(serie), " obs, pass-through) -> ", archivo, "\n", sep = "")
+  }
+  serie
+}
 
-write.csv(remesas_nom_m, "data/L3_master/BCR_REMESAS_NOM_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(remesas_nom_q, "data/L3_master/BCR_REMESAS_NOM_NSA_Q.csv", row.names = FALSE, na = "")
-write.csv(remesas_real_m, "data/L3_master/BCR_REMESAS_REAL_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(remesas_real_q, "data/L3_master/BCR_REMESAS_REAL_NSA_Q.csv", row.names = FALSE, na = "")
+for (i in seq_len(nrow(transformaciones))) {
+  fila <- transformaciones[i, ]
+  insumos <- insumos_por_fila[[i]]
+  fn <- match.fun(sub("\\(\\)$", "", fila$funcion))
+  series_insumo <- lapply(insumos, resolver_insumo)
 
-cat("OK: BCR.REMESAS.NOM.NSA.M (", nrow(remesas_nom_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_REMESAS_NOM_NSA_M.csv\n", sep = "")
-cat("OK: BCR.REMESAS.NOM.NSA.Q (", nrow(remesas_nom_q), " obs, suma trimestral) -> ",
-    "data/L3_master/BCR_REMESAS_NOM_NSA_Q.csv\n", sep = "")
-cat("OK: BCR.REMESAS.REAL.NSA.M (", nrow(remesas_real_m), " obs, deflactada por IPC) -> ",
-    "data/L3_master/BCR_REMESAS_REAL_NSA_M.csv\n", sep = "")
-cat("OK: BCR.REMESAS.REAL.NSA.Q (", nrow(remesas_real_q), " obs, suma trimestral) -> ",
-    "data/L3_master/BCR_REMESAS_REAL_NSA_Q.csv\n", sep = "")
+  resultado <- if (length(series_insumo) == 1) {
+    fn(series_insumo[[1]], etiqueta = fila$serie_producto)
+  } else if (length(series_insumo) == 2) {
+    fn(series_insumo[[1]], series_insumo[[2]], etiqueta = fila$serie_producto)
+  } else {
+    stop("FALLO VISIBLE [", fila$transf_id, "]: ", length(series_insumo),
+         " serie(s) insumo declaradas; l3_predictores.R solo sabe invocar funciones de 1 o 2 ",
+         "insumos (agregacion o deflactacion)")
+  }
 
-ipp_m <- read.csv("data/L1_staging/BCR_IPP_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-ipp_m <- ipp_m[ipp_m$serie_id == "BCR.IPP.IDX.NSA.M", c("periodo", "valor")]
-ipp_m <- ipp_m[order(ipp_m$periodo), ]
-
-ipp_q <- agregar_trimestral_promedio(ipp_m, etiqueta = "BCR.IPP.IDX.NSA.Q")
-
-write.csv(ipp_m, "data/L3_master/BCR_IPP_IDX_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(ipp_q, "data/L3_master/BCR_IPP_IDX_NSA_Q.csv", row.names = FALSE, na = "")
-
-cat("OK: BCR.IPP.IDX.NSA.M (", nrow(ipp_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_IPP_IDX_NSA_M.csv\n", sep = "")
-cat("OK: BCR.IPP.IDX.NSA.Q (", nrow(ipp_q), " obs, promedio trimestral) -> ",
-    "data/L3_master/BCR_IPP_IDX_NSA_Q.csv\n", sep = "")
-
-export_fob_m <- read.csv("data/L1_staging/BCR_BALANZA_COMERCIAL_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-export_fob_m <- export_fob_m[export_fob_m$serie_id == "BCR.EXPORT_FOB.NOM.NSA.M", c("periodo", "valor")]
-export_fob_m <- export_fob_m[order(export_fob_m$periodo), ]
-
-export_fob_q <- agregar_trimestral_suma(export_fob_m, etiqueta = "BCR.EXPORT_FOB.NOM.NSA.Q")
-
-write.csv(export_fob_m, "data/L3_master/BCR_EXPORT_FOB_NOM_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(export_fob_q, "data/L3_master/BCR_EXPORT_FOB_NOM_NSA_Q.csv", row.names = FALSE, na = "")
-
-cat("OK: BCR.EXPORT_FOB.NOM.NSA.M (", nrow(export_fob_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_EXPORT_FOB_NOM_NSA_M.csv\n", sep = "")
-cat("OK: BCR.EXPORT_FOB.NOM.NSA.Q (", nrow(export_fob_q), " obs, suma trimestral) -> ",
-    "data/L3_master/BCR_EXPORT_FOB_NOM_NSA_Q.csv\n", sep = "")
-
-itcer_m <- read.csv("data/L1_staging/BCR_ITCER_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-itcer_m <- itcer_m[itcer_m$serie_id == "BCR.ITCER.IDX.NSA.M", c("periodo", "valor")]
-itcer_m <- itcer_m[order(itcer_m$periodo), ]
-
-itcer_q <- agregar_trimestral_promedio(itcer_m, etiqueta = "BCR.ITCER.IDX.NSA.Q")
-
-write.csv(itcer_m, "data/L3_master/BCR_ITCER_IDX_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(itcer_q, "data/L3_master/BCR_ITCER_IDX_NSA_Q.csv", row.names = FALSE, na = "")
-
-cat("OK: BCR.ITCER.IDX.NSA.M (", nrow(itcer_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_ITCER_IDX_NSA_M.csv\n", sep = "")
-cat("OK: BCR.ITCER.IDX.NSA.Q (", nrow(itcer_q), " obs, promedio trimestral) -> ",
-    "data/L3_master/BCR_ITCER_IDX_NSA_Q.csv\n", sep = "")
-
-ipm_m <- read.csv("data/L1_staging/BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
-ipm_m <- ipm_m[ipm_m$serie_id == "BCR.IPM.IDX.NSA.M", c("periodo", "valor")]
-ipm_m <- ipm_m[order(ipm_m$periodo), ]
-
-ipm_q <- agregar_trimestral_promedio(ipm_m, etiqueta = "BCR.IPM.IDX.NSA.Q")
-
-write.csv(ipm_m, "data/L3_master/BCR_IPM_IDX_NSA_M.csv", row.names = FALSE, na = "")
-write.csv(ipm_q, "data/L3_master/BCR_IPM_IDX_NSA_Q.csv", row.names = FALSE, na = "")
-
-cat("OK: BCR.IPM.IDX.NSA.M (", nrow(ipm_m), " obs, pass-through) -> ",
-    "data/L3_master/BCR_IPM_IDX_NSA_M.csv\n", sep = "")
-cat("OK: BCR.IPM.IDX.NSA.Q (", nrow(ipm_q), " obs, promedio trimestral) -> ",
-    "data/L3_master/BCR_IPM_IDX_NSA_Q.csv\n", sep = "")
+  assign(fila$serie_producto, resultado, envir = registro)
+  archivo <- ruta_l3(fila$serie_producto)
+  write.csv(resultado, archivo, row.names = FALSE, na = "")
+  cat("OK: ", fila$serie_producto, " (", nrow(resultado), " obs, ", fila$transf_id, ") -> ",
+      archivo, "\n", sep = "")
+}

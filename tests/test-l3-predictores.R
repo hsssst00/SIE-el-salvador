@@ -96,6 +96,25 @@ test_that("agregar_trimestral_suma falla de forma visible ante un hueco real (no
   expect_error(agregar_trimestral_suma(mensual, etiqueta = "TEST"), "FALLO VISIBLE.*TEST")
 })
 
+test_that("agregar_trimestral_promedio falla de forma visible ante un valor NA (celda vacia en L1), no lo descarta en silencio", {
+  # Regresion del hallazgo C1 de la revision independiente 2026-09-17: la interfaz de formula de
+  # aggregate() aplica na.action = na.omit por defecto y promediaba/sumaba sobre 2 meses sin
+  # avisar. El periodo con NA existe (pasa el conteo de huecos), pero su valor esta ausente.
+  periodos <- sprintf("2020-M%02d", 1:6)
+  valores <- c(10, NA, 10, 10, 10, 10)
+  mensual <- .mensual_sintetico(periodos, valores)
+
+  expect_error(agregar_trimestral_promedio(mensual, etiqueta = "TEST"), "FALLO VISIBLE.*TEST.*ausente")
+})
+
+test_that("agregar_trimestral_suma falla de forma visible ante un valor NA (celda vacia en L1)", {
+  periodos <- sprintf("2020-M%02d", 1:6)
+  valores <- c(10, NA, 10, 10, 10, 10)
+  mensual <- .mensual_sintetico(periodos, valores)
+
+  expect_error(agregar_trimestral_suma(mensual, etiqueta = "TEST"), "FALLO VISIBLE.*TEST.*ausente")
+})
+
 test_that("deflactar_serie calcula valor_nominal / (valor_indice / 100)", {
   nominal <- .mensual_sintetico(sprintf("2020-M%02d", 1:4), c(100, 110, 120, 130))
   indice <- .mensual_sintetico(sprintf("2020-M%02d", 1:4), c(100, 102, 104, 106))

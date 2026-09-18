@@ -1,6 +1,8 @@
 Package: SIEElSalvador
 Type: Package
 Version: 0.0.0.9000
+Depends:
+    R (>= 4.4)
 Imports:
     pointblank,
     duckdb,
@@ -22,4 +24,8 @@ Imports:
     digest,
     polite,
     readxl,
-    urca
+    urca,
+    here,
+    testthat,
+    dplyr,
+    stringr

@@ -51,6 +51,7 @@ master: validate
 	Rscript src/transformacion/extraer_bcr_itcer.R
 	Rscript src/transformacion/extraer_bcr_indices_precios_comercio_exterior.R
 	Rscript src/validacion/validar_l2_pib.R
+	Rscript src/validacion/validar_l2_predictores.R
 	Rscript src/transformacion/l3_pib_objetivo.R
 	Rscript src/transformacion/l3_predictores.R
 	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS/IPP/EXPORT_FOB/ITCER/IPM (ADR-010) (Fase 3)"

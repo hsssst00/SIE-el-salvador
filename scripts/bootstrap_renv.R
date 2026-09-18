@@ -46,7 +46,13 @@ paquetes <- c(
   # Agregado 2026-09-17 (ADR-009, nota de seguimiento "pruebas formales de estacionariedad"):
   # ur.df()/ur.kpss() para el analisis exploratorio de Fase 3. Ya estaba en renv.lock como
   # transitiva de vars/tsDyn -- no amplia la superficie real de instalacion.
-  "urca"          # ADF (selectlags="BIC") y KPSS en src/analisis/estacionariedad_reglas.R
+  "urca",         # ADF (selectlags="BIC") y KPSS en src/analisis/estacionariedad_reglas.R
+  # Agregados el 2026-09-17 (hallazgo I3 de la revision independiente de Fase 3): mismo patron
+  # que M1/el bloque anterior -- se usaban en codigo commiteado (validate_catalogs.R,
+  # ut_demanda_serie.R, calendario_bcr_extraer.R) sin estar declarados aqui ni en DESCRIPTION,
+  # aunque ya estaban en renv.lock como dependencia transitiva.
+  "dplyr",        # validate_catalogs.R, ut_demanda_serie.R
+  "stringr"       # calendario_bcr_extraer.R
 )
 
 install.packages(paquetes)

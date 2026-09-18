@@ -13,17 +13,18 @@
 
 source(here::here("src", "transformacion", "l3_pib_objetivo_reglas.R"))
 
-l1 <- read.csv("data/L1_staging/BCR_PIB_series_largo.csv", stringsAsFactors = FALSE, na.strings = "")
+l1 <- read.csv(here::here("data", "L1_staging", "BCR_PIB_series_largo.csv"),
+                stringsAsFactors = FALSE, na.strings = "")
 
 concat <- concatenar_pib_nsa(l1)
 ajuste <- ajustar_estacional_propio(concat)
 oficial <- construir_pib_oficial(l1)
 
-dir.create("data/L3_master", showWarnings = FALSE, recursive = TRUE)
+dir.create(here::here("data", "L3_master"), showWarnings = FALSE, recursive = TRUE)
 
-write.csv(ajuste$sa, "data/L3_master/PIB_SA_PROPIO_Q.csv", row.names = FALSE, na = "")
-write.csv(ajuste$outliers, "data/L3_master/PIB_SA_PROPIO_Q_outliers.csv", row.names = FALSE, na = "")
-write.csv(oficial, "data/L3_master/PIB_SA_OFICIAL_Q.csv", row.names = FALSE, na = "")
+write.csv(ajuste$sa, here::here("data", "L3_master", "PIB_SA_PROPIO_Q.csv"), row.names = FALSE, na = "")
+write.csv(ajuste$outliers, here::here("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv"), row.names = FALSE, na = "")
+write.csv(oficial, here::here("data", "L3_master", "PIB_SA_OFICIAL_Q.csv"), row.names = FALSE, na = "")
 
 cat("OK: PIB.SA.PROPIO.Q (", nrow(ajuste$sa), " obs, ", nrow(ajuste$outliers),
     " outlier(es) declarado(s)) -> data/L3_master/PIB_SA_PROPIO_Q.csv\n", sep = "")

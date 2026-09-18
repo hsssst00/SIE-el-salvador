@@ -59,9 +59,27 @@ concatenar_pib_nsa <- function(l1, tol = 0.01) {
   concat
 }
 
+#' Especificación declarada en catalogos/04_transformaciones.csv, fila T002_AJUSTE_ESTACIONAL_PROPIO
+#' (columna `parametros`, corrida real del 2026-09-16): 2 outliers AO, en 2020-Q2 y 2020-Q3.
+OUTLIERS_T002_DECLARADOS <- data.frame(
+  periodo = c("2020-Q2", "2020-Q3"),
+  tipo = c("AO", "AO"),
+  stringsAsFactors = FALSE
+)
+
 #' Ajuste estacional propio (X-13ARIMA-SEATS vía `seasonal`) sobre la serie
 #' concatenada, con declaracion de las fechas de outlier detectadas (ADR-004).
-ajustar_estacional_propio <- function(concat) {
+#'
+#' Falla de forma visible si los outliers que `seas()` detecta en esta corrida no coinciden con
+#' los declarados en 04_transformaciones.csv (remediación del hallazgo M2 de la revisión
+#' independiente 2026-09-17: `seas()` usa selección automática sin parámetros fijados por ningún
+#' ADR, así que un vintage nuevo puede mover la especificación seleccionada -- y con ella toda la
+#' historia de la variable objetivo -- sin que nada avise; la celda `parametros` quedaría
+#' afirmando algo falso). No congela la especificación con `seasonal::static()`: eso requiere
+#' decidir dónde versionar el artefacto congelado por vintage, una decisión de diseño que esta
+#' sesión no resuelve (ver nota en la revisión) -- este es el mínimo de "regla 7: la validación
+#' falla, no advierte" aplicado al caso ya cubierto por el propio catálogo.
+ajustar_estacional_propio <- function(concat, outliers_esperados = OUTLIERS_T002_DECLARADOS) {
   anio_inicio <- as.integer(substr(concat$periodo[1], 1, 4))
   trim_inicio <- as.integer(substr(concat$periodo[1], 7, 7))
   x <- ts(concat$valor, start = c(anio_inicio, trim_inicio), frequency = 4)
@@ -82,6 +100,22 @@ ajustar_estacional_propio <- function(concat) {
   )
   outliers <- outliers[!is.na(outliers$tipo), ]
   rownames(outliers) <- NULL
+
+  if (!is.null(outliers_esperados)) {
+    obs <- outliers[order(outliers$periodo), ]
+    esp <- outliers_esperados[order(outliers_esperados$periodo), ]
+    rownames(obs) <- NULL
+    rownames(esp) <- NULL
+    if (!identical(obs, esp)) {
+      stop("FALLO VISIBLE [T002_AJUSTE_ESTACIONAL_PROPIO]: los outliers detectados por seas() ",
+           "en esta corrida no coinciden con los declarados en 04_transformaciones.csv. ",
+           "Declarados: ", paste(sprintf("%s(%s)", esp$periodo, esp$tipo), collapse = ", "),
+           ". Detectados: ", if (nrow(obs) == 0) "ninguno" else
+             paste(sprintf("%s(%s)", obs$periodo, obs$tipo), collapse = ", "),
+           ". Un vintage nuevo movió la especificación estacional -- actualiza ",
+           "OUTLIERS_T002_DECLARADOS y la fila T002 de 04_transformaciones.csv a la vez, no solo el código.")
+    }
+  }
 
   list(
     sa = data.frame(periodo = concat$periodo, valor = sa, stringsAsFactors = FALSE),

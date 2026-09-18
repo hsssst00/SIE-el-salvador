@@ -22,6 +22,11 @@
 #' empezar a mitad de trimestre -- el límite de la intersección con el índice de precios). Solo
 #' un trimestre incompleto que NO toque ninguno de los dos bordes es un hueco real.
 .agregar_trimestral <- function(mensual, etiqueta, FUN) {
+  if (anyNA(mensual$valor)) {
+    stop("FALLO VISIBLE [", etiqueta, "]: valor(es) ausente(s) en L1 en el/los período(s): ",
+         paste(mensual$periodo[is.na(mensual$valor)], collapse = ", "))
+  }
+
   anio <- as.integer(substr(mensual$periodo, 1, 4))
   mes <- as.integer(substr(mensual$periodo, 7, 8))
   trimestre <- ceiling(mes / 3)
