@@ -51,11 +51,12 @@ Una fila por serie admitida al proyecto — la unidad atómica de dato (ej. `BCR
   cualquier `extraer_bcr_*.R` para el uso real de estos seis campos.
 
 FKs (`datapackage.json`): `publicacion_id` → `01_publicaciones`, `metodologia_id` →
-`02_metodologias`. Nota: estas dos FKs no son resolubles por un validador Frictionless hoy
-porque `01_publicaciones/`/`02_metodologias/` son directorios de YAML, no un recurso tabular
-único — la integridad referencial real la cubre `tests/test-integridad-referencial.R` (ver su
-cabecera). Pendiente de decisión, no resuelto en esta sesión (ver hallazgo I2 de la revisión
-independiente 2026-09-17 y `src/validacion/validate_catalogs.R`).
+`02_metodologias`. Nota: estas dos FKs no son resolubles por un validador Frictionless genérico
+(`01_publicaciones/`/`02_metodologias/` son directorios de YAML, no un recurso tabular único) —
+`src/validacion/validar_integridad_catalogos.R` las cubre igual, corriendo en `make validate`
+junto a `validate_catalogs.R` (esquema de columnas). La única arista que ninguno de los dos
+cubre es la de `01_publicaciones/*.yaml` hacia sí mismo, que se queda en
+`tests/test-integridad-referencial.R` (ver su cabecera).
 
 ## `04_transformaciones.csv`
 

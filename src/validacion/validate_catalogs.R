@@ -14,16 +14,12 @@
 # del mismo agente para que el reporte quede unificado (mismo patrón que
 # src/validacion/l2_serie_larga_reglas.R).
 #
-# Nota pendiente (no resuelta en esta sesión, requiere decisión -- ver CLAUDE.md regla 4): las
-# dos únicas foreignKeys declaradas en datapackage.json (03_series -> 01_publicaciones,
-# 03_series -> 02_metodologias) referencian recursos que no están declarados como `resources` en
-# este archivo, y no podrían estarlo tal cual -- 01_publicaciones/ y 02_metodologias/ son
-# directorios de YAML por publicación, no un único CSV tabular como el resto de recursos. Ningún
-# validador conforme a Frictionless puede resolver esas FKs hoy. La integridad referencial real
-# la cubre tests/test-integridad-referencial.R (adelanto explícito, ver su cabecera). Corregir
-# esto bien requiere decidir si se modela una vista tabular sintética de esos directorios como
-# recurso, o si se retiran esas dos FKs de datapackage.json dejando la referencial en el test --
-# es una decisión de diseño de catálogo, no una corrección mecánica.
+# Este archivo NO valida las foreignKeys de datapackage.json (03_series -> 01_publicaciones,
+# 03_series -> 02_metodologias, etc.) -- 01_publicaciones/ y 02_metodologias/ son directorios de
+# YAML por publicación, no un recurso tabular Frictionless, así que esas referencias no son
+# resolubles por un validador genérico de esquema. Las cubre
+# src/validacion/validar_integridad_catalogos.R (commit 705ac99, 2026-09-17), que corre justo
+# después de este script en `make validate`.
 
 library(jsonlite)
 library(pointblank)
