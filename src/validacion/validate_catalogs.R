@@ -77,20 +77,25 @@ for (r in dp$resources) {
     regex_tipo <- TIPO_REGEX[[ftype]]
     if (!is.null(regex_tipo)) {
       agente <- registrar(paste0("tipo__", fname), agente |>
-        col_vals_regex(columns = fname, regex = regex_tipo, na_pass = TRUE,
+        col_vals_regex(columns = all_of(fname), regex = regex_tipo, na_pass = TRUE,
                         label = paste0("tipo (", ftype, "): ", fname)))
     }
 
     # Cheque 2: restricción "required"
     if (isTRUE(constraints$required)) {
       agente <- registrar(paste0("required__", fname), agente |>
-        col_vals_not_null(columns = fname, label = paste0("required: ", fname)))
+        col_vals_not_null(columns = all_of(fname), label = paste0("required: ", fname)))
     }
 
     # Cheque 4: restricción "enum"
     if (!is.null(constraints$enum) && length(constraints$enum) > 0) {
       agente <- registrar(paste0("enum__", fname), agente |>
-        col_vals_in_set(columns = fname, set = unlist(constraints$enum), na_pass = TRUE,
+        # col_vals_in_set() no tiene na_pass: los vacíos se excluyen vía preconditions.
+        col_vals_in_set(columns = all_of(fname), set = unlist(constraints$enum),
+                         preconditions = local({
+                           f <- fname
+                           function(x) x[!is.na(x[[f]]), , drop = FALSE]
+                         }),
                          label = paste0("enum: ", fname)))
     }
   }
@@ -99,6 +104,9 @@ for (r in dp$resources) {
   reporte <- get_agent_report(agente, display_table = FALSE)
   extractos <- get_data_extracts(agente)
   fallo <- function(nombre) {
+    # Catálogo sin filas (solo cabecera, ej. 07_experimentos): pointblank devuelve f_pass = NA
+    # porque no hay unidades de prueba; no hay nada que pueda violar el esquema.
+    if (nrow(df) == 0) return(FALSE)
     fila <- reporte[reporte$i == idx_pasos[[nombre]], ]
     is.na(fila$f_pass) || fila$f_pass < 1
   }
