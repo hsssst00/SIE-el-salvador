@@ -109,9 +109,11 @@ test_that("ajustar_estacional_propio produce una serie SA completa y declara un 
   valores[idx_shock] <- valores[idx_shock] + 15
 
   concat <- data.frame(periodo = periodos, valor = valores, stringsAsFactors = FALSE)
-  # outliers_esperados = NULL: desactiva el check contra OUTLIERS_T002_DECLARADOS (hallazgo M2),
-  # que compara contra la especificación real de BCR.PIB -- no aplica a esta serie sintética.
-  ajuste <- ajustar_estacional_propio(concat, outliers_esperados = NULL)
+  # Los tres `*_esperado(a) = NULL` desactivan la guardia contra la especificación declarada de
+  # T002 (hallazgo M2), que compara contra la corrida real de BCR.PIB -- outliers, orden ARIMA y
+  # transformación -- y no aplica a esta serie sintética.
+  ajuste <- ajustar_estacional_propio(concat, outliers_esperados = NULL,
+                                      arima_esperado = NULL, transform_esperada = NULL)
 
   expect_equal(nrow(ajuste$sa), n)
   expect_false(anyNA(ajuste$sa$valor))
@@ -140,4 +142,45 @@ test_that("ajustar_estacional_propio falla de forma visible si los outliers no c
   # outliers_esperados por defecto (OUTLIERS_T002_DECLARADOS: 2020-Q2/2020-Q3 AO) no calza con
   # el shock sintético de 2010-Q3 -- exactamente el escenario que M2 quiere que falle visible.
   expect_error(ajustar_estacional_propio(concat), "FALLO VISIBLE.*T002_AJUSTE_ESTACIONAL_PROPIO")
+})
+
+# --- Guardia de especificación de T002, ejercida sin X-13 -------------------------------------
+# verificar_especificacion_t002() es pura: recibe los tres valores ya extraídos del objeto de
+# seas(), no el objeto. Eso permite cubrir la guardia completa en cualquier entorno, incluidos
+# los que no tienen el binario de X-13ARIMA-SEATS (donde los dos tests de arriba se saltan).
+
+.OUTLIERS_OK <- OUTLIERS_T002_DECLARADOS
+
+test_that("verificar_especificacion_t002: la especificación declarada de T002 pasa", {
+  expect_true(verificar_especificacion_t002(.OUTLIERS_OK, "(1 1 1)(0 1 1)", "log"))
+})
+
+test_that("verificar_especificacion_t002 tolera el prefijo ARIMA y el espaciado del .mdl", {
+  # La celda `parametros` escribe "ARIMA(1 1 1)(0 1 1)"; el string de modelo$model$arima$model lo
+  # arma read_mdl() a partir del .mdl que escribe el binario de X-13, cuyo espaciado no lo fija R.
+  expect_true(verificar_especificacion_t002(.OUTLIERS_OK, "ARIMA(1 1 1)(0 1 1)", "log"))
+  expect_true(verificar_especificacion_t002(.OUTLIERS_OK, " (1 1 1)(0 1 1) ", "log"))
+})
+
+test_that("verificar_especificacion_t002 falla si el orden ARIMA seleccionado cambió", {
+  expect_error(verificar_especificacion_t002(.OUTLIERS_OK, "(0 1 1)(0 1 1)", "log"),
+               "FALLO VISIBLE.*T002_AJUSTE_ESTACIONAL_PROPIO.*ARIMA")
+})
+
+test_that("verificar_especificacion_t002 falla si la transformación seleccionada cambió", {
+  expect_error(verificar_especificacion_t002(.OUTLIERS_OK, "(1 1 1)(0 1 1)", "none"),
+               "FALLO VISIBLE.*T002_AJUSTE_ESTACIONAL_PROPIO.*transform")
+})
+
+test_that("verificar_especificacion_t002 falla si el orden ARIMA no se pudo leer del objeto", {
+  # modelo$model es NULL cuando read_mdl() no encuentra o no puede parsear el .mdl: eso no es
+  # "sin cambios", es "no se verificó" -- y la validación falla, no advierte.
+  expect_error(verificar_especificacion_t002(.OUTLIERS_OK, NULL, "log"),
+               "FALLO VISIBLE.*no se pudo leer el orden ARIMA")
+})
+
+test_that("verificar_especificacion_t002 sigue fallando ante outliers distintos a los declarados", {
+  otros <- data.frame(periodo = "2010-Q3", tipo = "AO", stringsAsFactors = FALSE)
+  expect_error(verificar_especificacion_t002(otros, "(1 1 1)(0 1 1)", "log"),
+               "FALLO VISIBLE.*T002_AJUSTE_ESTACIONAL_PROPIO.*outliers")
 })

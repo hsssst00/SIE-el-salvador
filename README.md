@@ -35,7 +35,7 @@ scripts/                               utilidades de configuración (bootstrap d
 
 ## Empezar
 
-`renv.lock` ya existe y está fijado (187 paquetes: ver `DESCRIPTION` para los 24 imports declarados y la nota de conteo en `CLAUDE.md`). Primer paso en una máquina con R:
+`renv.lock` ya existe y está fijado (187 paquetes). El bloque `Imports:` de `DESCRIPTION` es la lista de imports declarados y la fuente de su conteo — no se transcribe acá, mismo criterio que los conteos de catálogo de la sección Estado; ver también la nota de conteo en `CLAUDE.md`. Primer paso en una máquina con R:
 
 ```r
 renv::restore()

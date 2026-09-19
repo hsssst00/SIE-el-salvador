@@ -15,16 +15,25 @@
 # create_agent(tbl=...) -- se quedan en tests/test-integridad-referencial.R, R base, mismo
 # criterio que ya se aplicó en la migración de L2.
 #
-# Las 6 aristas cubiertas (ver catalogos/datapackage.json para las que además quedaron
+# Las 7 aristas cubiertas (ver catalogos/datapackage.json para las que además quedaron
 # declaradas como "foreignKeys" formales -- solo las de valor único, Frictionless Table Schema no
 # tiene una forma estándar de declarar una FK multi-valor o condicional):
 #   03_series.publicacion_id      -> 01_publicaciones (valor único, foreignKeys)
 #   03_series.metodologia_id      -> 02_metodologias   (valor único, opcional, foreignKeys)
+#   04_transformaciones.serie_producto -> 05_series_master.series_master_id (valor único; NO
+#                                     declarada en datapackage.json todavía)
 #   05_series_master.transf_id    -> 04_transformaciones.transf_id (valor único, opcional, foreignKeys)
 #   05_series_master.series_insumo_ids -> 03_series.serie_id (multi-valor, coma-separado)
 #   08_vintages.publicacion_id    -> 01_publicaciones (valor único, foreignKeys)
 #   09_rupturas.series_afectadas  -> 03_series.serie_id o 01_publicaciones, según tipo_referencia
 #                                     (multi-valor Y condicional)
+#
+# La arista serie_producto es la inversa de transf_id y no es redundante con ella: transf_id
+# pregunta "¿la transformación que cita esta serie maestra existe?", serie_producto pregunta
+# "¿el producto de esta transformación está registrado como serie maestra?". Su incumplimiento
+# es exactamente el hallazgo I4 de la revisión independiente de Fase 3 (el producto
+# PIB.NSA.CONCAT.Q quedó sin registrar en 05_series_master.csv y ninguna de las seis aristas
+# anteriores lo veía).
 
 library(pointblank)
 
@@ -56,12 +65,13 @@ library(pointblank)
 #' @param series,transf,master,vintages,rupturas data frames ya leídos de los CSV correspondientes
 #'   (03_series, 04_transformaciones, 05_series_master, 08_vintages, 09_rupturas), columnas character.
 #' @param pubs,mets character vectors de stems válidos (01_publicaciones/*.yaml, 02_metodologias/*.yaml).
-#' @return list(errores = character vector, vacío si todo resuelve; agentes = list de los 4
+#' @return list(errores = character vector, vacío si todo resuelve; agentes = list de los 5
 #'   ptblank_agent ya interrogados, uno por catálogo con columnas FK, para quien necesite el
 #'   reporte unificado más allá del mensaje de fallo).
 validar_integridad_catalogos <- function(series, transf, master, vintages, rupturas, pubs, mets) {
   serie_ids <- series$serie_id
   transf_ids <- transf$transf_id
+  master_ids <- master$series_master_id
 
   errores <- character(0)
   agregar_error <- function(msg) errores <<- c(errores, msg)
@@ -108,6 +118,16 @@ validar_integridad_catalogos <- function(series, transf, master, vintages, ruptu
                        label = "03_series.metodologia_id -> 02_metodologias (vacío permitido)"))
   }
   agente_series <- interrogate(agente_series)
+
+  # --- Agente 04_transformaciones: serie_producto (requerido) -> 05_series_master. Arista
+  # inversa de 05_series_master.transf_id: atajaría el hallazgo I4 (un producto declarado en
+  # 04_transformaciones que nunca se registró como serie maestra). ---
+  reg_transf <- .nuevo_registro()
+  agente_transf <- create_agent(tbl = transf, label = "Integridad: 04_transformaciones")
+  agente_transf <- reg_transf$registrar("serie_producto", agente_transf |>
+    col_vals_in_set(columns = vars(serie_producto), set = master_ids,
+                     label = "04_transformaciones.serie_producto -> 05_series_master"))
+  agente_transf <- interrogate(agente_transf)
 
   # --- Agente 05_series_master: transf_id (opcional, vía pointblank) y series_insumo_ids
   # (multi-valor, precomputado arriba, registrado como specially() para reporte unificado). ---
@@ -171,6 +191,9 @@ validar_integridad_catalogos <- function(series, transf, master, vintages, ruptu
            list(publicacion_id = "03_series.publicacion_id -> 01_publicaciones",
                 metodologia_id = "03_series.metodologia_id -> 02_metodologias"),
            "serie_id")
+  reportar(agente_transf, reg_transf,
+           list(serie_producto = "04_transformaciones.serie_producto -> 05_series_master"),
+           "transf_id")
   reportar(agente_master, reg_master,
            list(transf_id = "05_series_master.transf_id -> 04_transformaciones",
                 series_insumo_ids = "05_series_master.series_insumo_ids -> 03_series"),
@@ -184,6 +207,6 @@ validar_integridad_catalogos <- function(series, transf, master, vintages, ruptu
            "ruptura_id")
 
   list(errores = errores,
-       agentes = list(series = agente_series, master = agente_master,
+       agentes = list(series = agente_series, transf = agente_transf, master = agente_master,
                        vintages = agente_vintages, rupturas = agente_rupturas))
 }

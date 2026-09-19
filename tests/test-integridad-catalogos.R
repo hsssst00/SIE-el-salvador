@@ -15,7 +15,9 @@ source(here::here("src", "validacion", "integridad_catalogos_reglas.R"))
       metodologia_id = c("MET.1", ""),
       stringsAsFactors = FALSE
     ),
-    transf = data.frame(transf_id = c("T001", "T002"), stringsAsFactors = FALSE),
+    transf = data.frame(transf_id = c("T001", "T002"),
+                         serie_producto = c("M.1", "M.2"),
+                         stringsAsFactors = FALSE),
     master = data.frame(
       series_master_id = c("M.1", "M.2"),
       transf_id = c("T001", ""),
@@ -67,6 +69,23 @@ test_that("03_series.metodologia_id huérfano (no vacío) produce error", {
   caso$series$metodologia_id[1] <- "MET.INEXISTENTE"
   r <- .correr(caso)
   expect_true(any(grepl("03_series.metodologia_id", r$errores)))
+})
+
+test_that("04_transformaciones.serie_producto sin registrar en 05_series_master produce error", {
+  # Es el hallazgo I4 de la revisión independiente de Fase 3: una transformación declara un
+  # producto (allá PIB.NSA.CONCAT.Q) que nunca se registró como serie maestra. Ninguna de las
+  # seis aristas anteriores lo veía -- transf_id es la dirección contraria y sigue resolviendo.
+  caso <- .caso_base()
+  caso$transf$serie_producto[1] <- "M.NO_REGISTRADA"
+  r <- .correr(caso)
+  expect_true(any(grepl("04_transformaciones.serie_producto", r$errores)))
+})
+
+test_that("serie_producto resuelve aunque la serie maestra no cite transf_id (arista independiente)", {
+  caso <- .caso_base()
+  caso$master$transf_id <- c("", "")   # ninguna serie maestra cita su transformación
+  r <- .correr(caso)
+  expect_equal(r$errores, character(0))
 })
 
 test_that("05_series_master.transf_id huérfano produce error", {

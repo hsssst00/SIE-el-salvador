@@ -59,6 +59,22 @@ if (nrow(transformaciones) == 0) {
 insumos_por_fila <- lapply(transformaciones$series_insumo, function(x) trimws(strsplit(x, ",")[[1]]))
 series_con_agregacion_propia <- unique(unlist(insumos_por_fila[lengths(insumos_por_fila) == 1]))
 
+series_catalogo <- read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
+
+# `unit_measure` declarado en 03_series.csv para una serie insumo. Solo se consulta para las
+# funciones que lo piden en su firma (hoy deflactar_serie(), que exige que el segundo insumo
+# sea el indice de precios: el orden de `series_insumo` es semantico y el bucle los pasa por
+# posicion). Se resuelve aca y no dentro de la regla para que las reglas sigan siendo puras.
+unidad_insumo <- function(serie_id) {
+  unidad <- series_catalogo$unit_measure[series_catalogo$serie_id == serie_id]
+  if (length(unidad) != 1) {
+    stop("FALLO VISIBLE [", serie_id, "]: se esperaba exactamente una fila en ",
+         "catalogos/03_series.csv para esta serie insumo (la transformacion que la usa exige ",
+         "su `unit_measure` por catalogo), hay ", length(unidad), ".")
+  }
+  unidad
+}
+
 registro <- new.env(parent = emptyenv())
 
 leer_l1 <- function(serie_id) {
@@ -92,15 +108,19 @@ for (i in seq_len(nrow(transformaciones))) {
   fn <- match.fun(sub("\\(\\)$", "", fila$funcion))
   series_insumo <- lapply(insumos, resolver_insumo)
 
-  resultado <- if (length(series_insumo) == 1) {
-    fn(series_insumo[[1]], etiqueta = fila$serie_producto)
-  } else if (length(series_insumo) == 2) {
-    fn(series_insumo[[1]], series_insumo[[2]], etiqueta = fila$serie_producto)
-  } else {
+  if (length(series_insumo) < 1 || length(series_insumo) > 2) {
     stop("FALLO VISIBLE [", fila$transf_id, "]: ", length(series_insumo),
          " serie(s) insumo declaradas; l3_predictores.R solo sabe invocar funciones de 1 o 2 ",
          "insumos (agregacion o deflactacion)")
   }
+
+  # Las funciones que declaran `unidades_insumo` en su firma reciben ademas el `unit_measure`
+  # de cada insumo segun 03_series.csv, en el mismo orden posicional que `series_insumo`.
+  argumentos <- c(series_insumo, list(etiqueta = fila$serie_producto))
+  if ("unidades_insumo" %in% names(formals(fn))) {
+    argumentos$unidades_insumo <- vapply(insumos, unidad_insumo, character(1))
+  }
+  resultado <- do.call(fn, argumentos)
 
   assign(fila$serie_producto, resultado, envir = registro)
   archivo <- ruta_l3(fila$serie_producto)

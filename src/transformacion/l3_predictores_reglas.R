@@ -78,13 +78,50 @@ agregar_trimestral_suma <- function(mensual, etiqueta) {
   .agregar_trimestral(mensual, etiqueta, FUN = sum)
 }
 
+#' TRUE si `unit_measure` (columna de catalogos/03_series.csv) describe un indice. El catalogo
+#' usa "índice de precios", "índice de volumen", "índice de volumen encadenado" e "índice de
+#' tipo de cambio real" -- todas empiezan por "índice", a diferencia de las unidades de nivel
+#' o flujo ("dólares corrientes", "GWh"). Se acepta la forma sin tilde por robustez de captura.
+es_unidad_indice <- function(unit_measure) {
+  !is.na(unit_measure) & grepl("^[[:space:]]*[íi]ndice", unit_measure, ignore.case = TRUE)
+}
+
+#' Exige por catalogo que el SEGUNDO insumo de una deflactacion sea el indice de precios.
+#'
+#' El bucle catalogo-dirigido de l3_predictores.R pasa los insumos por posicion, en el orden en
+#' que la celda `series_insumo` de 04_transformaciones.csv los declara, y ese orden es
+#' semantico: (nominal, indice). Invertirlo NO falla por si solo -- produce una serie plausible
+#' pero incorrecta (verificado 2026-09-18 sobre T004: 600.00/613.86/627.45 en vez de
+#' 16.67/16.29/15.94) -- asi que la unica forma de atajarlo es preguntarle al catalogo que es
+#' cada insumo. `unidades_insumo` es el vector de `unit_measure` de catalogos/03_series.csv
+#' para los insumos de la fila, en el mismo orden; lo resuelve l3_predictores.R y lo pasa, para
+#' que esta regla siga siendo pura (no lee disco).
+.verificar_insumo_indice <- function(unidades_insumo, etiqueta) {
+  if (length(unidades_insumo) != 2) {
+    stop("FALLO VISIBLE [", etiqueta, "]: deflactar_serie() exige `unidades_insumo`, el vector ",
+         "de `unit_measure` de catalogos/03_series.csv para los dos insumos en el orden en que ",
+         "`series_insumo` los declara; se recibieron ", length(unidades_insumo), ".")
+  }
+  if (!es_unidad_indice(unidades_insumo[2])) {
+    stop("FALLO VISIBLE [", etiqueta, "]: el segundo insumo de deflactar_serie() debe ser el ",
+         "indice de precios, y su `unit_measure` en catalogos/03_series.csv es '",
+         unidades_insumo[2], "' (el del primero es '", unidades_insumo[1], "'). El orden de ",
+         "`series_insumo` en 04_transformaciones.csv es semantico -- (nominal, indice) -- y ",
+         "esta invertido o la fila cita la serie equivocada.")
+  }
+  invisible(TRUE)
+}
+
 #' Deflacta una serie nominal mensual con un indice de precios de la misma frecuencia y misma
 #' base=100 en su mes ancla (ADR-010: deflactación caso por caso). valor_real = valor_nominal /
 #' (valor_indice / 100). Une por periodo con interseccion (merge por "periodo"): los periodos que
 #' solo existen en una de las dos series quedan fuera del resultado -- no se interpolan ni se
 #' asumen en cero (convención "ausentes como celda vacía", CLAUDE.md). Falla de forma visible si
-#' no hay ningún período en común.
-deflactar_serie <- function(nominal, indice, etiqueta) {
+#' no hay ningún período en común, y si el segundo insumo no es un indice segun el catalogo
+#' (ver .verificar_insumo_indice(); `unidades_insumo` no tiene default a proposito, para que un
+#' invocador que lo omita falle en vez de saltarse la guardia en silencio).
+deflactar_serie <- function(nominal, indice, etiqueta, unidades_insumo) {
+  .verificar_insumo_indice(unidades_insumo, etiqueta)
   comun <- merge(nominal, indice, by = "periodo", suffixes = c("_nominal", "_indice"))
   if (nrow(comun) == 0) {
     stop("FALLO VISIBLE [", etiqueta, "]: la serie nominal y el índice de precios no tienen ",

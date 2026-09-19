@@ -1,10 +1,10 @@
-# Integridad referencial ENTRE catálogos (03_series, 05_series_master, 08_vintages, 09_rupturas
-# contra 01_publicaciones/02_metodologias/03_series/04_transformaciones entre sí). Debe FALLAR,
-# no advertir (regla 7 de CLAUDE.md, senda §3.5).
+# Integridad referencial ENTRE catálogos (03_series, 04_transformaciones, 05_series_master,
+# 08_vintages, 09_rupturas contra 01_publicaciones/02_metodologias/03_series/04_transformaciones/
+# 05_series_master entre sí). Debe FALLAR, no advertir (regla 7 de CLAUDE.md, senda §3.5).
 #
 # Reglas en src/validacion/integridad_catalogos_reglas.R (validar_integridad_catalogos()), para
 # que tests/test-integridad-catalogos.R las ejerza con datos sintéticos sin tocar disco. Ver ese
-# archivo para el detalle de las 6 aristas cubiertas y por qué NO cubre 01_publicaciones/*.yaml
+# archivo para el detalle de las 7 aristas cubiertas y por qué NO cubre 01_publicaciones/*.yaml
 # (se queda en tests/test-integridad-referencial.R, R base, mismo motivo que la migración de L2).
 #
 # Se corre como parte de `make validate`, junto a validate_catalogs.R (esquema de columnas).
@@ -40,4 +40,5 @@ if (length(errores) > 0) {
   stop("Catálogos con aristas de integridad referencial rotas.")
 }
 
-message("Integridad referencial entre catálogos OK (03_series, 05_series_master, 08_vintages, 09_rupturas).")
+message("Integridad referencial entre catálogos OK (03_series, 04_transformaciones, ",
+        "05_series_master, 08_vintages, 09_rupturas).")

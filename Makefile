@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master eval report validate test audit
+.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval report validate test audit
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -55,6 +55,15 @@ master: validate
 	Rscript src/transformacion/l3_pib_objetivo.R
 	Rscript src/transformacion/l3_predictores.R
 	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS/IPP/EXPORT_FOB/ITCER/IPM (ADR-010) (Fase 3)"
+
+# Fase 3 — análisis exploratorio de la base maestra (senda §4), en el orden en que se leen:
+# primero descriptivos y gráficos, después las pruebas formales de estacionariedad. Depende de
+# `master` porque ambos scripts leen data/L3_master/, que ese objetivo genera. Salidas (capa
+# generada, no versionada): reporte_exploratorio_resumen.csv, exploracion/<serie>.png y
+# reporte_estacionariedad.csv, todas en data/L3_master/.
+explore: master
+	Rscript src/analisis/exploracion_series.R
+	Rscript src/analisis/estacionariedad.R
 
 # Validación de esquema de catálogos (columnas/tipos) e integridad referencial entre ellos.
 validate:

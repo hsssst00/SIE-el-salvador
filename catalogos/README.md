@@ -49,6 +49,12 @@ Una fila por serie admitida al proyecto — la unidad atómica de dato (ej. `BCR
   columnas, fila de años y fila de trimestres/meses) — lo que permite a un extractor de
   `src/transformacion/` leer la celda sin volver a parsear `fuente_celda` en texto libre. Ver
   cualquier `extraer_bcr_*.R` para el uso real de estos seis campos.
+  **`fila_dato` es el índice de fila según `readxl`, no la fila física de Excel.** Cuando una
+  hoja tiene filas iniciales sin ninguna celda (`<row/>` vacía), `readxl` las omite y el resto
+  queda corrido: hoy difieren en las 13 series `*.RETRO`, con desfase +1, porque las hojas
+  T1/T2 de `BCR_pib_t_retropolado_1990_2005_2026-08-06.xlsx` tienen la fila 1 vacía. La
+  explicación completa —y por qué el verificador lee con la misma librería que el extractor—
+  está en la cabecera de `src/validacion/verificar_fuente_celda.R`.
 
 FKs (`datapackage.json`): `publicacion_id` → `01_publicaciones`, `metodologia_id` →
 `02_metodologias`. Nota: estas dos FKs no son resolubles por un validador Frictionless genérico
