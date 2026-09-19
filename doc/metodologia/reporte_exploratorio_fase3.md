@@ -4,7 +4,8 @@
 (senda metodológica §4, entregable "reporte exploratorio").
 **Datos fuente:** `data/L3_master/reporte_exploratorio_resumen.csv` y
 `data/L3_master/reporte_estacionariedad.csv` — capa generada, no versionada, producida por
-`src/analisis/exploracion_series.R` y `src/analisis/estacionariedad.R` (2026-09-17). Este
+`src/analisis/exploracion_series.R` y `src/analisis/estacionariedad.R` (regenerados 2026-09-19,
+tras la remediación de la revisión independiente; la corrida original fue 2026-09-17). Este
 documento interpreta esas cifras; no las sustituye — ante cualquier discrepancia, el CSV es la
 fuente de verdad numérica y este documento se corrige, no al revés.
 
@@ -44,8 +45,9 @@ descubre una nueva.
 | `BCR_IPP_IDX_NSA_Q` | Q | 66 | 2010-Q1 – 2026-Q2 |
 | `BCR_REMESAS_REAL_NSA_Q` | Q | 66 | 2010-Q1 – 2026-Q2 |
 
-La serie más corta (66 obs, trimestral) sigue siendo suficiente para ADF con selección BIC de
-rezagos (§2) — verificado en la corrida real, no solo supuesto.
+La serie más corta (66 obs, trimestral) permite correr ADF con selección BIC de rezagos (§2) —
+verificado en la corrida real, no solo supuesto —, aunque con menor potencia: es justamente la
+que concentra las conclusiones `ambigua_baja_potencia` (ver §2).
 
 ## 2. Estacionariedad (mitad "estacionariedad")
 
@@ -59,41 +61,61 @@ correspondencia exacta), en los comentarios de `src/analisis/estacionariedad_reg
 
 **Interpretación conjunta:** una transformación se declara *estacionaria* solo si ADF rechaza
 raíz unitaria Y KPSS no rechaza estacionariedad (ambas pruebas coinciden); *no_estacionaria*
-solo si coinciden en el sentido contrario; *ambigua* si discrepan (evidencia insuficiente o
-contradictoria, no un empate a favor de ninguna).
+solo si coinciden en el sentido contrario. Cuando las pruebas no coinciden, la conclusión es
+una de dos etiquetas *ambigua*, porque las dos formas de discrepar significan cosas distintas
+(ver `interpretar_conjunta()` en `src/analisis/estacionariedad_reglas.R`):
+
+- *ambigua_quiebre_o_fraccional*: ADF rechaza la raíz unitaria **y** KPSS rechaza la
+  estacionariedad. Ambas rechazan su H0; la serie no encaja ni en I(1) puro ni en I(0) puro, lo
+  que la literatura asocia a un quiebre estructural en la parte determinística (que ninguna de
+  las dos especificaciones contempla) o a integración fraccionaria.
+- *ambigua_baja_potencia*: **ninguna** rechaza su H0. Con esta muestra las pruebas no logran
+  separar I(1) de I(0); no dice que la serie sea "intermedia", dice que estas dos pruebas no la
+  distinguen.
 
 ### Resultado por serie
 
 | Serie | nivel | log-nivel | diferencia | diferencia del log |
 |---|---|---|---|---|
-| `PIB_SA_PROPIO_Q` | no_estacionaria | ambigua | **estacionaria** | **estacionaria** |
-| `PIB_SA_OFICIAL_Q` | ambigua | **estacionaria** | **estacionaria** | **estacionaria** |
-| `BCR_IVAE_VOL_SA_M` | ambigua | ambigua | **estacionaria** | **estacionaria** |
-| `BCR_IVAE_VOL_SA_Q` | ambigua | **estacionaria** | **estacionaria** | **estacionaria** |
+| `PIB_SA_PROPIO_Q` | no_estacionaria | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
+| `PIB_SA_OFICIAL_Q` | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** | **estacionaria** |
+| `BCR_IVAE_VOL_SA_M` | ambigua_quiebre_o_fraccional | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
+| `BCR_IVAE_VOL_SA_Q` | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** | **estacionaria** |
 | `BCR_REMESAS_NOM_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_REMESAS_NOM_NSA_Q` | no_estacionaria | no_estacionaria | ambigua | **estacionaria** |
+| `BCR_REMESAS_NOM_NSA_Q` | no_estacionaria | no_estacionaria | ambigua_quiebre_o_fraccional | **estacionaria** |
 | `BCR_REMESAS_REAL_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_REMESAS_REAL_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPP_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_IPP_IDX_NSA_Q` | no_estacionaria | no_estacionaria | ambigua | ambigua |
-| `BCR_EXPORT_FOB_NOM_NSA_M` | ambigua | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_EXPORT_FOB_NOM_NSA_Q` | ambigua | ambigua | **estacionaria** | **estacionaria** |
+| `BCR_IPP_IDX_NSA_Q` | no_estacionaria | no_estacionaria | ambigua_baja_potencia | ambigua_baja_potencia |
+| `BCR_EXPORT_FOB_NOM_NSA_M` | ambigua_quiebre_o_fraccional | no_estacionaria | **estacionaria** | **estacionaria** |
+| `BCR_EXPORT_FOB_NOM_NSA_Q` | ambigua_quiebre_o_fraccional | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
 | `BCR_ITCER_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_ITCER_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 
-Agregado (64 combinaciones serie×transformación): 31 *estacionaria*, 22 *no_estacionaria*, 11
-*ambigua*. Detalle completo (estadísticos, valores críticos, rezagos) en
-`data/L3_master/reporte_estacionariedad.csv`.
+Agregado (64 combinaciones serie×transformación): 31 *estacionaria*, 22 *no_estacionaria*, 9
+*ambigua_quiebre_o_fraccional* y 2 *ambigua_baja_potencia* (11 ambiguas en total). Detalle
+completo en `data/L3_master/reporte_estacionariedad.csv` (estadísticos, valores críticos,
+`adf_rezagos` —los rezagos que la selección BIC efectivamente retuvo en la regresión— y
+`adf_techo_rezagos` —el máximo de búsqueda de Schwert—, que son columnas distintas).
 
-**Patrón, sin sorpresas:** nivel y log-nivel son mayoritariamente *no_estacionaria*/*ambigua* —
-esperado en series macro con tendencia. La primera diferencia y la diferencia del log son
-mayoritariamente *estacionaria* — esperado si las series son integradas de orden 1, el caso
-típico de indicadores macroeconómicos mensuales/trimestrales. Ninguna serie resultó
-*no_estacionaria* en ambas diferencias; la única con ambigüedad persistente incluso
-diferenciada es `BCR_IPP_IDX_NSA_Q` (66 obs, la serie más corta) — no descarta que sea
-estacionaria, refleja menor potencia de las pruebas con menos observaciones.
+**Patrón, sin sorpresas:** nivel y log-nivel son mayoritariamente
+*no_estacionaria*/*ambigua_quiebre_o_fraccional* — esperado en series macro con tendencia. La
+primera diferencia y la diferencia del log son mayoritariamente *estacionaria* — esperado si las
+series son integradas de orden 1, el caso típico de indicadores macroeconómicos
+mensuales/trimestrales. Ninguna serie resultó *no_estacionaria* en ambas diferencias.
+
+Las dos etiquetas ambiguas se reparten de forma distinta y no deben leerse juntas:
+
+- Las 9 *ambigua_quiebre_o_fraccional* están en nivel/log-nivel de PIB, IVAE y exportaciones
+  FOB (8 casos), más uno en la primera diferencia de `BCR_REMESAS_NOM_NSA_Q` (su `diff_log` sí
+  es *estacionaria*). Es compatible con quiebres estructurales no modelados, como el de 2020
+  (§3), pero este reporte no lo contrasta.
+- Las 2 *ambigua_baja_potencia* son ambas de `BCR_IPP_IDX_NSA_Q` en primera diferencia y
+  diferencia del log (66 obs, la serie más corta): ninguna prueba rechaza su H0. No descarta
+  que sea estacionaria; refleja la menor potencia con menos observaciones. Es la única serie con
+  ambigüedad persistente incluso diferenciada por esta vía.
 
 ### La variable objetivo: esto valida una decisión ya tomada, no abre una nueva
 
