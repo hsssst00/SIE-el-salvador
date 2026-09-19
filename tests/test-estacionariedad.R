@@ -66,11 +66,18 @@ test_that("interpretar_conjunta: ambas coinciden en no_estacionaria", {
   expect_equal(interpretar_conjunta(adf, kpss), "no_estacionaria")
 })
 
-test_that("interpretar_conjunta: discrepancia produce ambigua (ambos casos)", {
-  expect_equal(interpretar_conjunta(list(rechaza_raiz_unitaria = TRUE),
-                                     list(rechaza_estacionariedad = TRUE)), "ambigua")
-  expect_equal(interpretar_conjunta(list(rechaza_raiz_unitaria = FALSE),
-                                     list(rechaza_estacionariedad = FALSE)), "ambigua")
+test_that("interpretar_conjunta: los dos casos discordantes NO colapsan en una sola etiqueta", {
+  # Ambas rechazan su H0 -> ni I(1) puro ni I(0) puro: quiebre estructural o integracion
+  # fraccionaria. Ninguna rechaza -> falta de potencia. Son lecturas distintas de la tabla de
+  # Kwiatkowski et al. y antes se publicaban las dos como "ambigua".
+  ambas_rechazan <- interpretar_conjunta(list(rechaza_raiz_unitaria = TRUE),
+                                          list(rechaza_estacionariedad = TRUE))
+  ninguna_rechaza <- interpretar_conjunta(list(rechaza_raiz_unitaria = FALSE),
+                                           list(rechaza_estacionariedad = FALSE))
+
+  expect_equal(ambas_rechazan, "ambigua_quiebre_o_fraccional")
+  expect_equal(ninguna_rechaza, "ambigua_baja_potencia")
+  expect_false(ambas_rechazan == ninguna_rechaza)
 })
 
 test_that("analizar_estacionariedad_serie: paseo aleatorio positivo produce 4 transformaciones", {
@@ -90,4 +97,36 @@ test_that("analizar_estacionariedad_serie: serie con valor no positivo omite log
   r <- analizar_estacionariedad_serie(x, "TEST.NEG")
   expect_equal(nrow(r), 2)
   expect_setequal(r$transformacion, c("nivel", "diff"))
+})
+
+test_that("prueba_adf publica los rezagos EFECTIVOS de la seleccion BIC, no el techo de Schwert", {
+  # Regresion: ur.df() devuelve en su slot @lags el techo que se le paso en `lags=`, no la
+  # seleccion BIC. Publicar @lags hacia que la columna de rezagos del reporte no describiera la
+  # regresion cuyo estadistico se publica a su lado (verificado en las 64 filas del reporte real:
+  # BCR_EXPORT_FOB_NOM_NSA_M en nivel publicaba 16 con un estadistico de 1 rezago).
+  set.seed(2026)
+  x <- 100 + cumsum(rnorm(300))
+  techo <- trunc(12 * (300 / 100)^0.25)
+
+  adf <- prueba_adf(x, "nivel")
+  ajuste <- ur.df(x, type = "trend", lags = techo, selectlags = "BIC")
+
+  expect_equal(adf$techo_rezagos, techo)
+  expect_equal(ajuste@lags, techo)   # el slot que NO se debe publicar: es el techo, no la seleccion
+  expect_equal(adf$rezagos,
+               sum(grepl("^z\\.diff\\.lag", rownames(ajuste@testreg$coefficients))))
+  # Un paseo aleatorio no necesita 15 rezagos: si `rezagos` vuelve a ser el techo, esto falla.
+  expect_lt(adf$rezagos, adf$techo_rezagos)
+})
+
+test_that("analizar_estacionariedad_serie publica rezagos efectivos y techo en columnas distintas", {
+  set.seed(2027)
+  x <- 100 + cumsum(rnorm(200))
+  x <- x - min(x) + 50  # estrictamente positivo para que log() aplique
+
+  r <- analizar_estacionariedad_serie(x, "TEST.REZAGOS")
+
+  expect_true(all(c("adf_rezagos", "adf_techo_rezagos") %in% names(r)))
+  expect_true(all(r$adf_rezagos <= r$adf_techo_rezagos))
+  expect_true(any(r$adf_rezagos < r$adf_techo_rezagos))
 })

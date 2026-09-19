@@ -13,7 +13,11 @@
 
 source(here::here("src", "analisis", "exploracion_series_reglas.R"))
 
-dir_l3 <- "data/L3_master"
+dir_l3 <- here::here("data", "L3_master")
+# Carpeta de graficos sin tilde, a proposito: es el nombre portable (UTF-8 en nombres de
+# archivo se comporta distinto entre Windows, macOS y Linux, y este directorio se crea desde
+# codigo en las tres). Si en una maquina quedaron PNG bajo "exploración", renombrar la carpeta
+# a mano una vez -- una corrida nueva no los sobrescribe, los deja huerfanos al lado.
 dir_out <- file.path(dir_l3, "exploracion")
 dir.create(dir_out, showWarnings = FALSE, recursive = TRUE)
 

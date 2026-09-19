@@ -7,9 +7,14 @@
 # entraban a L3 sin ningún control -- incluido el que atajaría el hallazgo C1 (col_vals_not_null
 # sobre valor) una capa antes de la agregación mensual->trimestral.
 #
-# No cubre UT.DEMANDA_TOTAL_MENSUAL: mismo motivo que validar_l2_pib.R -- esa serie todavía no
-# pasa por 03_series.csv y ya trae sus propias validaciones de conteo/duplicados en
-# src/transformacion/ut_demanda_serie.R.
+# No cubre UT.DEMANDA_TOTAL_MENSUAL: su archivo de L1 no está en el esquema largo que esta
+# batería asume. data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv tiene columnas
+# anio|mes|periodo|gwh (ver src/transformacion/ut_demanda_serie.R), no
+# serie_id|periodo|valor|provisional, de modo que validar_l2_serie_larga() no puede correr
+# sobre él tal como está; esa serie ya trae sus propias validaciones de conteo y duplicados en
+# el script que la construye. El motivo NO es que la serie falte del catálogo -- corregido
+# 2026-09-18: el comentario anterior decía que "todavía no pasa por 03_series.csv", y
+# UT.DEMANDA_ELEC.GWH.NSA.M sí está en catalogos/03_series.csv.
 #
 # El check 5 (identidad contable de agregados) no aplica: es específico del PIB nominal en
 # precios corrientes y no tiene equivalente en una serie predictora aislada.
