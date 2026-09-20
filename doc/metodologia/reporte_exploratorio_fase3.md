@@ -222,13 +222,36 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   veredictos de esas series son condicionales a una parte determinística incompleta. El punto
   está abierto y esperando la nota de ADR-010; acá solo queda registrado porque es la explicación
   más plausible del diagnóstico de la salvedad anterior.
-- **El shock de 2020 no tiene tratamiento de outlier propio en las predictoras** (ADR-010,
-  enmienda "ajuste estacional en predictoras" — la misma decisión cubre outliers). Un outlier no
-  tratado sesga clásicamente las pruebas de raíz unitaria hacia el no-rechazo (menor potencia de
-  ADF ante quiebres, Perron 1989) — puede ser parte de por qué varias series NSA mensuales
-  resultan *no_estacionaria* incluso en log-nivel con tendencia. La variable objetivo primaria
-  no tiene este problema: su outlier de 2020 sí está declarado (ADR-004,
-  `PIB_SA_PROPIO_Q_outliers.csv`).
+- **El shock de 2020 no tiene tratamiento de outlier propio en ninguna de las 16 series**
+  (ADR-010, enmienda "ajuste estacional en predictoras" — la misma decisión cubre outliers), y
+  eso afecta a las pruebas, pero no en la dirección que este reporte afirmaba hasta 2026-09-19
+  (hallazgo I5/M1 de la discusión metodológica; la redacción anterior decía que un outlier no
+  tratado "sesga clásicamente las pruebas hacia el no-rechazo" citando a Perron 1989). Son dos
+  fenómenos distintos con sesgos opuestos: un **quiebre** en la parte determinística sí le quita
+  potencia al ADF y empuja al no-rechazo (Perron 1989), mientras que un **outlier aditivo** —un
+  valor atípico transitorio que no mueve el nivel de largo plazo, que es lo que 2020 parece en la
+  mayoría de estas series— induce correlación de tipo MA negativa en la serie diferenciada y
+  empuja al **sobre-rechazo**, o sea a declarar estacionariedad espuria (Franses y Haldrup 1994;
+  Vogelsang 1999; Perron y Rodríguez 2003).
+  En estos datos domina el segundo: al agregar dummies de impulso de 2020 a la regresión ADF, el
+  estadístico se vuelve **menos** negativo en 41 de las 64 filas —sin tratar, el shock estaba
+  inflando el rechazo— y cambian 7 veredictos, 5 de ellos hacia menos rechazo. Tampoco se sostiene
+  la conjetura de que el shock explicara la no-estacionariedad de las series NSA mensuales en
+  log-nivel: de esas 6 filas, 5 siguen *no_estacionaria* al tratar 2020 y ninguna se acerca a su
+  crítico; la única que se comporta como se conjeturaba es `BCR_EXPORT_FOB_NOM_NSA_M`
+  (−2,96 → −3,66). Esas series salen *no_estacionaria* por lo que son —índices de precios y
+  remesas con tendencia clara y sin términos estacionales (siguiente salvedad)—, no por 2020.
+  Estas cifras muestran dirección y magnitud, no veredictos alternativos: con dummies de impulso
+  la distribución del estadístico ya no es la de Dickey-Fuller y los críticos de `urca` dejan de
+  aplicar (Perron 1989; Vogelsang 1999).
+- **El outlier de 2020 de la variable objetivo está declarado, no tratado.** ADR-004 lo declara en
+  `PIB_SA_PROPIO_Q_outliers.csv`, pero `src/analisis/estacionariedad.R` lee de cada archivo de L3
+  únicamente las columnas `periodo` y `valor`: ese archivo no entra en ninguna regresión y las
+  pruebas corren sobre la serie con el shock adentro, igual que en las predictoras. La diferencia
+  no es cosmética — el log-nivel de `PIB_SA_PROPIO_Q` pasa de −5,40 a −3,31 y cambia de veredicto
+  cuando 2020 se trata—, así que declarar el outlier en el catálogo no protege a este análisis.
+  Que las pruebas lo consuman es una decisión de especificación (arrastra los valores críticos,
+  ver arriba), no un arreglo de redacción: queda como pendiente, no resuelto acá.
 - **Univariante únicamente.** No se evaluó cointegración entre series (relevante si Fase 5 usa
   VAR/VECM en niveles) — está fuera del alcance de ADF/KPSS por construcción; se evaluaría con
   la prueba de Johansen si y cuando corresponda.
@@ -243,7 +266,10 @@ Conforme a la regla 4 de `CLAUDE.md`, quedan marcadas como bloqueo de inferencia
 2. **Tratamiento de outlier para predictoras**, si la ambigüedad/no-estacionariedad de series
    NSA resulta ser un problema práctico en Fase 5 — ADR-010 ya decidió que no se trata en L3;
    revisar esa decisión (no solo aplicarla) requeriría una enmienda explícita, no una inferencia
-   de este documento.
+   de este documento. Con la misma lógica queda abierto si las pruebas de estacionariedad deben
+   consumir los outliers ya declarados en el catálogo —hoy no lo hacen ni siquiera para el
+   objetivo (§3)—, que es una decisión distinta de la anterior: no cambia qué entra a L3, cambia
+   cómo se especifican estas regresiones.
 3. **Orden de integración de la variable objetivo**, que estas pruebas no establecen de forma
    consistente entre sus dos medidas: el log-nivel de `PIB_SA_OFICIAL_Q` sale *estacionaria* con
    tendencia y el de `PIB_SA_PROPIO_Q` *ambigua_quiebre_o_fraccional*, aunque las dos comparten
