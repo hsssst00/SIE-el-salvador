@@ -19,7 +19,8 @@ nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral). No c
 se admitan después — este documento se re-extiende cuando la matriz crezca, no se reescribe.
 
 **Lo que este documento NO decide** (ver §4): la unidad de modelación de las series
-predictoras. Da evidencia para esa decisión futura, no la resuelve.
+predictoras, ni el orden de integración de la variable objetivo. Da evidencia para esas
+decisiones futuras, no las resuelve.
 
 ## 1. Cobertura (mitad "exploratorio")
 
@@ -142,16 +143,52 @@ determinística mal especificada, con la estacionalidad que estas regresiones no
 con el truncamiento de KPSS: este reporte no contrasta ninguna de esas explicaciones y no debe
 leerse como si lo hiciera.
 
-### La variable objetivo: esto valida una decisión ya tomada, no abre una nueva
+### La variable objetivo: qué dice y qué no dice esta evidencia
 
 ADR-001 ("Definición operativa de la variable objetivo") ya fijó **logaritmo del nivel** como
 representación raíz de `PIB.SA.PROPIO.Q`/`PIB.SA.OFICIAL.Q`, de la que se derivan tasas
-trimestral e interanual (§"Decisión" de ese ADR). Este reporte no reabre esa decisión — la
-corrobora empíricamente: la diferencia del log (≈ tasa de crecimiento trimestral continua) es
-*estacionaria* para ambas series objetivo, que es exactamente la propiedad que se necesita para
-que un modelo ARIMA/VAR estimado sobre esa transformación sea válido. Si hubiera resultado
-*no_estacionaria*, sería una señal de alerta sobre ADR-001 que ameritaría revisarlo; no fue el
-caso.
+trimestral e interanual (§"Decisión" de ese ADR). Este reporte no reabre esa decisión, y tampoco
+la valida: son cuatro afirmaciones distintas y conviene no fundirlas (corregido 2026-09-19,
+hallazgo C1 de la discusión metodológica — la redacción anterior decía que estos resultados
+"corroboran" ADR-001 y que la estacionariedad de Δlog es "exactamente la propiedad que se
+necesita para que un modelo ARIMA/VAR sea válido"; ninguna de las dos cosas se sigue de lo que
+se corrió).
+
+1. **Lo que sí queda establecido.** La diferencia del log (≈ tasa de crecimiento trimestral
+   continua) es *estacionaria* en las dos series objetivo, y es el resultado más firme de todo
+   el cuadro: ADF de −9,90 (`PIB_SA_OFICIAL_Q`) y −10,80 (`PIB_SA_PROPIO_Q`) contra críticos de
+   −2,89 y −2,88, KPSS de 0,042 y 0,096 contra 0,463, sin autocorrelación residual detectable
+   (Ljung-Box p de 0,18 y 0,12) y sin que el veredicto se mueva al llevar el nivel de
+   significancia a 1% o 10%, al cambiar el truncamiento de KPSS, ni al agregar términos
+   estacionales o dummies de 2020 a la regresión.
+
+2. **Esto no discrimina entre el logaritmo y el nivel.** La primera diferencia del nivel da la
+   misma conclusión que la del log en 15 de las 16 series, y en las dos del objetivo ambas son
+   *estacionaria* (ADF de −9,56 y −10,63). Una prueba que concluye lo mismo con y sin logaritmo
+   no puede respaldar la elección del logaritmo. Esa elección se sostiene en razones que ADR-001
+   ya tuvo —interpretación en tasas y elasticidades, dispersión proporcional al nivel— y lo que
+   la discriminaría es otro contraste (perfil de Box-Cox, relación entre nivel y dispersión),
+   que no se corrió acá.
+
+3. **Esto no demuestra que el log-nivel sea I(1);** es *consistente* con que lo sea. Y el cuadro
+   no dice lo mismo para las dos medidas del objetivo: el log-nivel de `PIB_SA_OFICIAL_Q` sale
+   *estacionaria* alrededor de una tendencia —por poco: KPSS 0,135 contra un crítico de 0,146, y
+   al 10% la conclusión pasa a *ambigua_quiebre_o_fraccional*— mientras que el de
+   `PIB_SA_PROPIO_Q` sale *ambigua_quiebre_o_fraccional*. Leído al pie de la letra, el primero
+   diría que esa serie es I(0) con tendencia y que su Δlog está *sobre*-diferenciada, que es el
+   problema opuesto al que la diferenciación resuelve. Queda anotado como pendiente en §4.
+
+4. **Y no acredita ningún modelo.** Que la transformación sea estacionaria es necesario, no
+   suficiente: un ARIMA depende además del orden (p, q), de la invertibilidad, de la ausencia de
+   autocorrelación residual y de la estabilidad de los parámetros, y nada de eso lo evalúan ADF
+   ni KPSS. Para un VAR la propiedad relevante es del sistema, no de cada serie por separado: si
+   las series son I(1) y están cointegradas, un VAR en diferencias omite el término de corrección
+   de error (Engle y Granger 1987) — y la cointegración está explícitamente fuera del alcance de
+   estas pruebas (§3).
+
+En síntesis: la evidencia es **compatible** con ADR-001 y no da ninguna señal de alerta sobre él
+—si Δlog hubiera resultado *no_estacionaria*, sí la habría—, pero compatible no es validado, y
+ninguno de estos resultados es un cheque en blanco para la especificación de Fase 5.
 
 ### Las predictoras: esto informa una decisión que sigue abierta
 
@@ -207,3 +244,12 @@ Conforme a la regla 4 de `CLAUDE.md`, quedan marcadas como bloqueo de inferencia
    NSA resulta ser un problema práctico en Fase 5 — ADR-010 ya decidió que no se trata en L3;
    revisar esa decisión (no solo aplicarla) requeriría una enmienda explícita, no una inferencia
    de este documento.
+3. **Orden de integración de la variable objetivo**, que estas pruebas no establecen de forma
+   consistente entre sus dos medidas: el log-nivel de `PIB_SA_OFICIAL_Q` sale *estacionaria* con
+   tendencia y el de `PIB_SA_PROPIO_Q` *ambigua_quiebre_o_fraccional*, aunque las dos comparten
+   un Δlog *estacionaria* (§2). Importa porque si la medida oficial fuera I(0) con tendencia,
+   modelarla en Δlog sería sobre-diferenciarla. Distinguirlo pide algo que este reporte no corre
+   —una prueba de raíz unitaria con quiebre, o comparar las dos especificaciones por su
+   desempeño predictivo en el protocolo de Fase 4— y no se infiere de acá. Nada de esto reabre
+   ADR-001: la representación raíz sigue siendo el log-nivel; lo que queda abierto es sobre qué
+   transformación se estima cada familia de modelo.
