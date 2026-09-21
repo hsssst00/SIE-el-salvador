@@ -67,16 +67,17 @@ test_that("interpretar_conjunta: ambas coinciden en no_estacionaria", {
 })
 
 test_that("interpretar_conjunta: los dos casos discordantes NO colapsan en una sola etiqueta", {
-  # Ambas rechazan su H0 -> ni I(1) puro ni I(0) puro: quiebre estructural o integracion
-  # fraccionaria. Ninguna rechaza -> falta de potencia. Son lecturas distintas de la tabla de
-  # Kwiatkowski et al. y antes se publicaban las dos como "ambigua".
+  # Son dos celdas distintas de la tabla de Kwiatkowski et al. y antes se publicaban las dos
+  # como "ambigua". Los nombres describen la celda, no la causa: se renombraron en 2026-09-19
+  # (hallazgo I1) porque "ambigua_quiebre_o_fraccional" y "ambigua_baja_potencia" nombraban dos
+  # de las causas posibles como si fueran la conclusion. Este test fija los nombres nuevos.
   ambas_rechazan <- interpretar_conjunta(list(rechaza_raiz_unitaria = TRUE),
                                           list(rechaza_estacionariedad = TRUE))
   ninguna_rechaza <- interpretar_conjunta(list(rechaza_raiz_unitaria = FALSE),
                                            list(rechaza_estacionariedad = FALSE))
 
-  expect_equal(ambas_rechazan, "ambigua_quiebre_o_fraccional")
-  expect_equal(ninguna_rechaza, "ambigua_baja_potencia")
+  expect_equal(ambas_rechazan, "ambigua_ambas_rechazan")
+  expect_equal(ninguna_rechaza, "ambigua_ninguna_rechaza")
   expect_false(ambas_rechazan == ninguna_rechaza)
 })
 
@@ -193,6 +194,18 @@ test_that("analizar_estacionariedad_serie publica rezagos efectivos y techo en c
   r <- analizar_estacionariedad_serie(x, "TEST.REZAGOS", "M")
 
   expect_true(all(c("adf_rezagos", "adf_techo_rezagos") %in% names(r)))
+  # Hallazgos I3 y M3: los tres valores criticos de cada prueba y la especificacion mantenida.
+  # Sin el 1% y el 10% la marginalidad de una fila no se ve; sin los tipos, la tabla no se
+  # interpreta sin abrir el codigo.
+  expect_true(all(c("adf_cval_1pct", "adf_cval_5pct", "adf_cval_10pct",
+                    "kpss_cval_1pct", "kpss_cval_5pct", "kpss_cval_10pct",
+                    "adf_tipo", "kpss_tipo") %in% names(r)))
+  expect_true(all(r$adf_cval_1pct < r$adf_cval_5pct & r$adf_cval_5pct < r$adf_cval_10pct))
+  expect_true(all(r$kpss_cval_1pct > r$kpss_cval_5pct & r$kpss_cval_5pct > r$kpss_cval_10pct))
+  expect_setequal(unique(r$adf_tipo[r$transformacion %in% c("nivel", "log")]), "trend")
+  expect_setequal(unique(r$adf_tipo[r$transformacion %in% c("diff", "diff_log")]), "drift")
+  expect_setequal(unique(r$kpss_tipo[r$transformacion %in% c("nivel", "log")]), "tau")
+  expect_setequal(unique(r$kpss_tipo[r$transformacion %in% c("diff", "diff_log")]), "mu")
   expect_true(all(r$adf_rezagos <= r$adf_techo_rezagos))
   expect_true(any(r$adf_rezagos < r$adf_techo_rezagos))
 })

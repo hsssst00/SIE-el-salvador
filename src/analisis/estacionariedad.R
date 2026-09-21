@@ -18,6 +18,13 @@
 # rezagos. La nota de cabecera de estacionariedad_reglas.R explica el detalle y por qué importa.
 # De ahí sale también la columna `adf_ljung_box_p`, el diagnóstico de autocorrelación residual
 # de la regresión elegida: no detiene la corrida, hace visible la sub-parametrización.
+#
+# El CSV publica los valores críticos al 1%, 5% y 10% de las dos pruebas, no solo el del 5% que
+# decide el veredicto (hallazgo I3): sin los otros dos, la marginalidad de una fila es invisible
+# y nadie puede saber si el veredicto aguanta un cambio de umbral sin recomputar la corrida. Y
+# publica `adf_tipo`/`kpss_tipo` (hallazgo M3), la especificación determinística que cada prueba
+# mantuvo: es constante por transformación, pero sin esas dos columnas la tabla no se interpreta
+# sin abrir el código.
 
 source(here::here("src", "analisis", "estacionariedad_reglas.R"))
 
