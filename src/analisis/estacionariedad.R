@@ -10,8 +10,14 @@
 #
 # Dos columnas de rezagos, no una (corregido 2026-09-18): `adf_rezagos` es la selección BIC
 # efectiva -- la que corresponde al estadístico de la misma fila -- y `adf_techo_rezagos` el
-# máximo de búsqueda de Schwert que se le pasó a ur.df(). Ver .rezagos_efectivos() en las
-# reglas para por qué no son el mismo número.
+# máximo de búsqueda de Schwert. Ver .rezagos_efectivos() en las reglas para por qué no son el
+# mismo número.
+#
+# La grilla de la búsqueda BIC va de 0 a ese techo y la selección la hace el archivo de reglas,
+# no `urca` (corregido 2026-09-19): `ur.df(selectlags = "BIC")` nunca evalúa el modelo con 0
+# rezagos. La nota de cabecera de estacionariedad_reglas.R explica el detalle y por qué importa.
+# De ahí sale también la columna `adf_ljung_box_p`, el diagnóstico de autocorrelación residual
+# de la regresión elegida: no detiene la corrida, hace visible la sub-parametrización.
 
 source(here::here("src", "analisis", "estacionariedad_reglas.R"))
 
@@ -43,7 +49,13 @@ for (a in archivos) {
     next
   }
 
-  resultados[[serie_id]] <- analizar_estacionariedad_serie(df$valor, serie_id)
+  # La frecuencia sale del sufijo del nombre, el mismo que ya filtra `archivos` más arriba.
+  # La necesita el diagnóstico de Ljung-Box de la regresión ADF (12 rezagos si es mensual, 4 si
+  # es trimestral): es el período donde aparecería la estacionalidad que la especificación de
+  # las pruebas no modela. Ver la nota de cabecera de estacionariedad_reglas.R.
+  frecuencia <- if (grepl("_M$", serie_id)) "M" else "Q"
+
+  resultados[[serie_id]] <- analizar_estacionariedad_serie(df$valor, serie_id, frecuencia)
   cat("OK: ", serie_id, " (", nrow(df), " obs) -> ",
       nrow(resultados[[serie_id]]), " transformación(es) evaluada(s)\n", sep = "")
 }

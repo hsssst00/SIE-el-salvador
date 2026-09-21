@@ -33,21 +33,126 @@
 # siendo BIC dentro de ese rango). El techo y la selección se publican en columnas distintas
 # (`techo_rezagos` y `rezagos`): son números distintos y confundirlos hacía que la columna de
 # rezagos del reporte no describiera la regresión cuyo estadístico se publica al lado.
+#
+# GRILLA DE LA BÚSQUEDA BIC: 0..techo, y la selección la hace este archivo, no `urca`
+# (corregido 2026-09-19, hallazgo C2 de la discusión metodológica de Fase 3). Motivo: en urca
+# 1.3-4, `ur.df(..., selectlags = "BIC")` arma el vector de criterios con
+# `critRes <- rep(NA, lags)` y lo llena en el bucle `for (i in 2:(lags))`, de modo que el
+# modelo con 0 rezagos NUNCA se evalúa y el mínimo posible es 1 (verificado leyendo el fuente
+# del paquete instalado). En las 64 filas del reporte real la restricción mordía en 32: BIC
+# prefería 0 rezagos y se publicaba el ajuste con 1. Eso no era la "selección BIC" que declara
+# doc/metodologia/reporte_exploratorio_fase3.md, y no era inocuo -- cambiaba 3 veredictos.
+#
+# La selección y el estadístico publicado salen de la MISMA muestra común que define el techo
+# (la que usa urca internamente: no se re-expande la muestra al elegir menos rezagos), así que
+# los BIC de los candidatos son comparables y las filas cuya selección sigue siendo >= 1 dan un
+# estadístico idéntico al de antes. `urca` sigue siendo la fuente de los valores críticos, y
+# .verificar_contra_urca() comprueba en cada llamada que la regresión de este archivo coincide
+# con la de ur.df() sobre el mismo diseño: dos implementaciones de la misma regresión, con algo
+# que falla si dejan de coincidir.
+#
+# DIAGNÓSTICO DE AUTOCORRELACIÓN RESIDUAL: admitir 0 rezagos abre la puerta a una regresión
+# sub-parametrizada, que es el caso en que el ADF distorsiona su tamaño (Ng y Perron 1995,
+# 2001). Por eso cada fila publica `adf_ljung_box_p`, el valor p de Ljung-Box sobre los residuos
+# de la regresión elegida, con tantos rezagos como la frecuencia de la serie. No detiene la
+# corrida -- no es un defecto de datos sino un aviso de especificación -- pero deja de ser
+# invisible: una fila con p pequeño publica un estadístico cuya distribución nominal no es de
+# fiar, y qué hacer con ella es materia de Fase 5.
 
 library(urca)
 
 .max_rezagos_schwert <- function(n) trunc(12 * (n / 100)^0.25)
 
-#' Número de rezagos que la búsqueda BIC efectivamente retuvo en la regresión ADF.
+#' Número de rezagos que la búsqueda BIC de `urca` retuvo en su regresión.
 #'
 #' NO es `ajuste@lags`: ese slot devuelve el techo que se le pasó en `lags=`, no la selección
 #' (verificado 2026-09-18 con urca 1.3-4 -- `ur.df(x, lags = 15, selectlags = "BIC")` deja
 #' `@lags == 15` mientras la regresión publicada retiene 1 rezago). El número efectivo se lee
 #' de la regresión que `ur.df()` realmente publica en `@testreg`: un término `z.diff.lag` por
 #' rezago retenido (`z.diff.lag` a secas cuando es uno solo, `z.diff.lag1`, `z.diff.lag2`, ...
-#' cuando son varios; `lags = 0` no deja ninguno).
+#' cuando son varios).
+#'
+#' Ya no se usa para publicar (la selección la hace .seleccion_bic_adf sobre la grilla 0..techo,
+#' ver la nota de cabecera): queda porque es la forma correcta de leer lo que urca eligió, y
+#' tests/test-estacionariedad.R la usa para comparar las dos selecciones.
 .rezagos_efectivos <- function(ajuste) {
   sum(grepl("^z\\.diff\\.lag", rownames(ajuste@testreg$coefficients)))
+}
+
+#' Diseño de la regresión ADF sobre la muestra común que define el techo de rezagos.
+#'
+#' Reproduce la construcción de `urca::ur.df()`: sobre z = diff(x), la matriz `embed(z, techo+1)`
+#' deja en la fila t el vector (Δx_t, Δx_{t-1}, ..., Δx_{t-techo}), el regresor de nivel es
+#' x[(techo+1):n] con n = length(z), y la tendencia corre de techo+1 a n. Todos los candidatos
+#' de la grilla comparten esta muestra -- si cada uno usara la suya, sus BIC no serían
+#' comparables.
+.diseno_adf <- function(x, tipo_adf, techo) {
+  z <- diff(x)
+  n <- length(z)
+  if (techo + 2 > n) {
+    stop("FALLO VISIBLE: techo de rezagos ", techo, " incompatible con ", length(x),
+         " observaciones -- la muestra común quedaría vacía.")
+  }
+  matriz <- embed(z, techo + 1)
+  list(z_diff = matriz[, 1],
+       z_lag_1 = x[(techo + 1):n],
+       tt = (techo + 1):n,
+       rezagos_disponibles = matriz,
+       con_tendencia = identical(tipo_adf, "trend"))
+}
+
+#' Ajusta por mínimos cuadrados la regresión ADF del diseño con `k` rezagos de la diferencia.
+.lm_adf <- function(dis, k) {
+  datos <- data.frame(z_diff = dis$z_diff, z_lag_1 = dis$z_lag_1)
+  terminos <- "z_lag_1"
+  if (dis$con_tendencia) {
+    datos$tt <- dis$tt
+    terminos <- c(terminos, "tt")
+  }
+  if (k > 0) {
+    rez <- dis$rezagos_disponibles[, 2:(k + 1), drop = FALSE]
+    colnames(rez) <- paste0("z_diff_lag", seq_len(k))
+    datos <- cbind(datos, rez)
+    terminos <- c(terminos, colnames(rez))
+  }
+  stats::lm(stats::as.formula(paste("z_diff ~", paste(terminos, collapse = " + "))), data = datos)
+}
+
+#' Selección de rezagos por BIC sobre la grilla 0..techo (ver la nota de cabecera sobre por qué
+#' la grilla no la puede hacer `urca`). Devuelve el número elegido y su ajuste.
+.seleccion_bic_adf <- function(dis, techo) {
+  n_efectivo <- length(dis$z_diff)
+  ajustes <- lapply(0:techo, function(k) .lm_adf(dis, k))
+  bic <- vapply(ajustes, function(aj) stats::AIC(aj, k = log(n_efectivo)), numeric(1))
+  elegido <- which.min(bic)
+  list(rezagos = elegido - 1L, ajuste = ajustes[[elegido]], n_efectivo = n_efectivo)
+}
+
+#' Comprueba que la regresión de este archivo es la misma que la de `urca` sobre el mismo
+#' diseño. Es la guardia contra las dos fuentes de verdad: si alguna vez dejan de coincidir
+#' (cambio de versión de urca, error al armar la matriz), falla acá y no en silencio.
+.verificar_contra_urca <- function(dis, techo, ajuste_urca, tau) {
+  t_propio <- summary(.lm_adf(dis, techo))$coefficients["z_lag_1", "t value"]
+  t_urca <- unname(ajuste_urca@teststat[1, tau])
+  if (!isTRUE(all.equal(t_propio, t_urca, tolerance = 1e-8))) {
+    stop("FALLO VISIBLE: la regresión ADF de estacionariedad_reglas.R dejó de coincidir con ",
+         "urca::ur.df() sobre el mismo diseño (propio ", t_propio, " vs urca ", t_urca,
+         "). No publicar hasta entender por qué.")
+  }
+  invisible(TRUE)
+}
+
+#' Valor p de Ljung-Box sobre los residuos de la regresión ADF elegida, con tantos rezagos como
+#' la frecuencia de la serie (12 mensual, 4 trimestral) -- el período donde aparecería la
+#' estacionalidad que la especificación no modela. `fitdf` descuenta los rezagos estimados.
+.ljung_box_adf <- function(ajuste, rezagos, frecuencia) {
+  rezagos_lb <- switch(frecuencia, "M" = 12L, "Q" = 4L,
+                       stop("FALLO VISIBLE: frecuencia desconocida: ", frecuencia,
+                            " (se esperaba \"M\" o \"Q\")"))
+  residuos <- stats::residuals(ajuste)
+  if (length(residuos) <= rezagos_lb + 1L) return(NA_real_)
+  stats::Box.test(residuos, lag = rezagos_lb, type = "Ljung-Box",
+                  fitdf = min(rezagos, rezagos_lb - 1L))$p.value
 }
 
 #' Devuelve las transformaciones candidatas de un vector de nivel, en el orden fijado por
@@ -74,23 +179,33 @@ transformaciones_candidatas <- function(valor) {
   }
 }
 
-#' ADF (Dickey-Fuller aumentado) con selección de rezagos por BIC, especificación
-#' determinística según `tipo_transf` (ver .especificacion()). rechaza_raiz_unitaria = TRUE
-#' significa que el estadístico es más negativo que el valor crítico al 5% -- evidencia a
-#' favor de estacionariedad.
+#' ADF (Dickey-Fuller aumentado) con selección de rezagos por BIC sobre la grilla 0..techo de
+#' Schwert, especificación determinística según `tipo_transf` (ver .especificacion()).
+#' rechaza_raiz_unitaria = TRUE significa que el estadístico es más negativo que el valor
+#' crítico al 5% -- evidencia a favor de estacionariedad.
 #'
 #' `rezagos` es la selección BIC efectiva (la que corresponde al estadístico devuelto) y
-#' `techo_rezagos` el máximo de búsqueda de Schwert: dos números distintos, ver
-#' .rezagos_efectivos().
-prueba_adf <- function(x, tipo_transf) {
+#' `techo_rezagos` el máximo de búsqueda de Schwert: dos números distintos. `ljung_box_p` es el
+#' diagnóstico de autocorrelación residual de la regresión elegida -- ver la nota de cabecera
+#' sobre la grilla y sobre por qué este valor se publica en vez de detener la corrida.
+prueba_adf <- function(x, tipo_transf, frecuencia) {
   spec <- .especificacion(tipo_transf)
-  n <- length(x)
-  techo <- .max_rezagos_schwert(n)
-  ajuste <- ur.df(x, type = spec$adf_type, lags = techo, selectlags = "BIC")
-  estadistico <- unname(ajuste@teststat[1, spec$adf_tau])
-  cval_5pct <- unname(ajuste@cval[spec$adf_tau, "5pct"])
+  techo <- .max_rezagos_schwert(length(x))
+  dis <- .diseno_adf(x, spec$adf_type, techo)
+
+  # urca queda como fuente de los valores críticos (dependen del tamaño de muestra y están
+  # tabulados en el paquete) y como contraparte de la guardia de equivalencia. selectlags no
+  # interviene: la selección es la de .seleccion_bic_adf().
+  ajuste_urca <- ur.df(x, type = spec$adf_type, lags = techo, selectlags = "Fixed")
+  .verificar_contra_urca(dis, techo, ajuste_urca, spec$adf_tau)
+
+  sel <- .seleccion_bic_adf(dis, techo)
+  estadistico <- summary(sel$ajuste)$coefficients["z_lag_1", "t value"]
+  cval_5pct <- unname(ajuste_urca@cval[spec$adf_tau, "5pct"])
+
   list(estadistico = estadistico, cval_5pct = cval_5pct,
-       rezagos = .rezagos_efectivos(ajuste), techo_rezagos = techo,
+       rezagos = sel$rezagos, techo_rezagos = techo,
+       ljung_box_p = .ljung_box_adf(sel$ajuste, sel$rezagos, frecuencia),
        rechaza_raiz_unitaria = estadistico < cval_5pct)
 }
 
@@ -137,18 +252,19 @@ interpretar_conjunta <- function(adf, kpss) {
 
 #' Corre ADF+KPSS sobre las transformaciones disponibles de una serie y devuelve una fila por
 #' transformación (las basadas en log se omiten si no aplican, ver transformaciones_candidatas()).
-analizar_estacionariedad_serie <- function(valor, serie_id) {
+analizar_estacionariedad_serie <- function(valor, serie_id, frecuencia) {
   candidatas <- transformaciones_candidatas(valor)
   filas <- list()
   for (tipo_transf in names(candidatas)) {
     x <- candidatas[[tipo_transf]]
     if (is.null(x)) next
-    adf <- prueba_adf(x, tipo_transf)
+    adf <- prueba_adf(x, tipo_transf, frecuencia)
     kpss <- prueba_kpss(x, tipo_transf)
     filas[[tipo_transf]] <- data.frame(
       serie_id = serie_id, transformacion = tipo_transf, n_obs = length(x),
       adf_estadistico = adf$estadistico, adf_cval_5pct = adf$cval_5pct, adf_rezagos = adf$rezagos,
       adf_techo_rezagos = adf$techo_rezagos,
+      adf_ljung_box_p = adf$ljung_box_p,
       adf_rechaza_raiz_unitaria = adf$rechaza_raiz_unitaria,
       kpss_estadistico = kpss$estadistico, kpss_cval_5pct = kpss$cval_5pct,
       kpss_rezagos_truncamiento = kpss$rezagos_truncamiento,
