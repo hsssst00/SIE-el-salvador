@@ -16,7 +16,7 @@
 # 2026-09-17) -- es la única de las dos opciones consideradas (`urca` vs `tseries`) que soporta
 # selección de rezagos por BIC en ur.df(). `ur.kpss()` no tiene un análogo exacto de BIC (no es
 # una regresión con rezagos seleccionables, sino un estimador de varianza de largo plazo con un
-# parámetro de truncamiento): se usa `lags = "short"` (regla de Schwert) como la opción más
+# parámetro de truncamiento): se usa `lags = "short"`, trunc(4*(n/100)^0.25), como la opción más
 # parsimoniosa disponible -- aproximación declarada, no una correspondencia exacta a BIC.
 #
 # Especificación determinística por transformación (fijada acá, no preguntada -- ver nota en
@@ -188,6 +188,13 @@ transformaciones_candidatas <- function(valor) {
 #' `techo_rezagos` el máximo de búsqueda de Schwert: dos números distintos. `ljung_box_p` es el
 #' diagnóstico de autocorrelación residual de la regresión elegida -- ver la nota de cabecera
 #' sobre la grilla y sobre por qué este valor se publica en vez de detener la corrida.
+#'
+#' Se devuelven los tres valores críticos (1%, 5% y 10%) y no solo el del 5% que decide el
+#' veredicto: sin ellos la marginalidad de una fila es invisible y el lector no puede saber si el
+#' veredicto aguanta un cambio de umbral sin recomputar la corrida entera. `tipo` es la
+#' especificación determinística que se mantuvo ("trend" -> estadístico tau3, "drift" -> tau2):
+#' es constante por transformación, pero publicarla evita que la tabla haya que leerla con el
+#' código al lado.
 prueba_adf <- function(x, tipo_transf, frecuencia) {
   spec <- .especificacion(tipo_transf)
   techo <- .max_rezagos_schwert(length(x))
@@ -201,24 +208,35 @@ prueba_adf <- function(x, tipo_transf, frecuencia) {
 
   sel <- .seleccion_bic_adf(dis, techo)
   estadistico <- summary(sel$ajuste)$coefficients["z_lag_1", "t value"]
-  cval_5pct <- unname(ajuste_urca@cval[spec$adf_tau, "5pct"])
+  cval <- ajuste_urca@cval[spec$adf_tau, ]
 
-  list(estadistico = estadistico, cval_5pct = cval_5pct,
+  list(estadistico = estadistico, tipo = spec$adf_type,
+       cval_1pct = unname(cval["1pct"]), cval_5pct = unname(cval["5pct"]),
+       cval_10pct = unname(cval["10pct"]),
        rezagos = sel$rezagos, techo_rezagos = techo,
        ljung_box_p = .ljung_box_adf(sel$ajuste, sel$rezagos, frecuencia),
-       rechaza_raiz_unitaria = estadistico < cval_5pct)
+       rechaza_raiz_unitaria = estadistico < unname(cval["5pct"]))
 }
 
-#' KPSS con truncamiento "short" (Schwert, la opción más parsimoniosa), tipo según
-#' `tipo_transf`. rechaza_estacionariedad = TRUE significa que el estadístico supera el valor
-#' crítico al 5% -- evidencia en contra de estacionariedad.
+#' KPSS con truncamiento "short" -- trunc(4*(n/100)^0.25), la opción más parsimoniosa del
+#' paquete; NO es la regla de Schwert, que es trunc(12*(n/100)^0.25) y acá se usa solo como techo
+#' de búsqueda de rezagos del ADF (son dos fórmulas distintas y conviene no darles el mismo
+#' nombre). Tipo según `tipo_transf`. rechaza_estacionariedad = TRUE significa que el estadístico
+#' supera el valor crítico al 5% -- evidencia en contra de estacionariedad.
+#'
+#' Como en prueba_adf(), se devuelven los tres valores críticos y el tipo mantenido ("tau" con
+#' tendencia, "mu" sin ella). La tabla de Kwiatkowski et al. que trae `urca` no depende del
+#' tamaño de muestra, así que estos tres números son constantes por tipo.
 prueba_kpss <- function(x, tipo_transf) {
   spec <- .especificacion(tipo_transf)
   ajuste <- ur.kpss(x, type = spec$kpss_type, lags = "short")
   estadistico <- unname(ajuste@teststat[1])
-  cval_5pct <- unname(ajuste@cval[1, "5pct"])
-  list(estadistico = estadistico, cval_5pct = cval_5pct, rezagos_truncamiento = ajuste@lag,
-       rechaza_estacionariedad = estadistico > cval_5pct)
+  cval <- ajuste@cval[1, ]
+  list(estadistico = estadistico, tipo = spec$kpss_type,
+       cval_1pct = unname(cval["1pct"]), cval_5pct = unname(cval["5pct"]),
+       cval_10pct = unname(cval["10pct"]),
+       rezagos_truncamiento = ajuste@lag,
+       rechaza_estacionariedad = estadistico > unname(cval["5pct"]))
 }
 
 #' Interpretación confirmatoria (Kwiatkowski et al. 1992): "estacionaria" solo si ambas
@@ -227,26 +245,38 @@ prueba_kpss <- function(x, tipo_transf) {
 #' H0 propia de cada prueba es distinta, así que discrepar es información, y las dos formas de
 #' discrepar sugieren cosas distintas.
 #'
-#'   - "ambigua_quiebre_o_fraccional": ADF rechaza la raíz unitaria Y KPSS rechaza la
-#'     estacionariedad. Ambas rechazan su H0: la serie no encaja ni en I(1) puro ni en I(0)
-#'     puro -- lo que la tabla asocia a un quiebre estructural en la parte determinística (que
-#'     ninguna de las dos especificaciones contempla) o a integración fraccionaria.
-#'   - "ambigua_baja_potencia": NINGUNA rechaza su H0. No hay evidencia suficiente para
-#'     separar I(1) de I(0) con esta muestra -- el caso de falta de potencia, típico de series
-#'     cortas o cercanas a la raíz unitaria; no dice que la serie sea "intermedia", dice que
-#'     estas dos pruebas no la distinguen.
+#'   - "ambigua_ambas_rechazan": ADF rechaza la raíz unitaria Y KPSS rechaza la estacionariedad.
+#'     La serie no encaja ni en I(1) puro ni en I(0) puro según estas dos pruebas, y con los
+#'     estadísticos que se publican NO se puede decir por qué: es compatible con un componente
+#'     determinístico mal especificado (tendencia donde no la hay o al revés), con uno o varios
+#'     quiebres de nivel o de tendencia, con estacionalidad no modelada, con integración
+#'     fraccionaria, con la selección de rezagos y con las propiedades de tamaño de las dos
+#'     pruebas bajo esas desviaciones. Identificar la causa pide otra prueba: quiebre endógeno
+#'     (Zivot-Andrews, Lee-Strazicich, Bai-Perron para varios) o un estimador de d (GPH, Whittle
+#'     local) para la integración fraccionaria. Ninguna de esas se corre acá.
+#'   - "ambigua_ninguna_rechaza": NINGUNA rechaza su H0. No hay evidencia suficiente para separar
+#'     I(1) de I(0) con esta muestra y esta especificación. No dice que la serie sea "intermedia",
+#'     y tampoco atribuye el resultado a una causa: la falta de potencia frente a una raíz cercana
+#'     a uno es la explicación habitual, pero un componente determinístico no modelado produce lo
+#'     mismo, y estos estadísticos no distinguen entre las dos.
 #'
-#' La distinción es de lectura, no de tratamiento: qué hacer con cada caso (más muestra,
-#' prueba con quiebre, otra transformación) no lo fija este archivo.
+#' Los nombres describen la CELDA de la tabla 2x2 en que cayó la fila, no un diagnóstico
+#' (renombrados 2026-09-19, hallazgo I1 de la discusión metodológica: antes se llamaban
+#' "ambigua_quiebre_o_fraccional" y "ambigua_baja_potencia", que nombraban dos de las causas
+#' posibles como si fueran la conclusión; las corridas anteriores a esa fecha usan los nombres
+#' viejos, con el mismo criterio de clasificación).
+#'
+#' La distinción entre las dos celdas es de lectura, no de tratamiento: qué hacer con cada caso
+#' (más muestra, prueba con quiebre, otra transformación) no lo fija este archivo.
 interpretar_conjunta <- function(adf, kpss) {
   if (adf$rechaza_raiz_unitaria && !kpss$rechaza_estacionariedad) {
     "estacionaria"
   } else if (!adf$rechaza_raiz_unitaria && kpss$rechaza_estacionariedad) {
     "no_estacionaria"
   } else if (adf$rechaza_raiz_unitaria && kpss$rechaza_estacionariedad) {
-    "ambigua_quiebre_o_fraccional"
+    "ambigua_ambas_rechazan"
   } else {
-    "ambigua_baja_potencia"
+    "ambigua_ninguna_rechaza"
   }
 }
 
@@ -262,11 +292,17 @@ analizar_estacionariedad_serie <- function(valor, serie_id, frecuencia) {
     kpss <- prueba_kpss(x, tipo_transf)
     filas[[tipo_transf]] <- data.frame(
       serie_id = serie_id, transformacion = tipo_transf, n_obs = length(x),
-      adf_estadistico = adf$estadistico, adf_cval_5pct = adf$cval_5pct, adf_rezagos = adf$rezagos,
-      adf_techo_rezagos = adf$techo_rezagos,
+      adf_tipo = adf$tipo,
+      adf_estadistico = adf$estadistico,
+      adf_cval_1pct = adf$cval_1pct, adf_cval_5pct = adf$cval_5pct,
+      adf_cval_10pct = adf$cval_10pct,
+      adf_rezagos = adf$rezagos, adf_techo_rezagos = adf$techo_rezagos,
       adf_ljung_box_p = adf$ljung_box_p,
       adf_rechaza_raiz_unitaria = adf$rechaza_raiz_unitaria,
-      kpss_estadistico = kpss$estadistico, kpss_cval_5pct = kpss$cval_5pct,
+      kpss_tipo = kpss$tipo,
+      kpss_estadistico = kpss$estadistico,
+      kpss_cval_1pct = kpss$cval_1pct, kpss_cval_5pct = kpss$cval_5pct,
+      kpss_cval_10pct = kpss$cval_10pct,
       kpss_rezagos_truncamiento = kpss$rezagos_truncamiento,
       kpss_rechaza_estacionariedad = kpss$rechaza_estacionariedad,
       conclusion = interpretar_conjunta(adf, kpss),

@@ -239,14 +239,18 @@
   nivel/log-nivel, drift para las diferencias) fijada por convención
   económica estándar, no preguntada por separado. Salida real (16 series x
   hasta 4 transformaciones = 64 filas): `data/L3_master/
-  reporte_estacionariedad.csv` — 31 "estacionaria" (mayormente diferencias,
-  como se espera de una I(1) tras diferenciar), 22 "no_estacionaria"
-  (mayormente niveles con tendencia), 11 "ambigua" — patrón econométricamente
-  coherente con series macro trending, no una sorpresa. **Regenerado
-  2026-09-19** tras la remediación de la revisión independiente: mismos 31/22/11,
-  pero "ambigua" se desdobla en 9 `ambigua_quiebre_o_fraccional` y 2
-  `ambigua_baja_potencia`, y `adf_rezagos` pasa a ser la selección BIC efectiva
-  (el techo de Schwert va en `adf_techo_rezagos`).
+  reporte_estacionariedad.csv`. **Regenerado dos veces el 2026-09-19**: primero
+  tras la remediación de la revisión independiente (31 "estacionaria", 22
+  "no_estacionaria", 11 "ambigua" desdoblada en dos etiquetas, y `adf_rezagos`
+  pasa a ser la selección BIC efectiva con el techo de Schwert en
+  `adf_techo_rezagos`); después al corregir la grilla de selección de rezagos
+  (hallazgo C2: `ur.df(selectlags="BIC")` nunca evalúa 0 rezagos), que deja la
+  salida vigente en **33 "estacionaria", 21 "no_estacionaria" y 10
+  `ambigua_ambas_rechazan`**, ninguna `ambigua_ninguna_rechaza`. Las dos
+  etiquetas ambiguas se renombraron (hallazgo I1) para que nombren la celda de
+  la tabla 2×2 y no una causa; el CSV publica además los valores críticos al
+  1/5/10%, `adf_tipo`/`kpss_tipo` y `adf_ljung_box_p`. Patrón econométricamente
+  coherente con series macro trending, no una sorpresa.
 - [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
   `BCR.IVAE.VOL.SA.M/.Q`, extendida el mismo día con
   `BCR.REMESAS.NOM/REAL.NSA.M/.Q`, luego con `BCR.IPP.IDX.NSA.M/.Q`, luego

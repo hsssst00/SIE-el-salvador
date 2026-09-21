@@ -5,9 +5,11 @@
 **Datos fuente:** `data/L3_master/reporte_exploratorio_resumen.csv` y
 `data/L3_master/reporte_estacionariedad.csv` — capa generada, no versionada, producida por
 `src/analisis/exploracion_series.R` y `src/analisis/estacionariedad.R` (corrida original
-2026-09-17; regenerados 2026-09-19 tras la remediación de la revisión independiente y otra vez
-ese mismo día al corregir la grilla de selección de rezagos — hallazgo C2 de la discusión
-metodológica, ver §2). Este
+2026-09-17; regenerados 2026-09-19 tras la remediación de la revisión independiente, otra vez
+ese mismo día al corregir la grilla de selección de rezagos —hallazgo C2 de la discusión
+metodológica, ver §2— y una tercera al ampliar el esquema del CSV y renombrar las dos etiquetas
+ambiguas (hallazgos I1, I3 y M3), que no movió ningún estadístico ni ninguna clasificación).
+Este
 documento interpreta esas cifras; no las sustituye — ante cualquier discrepancia, el CSV es la
 fuente de verdad numérica y este documento se corrige, no al revés.
 
@@ -52,7 +54,7 @@ La serie más corta (66 obs, trimestral) permite correr ADF con selección BIC d
 verificado en la corrida real, no solo supuesto —, aunque con menor potencia: la potencia
 simulada del protocolo a n = 65, frente a la persistencia estimada de esa serie, es de alrededor
 de 0,60, así que un no-rechazo ahí sería poco informativo. En la corrida vigente no hay ninguna
-conclusión `ambigua_baja_potencia`; las dos que había antes de corregir C2 (§2) eran de esta
+conclusión `ambigua_ninguna_rechaza`; las dos que había antes de corregir C2 (§2) eran de esta
 serie, y desaparecieron al admitir 0 rezagos en la grilla de BIC.
 
 ## 2. Estacionariedad (mitad "estacionariedad")
@@ -87,55 +89,77 @@ solo si coinciden en el sentido contrario. Cuando las pruebas no coinciden, la c
 una de dos etiquetas *ambigua*, porque las dos formas de discrepar significan cosas distintas
 (ver `interpretar_conjunta()` en `src/analisis/estacionariedad_reglas.R`):
 
-- *ambigua_quiebre_o_fraccional*: ADF rechaza la raíz unitaria **y** KPSS rechaza la
-  estacionariedad. Ambas rechazan su H0; la serie no encaja ni en I(1) puro ni en I(0) puro, lo
-  que la literatura asocia a un quiebre estructural en la parte determinística (que ninguna de
-  las dos especificaciones contempla) o a integración fraccionaria.
-- *ambigua_baja_potencia*: **ninguna** rechaza su H0. Con esta muestra las pruebas no logran
-  separar I(1) de I(0); no dice que la serie sea "intermedia", dice que estas dos pruebas no la
-  distinguen.
+- *ambigua_ambas_rechazan*: ADF rechaza la raíz unitaria **y** KPSS rechaza la estacionariedad.
+  La serie no encaja ni en I(1) puro ni en I(0) puro según estas dos pruebas, y con los
+  estadísticos que se publican **no se puede decir por qué**: es compatible con un componente
+  determinístico mal especificado (tendencia donde no la hay o al revés), con uno o varios
+  quiebres de nivel o de tendencia, con estacionalidad no modelada (§3), con integración
+  fraccionaria, con la selección de rezagos y con las propiedades de tamaño de las dos pruebas
+  bajo esas desviaciones. Identificar la causa pide pruebas que este reporte no corre: quiebre
+  endógeno (Zivot-Andrews, Lee-Strazicich, Bai-Perron para varios) o un estimador de *d* (GPH,
+  Whittle local) para la integración fraccionaria.
+- *ambigua_ninguna_rechaza*: **ninguna** rechaza su H0. Con esta muestra y esta especificación
+  las pruebas no logran separar I(1) de I(0); no dice que la serie sea "intermedia", dice que
+  estas dos pruebas no la distinguen. Tampoco atribuye el resultado a una causa: la falta de
+  potencia frente a una raíz cercana a uno es la explicación habitual, pero un componente
+  determinístico no modelado produce lo mismo.
+
+Los dos nombres describen **la celda de la tabla 2×2** en que cayó la fila, no un diagnóstico
+(renombrados 2026-09-19, hallazgo I1 de la discusión metodológica: antes eran
+*ambigua_quiebre_o_fraccional* y *ambigua_baja_potencia*, que nombraban dos de las causas
+posibles como si fueran la conclusión — el criterio de clasificación no cambió, así que las
+corridas anteriores a esa fecha son comparables fila por fila bajo los nombres viejos).
 
 ### Resultado por serie
 
 | Serie | nivel | log-nivel | diferencia | diferencia del log |
 |---|---|---|---|---|
-| `PIB_SA_PROPIO_Q` | ambigua_quiebre_o_fraccional | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
-| `PIB_SA_OFICIAL_Q` | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** | **estacionaria** |
-| `BCR_IVAE_VOL_SA_M` | ambigua_quiebre_o_fraccional | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
-| `BCR_IVAE_VOL_SA_Q` | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** | **estacionaria** |
+| `PIB_SA_PROPIO_Q` | ambigua_ambas_rechazan | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** |
+| `PIB_SA_OFICIAL_Q` | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** | **estacionaria** |
+| `BCR_IVAE_VOL_SA_M` | ambigua_ambas_rechazan | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** |
+| `BCR_IVAE_VOL_SA_Q` | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** | **estacionaria** |
 | `BCR_REMESAS_NOM_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_REMESAS_NOM_NSA_Q` | no_estacionaria | no_estacionaria | ambigua_quiebre_o_fraccional | **estacionaria** |
+| `BCR_REMESAS_NOM_NSA_Q` | no_estacionaria | no_estacionaria | ambigua_ambas_rechazan | **estacionaria** |
 | `BCR_REMESAS_REAL_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_REMESAS_REAL_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPP_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPP_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_EXPORT_FOB_NOM_NSA_M` | ambigua_quiebre_o_fraccional | no_estacionaria | **estacionaria** | **estacionaria** |
-| `BCR_EXPORT_FOB_NOM_NSA_Q` | ambigua_quiebre_o_fraccional | ambigua_quiebre_o_fraccional | **estacionaria** | **estacionaria** |
+| `BCR_EXPORT_FOB_NOM_NSA_M` | ambigua_ambas_rechazan | no_estacionaria | **estacionaria** | **estacionaria** |
+| `BCR_EXPORT_FOB_NOM_NSA_Q` | ambigua_ambas_rechazan | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** |
 | `BCR_ITCER_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_ITCER_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 
 Agregado (64 combinaciones serie×transformación): 33 *estacionaria*, 21 *no_estacionaria* y 10
-*ambigua_quiebre_o_fraccional*. Ninguna fila queda en *ambigua_baja_potencia*: las dos que había
+*ambigua_ambas_rechazan*. Ninguna fila queda en *ambigua_ninguna_rechaza*: las dos que había
 antes de corregir C2 (`BCR_IPP_IDX_NSA_Q` en Δ y Δlog) pasaron a *estacionaria* cuando la grilla
 de BIC admitió 0 rezagos —el modelo que BIC prefiere para esa serie—, con residuos sin
 autocorrelación detectable (Ljung-Box p = 0,86). La otra fila que cambió es `PIB_SA_PROPIO_Q` en
-nivel, de *no_estacionaria* a *ambigua_quiebre_o_fraccional*. Detalle
-completo en `data/L3_master/reporte_estacionariedad.csv` (estadísticos, valores críticos,
-`adf_rezagos` —los rezagos que la selección BIC efectivamente retuvo en la regresión—,
-`adf_techo_rezagos` —el máximo de búsqueda de Schwert—, que son columnas distintas, y
-`adf_ljung_box_p`, el diagnóstico de autocorrelación residual de esa regresión).
+nivel, de *no_estacionaria* a *ambigua_ambas_rechazan*. Detalle
+completo en `data/L3_master/reporte_estacionariedad.csv`: estadísticos; los valores críticos de
+las dos pruebas **al 1%, 5% y 10%** —no solo el del 5% que decide el veredicto, para que la
+marginalidad de cada fila se vea sin recomputar la corrida (hallazgo I3)—; `adf_tipo` y
+`kpss_tipo`, la especificación determinística que cada prueba mantuvo (hallazgo M3);
+`adf_rezagos` —los rezagos que la selección BIC efectivamente retuvo en la regresión— y
+`adf_techo_rezagos` —el máximo de búsqueda de Schwert—, que son columnas distintas; y
+`adf_ljung_box_p`, el diagnóstico de autocorrelación residual de esa regresión.
+
+Con esos valores críticos publicados se puede ver lo que antes quedaba tapado: **14 de los 64
+veredictos cambian si el umbral se mueve entre el 1% y el 10%**, entre ellos el log-nivel de
+`PIB_SA_OFICIAL_Q`, que es la fila que sostiene la lectura de tendencia-estacionariedad del
+objetivo (§"La variable objetivo"). El 5% es el umbral de decisión de este reporte, no una
+frontera natural.
 
 **Patrón, sin sorpresas:** nivel y log-nivel son mayoritariamente
-*no_estacionaria*/*ambigua_quiebre_o_fraccional* — esperado en series macro con tendencia. La
+*no_estacionaria*/*ambigua_ambas_rechazan* — esperado en series macro con tendencia. La
 primera diferencia y la diferencia del log son mayoritariamente *estacionaria* — esperado si las
 series son integradas de orden 1, el caso típico de indicadores macroeconómicos
 mensuales/trimestrales. Ninguna serie resultó *no_estacionaria* en ambas diferencias, y en la
 corrida vigente **las dos diferencias son *estacionaria* en 15 de las 16 series** (la excepción
-es `BCR_REMESAS_NOM_NSA_Q`, *ambigua_quiebre_o_fraccional* en Δ y *estacionaria* en Δlog).
+es `BCR_REMESAS_NOM_NSA_Q`, *ambigua_ambas_rechazan* en Δ y *estacionaria* en Δlog).
 
-Las 10 *ambigua_quiebre_o_fraccional* están en nivel/log-nivel de PIB, IVAE y exportaciones FOB
+Las 10 *ambigua_ambas_rechazan* están en nivel/log-nivel de PIB, IVAE y exportaciones FOB
 (9 casos), más la primera diferencia de `BCR_REMESAS_NOM_NSA_Q`. **La etiqueta dice en qué celda
 de la tabla 2×2 cayó la fila —ADF y KPSS rechazan los dos su H0— y no identifica la causa.** Es
 compatible con un quiebre estructural no modelado, como el de 2020 (§3), y también con una parte
@@ -173,8 +197,8 @@ se corrió).
 3. **Esto no demuestra que el log-nivel sea I(1);** es *consistente* con que lo sea. Y el cuadro
    no dice lo mismo para las dos medidas del objetivo: el log-nivel de `PIB_SA_OFICIAL_Q` sale
    *estacionaria* alrededor de una tendencia —por poco: KPSS 0,135 contra un crítico de 0,146, y
-   al 10% la conclusión pasa a *ambigua_quiebre_o_fraccional*— mientras que el de
-   `PIB_SA_PROPIO_Q` sale *ambigua_quiebre_o_fraccional*. Leído al pie de la letra, el primero
+   al 10% la conclusión pasa a *ambigua_ambas_rechazan*— mientras que el de
+   `PIB_SA_PROPIO_Q` sale *ambigua_ambas_rechazan*. Leído al pie de la letra, el primero
    diría que esa serie es I(0) con tendencia y que su Δlog está *sobre*-diferenciada, que es el
    problema opuesto al que la diferenciación resuelve. Queda anotado como pendiente en §4.
 
@@ -207,7 +231,7 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   búsqueda de rezagos de ADF usa la regla de Schwert; el truncamiento de KPSS usa `lags="short"`
   como el análogo más parsimonioso disponible, no una selección BIC real (KPSS no tiene una).
   El truncamiento no es neutral: con `lags="long"` los rechazos de KPSS caen de 31 a 20 sobre
-  estas mismas 64 filas, así que parte de las etiquetas *ambigua_quiebre_o_fraccional* depende de
+  estas mismas 64 filas, así que parte de las etiquetas *ambigua_ambas_rechazan* depende de
   esta elección y no de una propiedad de las series.
 - **Autocorrelación residual en 16 de las 64 regresiones ADF** (`adf_ljung_box_p` < 0,05), todas
   en cinco series: las cuatro transformaciones de `BCR_EXPORT_FOB_NOM_NSA_M`,
@@ -272,7 +296,7 @@ Conforme a la regla 4 de `CLAUDE.md`, quedan marcadas como bloqueo de inferencia
    cómo se especifican estas regresiones.
 3. **Orden de integración de la variable objetivo**, que estas pruebas no establecen de forma
    consistente entre sus dos medidas: el log-nivel de `PIB_SA_OFICIAL_Q` sale *estacionaria* con
-   tendencia y el de `PIB_SA_PROPIO_Q` *ambigua_quiebre_o_fraccional*, aunque las dos comparten
+   tendencia y el de `PIB_SA_PROPIO_Q` *ambigua_ambas_rechazan*, aunque las dos comparten
    un Δlog *estacionaria* (§2). Importa porque si la medida oficial fuera I(0) con tendencia,
    modelarla en Δlog sería sobre-diferenciarla. Distinguirlo pide algo que este reporte no corre
    —una prueba de raíz unitaria con quiebre, o comparar las dos especificaciones por su
