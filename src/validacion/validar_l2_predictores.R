@@ -1,20 +1,21 @@
 # L2 — batería de validaciones (checks 1-4 de la senda metodológica §3.5, ver
-# src/validacion/l2_serie_larga_reglas.R) sobre las siete series predictoras mensuales de
-# data/L1_staging/ que alimentan src/transformacion/l3_predictores.R.
+# src/validacion/l2_serie_larga_reglas.R) sobre las ocho series predictoras mensuales de
+# data/L1_staging/: las siete que alimentan src/transformacion/l3_predictores.R (matriz de
+# predictores, ADR-010) más UT.DEMANDA_ELEC.GWH.NSA.M, que hoy no entra a L3 (E1/D3, cierre de
+# Fase 3: la matriz cierra con las 7 familias BCR; UT queda admitida en el catálogo pero fuera
+# de la matriz que se materializa) pero sí a esta batería.
 #
 # Remediación del hallazgo I1 de la revisión independiente de Fase 3 (2026-09-17): antes, solo
 # BCR_PIB_series_largo.csv pasaba por una batería (validar_l2_pib.R); las series predictoras
 # entraban a L3 sin ningún control -- incluido el que atajaría el hallazgo C1 (col_vals_not_null
 # sobre valor) una capa antes de la agregación mensual->trimestral.
 #
-# No cubre UT.DEMANDA_TOTAL_MENSUAL: su archivo de L1 no está en el esquema largo que esta
-# batería asume. data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv tiene columnas
-# anio|mes|periodo|gwh (ver src/transformacion/ut_demanda_serie.R), no
-# serie_id|periodo|valor|provisional, de modo que validar_l2_serie_larga() no puede correr
-# sobre él tal como está; esa serie ya trae sus propias validaciones de conteo y duplicados en
-# el script que la construye. El motivo NO es que la serie falte del catálogo -- corregido
-# 2026-09-18: el comentario anterior decía que "todavía no pasa por 03_series.csv", y
-# UT.DEMANDA_ELEC.GWH.NSA.M sí está en catalogos/03_series.csv.
+# UT.DEMANDA_ELEC.GWH.NSA.M se incorpora acá (hallazgo A1 del checklist de cierre de Fase 3,
+# 2026-09-22): hasta esta sesión su L1 escribía anio|mes|periodo|gwh, no
+# serie_id|periodo|valor|provisional, así que validar_l2_serie_larga() no podía correr sobre
+# él. src/transformacion/ut_demanda_serie.R ahora escribe el esquema largo
+# (data/L1_staging/UT_DEMANDA_series_largo.csv) sin tocar sus propias validaciones de conteo y
+# huecos, que siguen corriendo antes en ese mismo script.
 #
 # El check 5 (identidad contable de agregados) no aplica: es específico del PIB nominal en
 # precios corrientes y no tiene equivalente en una serie predictora aislada.
@@ -38,7 +39,9 @@ PREDICTORES <- list(
   list(publicacion_id = "BCR.ITCER",
        archivo = here::here("data", "L1_staging", "BCR_ITCER_series_largo.csv")),
   list(publicacion_id = "BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR",
-       archivo = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv"))
+       archivo = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv")),
+  list(publicacion_id = "UT.DEMANDA_TOTAL_MENSUAL",
+       archivo = here::here("data", "L1_staging", "UT_DEMANDA_series_largo.csv"))
 )
 
 catalogo_completo <- read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")

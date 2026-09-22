@@ -1,10 +1,13 @@
 # ut_demanda_serie.R
 #
 # Construye la serie larga de UT.DEMANDA_TOTAL_MENSUAL a partir de los 25 archivos
-# ya registrados en L0 (data/L0_raw/, ver src/adquisicion/ut.R). Adelanto de Fase 3
-# (transformacion) declarado - no pasa por 03_series.csv todavia (falta serie_id y
-# el resto del esquema D1). Salida a data/L1_staging/, que por diseño de la senda
-# (S7) no se versiona en Git - se versiona este script, no el resultado.
+# ya registrados en L0 (data/L0_raw/, ver src/adquisicion/ut.R). Serie admitida en
+# catalogos/03_series.csv como UT.DEMANDA_ELEC.GWH.NSA.M (corregido 2026-09-18: este
+# comentario decía "no pasa por 03_series.csv todavía", desactualizado desde que esa fila se
+# agregó). Salida a data/L1_staging/, que por diseño de la senda (S7) no se versiona en Git -
+# se versiona este script, no el resultado. Esquema largo (serie_id, periodo, valor,
+# provisional) desde 2026-09-22 (hallazgo A1 del checklist de cierre de Fase 3) -- ver la nota
+# junto a la escritura del archivo, más abajo, para el motivo.
 #
 # Estructura real del CSV (diagnosticada 2026-08-26, no asumida de la vista
 # embebida): 4 filas de metadata, luego encabezado "MES,,,GWH,," (6 columnas por
@@ -102,7 +105,27 @@ if (conteo_por_anio[["2026"]] != 7) {
 }
 
 dir.create("data/L1_staging", showWarnings = FALSE, recursive = TRUE)
-write.csv(serie, "data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv", row.names = FALSE)
 
-cat("OK:", nrow(serie), "filas,", min(serie$anio), "-", max(serie$anio),
-    "-> data/L1_staging/UT_DEMANDA_TOTAL_MENSUAL.csv\n")
+# Esquema largo (serie_id, periodo, valor, provisional) -- remediacion del hallazgo A1 del
+# checklist de cierre de Fase 3 (2026-09-22): hasta acá esta serie escribía
+# anio|mes|periodo|gwh, el único L1 de las series admitidas que no calzaba con el esquema que
+# src/validacion/l2_serie_larga_reglas.R asume, así que quedaba fuera de la batería L2 de
+# predictores (ver la nota de exclusión, ahora retirada, en validar_l2_predictores.R). serie_id
+# es constante -- UT.DEMANDA_ELEC.GWH.NSA.M, la única fila de catalogos/03_series.csv con
+# publicacion_id = UT.DEMANDA_TOTAL_MENSUAL -- y provisional es FALSE en las 295 filas: ninguno
+# de los 25 CSV de origen marca un mes como preliminar/estimado (a diferencia de las
+# publicaciones del BCR, que sí traen "(p)"/"(e)"). Las validaciones de arriba (conteo, huecos,
+# duplicados por año-mes) siguen intactas -- son sobre la construcción de `serie`, no sobre el
+# esquema de salida.
+serie_larga <- data.frame(
+  serie_id = "UT.DEMANDA_ELEC.GWH.NSA.M",
+  periodo = serie$periodo,
+  valor = serie$gwh,
+  provisional = FALSE,
+  stringsAsFactors = FALSE
+)
+ruta_salida <- "data/L1_staging/UT_DEMANDA_series_largo.csv"
+write.csv(serie_larga, ruta_salida, row.names = FALSE)
+
+cat("OK:", nrow(serie_larga), "filas,", min(serie$anio), "-", max(serie$anio),
+    "->", ruta_salida, "\n")
