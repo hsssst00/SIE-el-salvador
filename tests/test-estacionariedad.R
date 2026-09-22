@@ -209,3 +209,80 @@ test_that("analizar_estacionariedad_serie publica rezagos efectivos y techo en c
   expect_true(all(r$adf_rezagos <= r$adf_techo_rezagos))
   expect_true(any(r$adf_rezagos < r$adf_techo_rezagos))
 })
+
+test_that("D1: analizar_estacionariedad_serie publica la especificacion con dummies estacionales", {
+  set.seed(2029)
+  x <- 100 + cumsum(rnorm(200))
+  x <- x - min(x) + 50
+
+  r <- analizar_estacionariedad_serie(x, "TEST.ESTACIONAL", "M")
+
+  cols_esperadas <- c("adf_estadistico_con_estacional", "adf_rezagos_con_estacional",
+                       "adf_rechaza_raiz_unitaria_con_estacional",
+                       "adf_f_dummies_estacionales", "adf_f_dummies_p",
+                       "adf_f_dummies_gl_num", "adf_f_dummies_gl_den",
+                       "conclusion_con_estacional")
+  expect_true(all(cols_esperadas %in% names(r)))
+  expect_true(all(is.finite(r$adf_estadistico_con_estacional)))
+  expect_true(all(r$adf_f_dummies_gl_num == 11L))  # S-1 = 12-1 para series mensuales
+  expect_true(all(r$adf_f_dummies_p >= 0 & r$adf_f_dummies_p <= 1))
+  expect_true(all(r$conclusion_con_estacional %in%
+                    c("estacionaria", "no_estacionaria", "ambigua_ambas_rechazan", "ambigua_ninguna_rechaza")))
+})
+
+test_that("D1: una serie con estacionalidad determinista fuerte rechaza las dummies conjuntamente", {
+  set.seed(2030)
+  n <- 200
+  patron <- rep(c(20, -15, 10, 18, -8, -20, 15, 5, -10, 0, 8, -22), length.out = n)
+  x <- 100 + cumsum(rnorm(n, sd = 0.3)) + patron
+
+  adf <- prueba_adf(x, "nivel", "M")
+
+  expect_true(adf$f_dummies_estacionales > 10) # F grande: las dummies son conjuntamente significativas
+  expect_true(adf$f_dummies_p < 0.01)
+})
+
+test_that("D2: analizar_estacionariedad_serie no publica diagnostico de outliers sin catalogo", {
+  set.seed(2031)
+  x <- 100 + cumsum(rnorm(120))
+  x <- x - min(x) + 50
+  periodos <- sprintf("%d-Q%d", rep(2000:2029, each = 4), rep(1:4, 30))[seq_along(x)]
+
+  r <- analizar_estacionariedad_serie(x, "TEST.SIN_OUTLIERS", "Q", periodos = periodos)
+
+  expect_true("adf_estadistico_con_outliers" %in% names(r))
+  expect_true(all(is.na(r$adf_estadistico_con_outliers)))
+  expect_true(all(r$adf_n_outliers_consumidos == 0))
+})
+
+test_that("D2: analizar_estacionariedad_serie publica el diagnostico con outliers solo en nivel/log", {
+  set.seed(2032)
+  x <- 100 + cumsum(rnorm(120))
+  x <- x - min(x) + 50
+  periodos <- sprintf("%d-Q%d", rep(2000:2029, each = 4), rep(1:4, 30))[seq_along(x)]
+  outliers <- periodos[c(40, 41)] # dos periodos consecutivos, como 2020-Q2/2020-Q3 del objetivo
+
+  r <- analizar_estacionariedad_serie(x, "TEST.CON_OUTLIERS", "Q",
+                                       periodos = periodos, outliers_periodos = outliers)
+
+  filas_validas <- r$transformacion %in% c("nivel", "log")
+  expect_true(all(!is.na(r$adf_estadistico_con_outliers[filas_validas])))
+  expect_true(all(r$adf_n_outliers_consumidos[filas_validas] == 2))
+  # diff/diff_log no admiten el pulso (ver la nota de prueba_adf()): quedan NA.
+  filas_diff <- r$transformacion %in% c("diff", "diff_log")
+  expect_true(all(is.na(r$adf_estadistico_con_outliers[filas_diff])))
+})
+
+test_that("D2: el pulso de outlier cambia el estadistico respecto de la especificacion sin outliers", {
+  set.seed(2033)
+  n <- 120
+  x <- 100 + cumsum(rnorm(n))
+  x <- x - min(x) + 50
+  x[60] <- x[60] + 40 # shock aditivo grande e inyectado a mano en una posicion conocida
+  periodos <- sprintf("%d-Q%d", rep(2000:2039, each = 4), rep(1:4, 40))[seq_len(n)]
+
+  adf_sin <- prueba_adf(x, "nivel", "Q")
+  adf_con <- prueba_adf(x, "nivel", "Q", outlier_posiciones_x = 60L)
+
+  expect_false(isTRUE(all.equal(adf_sin$estadistico, adf_con$estadistico_con_outliers)))
+})

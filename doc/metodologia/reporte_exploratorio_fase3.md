@@ -8,7 +8,10 @@
 2026-09-17; regenerados 2026-09-19 tras la remediación de la revisión independiente, otra vez
 ese mismo día al corregir la grilla de selección de rezagos —hallazgo C2 de la discusión
 metodológica, ver §2— y una tercera al ampliar el esquema del CSV y renombrar las dos etiquetas
-ambiguas (hallazgos I1, I3 y M3), que no movió ningún estadístico ni ninguna clasificación).
+ambiguas (hallazgos I1, I3 y M3), que no movió ningún estadístico ni ninguna clasificación; una
+cuarta el 2026-09-22 al cerrar D1/D2 del checklist de cierre de Fase 3 —componente estacional en
+las pruebas y diagnóstico del outlier del objetivo, `data/L3_master/reporte_hegy.csv` nuevo— que
+tampoco movió `conclusion`, la columna con el veredicto publicado; ver §3).
 Este
 documento interpreta esas cifras; no las sustituye — ante cualquier discrepancia, el CSV es la
 fuente de verdad numérica y este documento se corrige, no al revés.
@@ -241,11 +244,18 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   son mensuales, y la causa más plausible es la estacionalidad que la especificación de las
   pruebas no modela (siguiente salvedad). Ninguna de las tres filas cuyo veredicto cambió al
   corregir C2 está entre ellas.
-- **Las pruebas no incluyen componente estacional** y 12 de las 16 series son NSA (ADR-010 decidió
-  que las predictoras entren a L3 en el ajuste con que las publica la fuente), así que los
-  veredictos de esas series son condicionales a una parte determinística incompleta. El punto
-  está abierto y esperando la nota de ADR-010; acá solo queda registrado porque es la explicación
-  más plausible del diagnóstico de la salvedad anterior.
+- **Componente estacional: resuelto (D1 del checklist de cierre de Fase 3, 2026-09-22, nota de
+  seguimiento de ADR-010).** El veredicto publicado (`conclusion`, tabla de arriba) sigue sin
+  modelar estacionalidad, pero `estacionariedad_reglas.R` ahora computa además una especificación
+  con S-1 dummies estacionales (`conclusion_con_estacional`, propios rezagos por BIC, mismos
+  críticos de `urca` — agregar dummies deterministicas no cambia la distribución asintótica del
+  estadístico) y HEGY (`data/L3_master/reporte_hegy.csv`, `src/analisis/hegy_reglas.R`) para
+  distinguir raíz unitaria estacional de estacionalidad determinística. Resultado: **las 16
+  series rechazan raíz unitaria estacional conjunta** (Δ₁ es la diferenciación correcta, no hace
+  falta Δ₁₂/Δ₄); las dummies son conjuntamente significativas al 5% en **30 de las 64 filas**,
+  las 30 en series NSA, ninguna en SA; y **5 de esos 64 veredictos cambian** al modelarla —de
+  *no_estacionaria* a *ambigua_ambas_rechazan*, en log/nivel de `BCR_REMESAS_REAL_NSA_M/.Q` y en
+  el log de `BCR_EXPORT_FOB_NOM_NSA_M`. Detalle completo y límites en la nota de ADR-010.
 - **El shock de 2020 no tiene tratamiento de outlier propio en ninguna de las 16 series**
   (ADR-010, enmienda "ajuste estacional en predictoras" — la misma decisión cubre outliers), y
   eso afecta a las pruebas, pero no en la dirección que este reporte afirmaba hasta 2026-09-19
@@ -268,14 +278,20 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   Estas cifras muestran dirección y magnitud, no veredictos alternativos: con dummies de impulso
   la distribución del estadístico ya no es la de Dickey-Fuller y los críticos de `urca` dejan de
   aplicar (Perron 1989; Vogelsang 1999).
-- **El outlier de 2020 de la variable objetivo está declarado, no tratado.** ADR-004 lo declara en
-  `PIB_SA_PROPIO_Q_outliers.csv`, pero `src/analisis/estacionariedad.R` lee de cada archivo de L3
-  únicamente las columnas `periodo` y `valor`: ese archivo no entra en ninguna regresión y las
-  pruebas corren sobre la serie con el shock adentro, igual que en las predictoras. La diferencia
-  no es cosmética — el log-nivel de `PIB_SA_PROPIO_Q` pasa de −5,40 a −3,31 y cambia de veredicto
-  cuando 2020 se trata—, así que declarar el outlier en el catálogo no protege a este análisis.
-  Que las pruebas lo consuman es una decisión de especificación (arrastra los valores críticos,
-  ver arriba), no un arreglo de redacción: queda como pendiente, no resuelto acá.
+- **El outlier de 2020 de la variable objetivo: diagnóstico agregado, veredicto sin cambiar (D2
+  del checklist de cierre de Fase 3, 2026-09-22).** ADR-004 lo declara en
+  `PIB_SA_PROPIO_Q_outliers.csv`; el veredicto publicado (`conclusion`) sigue sin consumirlo —esa
+  decisión sigue abierta, ver §4— pero `reporte_estacionariedad.csv` ahora publica
+  `adf_estadistico_con_outliers` como columna de DIAGNÓSTICO, NO comparable sin más contra
+  `adf_cval_*` (con dummies de impulso la distribución del estadístico deja de ser la de
+  Dickey-Fuller, mismo argumento que en la salvedad anterior). Sobre la corrida vigente: el
+  log-nivel de `PIB_SA_PROPIO_Q` pasa de −5,40 a −1,54 al tratar el shock con dummies de impulso
+  aditivo (dos pulsos por outlier, +δ/−δ en la diferencia — ver `.pulso_outlier_z()` en
+  `estacionariedad_reglas.R`), y el nivel de −3,52 a 0,31: la sensibilidad es real y grande en
+  ambas direcciones, confirmando la lectura cualitativa que ya tenía este reporte (declarar el
+  outlier en el catálogo no protege este análisis). La cifra de −3,31 que esta sección citaba
+  antes de esta revisión salió de un cómputo exploratorio fuera del pipeline y se retira: el
+  número que rige es el que produce el código versionado, arriba.
 - **Univariante únicamente.** No se evaluó cointegración entre series (relevante si Fase 5 usa
   VAR/VECM en niveles) — está fuera del alcance de ADF/KPSS por construcción; se evaluaría con
   la prueba de Johansen si y cuando corresponda.
@@ -290,10 +306,12 @@ Conforme a la regla 4 de `CLAUDE.md`, quedan marcadas como bloqueo de inferencia
 2. **Tratamiento de outlier para predictoras**, si la ambigüedad/no-estacionariedad de series
    NSA resulta ser un problema práctico en Fase 5 — ADR-010 ya decidió que no se trata en L3;
    revisar esa decisión (no solo aplicarla) requeriría una enmienda explícita, no una inferencia
-   de este documento. Con la misma lógica queda abierto si las pruebas de estacionariedad deben
-   consumir los outliers ya declarados en el catálogo —hoy no lo hacen ni siquiera para el
-   objetivo (§3)—, que es una decisión distinta de la anterior: no cambia qué entra a L3, cambia
-   cómo se especifican estas regresiones.
+   de este documento. Con la misma lógica queda abierto si el veredicto PUBLICADO
+   (`conclusion`) de las pruebas de estacionariedad debe pasar a consumir los outliers ya
+   declarados en el catálogo — D2 del checklist de cierre de Fase 3 (2026-09-22) agregó el
+   diagnóstico (`adf_estadistico_con_outliers`, §3) pero deliberadamente no lo convirtió en la
+   especificación principal: hacerlo exige valores críticos simulados (los de Dickey-Fuller ya
+   no aplican con dummies de impulso), que es trabajo de fondo, no una columna nueva.
 3. **Orden de integración de la variable objetivo**, que estas pruebas no establecen de forma
    consistente entre sus dos medidas: el log-nivel de `PIB_SA_OFICIAL_Q` sale *estacionaria* con
    tendencia y el de `PIB_SA_PROPIO_Q` *ambigua_ambas_rechazan*, aunque las dos comparten

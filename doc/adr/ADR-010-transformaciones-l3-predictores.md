@@ -135,3 +135,80 @@ si no (p. ej. REMESAS) — sin ningún paso de ajuste estacional propio del
 proyecto en ninguno de los dos casos. El campo `adjustment` de
 `03_series.csv`/`05_series_master.csv` para cada predictora refleja
 simplemente lo que la fuente entrega, no una elección del proyecto.
+
+## Nota de seguimiento — componente estacional en las pruebas de estacionariedad (2026-09-22)
+
+**Contexto.** El hallazgo I4 de la discusión metodológica de Fase 3 (2026-09-18) dejó abierta
+una pregunta que la enmienda anterior no resuelve: si las predictoras NSA entran a L3 sin ajuste
+estacional propio, ¿deberían las *pruebas de estacionariedad* de `src/analisis/estacionariedad.R`
+modelar ese componente al evaluarlas? Hasta esta nota, no lo hacían — ADF y KPSS corrían con la
+misma especificación determinística (constante/tendencia, sin dummies) sobre las 16 series,
+12 de ellas NSA. El reporte exploratorio (`doc/metodologia/reporte_exploratorio_fase3.md`, §3) ya
+declaraba esto como salvedad, ligado al patrón de autocorrelación residual (Ljung-Box) que
+aparece sobre todo en series mensuales.
+
+**Qué se corrió (D1 del checklist de cierre de Fase 3).** Dos piezas de evidencia nuevas, ambas
+en R puro — no se agregó ningún paquete al stack (ADR-009 sigue sin pronunciarse sobre `uroot`):
+
+1. **HEGY** (Hylleberg, Engle, Granger y Yoo 1990; extensión mensual de Beaulieu y Miron 1993),
+   implementado en `src/analisis/hegy_reglas.R` y corrido por `src/analisis/hegy.R` sobre el log
+   de las 16 series. La construcción de los regresores se verificó contra el código fuente
+   publicado de `uroot::hegy.regressors()` (no se derivó de memoria — ver la nota de cabecera de
+   `hegy_reglas.R`), y los valores críticos son simulados (5000 réplicas por serie, paseo
+   aleatorio estacional bajo H0, mismo n/rezagos/deterministicos que la regresión aplicada) en
+   vez de tabulados. Resultado, en `data/L3_master/reporte_hegy.csv` (corrida del commit de esta
+   nota): **las 16 series rechazan la raíz unitaria estacional conjunta** (F entre 23,5 y 982,
+   contra críticos simulados de 4,3 a 6,3 — ningún rechazo es marginal), y **solo
+   `PIB_SA_PROPIO_Q` rechaza también en frecuencia cero** (t=-4,37 contra crítico -3,36; las
+   otras 15 no rechazan ahí, consistente con el ADF ya publicado en el reporte exploratorio).
+2. **Dummies estacionales en el ADF**, agregadas directamente a `estacionariedad_reglas.R`
+   (`prueba_adf()` ahora computa, además de la especificación publicada, una variante con S-1
+   dummies con su propia selección de rezagos por BIC, más el F de significancia conjunta de esas
+   dummies) — el CSV publica ambas especificaciones lado a lado. Los críticos de `urca` sirven
+   para las dos: agregar dummies deterministicas no cambia la distribución asintótica del
+   estadístico de Dickey-Fuller. Sobre la corrida vigente (post-C2, `data/L3_master/
+   reporte_estacionariedad.csv`): **30 de 64 filas** tienen dummies conjuntamente significativas
+   al 5% (las 30 son NSA, ninguna SA — coherente con que las SA ya vienen sin estacionalidad de
+   fuente), y **5 de 64 veredictos cambian** al modelarla — los cinco de `no_estacionaria` a
+   `ambigua_ambas_rechazan`, y los cinco son log/nivel de `BCR_REMESAS_REAL_NSA_M/.Q` más el log
+   de `BCR_EXPORT_FOB_NOM_NSA_M`.
+
+**Qué implica.** 1) **Δ₁ es la diferenciación correcta**: HEGY descarta que la estacionalidad
+observada sea una raíz unitaria estacional — no hace falta Δ₁₂/Δ₄ en ninguna de las 16 series, y
+la tabla de estacionariedad del reporte exploratorio no necesita rehacerse por este motivo. 2) La
+estacionalidad que sí hay es **determinística**, y por eso no desaparece al diferenciar: sigue
+significativa en la mitad de las series NSA. 3) Las pruebas de estacionariedad quedaban **mal
+especificadas** mientras no incluyeran el componente estacional — ya corregido en el código (ver
+arriba); el veredicto oficial (`conclusion`, columna sin dummies) se mantiene como la lectura
+publicada del reporte exploratorio, y `conclusion_con_estacional` es la lectura que corresponde
+usar para decidir la especificación de Fase 5.
+
+**Decisión (fija esta nota, no reabre la enmienda anterior):**
+
+- ADR-010 se mantiene sin cambios: las predictoras NSA siguen entrando a L3 sin ajuste estacional
+  propio — HEGY confirma que no hay nada que quitar por diferenciación estacional, así que no hay
+  motivo para revisar esa decisión.
+- **Las predictoras NSA entran a Fase 5 con términos estacionales explícitos** en cualquier
+  familia de modelo que las use en niveles o en Δ₁ sin de por sí modelar estacionalidad: dummies
+  de mes/trimestre en los modelos lineales (ARIMA-X, regresión, MIDAS), o la variable de
+  calendario como regresor adicional en los de aprendizaje automático (`ranger`, `lightgbm`). Es
+  una restricción de diseño que Fase 4 puede verificar, no una sugerencia.
+- El diagnóstico Ljung-Box del reporte exploratorio (16 de 64 filas, 14 mensuales) queda explicado
+  por esta misma estacionalidad determinística no modelada — no por otra causa distinta.
+
+**Límites, heredados de la evidencia y sin resolver acá:**
+
+- Los críticos de HEGY son simulados bajo un paseo aleatorio estacional gaussiano con la
+  especificación exacta de cada serie, no las superficies de respuesta publicadas de Beaulieu y
+  Miron (1993). Para rechazos tan lejos del crítico (el más ajustado es un factor ~4) la
+  diferencia no cambia ninguna conclusión, pero si HEGY se vuelve una prueba permanente del
+  pipeline (no solo evidencia de esta nota), conviene evaluar una tabla publicada.
+- El shock de 2020 no está tratado en ninguna de las regresiones de HEGY (mismo límite que el
+  reporte exploratorio declara para ADF/KPSS — ver D2 abajo).
+- HEGY es univariante y sobre el logaritmo de cada serie; no dice nada sobre cointegración
+  estacional entre predictoras y PIB, pregunta de Fase 5 si se usan niveles.
+- No se corrió Canova-Hansen (H0 complementaria: estacionalidad determinística estable vs.
+  evolutiva). Con HEGY rechazando de forma tan poco marginal, aporta poco a esta decisión.
+
+Registrado también como nota fechada en `doc/senda_metodologica.md`, Fase 3 (mismo criterio que
+las lecturas de "ingresa al proyecto" y "verifica su integridad" en Fases 1 y 2).

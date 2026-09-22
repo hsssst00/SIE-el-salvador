@@ -25,12 +25,26 @@
 # publica `adf_tipo`/`kpss_tipo` (hallazgo M3), la especificación determinística que cada prueba
 # mantuvo: es constante por transformación, pero sin esas dos columnas la tabla no se interpreta
 # sin abrir el código.
+#
+# D1/D2 (checklist de cierre de Fase 3, 2026-09-22): el CSV gana columnas de la especificación
+# CON dummies estacionales (D1, nota de ADR-010) para las 16 series, y de diagnóstico de
+# sensibilidad al outlier declarado (D2) para PIB_SA_PROPIO_Q, la única con catálogo de
+# outliers propio -- ver la nota de cabecera de estacionariedad_reglas.R.
 
 source(here::here("src", "analisis", "estacionariedad_reglas.R"))
 
 dir_l3 <- here::here("data", "L3_master")
 archivos <- list.files(dir_l3, pattern = "\\.csv$", full.names = FALSE)
 archivos <- archivos[grepl("_M\\.csv$|_Q\\.csv$", archivos)]  # mismo filtro que exploracion_series.R
+
+# D2: catálogo de outliers de la variable objetivo (ADR-004). No hay un catálogo equivalente
+# para ninguna otra serie de L3_master hoy -- ver PIB_SA_PROPIO_Q_outliers.csv.
+ruta_outliers_pib <- file.path(dir_l3, "PIB_SA_PROPIO_Q_outliers.csv")
+outliers_pib <- if (file.exists(ruta_outliers_pib)) {
+  read.csv(ruta_outliers_pib, stringsAsFactors = FALSE, na.strings = "")$periodo
+} else {
+  character(0)
+}
 
 resultados <- list()
 
@@ -62,7 +76,12 @@ for (a in archivos) {
   # las pruebas no modela. Ver la nota de cabecera de estacionariedad_reglas.R.
   frecuencia <- if (grepl("_M$", serie_id)) "M" else "Q"
 
-  resultados[[serie_id]] <- analizar_estacionariedad_serie(df$valor, serie_id, frecuencia)
+  outliers_de_esta_serie <- if (identical(serie_id, "PIB_SA_PROPIO_Q")) outliers_pib else NULL
+
+  resultados[[serie_id]] <- analizar_estacionariedad_serie(
+    df$valor, serie_id, frecuencia,
+    periodos = df$periodo, outliers_periodos = outliers_de_esta_serie
+  )
   cat("OK: ", serie_id, " (", nrow(df), " obs) -> ",
       nrow(resultados[[serie_id]]), " transformación(es) evaluada(s)\n", sep = "")
 }

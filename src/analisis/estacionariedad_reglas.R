@@ -101,8 +101,44 @@ library(urca)
        con_tendencia = identical(tipo_adf, "trend"))
 }
 
+#' Dummies estacionales (S-1, referencia = fase 1) por POSICION dentro de `tt`, no por
+#' calendario real: .diseno_adf()/prueba_adf() son puras y no reciben `periodo`, pero como la
+#' muestra es consecutiva y sin huecos (L3 no los admite, ver estacionariedad.R), agrupar por
+#' `(tt - 1) %% S` agrupa exactamente las mismas posiciones recurrentes que agruparia el
+#' calendario real -- la etiqueta de cada dummy es arbitraria (no se sabe si "fase 3" es marzo
+#' o julio) pero el agrupamiento es correcto, que es lo unico que necesita una regresion.
+.dummies_estacionales <- function(tt, S) {
+  fase <- factor(((tt - 1) %% S) + 1, levels = seq_len(S))
+  SD <- stats::model.matrix(~fase)[, -1, drop = FALSE]
+  colnames(SD) <- paste0("sd", seq_len(ncol(SD)))
+  SD
+}
+
+#' Regresor de pulso para un outlier ADITIVO (AO) declarado en NIVEL, en la posición 1-based
+#' `pos_en_x` dentro del vector `x` que entra a prueba_adf() -- D2 del checklist de cierre de
+#' Fase 3 (diagnóstico, no cambia el veredicto publicado, ver la nota de cabecera). Válido solo
+#' cuando `x` es el nivel o el log (una sola diferencia hasta z=Δx): un AO que suma δ a x[pos]
+#' produce dos pulsos de igual magnitud y signo opuesto en Δx -- +1 en la fila cuyo Δx =
+#' x[pos]-x[pos-1] (el outlier entra como minuendo) y -1 en la fila cuyo Δx = x[pos+1]-x[pos]
+#' (el outlier sale como sustraendo) -- que en la indexación de `z` (z[i] = x[i+1]-x[i]) caen en
+#' i = pos-1 (+1) e i = pos (-1).
+.pulso_outlier_z <- function(tt, pos_en_x) {
+  pulso <- numeric(length(tt))
+  pulso[tt == (pos_en_x - 1L)] <- 1
+  pulso[tt == pos_en_x] <- -1
+  pulso
+}
+
 #' Ajusta por mínimos cuadrados la regresión ADF del diseño con `k` rezagos de la diferencia.
-.lm_adf <- function(dis, k) {
+#' `dummies_S`, si no es NULL, agrega S-1 dummies estacionales (D1 del checklist de cierre de
+#' Fase 3: componente estacional en la especificación de la prueba, ver la nota de cabecera de
+#' este archivo). `outlier_posiciones_x`, si no es NULL, agrega un regresor de pulso (ver
+#' .pulso_outlier_z()) por cada posición declarada (D2: diagnóstico de sensibilidad al shock de
+#' 2020 del objetivo). Ninguno de los dos cambia la distribución asintótica del estadístico de
+#' `z_lag_1` en tanto sean deterministicos (mismo argumento que ya vale para `tt`) -- pero ver
+#' la nota de cabecera sobre por qué la columna con outliers se publica como diagnóstico, no
+#' comparable sin más contra los críticos de `urca`.
+.lm_adf <- function(dis, k, dummies_S = NULL, outlier_posiciones_x = NULL) {
   datos <- data.frame(z_diff = dis$z_diff, z_lag_1 = dis$z_lag_1)
   terminos <- "z_lag_1"
   if (dis$con_tendencia) {
@@ -115,14 +151,28 @@ library(urca)
     datos <- cbind(datos, rez)
     terminos <- c(terminos, colnames(rez))
   }
+  if (!is.null(dummies_S)) {
+    SD <- .dummies_estacionales(dis$tt, dummies_S)
+    datos <- cbind(datos, SD)
+    terminos <- c(terminos, colnames(SD))
+  }
+  if (!is.null(outlier_posiciones_x) && length(outlier_posiciones_x) > 0) {
+    OUT <- vapply(outlier_posiciones_x, function(p) .pulso_outlier_z(dis$tt, p), numeric(length(dis$tt)))
+    colnames(OUT) <- paste0("ao", seq_along(outlier_posiciones_x))
+    datos <- cbind(datos, OUT)
+    terminos <- c(terminos, colnames(OUT))
+  }
   stats::lm(stats::as.formula(paste("z_diff ~", paste(terminos, collapse = " + "))), data = datos)
 }
 
 #' Selección de rezagos por BIC sobre la grilla 0..techo (ver la nota de cabecera sobre por qué
-#' la grilla no la puede hacer `urca`). Devuelve el número elegido y su ajuste.
-.seleccion_bic_adf <- function(dis, techo) {
+#' la grilla no la puede hacer `urca`). Devuelve el número elegido y su ajuste. `dummies_S` se
+#' propaga a cada candidato de la grilla (ver .lm_adf): con o sin dummies es una especificación
+#' completa distinta, así que cada una elige sus propios rezagos por BIC, no comparten la
+#' selección de la otra.
+.seleccion_bic_adf <- function(dis, techo, dummies_S = NULL) {
   n_efectivo <- length(dis$z_diff)
-  ajustes <- lapply(0:techo, function(k) .lm_adf(dis, k))
+  ajustes <- lapply(0:techo, function(k) .lm_adf(dis, k, dummies_S = dummies_S))
   bic <- vapply(ajustes, function(aj) stats::AIC(aj, k = log(n_efectivo)), numeric(1))
   elegido <- which.min(bic)
   list(rezagos = elegido - 1L, ajuste = ajustes[[elegido]], n_efectivo = n_efectivo)
@@ -195,7 +245,27 @@ transformaciones_candidatas <- function(valor) {
 #' especificación determinística que se mantuvo ("trend" -> estadístico tau3, "drift" -> tau2):
 #' es constante por transformación, pero publicarla evita que la tabla haya que leerla con el
 #' código al lado.
-prueba_adf <- function(x, tipo_transf, frecuencia) {
+#'
+#' TAMBIÉN devuelve la especificación CON dummies estacionales (D1 del checklist de cierre de
+#' Fase 3, nota de ADR-010 sobre componente estacional): `estadistico_con_estacional` y
+#' `rechaza_raiz_unitaria_con_estacional`, seleccionando sus propios rezagos por BIC (una
+#' especificación completa distinta -- ver .seleccion_bic_adf()), más el F de significancia
+#' conjunta de las S-1 dummies (`f_dummies_estacionales`, su p-valor y sus grados de libertad),
+#' calculado sobre el mismo k que la especificación con dummies eligió. Los críticos de `urca`
+#' (`cval_*`) sirven para AMBAS especificaciones: agregar dummies deterministicas no cambia la
+#' distribución asintótica del estadístico de `z_lag_1` (mismo argumento que ya vale para la
+#' tendencia `tt`), así que no hace falta un segundo juego de críticos.
+#'
+#' `outlier_posiciones_x`, si se pasa (D2 del checklist de cierre de Fase 3: ¿las pruebas
+#' consumen los outliers declarados en el catálogo?), agrega un pulso de outlier aditivo (ver
+#' .pulso_outlier_z()) por posición, SOBRE EL MISMO `k` ya elegido sin dummies (`sel$rezagos`,
+#' no una selección BIC propia): la pregunta es la sensibilidad de ESTA especificación al shock,
+#' no una especificación nueva. `estadistico_con_outliers` se publica como DIAGNÓSTICO, NO
+#' comparable sin más contra `cval_*`: con dummies de impulso la distribución del estadístico
+#' deja de ser la de Dickey-Fuller (Perron 1989; Vogelsang 1999) -- ver la salvedad ya declarada
+#' en el reporte exploratorio. El veredicto publicado (`rechaza_raiz_unitaria`,
+#' `conclusion`) sigue siendo el de la especificación SIN outliers.
+prueba_adf <- function(x, tipo_transf, frecuencia, outlier_posiciones_x = NULL) {
   spec <- .especificacion(tipo_transf)
   techo <- .max_rezagos_schwert(length(x))
   dis <- .diseno_adf(x, spec$adf_type, techo)
@@ -210,12 +280,45 @@ prueba_adf <- function(x, tipo_transf, frecuencia) {
   estadistico <- summary(sel$ajuste)$coefficients["z_lag_1", "t value"]
   cval <- ajuste_urca@cval[spec$adf_tau, ]
 
+  S <- switch(frecuencia, "M" = 12L, "Q" = 4L,
+              stop("FALLO VISIBLE: frecuencia desconocida: ", frecuencia,
+                   " (se esperaba \"M\" o \"Q\")"))
+  sel_dum <- .seleccion_bic_adf(dis, techo, dummies_S = S)
+  estadistico_con_estacional <- summary(sel_dum$ajuste)$coefficients["z_lag_1", "t value"]
+  # F de significancia conjunta de las S-1 dummies, mismo k (el de la especificación con
+  # dummies) en el modelo restringido (sin dummies) para que sean anidados sobre la misma
+  # muestra -- .seleccion_bic_adf() ya garantiza que ambos comparten n_efectivo.
+  ajuste_restringido <- .lm_adf(dis, sel_dum$rezagos, dummies_S = NULL)
+  rss_r <- sum(stats::residuals(ajuste_restringido)^2)
+  rss_c <- sum(stats::residuals(sel_dum$ajuste)^2)
+  df_c <- sel_dum$ajuste$df.residual
+  q <- S - 1L
+  f_dummies <- ((rss_r - rss_c) / q) / (rss_c / df_c)
+
+  # D2: diagnóstico de sensibilidad al outlier declarado, sobre el mismo k ya elegido sin
+  # dummies (ver la nota de cabecera). NA cuando no se pasan posiciones -- la mayoría de las
+  # filas de este reporte no tienen outlier declarado en su catálogo.
+  con_outliers <- !is.null(outlier_posiciones_x) && length(outlier_posiciones_x) > 0
+  estadistico_con_outliers <- NA_real_
+  if (con_outliers) {
+    ajuste_out <- .lm_adf(dis, sel$rezagos, outlier_posiciones_x = outlier_posiciones_x)
+    estadistico_con_outliers <- summary(ajuste_out)$coefficients["z_lag_1", "t value"]
+  }
+
   list(estadistico = estadistico, tipo = spec$adf_type,
        cval_1pct = unname(cval["1pct"]), cval_5pct = unname(cval["5pct"]),
        cval_10pct = unname(cval["10pct"]),
        rezagos = sel$rezagos, techo_rezagos = techo,
        ljung_box_p = .ljung_box_adf(sel$ajuste, sel$rezagos, frecuencia),
-       rechaza_raiz_unitaria = estadistico < unname(cval["5pct"]))
+       rechaza_raiz_unitaria = estadistico < unname(cval["5pct"]),
+       estadistico_con_estacional = estadistico_con_estacional,
+       rezagos_con_estacional = sel_dum$rezagos,
+       rechaza_raiz_unitaria_con_estacional = estadistico_con_estacional < unname(cval["5pct"]),
+       f_dummies_estacionales = f_dummies,
+       f_dummies_p = stats::pf(f_dummies, q, df_c, lower.tail = FALSE),
+       f_dummies_gl_num = q, f_dummies_gl_den = df_c,
+       estadistico_con_outliers = estadistico_con_outliers,
+       n_outliers_consumidos = length(outlier_posiciones_x))
 }
 
 #' KPSS con truncamiento "short" -- trunc(4*(n/100)^0.25), la opción más parsimoniosa del
@@ -282,13 +385,35 @@ interpretar_conjunta <- function(adf, kpss) {
 
 #' Corre ADF+KPSS sobre las transformaciones disponibles de una serie y devuelve una fila por
 #' transformación (las basadas en log se omiten si no aplican, ver transformaciones_candidatas()).
-analizar_estacionariedad_serie <- function(valor, serie_id, frecuencia) {
+#'
+#' `periodos` y `outliers_periodos` (D2 del checklist de cierre de Fase 3, opcionales): cuando
+#' ambos se pasan, las filas "nivel" y "log" (las únicas donde el pulso de outlier de
+#' .pulso_outlier_z() es válido -- ver la nota de prueba_adf()) ganan el diagnóstico
+#' `adf_estadistico_con_outliers`. `outliers_periodos` son los períodos declarados en el
+#' catálogo de outliers de la serie (p.ej. PIB_SA_PROPIO_Q_outliers.csv, ADR-004); la mayoría de
+#' las series de este reporte no tienen catálogo de outliers y pasan NULL.
+#'
+#' `conclusion_con_estacional` (D1) recalcula interpretar_conjunta() con el ADF CON dummies
+#' estacionales en vez del ADF publicado, misma KPSS (D1 no tocó KPSS -- ver la nota de
+#' cabecera del archivo): es la lectura que ADR-010 fija como la que corresponde usar para
+#' decidir la especificación de Fase 5, no un segundo veredicto que reemplace a `conclusion`.
+analizar_estacionariedad_serie <- function(valor, serie_id, frecuencia,
+                                            periodos = NULL, outliers_periodos = NULL) {
   candidatas <- transformaciones_candidatas(valor)
+  outlier_pos <- if (!is.null(periodos) && !is.null(outliers_periodos)) {
+    which(periodos %in% outliers_periodos)
+  } else {
+    integer(0)
+  }
   filas <- list()
   for (tipo_transf in names(candidatas)) {
     x <- candidatas[[tipo_transf]]
     if (is.null(x)) next
-    adf <- prueba_adf(x, tipo_transf, frecuencia)
+    # El pulso de .pulso_outlier_z() solo es válido cuando `x` es nivel o log (una sola
+    # diferencia hasta Δx) -- ver la nota de cabecera de prueba_adf().
+    usar_outliers <- length(outlier_pos) > 0 && tipo_transf %in% c("nivel", "log")
+    adf <- prueba_adf(x, tipo_transf, frecuencia,
+                       outlier_posiciones_x = if (usar_outliers) outlier_pos else NULL)
     kpss <- prueba_kpss(x, tipo_transf)
     filas[[tipo_transf]] <- data.frame(
       serie_id = serie_id, transformacion = tipo_transf, n_obs = length(x),
@@ -306,6 +431,24 @@ analizar_estacionariedad_serie <- function(valor, serie_id, frecuencia) {
       kpss_rezagos_truncamiento = kpss$rezagos_truncamiento,
       kpss_rechaza_estacionariedad = kpss$rechaza_estacionariedad,
       conclusion = interpretar_conjunta(adf, kpss),
+      # D1 -- componente estacional (nota de ADR-010): especificación completa alternativa,
+      # sus propios rezagos BIC, mismos críticos de urca (deterministica, no cambia la
+      # asintótica). No reemplaza `conclusion`: es la lectura para Fase 5, ver la nota arriba.
+      adf_estadistico_con_estacional = adf$estadistico_con_estacional,
+      adf_rezagos_con_estacional = adf$rezagos_con_estacional,
+      adf_rechaza_raiz_unitaria_con_estacional = adf$rechaza_raiz_unitaria_con_estacional,
+      adf_f_dummies_estacionales = adf$f_dummies_estacionales,
+      adf_f_dummies_p = adf$f_dummies_p,
+      adf_f_dummies_gl_num = adf$f_dummies_gl_num,
+      adf_f_dummies_gl_den = adf$f_dummies_gl_den,
+      conclusion_con_estacional = interpretar_conjunta(
+        list(rechaza_raiz_unitaria = adf$rechaza_raiz_unitaria_con_estacional), kpss
+      ),
+      # D2 -- diagnóstico de sensibilidad al outlier declarado (ADR-004). NA cuando la serie no
+      # tiene outliers declarados o la transformación no admite el pulso (diff/diff_log). NO
+      # comparable contra adf_cval_* -- ver la nota de prueba_adf().
+      adf_estadistico_con_outliers = adf$estadistico_con_outliers,
+      adf_n_outliers_consumidos = adf$n_outliers_consumidos,
       stringsAsFactors = FALSE
     )
   }
