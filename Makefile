@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval report validate test audit
+.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval report validate test audit trace
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -69,6 +69,18 @@ explore: master
 validate:
 	Rscript src/validacion/validate_catalogs.R
 	Rscript src/validacion/validar_integridad_catalogos.R
+
+# Fase 3 — G1/G2 del checklist de cierre: trazabilidad valor -> celda contra L0, certificada
+# como target y no solo a mano (senda §4, "cada valor de la base maestra puede rastrearse hasta
+# la celda del archivo original"). Deliberadamente FUERA de `validate`/`master`: exige los
+# .xlsx de L0 en disco, que están en .gitignore (ADR-008) y no existen en CI ni en una máquina
+# recién clonada -- mismo motivo que separa `raw` de `validate`. Las filas NO_VERIFICABLE son
+# informativas (salida 0), así que correrlo sin L0 completa no rompe nada, pero tampoco prueba
+# nada: para cobertura real hace falta L0 materializada (`make materializar-l0`). Regla 8 de
+# CLAUDE.md: cada corrida real se asienta en doc/bitacora_verificaciones.md, en el mismo commit
+# que usa su resultado -- correr este target no exime de esa entrada.
+trace:
+	Rscript src/validacion/verificar_fuente_celda.R
 
 # Fase 4/5 — motor de evaluación y estimación. No implementar Fase 5 antes de que
 # el motor de Fase 4 esté probado en datos sintéticos.
