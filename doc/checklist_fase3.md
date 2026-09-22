@@ -3,8 +3,20 @@
 > Deriva de `doc/senda_metodologica.md` §4 (Fase 3). No sustituye la senda ni el
 > índice de ADR (`doc/adr/README.md`) — es un tablero de seguimiento operativo,
 > vivo, para no perder de vista qué falta antes de poder escribir la nota de
-> cierre en `doc/adr/README.md`. Última actualización: 2026-09-17 (segunda
-> sesión del día): "análisis exploratorio y de estacionariedad" completado
+> cierre en `doc/adr/README.md`. **Última actualización: 2026-09-22 —
+> operacionalización de `checklist_cierre_fase3.md` y cierre de Fase 3.**
+> Cerradas en esta sesión: E1/D3 (matriz de predictores fija en 7 familias
+> BCR), E2 (mapeo 29-vs-28 de PIB, es `FBK`), E3/D4 (columna `vintage_id` en
+> `data/L3_master/`, `src/transformacion/vintage_lib.R`), A1 (UT normalizada
+> al esquema largo, entra a la batería L2), D1 (componente estacional: HEGY
+> propio en R + dummies en el ADF, nota de seguimiento de ADR-010), D2
+> (diagnóstico de outliers del objetivo en `reporte_estacionariedad.csv`),
+> G1/G2 (`verificar_fuente_celda.R` corre desde `make trace`, corrida de
+> cierre en `doc/bitacora_verificaciones.md`), H1 (PR #6 fusionado), H2
+> (retirada la afirmación "valida empíricamente" que C1 ya había corregido en
+> el reporte pero no acá). Ver `doc/adr/README.md`, "Cierre de Fase 3", para
+> el acta completa. Sesión anterior, 2026-09-17 (segunda sesión del día):
+> "análisis exploratorio y de estacionariedad" completado
 > por entero — la mitad "estacionariedad" (ADF+KPSS confirmatorio, BIC, 4
 > transformaciones por serie) se resolvió vía `AskUserQuestion` con Harold y
 > se materializó en `src/analisis/estacionariedad.R`, incorporando `urca`
@@ -35,7 +47,7 @@
 - [x] **L0 → L1 (formato largo).** `src/transformacion/extraer_bcr_pib.R`
   produce `data/L1_staging/BCR_PIB_series_largo.csv` (98 series × 8057 obs).
   `src/transformacion/ut_demanda_serie.R` cubre UT.
-- [~] **Batería de validaciones (L2).** `src/validacion/l2_pib_reglas.R` +
+- [x] **Batería de validaciones (L2).** `src/validacion/l2_pib_reglas.R` +
   `validar_l2_pib.R` implementan esquema, integridad referencial bidireccional,
   duplicados, huecos e identidad contable. **Migrado a `pointblank`
   (2026-09-16)** en la parte que calza con su modelo de fila — esquema,
@@ -53,8 +65,23 @@
   `list(errores, agente)`; `tests/test-validar-l2-pib.R` actualizado al nuevo
   contrato, las 11 aserciones existentes siguen verificando lo mismo (validado
   también contra el L1 real de 98 series, cero falsos positivos).
-- [~] **Transformaciones L3** (empalmes, deflactación, ajuste estacional,
-  cambios de frecuencia, logaritmos y diferencias).
+  **Extendido a predictores y cerrado (2026-09-17 → 2026-09-22, A1 del
+  checklist de cierre de Fase 3):** `src/validacion/validar_l2_predictores.R`
+  y `l2_serie_larga_reglas.R` corren los checks 1-4 sobre las **8** series
+  predictoras mensuales de L1 (las 7 de la matriz que alimentan
+  `l3_predictores.R` más `UT.DEMANDA_ELEC.GWH.NSA.M`, que no entra a L3 pero
+  sí a esta batería). UT quedaba excluida porque su L1 escribía
+  `anio|mes|periodo|gwh` en vez del esquema largo `serie_id|periodo|valor|
+  provisional`; `ut_demanda_serie.R` se normalizó a ese esquema (2026-09-22)
+  sin tocar sus propias validaciones de conteo/huecos, y ahora corre la
+  batería genérica igual que las demás. Las 8 pasan.
+- [x] **Transformaciones L3** (empalmes, deflactación, ajuste estacional,
+  cambios de frecuencia, logaritmos y diferencias). **Cerrado (2026-09-22,
+  A2 del checklist de cierre de Fase 3):** completo para la variable
+  objetivo (T001/T002) y para las 7 familias de predictores que cierran la
+  matriz (E1/D3) — el resto de predictores queda diferido, no pendiente de
+  esta actividad. Gana columna `vintage_id` en la misma sesión (E3/D4, ver
+  entregable "Base maestra bitemporal").
   **Variable objetivo materializada (2026-09-16):** `src/transformacion/
   l3_pib_objetivo.R` + `l3_pib_objetivo_reglas.R` implementan T001 (empalme
   RETRO+nativo, `concatenar_pib_nsa()`) y T002 (ajuste estacional propio vía
@@ -217,8 +244,11 @@
   de predictores) no menciona logaritmo ni unidad de modelación en ningún
   punto — cubre desagregación, deflactación y outliers, no esto. El alcance
   de 4 transformaciones sigue siendo el correcto (da evidencia para esa
-  decisión pendiente de predictoras, y de paso valida empíricamente la ya
-  tomada para el objetivo — ver reporte narrativo), pero el motivo que
+  decisión pendiente de predictoras, y es *compatible* con la ya tomada para
+  el objetivo, sin validarla — corregido 2026-09-22, H2 del checklist de
+  cierre de Fase 3: "valida empíricamente" es exactamente la afirmación que
+  el hallazgo C1 retiró del reporte narrativo el 2026-09-19, ver ese reporte
+  §"La variable objetivo"), pero el motivo que
   documentaba el código y el resumen de decisión #`AskUserQuestion` original
   lo describía de forma imprecisa. Implementado en `src/analisis/
   estacionariedad_reglas.R` + `estacionariedad.R`
@@ -305,31 +335,42 @@
 
 ## Entregables (senda §4)
 
-- [~] Catálogo `03_series` poblado — 106 filas (98 PIB + 1 UT + 1
+- [x] Catálogo `03_series` poblado — 106 filas (98 PIB + 1 UT + 1
   `BCR.IVAE.VOL.SA.M` + 1 `BCR.REMESAS.NOM.NSA.M` + 1 `ONEC.IPC.IDX.NSA.M` +
   1 `BCR.IPP.IDX.NSA.M` + 1 `BCR.EXPORT_FOB.NOM.NSA.M` + 1
   `BCR.ITCER.IDX.NSA.M` + 1 `BCR.IPM.IDX.NSA.M`, las siete últimas altas de
-  2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE). Falta el
-  mapeo completo para la reconciliación 29-vs-28 de variables de volumen de
-  PIB (`doc/bitacora_fuentes_fragiles.md`, pendiente de Fase 1) y el resto de
-  la matriz de predictores.
-- [~] Catálogo `04_transformaciones` poblado — 10 filas (T001–T010), todas
-  con `script_path`/`funcion` reales; faltan las filas del resto de la
-  matriz de predictores (ADR-010).
-- [~] Catálogo `05_series_master` poblado — 16 filas (`PIB.SA.PROPIO.Q`,
-  `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M/.Q`,
+  2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE). **Cerrado
+  (2026-09-22, E1/D3 y E2 del checklist de cierre de Fase 3):** la matriz de
+  predictores cierra Fase 3 con estas 7 familias — el resto (sub-series
+  declinadas de Balanza Comercial, instituciones nuevas para empleo/energía/
+  turismo/recaudación) se admite en fase posterior, decisión de Harold. El
+  mapeo 29-vs-28 de variables de volumen de PIB quedó reconciliado: la
+  diferencia es exactamente `FBK` (Formación Bruta de Capital total, incluye
+  variación de existencias), publicada solo en NOMINAL — el portal no publica
+  índice de volumen encadenado de esa línea (`doc/bitacora_fuentes_fragiles.md`).
+- [x] Catálogo `04_transformaciones` poblado — 10 filas (T001–T010), todas
+  con `script_path`/`funcion` reales. Cierra con estas 10 (mismo alcance de
+  matriz que arriba); el resto de predictores queda diferido, no pendiente de
+  esta fase.
+- [x] Catálogo `05_series_master` poblado — 17 filas (`PIB.NSA.CONCAT.Q`
+  intermedio + `PIB.SA.PROPIO.Q`, `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M/.Q`,
   `BCR.REMESAS.NOM.NSA.M/.Q`, `BCR.REMESAS.REAL.NSA.M/.Q`,
   `BCR.IPP.IDX.NSA.M/.Q`, `BCR.EXPORT_FOB.NOM.NSA.M/.Q`,
-  `BCR.ITCER.IDX.NSA.M/.Q`, `BCR.IPM.IDX.NSA.M/.Q`), todas materializadas;
-  faltan las filas del resto de predictores.
-- [~] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
+  `BCR.ITCER.IDX.NSA.M/.Q`, `BCR.IPM.IDX.NSA.M/.Q`), 16 materializadas + 1
+  intermedia (nunca se escribe a disco, ver su fila). Cerrado bajo el mismo
+  alcance de matriz.
+- [x] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
   (`PIB_SA_PROPIO_Q.csv`, `PIB_SA_PROPIO_Q_outliers.csv`,
   `PIB_SA_OFICIAL_Q.csv`) y seis predictores (`BCR_IVAE_VOL_SA_M/_Q.csv`,
   `BCR_REMESAS_NOM_NSA_M/_Q.csv`, `BCR_REMESAS_REAL_NSA_M/_Q.csv`,
   `BCR_IPP_IDX_NSA_M/_Q.csv`, `BCR_EXPORT_FOB_NOM_NSA_M/_Q.csv`,
-  `BCR_ITCER_IDX_NSA_M/_Q.csv`, `BCR_IPM_IDX_NSA_M/_Q.csv`), pero cubre solo
-  eso, no el resto de la matriz de predictores. L4 sigue vacío salvo
-  `.gitkeep`.
+  `BCR_ITCER_IDX_NSA_M/_Q.csv`, `BCR_IPM_IDX_NSA_M/_Q.csv`) — el alcance
+  completo de la matriz que cierra Fase 3 (E1). **"Bitemporal" resuelto
+  (2026-09-22, E3/D4):** cada archivo gana una columna `vintage_id`, resuelta
+  contra `08_vintages.csv` vía `src/transformacion/vintage_lib.R` — no una
+  lectura documental separada. Ver la nota de cierre de Fase 3 en
+  `doc/senda_metodologica.md` para la lectura completa. L4 sigue vacío salvo
+  `.gitkeep` (Fase 4).
 - [x] **Reporte de calidad de datos** (2026-09-16) — `pointblank::export_report()`
   sobre el agente de `validar_l2()`, escrito a `data/L2_validated/reporte_calidad_l2_pib.html`
   (HTML autocontenido) en cada corrida de `src/validacion/validar_l2_pib.R`, tanto
@@ -340,16 +381,22 @@
   prueba formal de estacionariedad (mitad "estacionariedad") y documento
   narrativo que interpreta ambos:
   `doc/metodologia/reporte_exploratorio_fase3.md` (2026-09-17). Corrige, de
-  paso, una imprecisión propia sobre el alcance de ADR-001 (ver nota arriba)
-  y valida empíricamente esa decisión para el objetivo, dejando la de las
-  predictoras explícitamente abierta (regla 4 de `CLAUDE.md`).
-- [~] Matriz de predictores mensuales y trimestrales con cobertura documentada
-  — 6 de ~8 candidatos de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
+  paso, una imprecisión propia sobre el alcance de ADR-001 (ver nota arriba).
+  **Corregido (2026-09-22, H2 del checklist de cierre de Fase 3):** la frase
+  "valida empíricamente esa decisión para el objetivo" que estaba acá
+  contradecía al propio reporte, que el hallazgo C1 (2026-09-19) corrigió
+  para decir exactamente lo contrario — la evidencia es *compatible* con
+  ADR-001, no lo valida (son afirmaciones distintas, ver reporte §"La
+  variable objetivo", punto de apertura). Retirada; la unidad de modelación
+  de las predictoras sigue explícitamente abierta (regla 4 de `CLAUDE.md`).
+- [x] Matriz de predictores mensuales y trimestrales con cobertura documentada
+  — 7 familias de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
   real, `BCR.IPP`, `BCR.EXPORT_FOB`, `BCR.ITCER`, `BCR.IPM`, mensual y
-  trimestral). Se agotaron los candidatos de BCR sin compuerta ADR-008
-  nueva — lo que sigue (sub-series declinadas, o instituciones nuevas para
-  empleo/energía/turismo/recaudación) requiere una decisión explícita, no
-  una continuación mecánica del mismo procedimiento.
+  trimestral). **Cerrado (2026-09-22, E1/D3):** decisión de Harold, la matriz
+  cierra Fase 3 con estas 7 familias — se agotaron los candidatos de BCR sin
+  compuerta ADR-008 nueva, y lo que sigue (sub-series declinadas, o
+  instituciones nuevas para empleo/energía/turismo/recaudación) se admite en
+  una fase posterior, no como continuación mecánica del mismo procedimiento.
 
 ## Guards de CI a subsumir
 

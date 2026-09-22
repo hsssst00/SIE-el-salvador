@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.5 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5)
+**Versión:** 0.6 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -23,6 +23,11 @@
   `verificar_l0.R` en vivo es un monitor de deriva cuyo verde total es transitorio por diseño y
   no es compuerta de cierre. Resuelve el hallazgo A1 de la auditoría de Fase 2. El registro del
   cierre está en `doc/adr/README.md`, "Cierre de Fase 2". Sin otros cambios de contenido.
+- **0.6** (2026-09-22): añade a §4 la nota de cierre de Fase 3, que fija el alcance de la matriz
+  de predictores (7 familias del BCR) y la lectura de "base maestra bitemporal" — cada archivo
+  de `data/L3_master/` gana una columna `vintage_id`, resuelta contra `08_vintages.csv`, en vez
+  de una lectura documental separada. El registro del cierre está en `doc/adr/README.md`,
+  "Cierre de Fase 3". Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -407,6 +412,48 @@ Actividades: L0 → L1 (formato largo); implementación de la batería de valida
 Entregables: catálogos `03`, `04`, `05` poblados; base maestra bitemporal; reporte de calidad de datos; reporte exploratorio; **matriz de predictores mensuales y trimestrales con su cobertura documentada**.
 
 **Criterio de cierre:** cada valor de la base maestra puede rastrearse hasta la celda del archivo original que lo originó, y la cadena de transformaciones que lo produjo es ejecutable como código.
+
+**Nota de cierre — alcance de la matriz y lectura de "bitemporal" (2026-09-22).** El criterio
+tiene dos mitades (trazabilidad valor→celda, cadena ejecutable) más dos entregables cuyo alcance
+no estaba fijado. Esta nota fija los dos, con la misma disciplina que "ingresa al proyecto" en
+Fase 1 y "verifica su integridad" en Fase 2: la lectura se declara, no se infiere.
+
+- **Alcance de la matriz de predictores (E1/D3).** Cierra con **7 familias** —todas del BCR:
+  `IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral—,
+  agotando los candidatos de BCR que no disparan una compuerta nueva de ADR-008. Queda
+  explícitamente diferido a una fase posterior, no silenciado: sub-series declinadas de Balanza
+  Comercial (importaciones CIF, saldo comercial — mismo `publicacion_id` ya capturado, sin
+  compuerta ADR-008 nueva) e instituciones nuevas para empleo, energía, turismo y recaudación
+  (cada una abre su propia compuerta de licencias). `UT.DEMANDA_ELEC.GWH.NSA.M` queda admitida en
+  `03_series.csv` y con su propia batería L2, pero fuera de esta matriz — no alimenta `L3`.
+- **Lectura de "base maestra bitemporal" (E3/D4).** La senda (D7, §3.4) define bitemporal como
+  *cada observación indexada por período de referencia y por fecha de publicación*. Se descartó
+  la lectura documental (L3 + `08_vintages.csv` por separado): **la dimensión de vintage vive EN
+  la base maestra.** Desde esta nota, cada archivo de `data/L3_master/` publica una columna
+  `vintage_id`, resuelta contra `08_vintages.csv` por la(s) publicación(es) que aportaron el
+  valor crudo de cada fila (`src/transformacion/vintage_lib.R`). Es constante dentro del archivo
+  para toda serie con una sola publicación de origen (la mayoría); varía por período en
+  `PIB_SA_PROPIO_Q.csv`, porque T001 empalma dos publicaciones (RETRO y nativa) con vintages
+  potencialmente distintos y cada trimestre hereda el de la que efectivamente lo originó. Hoy
+  (2026-09-22) toda publicación que alimenta L3 tiene un único vintage en el catálogo, así que
+  esta columna no cambia ningún valor todavía — pero el esquema queda bitemporal *antes* de Fase
+  4, que es la lectura que la senda pide ("añadir la dimensión después obliga a rehacer el modelo
+  de datos completo"). Fase 4, si evalúa con datos tal-como-se-conocían, puede filtrar por
+  `vintage_id` en vez de reconstruir la dimensión desde cero.
+- **G1/G2 — trazabilidad certificada como target, no solo a mano.** `src/validacion/
+  verificar_fuente_celda.R` corre desde `make trace` (deliberadamente fuera de `validate`/
+  `master`: exige los `.xlsx` de L0 en disco, ausentes en CI por ADR-008). Corrida de cierre:
+  evidencia en `doc/evidencia_cierre_fase3.txt`, entrada en `doc/bitacora_verificaciones.md`
+  (regla 8 de `CLAUDE.md`).
+- **D1 (componente estacional) y D2 (outliers del objetivo) quedan resueltos**, con su evidencia
+  y sus límites documentados en la nota de seguimiento de ADR-010 y en
+  `doc/metodologia/reporte_exploratorio_fase3.md` §3 — no se repiten acá.
+- **Lo que queda abierto y NO bloquea este cierre:** D5 (el validador de FK entre catálogos sigue
+  dividido entre `validar_integridad_catalogos.R` y `tests/test-integridad-referencial.R` para la
+  arista no tabular de `01_publicaciones`); la unidad de modelación de las predictoras
+  (nivel/log/diferencia) y si el veredicto publicado de estacionariedad debe consumir outliers
+  declarados, ambas explícitamente diferidas a Fase 4/5 por la regla 4 de `CLAUDE.md`. El registro
+  del cierre, con su evidencia, está en `doc/adr/README.md`, "Cierre de Fase 3".
 
 ### Fase 4 — Protocolo de evaluación
 

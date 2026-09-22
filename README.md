@@ -16,6 +16,8 @@ vez de que se transcriban a mano aquí (hallazgo M5 de la revisión independient
 
 **Fase 2 — cerrada.** Adquisición. El criterio de cierre (senda §4) se satisface por la vía "`make raw` verifica la integridad de L0" (una de las dos ramas del criterio, fijada en la nota de cierre de Fase 2 de la senda, v0.5): 54 archivos de L0 con integridad cruzada 54/54 offline (`scripts/check_l0_integrity.R`, en CI) y física (`scripts/verificar_l0_fisico.R`, local); 30 publicaciones, 25 de ellas UT de captura manual por `robots.txt` (regla 9 de este archivo). Ver el registro "Cierre de Fase 2" en [`doc/adr/README.md`](doc/adr/README.md). Tag `v0.5.0-fase2`.
 
+**Fase 3 — cerrada.** Normalización, validación y series maestras. El criterio de cierre (senda §4) se satisface: trazabilidad valor→celda certificada (`make trace`, 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE sobre las 106 filas de `03_series.csv`) y la cadena L0→L1→L2→L3 ejecutable como código (`make master`). La matriz de predictores cierra con 7 familias del BCR (`IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`); la base maestra es bitemporal por columna `vintage_id` en cada archivo de `data/L3_master/`, resuelta contra `catalogos/08_vintages.csv`. Ver el registro "Cierre de Fase 3" en [`doc/adr/README.md`](doc/adr/README.md) para el detalle completo, incluida la deuda declarada que Fase 4 hereda.
+
 ## Estructura
 
 ```

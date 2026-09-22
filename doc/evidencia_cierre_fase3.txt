@@ -1,0 +1,113 @@
+EVIDENCIA DE CIERRE DE FASE 3 — G1 + G3 + H3
+================================================================
+
+Máquina: la de Harold, con L0 materializada completa.
+Fecha:   2026-09-22
+Commit:  ver el commit de cierre de Fase 3 (esta evidencia se agrega en él); HEAD al
+         iniciar esta sesión: 386dc32.
+Comando: Rscript directo por paso (make crashea al SALIR en Windows por el bug conocido
+         de `cli` documentado en doc/entorno_windows.md — es un crash de cierre de
+         proceso, no un fallo de ninguna prueba; cada paso de abajo se corrió también
+         confirmando su propio código de salida antes de que `make` lo envolviera).
+
+`make raw`/`make master`/`make trace`/`make test` completos no corren en CI (los .xlsx
+de L0 están en .gitignore por ADR-008), así que este archivo es su única evidencia —
+mismo patrón que doc/evidencia_cierre_fase2.txt y doc/bitacora_verificaciones.md.
+
+----------------------------------------------------------------
+G1 — src/validacion/verificar_fuente_celda.R  (equivalente a `make trace`)
+----------------------------------------------------------------
+
+Resumen: 105 PASS, 0 FAIL, 0 NO_VERIFICABLE, 1 FUERA_DE_ALCANCE (de 106 filas en total).
+
+La única fila FUERA_DE_ALCANCE es UT.DEMANDA_ELEC.GWH.NSA.M: su vintage vigente es un
+CSV derivado (25 archivos, ver src/transformacion/ut_demanda_serie.R), no un .xlsx —
+fuera del alcance mecánico de este verificador por diseño, no un fallo.
+
+Código de salida: 0.
+
+----------------------------------------------------------------
+G3 — cadena L0 -> L1 -> L2 -> L3  (equivalente a `make master`)
+----------------------------------------------------------------
+
+Orden y resultado de cada paso (todos código de salida 0):
+
+  1.  src/validacion/validate_catalogs.R                              OK
+  2.  src/validacion/validar_integridad_catalogos.R                   OK
+  3.  src/transformacion/extraer_bcr_pib.R                            OK (8057 obs, 98 series)
+  4.  src/transformacion/ut_demanda_serie.R                           OK (295 filas, esquema largo)
+  5.  src/transformacion/extraer_bcr_ivae.R                           OK
+  6.  src/transformacion/extraer_bcr_remesas.R                        OK
+  7.  src/transformacion/extraer_onec_ipc.R                           OK
+  8.  src/transformacion/extraer_bcr_ipp.R                            OK
+  9.  src/transformacion/extraer_bcr_balanza_comercial.R              OK
+  10. src/transformacion/extraer_bcr_itcer.R                          OK
+  11. src/transformacion/extraer_bcr_indices_precios_comercio_exterior.R  OK
+  12. src/validacion/validar_l2_pib.R                                 OK
+  13. src/validacion/validar_l2_predictores.R                         OK (8 series, incl. UT)
+  14. src/transformacion/l3_pib_objetivo.R                            OK (PIB.SA.PROPIO.Q 145 obs,
+                                                                           PIB.SA.OFICIAL.Q 85 obs,
+                                                                           columna vintage_id)
+  15. src/transformacion/l3_predictores.R                             OK (14 archivos, columna
+                                                                           vintage_id)
+
+data/L3_master/ queda con las 16 series de la matriz (variable objetivo + 7 familias de
+predictores, mensual y trimestral), cada archivo con columna `vintage_id` (E3/D4).
+
+----------------------------------------------------------------
+Fase 3 — análisis exploratorio (equivalente a `make explore`, informativo, no bloquea)
+----------------------------------------------------------------
+
+  src/analisis/exploracion_series.R      OK (16 series, sin huecos internos)
+  src/analisis/estacionariedad.R         OK (16 series, 64 filas)
+                                          Resumen: 33 estacionaria, 21 no_estacionaria,
+                                          10 ambigua_ambas_rechazan (idéntico a la corrida
+                                          previa a esta sesión — D1/D2 no movieron `conclusion`)
+  src/analisis/hegy.R                    OK (16 series, 5000 réplicas c/u; D1)
+                                          16 de 16 rechazan raíz unitaria estacional conjunta;
+                                          1 de 16 rechaza en frecuencia cero (PIB_SA_PROPIO_Q)
+
+----------------------------------------------------------------
+H3 — testthat::test_dir("tests")  (equivalente a `make test`)
+----------------------------------------------------------------
+
+Corrida final, sobre el estado completo de esta sesión (código + documentación):
+
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 461 ]
+
+Sin skips: X-13ARIMA-SEATS estuvo disponible en esta corrida (mejor que el 3-skips
+documentado como línea base conocida del entorno — zip y X-13 pueden faltar según la
+máquina, ver doc/entorno_windows.md; en esta corrida ninguno de los dos faltó).
+
+Incluye `tests/test-adr-indice.R` (45 aserciones) verificando que la celda de estado de
+ADR-010 en `doc/adr/README.md` sigue coincidiendo con su línea `**Estado:**` pese a la
+nota de seguimiento agregada, y que CLAUDE.md/README.md declaran Fase 3 cerrada (no "en
+curso") tras esta nota de cierre.
+
+Código de salida: 0.
+
+----------------------------------------------------------------
+H3 — scripts/auditoria_mecanica.R  (equivalente a `make audit`, no bloquea, orientación)
+----------------------------------------------------------------
+
+Catálogos: 03_series 106 filas, 04_transformaciones 10, 05_series_master 17,
+08_vintages 56, 09_rupturas 14. Integridad referencial: todas las aristas 100%
+resueltas (03_series->01_publicaciones 106/106; 08_vintages->01_publicaciones 56/56;
+05_master.series_insumo_ids->03_series 21/21; 09_rupturas.series_afectadas 31/31;
+01_publicaciones YAML 84/84). ADR: 10/10 consistentes con el índice (incluido ADR-010,
+que gana la nota de seguimiento de esta sesión sin cambiar su Estado).
+
+Código de salida: 0.
+
+----------------------------------------------------------------
+LECTURA
+----------------------------------------------------------------
+
+- G1: trazabilidad valor -> celda certificada, 0 FAIL. El criterio de cierre, primera
+  mitad, satisfecho.
+- G3: cadena de transformaciones ejecutable como código de punta a punta, 0 errores.
+  El criterio de cierre, segunda mitad, satisfecho.
+- H3: batería completa en verde, sin excepciones esta vez.
+- La matriz de predictores cierra con 7 familias (E1/D3) y la base maestra es
+  bitemporal por columna `vintage_id` (E3/D4) — ver doc/senda_metodologica.md y
+  doc/adr/README.md, "Cierre de Fase 3", para la lectura completa de ambas.

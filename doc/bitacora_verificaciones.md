@@ -398,3 +398,25 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
 - Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
   Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
   verificador.
+
+## 2026-09-22 — corrida de cierre de Fase 3 (G1 del checklist de cierre)
+
+- **Contexto:** operacionalización de `checklist_cierre_fase3.md`. Esta corrida es la
+  evidencia de G1 ("trazabilidad valor → celda, certificada en una corrida real") para el
+  cierre de Fase 3 — ver `doc/adr/README.md`, "Cierre de Fase 3", y
+  `doc/evidencia_cierre_fase3.txt`. `catalogos/03_series.csv` no cambió en esta sesión
+  (106 filas, mismo contenido que la corrida del 2026-09-16 quinta sesión); se corrió de
+  nuevo porque el criterio de cierre exige una corrida real sobre el commit que la cita,
+  no reusar una entrada anterior.
+- **Resultado: 105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 106 filas).
+  FUERA_DE_ALCANCE: `UT.DEMANDA_ELEC.GWH.NSA.M` (sin cambios — su vintage vigente sigue
+  siendo un CSV derivado, no un `.xlsx`). Código de salida 0.
+- `testthat::test_dir("tests")` en la misma sesión: **459 PASS / 0 FAIL / 0 SKIP** (incluye
+  58 aserciones nuevas: `tests/test-hegy.R`, `tests/test-vintage-lib.R`, y los `test_that`
+  agregados a `tests/test-estacionariedad.R`/`tests/test-l3-pib-objetivo.R` para D1/D2/E3).
+  Nota de discrepancia: la entrada anterior de esta bitácora (arriba) registra 654 PASS en
+  la misma suite — no se investigó la diferencia, ajena al alcance de esta sesión; el
+  número que rige para el cierre de Fase 3 es el de esta corrida, verificado directamente.
+- Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
+  Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
+  verificador.

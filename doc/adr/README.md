@@ -235,3 +235,83 @@ del modo de falla ya visto en C2 (Fase 0) y C1 (Fase 1). Remediado el mismo día
 misma disciplina que `v0.5.0-fase2`. No sustituye a `v0.5.0-fase2`, que se conserva sin modificar
 por disciplina de trazabilidad (mismo patrón que `v0.2.0-fase0-enmendado` →
 `v0.2.1-fase0-enmendado`).
+
+## Cierre de Fase 3 (2026-09-22)
+
+**Criterio de cierre de Fase 3 (senda metodológica §4): SATISFECHO.** El criterio tiene dos
+mitades — "cada valor de la base maestra puede rastrearse hasta la celda del archivo original
+que lo originó" y "la cadena de transformaciones que lo produjo es ejecutable como código" —,
+ambas certificadas, más dos lecturas que esta nota fija (mismo patrón que "ingresa al proyecto"
+en Fase 1 y "verifica su integridad" en Fase 2; el detalle completo de las dos lecturas está en
+`doc/senda_metodologica.md`, nota de cierre de Fase 3, v0.6):
+
+- **Alcance de la matriz de predictores (E1/D3):** cierra con **7 familias** del BCR (`IVAE`,
+  `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral). El resto
+  —sub-series declinadas de Balanza Comercial, instituciones nuevas para empleo/energía/turismo/
+  recaudación— se admite en una fase posterior, decisión de Harold.
+- **Lectura de "base maestra bitemporal" (E3/D4):** la dimensión de vintage vive EN la base
+  maestra, no en una lectura documental aparte. Cada archivo de `data/L3_master/` publica una
+  columna `vintage_id`, resuelta contra `catalogos/08_vintages.csv` por la(s) publicación(es) de
+  origen de cada fila (`src/transformacion/vintage_lib.R`) — constante dentro del archivo salvo
+  en `PIB_SA_PROPIO_Q.csv`, donde varía por período porque T001 empalma dos publicaciones
+  (RETRO y nativa).
+
+**Evidencia (máquina de Harold, L0 completa materializada, commit de este cierre):**
+
+- **G1 — trazabilidad valor→celda:** `make trace` (`src/validacion/verificar_fuente_celda.R`)
+  → **105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 106 filas de
+  `03_series.csv`; la fuera de alcance es `UT.DEMANDA_ELEC.GWH.NSA.M`, cuyo vintage vigente es
+  un CSV derivado, no un `.xlsx` — ver el script). Salida 0. Entrada correspondiente en
+  `doc/bitacora_verificaciones.md` (regla 8 de `CLAUDE.md`).
+- **G3 — cadena ejecutable:** `make master` de punta a punta (`validate` → 9 extractores L0→L1
+  → `validar_l2_pib.R`/`validar_l2_predictores.R` → `l3_pib_objetivo.R` → `l3_predictores.R`),
+  las 16 salidas de `data/L3_master/` materializadas con su columna `vintage_id`. Salida 0 en
+  cada paso.
+- **H3 — batería completa:** `testthat::test_dir("tests")` y `scripts/auditoria_mecanica.R`.
+  Detalle en `doc/evidencia_cierre_fase3.txt` (`make raw`/`make master`/`make test` no corren en
+  CI del modo completo — los `.xlsx` están en `.gitignore` por ADR-008 —, así que ese archivo es
+  su única evidencia, mismo patrón que `doc/evidencia_cierre_fase2.txt`).
+
+**D1 y D2, resueltos en esta sesión** (detalle y límites en la nota de seguimiento de ADR-010 y
+en `doc/metodologia/reporte_exploratorio_fase3.md` §3):
+
+- **D1 — componente estacional en las pruebas de estacionariedad.** `src/analisis/hegy_reglas.R`
+  implementa HEGY (Hylleberg, Engle, Granger y Yoo 1990; extensión de Beaulieu y Miron 1993) en
+  R puro, verificado contra el código fuente publicado de `uroot::hegy.regressors()` — no se
+  agregó `uroot` como dependencia, la decisión sigue abierta en ADR-009. Las 16 series rechazan
+  raíz unitaria estacional conjunta (Δ₁ es la diferenciación correcta); `estacionariedad_reglas.R`
+  publica además una especificación ADF con dummies estacionales, significativas al 5% en 30 de
+  64 filas (todas NSA), y 5 veredictos se mueven al modelarla.
+- **D2 — ¿las pruebas consumen los outliers declarados en el catálogo?** No, por decisión — el
+  veredicto publicado sigue sin tratar 2020, pero `reporte_estacionariedad.csv` gana
+  `adf_estadistico_con_outliers` como columna de diagnóstico (no comparable contra los críticos
+  de Dickey-Fuller), confirmando que la sensibilidad es real y grande.
+
+**H1 fusionado, H2 corregido:** el PR #6 (etiquetas descriptivas y esquema completo del CSV: I1,
+I3, M2, M3) se fusionó sin cambios sobre `main`. La afirmación "valida empíricamente esa decisión
+para el objetivo" que `doc/checklist_fase3.md` seguía citando —exactamente lo que el hallazgo C1
+había retirado del reporte narrativo el 2026-09-19— se corrigió en el tablero.
+
+**Lo que queda abierto y NO bloquea este cierre** (declarado, no silenciado — Fase 4 lo hereda a
+la vista):
+
+- **D5** — el validador de FK entre catálogos sigue dividido entre
+  `validar_integridad_catalogos.R` (pointblank, 6 aristas tabulares) y
+  `tests/test-integridad-referencial.R` (la arista no tabular de `01_publicaciones`, que no
+  calza con `create_agent(tbl=...)`).
+- **Unidad de modelación de las predictoras** (nivel/log/diferencia) — no cubierta por ningún
+  ADR, no se infiere por analogía con el objetivo (regla 4 de `CLAUDE.md`).
+- **Si el veredicto publicado de estacionariedad debe pasar a consumir los outliers declarados**
+  (D2 dejó el diagnóstico, no la especificación principal — exige valores críticos simulados,
+  trabajo de fondo).
+- **Orden de integración de la variable objetivo**, inconsistente entre `PIB_SA_OFICIAL_Q` y
+  `PIB_SA_PROPIO_Q` en log-nivel (reporte exploratorio §2).
+
+**Reproducibilidad.** El cierre se apoya en G1/G3 (reproducibles en cualquier máquina con L0
+materializada) y en la batería de tests que corre en CI. `make trace` y `make raw`/`make master`
+completos no corren en CI por las mismas razones que Fase 2: dependen de los `.xlsx` de L0, que
+`.gitignore` excluye por ADR-008.
+
+**Tag: `v0.6.0-fase3`,** sobre el commit que ya contiene esta certificación, la evidencia y la
+nota de senda §4 — nunca antes (misma disciplina que los cierres anteriores). Confirmar que el
+run de CI sobre el commit de cierre queda en verde antes de tagear.
