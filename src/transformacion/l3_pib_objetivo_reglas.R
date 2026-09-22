@@ -59,6 +59,20 @@ concatenar_pib_nsa <- function(l1, tol = 0.01) {
   concat
 }
 
+#' Para cada período de la serie concatenada por concatenar_pib_nsa(), la publicacion_id que
+#' aportó su observación cruda: "BCR.PIB.VOL.NSA.Q" si el período está en la serie nativa
+#' (concatenar_pib_nsa() prefiere nativo sobre RETRO en el solape -- ver ese merge), o
+#' "BCR.PIB.VOL.NSA.Q.RETRO" si solo está en RETRO. No depende de `tol`: es la misma partición
+#' de períodos que hace concatenar_pib_nsa(), sin la comparación numérica del solape. Usada por
+#' l3_pib_objetivo.R para la columna `vintage_id` de PIB_SA_PROPIO_Q.csv (E3/D4, cierre de
+#' Fase 3): cada fila hereda el vintage de la publicación que la originó, no un vintage único
+#' para toda la serie, porque T001 empalma dos publicaciones con vintages potencialmente
+#' distintos.
+fuente_pib_nsa_por_periodo <- function(l1, periodos) {
+  nativo <- l1$periodo[l1$serie_id == "BCR.PIB.VOL.NSA.Q"]
+  ifelse(periodos %in% nativo, "BCR.PIB.VOL.NSA.Q", "BCR.PIB.VOL.NSA.Q.RETRO")
+}
+
 #' Especificación declarada en catalogos/04_transformaciones.csv, fila T002_AJUSTE_ESTACIONAL_PROPIO
 #' (columna `parametros`, corrida real del 2026-09-16): 2 outliers AO, en 2020-Q2 y 2020-Q3.
 OUTLIERS_T002_DECLARADOS <- data.frame(

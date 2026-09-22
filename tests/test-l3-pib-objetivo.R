@@ -40,6 +40,26 @@ test_that("concatenar_pib_nsa empalma retro + nativo y descarta la superposicion
   expect_equal(concat$valor[concat$periodo == "1995-Q1"], 111.5)
 })
 
+test_that("fuente_pib_nsa_por_periodo asigna nativo al solape y RETRO al resto (E3/D4)", {
+  periodos_retro  <- .periodos_q(1990, 1, 24) # 1990-Q1 .. 1995-Q4
+  periodos_nativo <- .periodos_q(1995, 1, 8)  # 1995-Q1 .. 1996-Q4 (solape 1995 completo)
+  l1 <- rbind(
+    .serie_sintetica("BCR.PIB.VOL.NSA.Q.RETRO", periodos_retro, seq(100, 100 + 23 * 0.5, by = 0.5)),
+    .serie_sintetica("BCR.PIB.VOL.NSA.Q", periodos_nativo, c(111.5, 112.0, 112.5, 113.0, 113.5, 114.0, 114.5, 115.0))
+  )
+  concat <- .periodos_q(1990, 1, 28) # misma serie concatenada que produciria concatenar_pib_nsa()
+
+  fuente <- fuente_pib_nsa_por_periodo(l1, concat)
+
+  expect_equal(fuente[concat == "1990-Q1"], "BCR.PIB.VOL.NSA.Q.RETRO")
+  expect_equal(fuente[concat == "1994-Q4"], "BCR.PIB.VOL.NSA.Q.RETRO")
+  # El solape (1995 completo) y todo lo posterior son nativo: concatenar_pib_nsa() prefiere
+  # nativo sobre RETRO ahi (ver ese merge).
+  expect_equal(fuente[concat == "1995-Q1"], "BCR.PIB.VOL.NSA.Q")
+  expect_equal(fuente[concat == "1996-Q4"], "BCR.PIB.VOL.NSA.Q")
+  expect_true(all(fuente %in% c("BCR.PIB.VOL.NSA.Q", "BCR.PIB.VOL.NSA.Q.RETRO")))
+})
+
 test_that("concatenar_pib_nsa falla de forma visible si la superposicion no coincide", {
   periodos_retro  <- .periodos_q(1990, 1, 24)
   periodos_nativo <- .periodos_q(1995, 1, 8)

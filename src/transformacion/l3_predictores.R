@@ -34,6 +34,9 @@
 # que solo existen como insumo intermedio de otra transformacion, p.ej. ONEC.IPC.IDX.NSA.M).
 
 source(here::here("src", "transformacion", "l3_predictores_reglas.R"))
+source(here::here("src", "transformacion", "vintage_lib.R"))
+
+vintages_catalogo <- leer_vintages()
 
 FUENTE_L1 <- list(
   "BCR.IVAE.VOL.SA.M" = here::here("data", "L1_staging", "BCR_IVAE_series_largo.csv"),
@@ -75,7 +78,34 @@ unidad_insumo <- function(serie_id) {
   unidad
 }
 
+# `publicacion_id` declarado en 03_series.csv para una serie insumo -- resuelve la columna
+# `vintage_id` de E3/D4 (cierre de Fase 3): cada archivo de L3_master/ hereda el vintage
+# vigente de la(s) publicacion(es) de sus insumos, vía vintage_lib.R (resolver_publicacion()).
+publicacion_de_insumo <- function(serie_id) resolver_publicacion(serie_id, series_catalogo)
+
 registro <- new.env(parent = emptyenv())
+
+# Registro de vintage_id ya resuelto por serie_id (crudo o producto). REMESAS es la única
+# cadena de dos niveles de esta matriz (T006 encadena sobre el producto de T004, ver la nota de
+# cabecera): cuando un insumo es el `serie_producto` de una fila ya procesada, su vintage se
+# REUSA del que ya se calculó para ese producto, no se busca en 03_series.csv (no tiene fila
+# ahí -- es un producto de L3, no una serie cruda de L1). Las filas del catálogo están en orden
+# de dependencia (T004 antes de T006), así que el producto ya está en este registro quando se
+# lo necesita como insumo.
+vintage_registro <- new.env(parent = emptyenv())
+
+vintage_de_insumo <- function(serie_id) {
+  if (exists(serie_id, envir = vintage_registro, inherits = FALSE)) {
+    return(get(serie_id, envir = vintage_registro, inherits = FALSE))
+  }
+  vid <- vintage_vigente(publicacion_de_insumo(serie_id), vintages_catalogo)
+  assign(serie_id, vid, envir = vintage_registro)
+  vid
+}
+
+vintage_de_insumos <- function(serie_ids) {
+  paste(unique(vapply(serie_ids, vintage_de_insumo, character(1))), collapse = " + ")
+}
 
 leer_l1 <- function(serie_id) {
   archivo <- FUENTE_L1[[serie_id]]
@@ -96,7 +126,9 @@ resolver_insumo <- function(serie_id) {
   assign(serie_id, serie, envir = registro)
   if (serie_id %in% series_con_agregacion_propia) {
     archivo <- ruta_l3(serie_id)
-    write.csv(serie, archivo, row.names = FALSE, na = "")
+    serie_con_vintage <- serie
+    serie_con_vintage$vintage_id <- vintage_de_insumo(serie_id)
+    write.csv(serie_con_vintage, archivo, row.names = FALSE, na = "")
     cat("OK: ", serie_id, " (", nrow(serie), " obs, pass-through) -> ", archivo, "\n", sep = "")
   }
   serie
@@ -123,8 +155,12 @@ for (i in seq_len(nrow(transformaciones))) {
   resultado <- do.call(fn, argumentos)
 
   assign(fila$serie_producto, resultado, envir = registro)
+  vid_producto <- vintage_de_insumos(insumos)
+  assign(fila$serie_producto, vid_producto, envir = vintage_registro)
   archivo <- ruta_l3(fila$serie_producto)
-  write.csv(resultado, archivo, row.names = FALSE, na = "")
+  resultado_con_vintage <- resultado
+  resultado_con_vintage$vintage_id <- vid_producto
+  write.csv(resultado_con_vintage, archivo, row.names = FALSE, na = "")
   cat("OK: ", fila$serie_producto, " (", nrow(resultado), " obs, ", fila$transf_id, ") -> ",
       archivo, "\n", sep = "")
 }
