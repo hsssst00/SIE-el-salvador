@@ -190,6 +190,18 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
     del faltante: variación de existencias, que el portal declara explícitamente que no
     publica en índices de volumen encadenados (solo la FBKF). Cuadrar antes del mapeo de
     `fuente_celda`.
+  - **Reconciliación cerrada (2026-09-22, E2 del checklist de cierre de Fase 3).** Se comparó,
+    concepto a concepto, el conjunto de series de `catalogos/03_series.csv` entre las tres
+    publicaciones de PIB del BCR (NSA: 28, SA: 28, NOMINAL: 29). Resultado: **NOMINAL = {28
+    conceptos de NSA/SA} + `FBK`**, sin ninguna otra diferencia en ninguna dirección (0 conceptos
+    exclusivos de NSA o de SA frente a NOMINAL; NSA y SA son idénticos entre sí en conceptos).
+    Confirma la candidata plausible ya anotada arriba: el faltante es exactamente `FBK`
+    (Formación Bruta de Capital total, que incluye variación de existencias) — el BCR publica
+    `FBKF` (Formación Bruta de Capital **Fija**, sin existencias) en las tres publicaciones, pero
+    `FBK` únicamente en NOMINAL, consistente con lo que el propio portal declara ("variación de
+    existencias" no tiene índice de volumen encadenado publicado). No es un hueco de admisión ni
+    un error de captura: es lo que la fuente efectivamente publica. El descuadre 29-vs-28 queda
+    explicado, no es una fila por capturar.
   - **Re-corrida en vivo por Claude Code (mismo día, sesión separada):** el hallazgo de
     Cowork no se aceptó sin verificar — se reprodujo la coreografía completa contra la
     misma URL (idPublic 210, NSA) antes de escribir el `bcr.R` final. Esa corrida
