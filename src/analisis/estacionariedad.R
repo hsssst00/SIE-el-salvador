@@ -4,9 +4,11 @@
 # (ADF + KPSS confirmatorio, BIC, 4 transformaciones) y las decisiones que Harold fijó vía
 # `AskUserQuestion` (2026-09-17, doc/checklist_fase3.md).
 #
-# Requiere `make master` ya corrido (data/L3_master/ poblado). Salida (capa generada, no
-# versionada, mismo criterio que el resto de L3_master):
-#   data/L3_master/reporte_estacionariedad.csv -- una fila por serie x transformación disponible
+# Requiere `make master` ya corrido (data/L3_master/ poblado). Salida:
+#   doc/metodologia/reportes_fase3/reporte_estacionariedad.csv -- una fila por serie x
+#   transformación disponible. VERSIONADO (decisión de Harold, 2026-09-23): lo citan ADR-010 y
+#   doc/metodologia/reporte_exploratorio_fase3.md, y lo que un documento versionado cita tiene
+#   que estar en el repositorio. La columna `fecha_generacion` dice de qué corrida sale.
 #
 # Dos columnas de rezagos, no una (corregido 2026-09-18): `adf_rezagos` es la selección BIC
 # efectiva -- la que corresponde al estadístico de la misma fila -- y `adf_techo_rezagos` el
@@ -88,10 +90,14 @@ for (a in archivos) {
 
 tabla <- do.call(rbind, resultados)
 tabla <- tabla[order(tabla$serie_id, tabla$transformacion), ]
-write.csv(tabla, file.path(dir_l3, "reporte_estacionariedad.csv"), row.names = FALSE, na = "")
+tabla$fecha_generacion <- format(Sys.Date())
+dir_reportes <- here::here("doc", "metodologia", "reportes_fase3")
+dir.create(dir_reportes, showWarnings = FALSE, recursive = TRUE)
+ruta_reporte <- file.path(dir_reportes, "reporte_estacionariedad.csv")
+write.csv(tabla, ruta_reporte, row.names = FALSE, na = "")
 
 cat("\nOK: reporte de estacionariedad de ", length(resultados), " serie(s), ", nrow(tabla),
-    " fila(s) -> ", file.path(dir_l3, "reporte_estacionariedad.csv"), "\n", sep = "")
+    " fila(s) -> ", ruta_reporte, "\n", sep = "")
 
 resumen_conclusion <- table(tabla$conclusion)
 cat("\nResumen de conclusiones (serie x transformación):\n")

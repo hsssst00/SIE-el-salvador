@@ -11,9 +11,11 @@
 # la evidencia que este script reemplaza: el logaritmo es la escala en que se interpreta la
 # estacionalidad multiplicativa habitual de índices y magnitudes económicas.
 #
-# Salida (capa generada, no versionada, mismo criterio que reporte_estacionariedad.csv):
-#   data/L3_master/reporte_hegy.csv -- una fila por serie con t_cero, t_nyq, F_estacional
-#   conjunto, sus criticos simulados y la decision de rechazo en cada uno.
+# Salida (VERSIONADA, mismo criterio que reporte_estacionariedad.csv -- decision de Harold,
+# 2026-09-23: lo citan ADR-010 y doc/metodologia/reporte_exploratorio_fase3.md):
+#   doc/metodologia/reportes_fase3/reporte_hegy.csv -- una fila por serie con t_cero, t_nyq,
+#   F_estacional conjunto, sus criticos simulados, la decision de rechazo en cada uno y
+#   `fecha_generacion`.
 #
 # 5000 replicas de simulacion por serie (mismo numero que la evidencia externa v2, D1): a ese
 # tamaño, una serie mensual de ~400 obs tarda del orden de 30s en esta maquina -- la corrida
@@ -59,9 +61,13 @@ for (a in archivos) {
 
 tabla <- do.call(rbind, resultados)
 tabla <- tabla[order(tabla$serie_id), ]
-write.csv(tabla, file.path(dir_l3, "reporte_hegy.csv"), row.names = FALSE, na = "")
+tabla$fecha_generacion <- format(Sys.Date())
+dir_reportes <- here::here("doc", "metodologia", "reportes_fase3")
+dir.create(dir_reportes, showWarnings = FALSE, recursive = TRUE)
+ruta_reporte <- file.path(dir_reportes, "reporte_hegy.csv")
+write.csv(tabla, ruta_reporte, row.names = FALSE, na = "")
 
-cat("\nOK: HEGY de ", nrow(tabla), " serie(s) -> ", file.path(dir_l3, "reporte_hegy.csv"), "\n", sep = "")
+cat("\nOK: HEGY de ", nrow(tabla), " serie(s) -> ", ruta_reporte, "\n", sep = "")
 cat("Rechazan raiz unitaria ESTACIONAL conjunta (Δ_S no hace falta): ",
     sum(tabla$rechaza_estacional_conjunta), " de ", nrow(tabla), "\n", sep = "")
 cat("Rechazan raiz unitaria en frecuencia CERO: ", sum(tabla$rechaza_cero), " de ", nrow(tabla), "\n", sep = "")

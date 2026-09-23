@@ -2,15 +2,15 @@
 
 **Cubre:** `doc/checklist_fase3.md`, actividad "análisis exploratorio y de estacionariedad"
 (senda metodológica §4, entregable "reporte exploratorio").
-**Datos fuente:** `data/L3_master/reporte_exploratorio_resumen.csv` y
-`data/L3_master/reporte_estacionariedad.csv` — capa generada, no versionada, producida por
+**Datos fuente:** `doc/metodologia/reportes_fase3/reporte_exploratorio_resumen.csv` y
+`doc/metodologia/reportes_fase3/reporte_estacionariedad.csv` — versionados desde el 2026-09-23 (columna `fecha_generacion`), producidos por
 `src/analisis/exploracion_series.R` y `src/analisis/estacionariedad.R` (corrida original
 2026-09-17; regenerados 2026-09-19 tras la remediación de la revisión independiente, otra vez
 ese mismo día al corregir la grilla de selección de rezagos —hallazgo C2 de la discusión
 metodológica, ver §2— y una tercera al ampliar el esquema del CSV y renombrar las dos etiquetas
 ambiguas (hallazgos I1, I3 y M3), que no movió ningún estadístico ni ninguna clasificación; una
 cuarta el 2026-09-22 al cerrar D1/D2 del checklist de cierre de Fase 3 —componente estacional en
-las pruebas y diagnóstico del outlier del objetivo, `data/L3_master/reporte_hegy.csv` nuevo— que
+las pruebas y diagnóstico del outlier del objetivo, `doc/metodologia/reportes_fase3/reporte_hegy.csv` nuevo— que
 tampoco movió `conclusion`, la columna con el veredicto publicado; ver §3; y una quinta el
 2026-09-23 al admitir `UT.DEMANDA_ELEC.GWH.NSA.M/.Q` a la matriz —enmienda del alcance E1/D3 del
 cierre de Fase 3, decisión de Harold—, que lleva el cuadro de 16 a 18 series y de 64 a 72 filas y
@@ -152,7 +152,7 @@ antes de corregir C2 (`BCR_IPP_IDX_NSA_Q` en Δ y Δlog) pasaron a *estacionaria
 de BIC admitió 0 rezagos —el modelo que BIC prefiere para esa serie—, con residuos sin
 autocorrelación detectable (Ljung-Box p = 0,86). La otra fila que cambió es `PIB_SA_PROPIO_Q` en
 nivel, de *no_estacionaria* a *ambigua_ambas_rechazan*. Detalle
-completo en `data/L3_master/reporte_estacionariedad.csv`: estadísticos; los valores críticos de
+completo en `doc/metodologia/reportes_fase3/reporte_estacionariedad.csv`: estadísticos; los valores críticos de
 las dos pruebas **al 1%, 5% y 10%** —no solo el del 5% que decide el veredicto, para que la
 marginalidad de cada fila se vea sin recomputar la corrida (hallazgo I3)—; `adf_tipo` y
 `kpss_tipo`, la especificación determinística que cada prueba mantuvo (hallazgo M3);
@@ -263,7 +263,7 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   modelar estacionalidad, pero `estacionariedad_reglas.R` ahora computa además una especificación
   con S-1 dummies estacionales (`conclusion_con_estacional`, propios rezagos por BIC, mismos
   críticos de `urca` — agregar dummies deterministicas no cambia la distribución asintótica del
-  estadístico) y HEGY (`data/L3_master/reporte_hegy.csv`, `src/analisis/hegy_reglas.R`) para
+  estadístico) y HEGY (`doc/metodologia/reportes_fase3/reporte_hegy.csv`, `src/analisis/hegy_reglas.R`) para
   distinguir raíz unitaria estacional de estacionalidad determinística. Resultado: **las 18
   series rechazan raíz unitaria estacional conjunta** (Δ₁ es la diferenciación correcta, no hace
   falta Δ₁₂/Δ₄); las dummies son conjuntamente significativas al 5% en **38 de las 72 filas**,

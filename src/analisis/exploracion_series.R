@@ -6,10 +6,13 @@
 # primera diferencia, series de tiempo en nivel y en diferencia). Deliberadamente NO incluye
 # pruebas formales de estacionariedad (ADF/KPSS/PP) -- ver nota en exploracion_series_reglas.R.
 #
-# Requiere `make master` ya corrido (data/L3_master/ poblado). Salidas (capa generada, no
-# versionada, mismo criterio que el resto de L3_master):
-#   data/L3_master/reporte_exploratorio_resumen.csv  -- una fila por serie
-#   data/L3_master/exploracion/<serie>.png           -- nivel + primera diferencia
+# Requiere `make master` ya corrido (data/L3_master/ poblado). Salidas:
+#   doc/metodologia/reportes_fase3/reporte_exploratorio_resumen.csv -- una fila por serie.
+#     VERSIONADO (decision de Harold, 2026-09-23): lo cita doc/metodologia/
+#     reporte_exploratorio_fase3.md, y lo que un documento versionado cita tiene que estar en el
+#     repositorio. La columna `fecha_generacion` dice de que corrida sale.
+#   data/L3_master/exploracion/<serie>.png -- nivel + primera diferencia (capa generada, no
+#     versionada: ningun documento los cita).
 
 source(here::here("src", "analisis", "exploracion_series_reglas.R"))
 
@@ -20,10 +23,13 @@ dir_l3 <- here::here("data", "L3_master")
 # a mano una vez -- una corrida nueva no los sobrescribe, los deja huerfanos al lado.
 dir_out <- file.path(dir_l3, "exploracion")
 dir.create(dir_out, showWarnings = FALSE, recursive = TRUE)
+dir_reportes <- here::here("doc", "metodologia", "reportes_fase3")
+dir.create(dir_reportes, showWarnings = FALSE, recursive = TRUE)
+ruta_resumen <- file.path(dir_reportes, "reporte_exploratorio_resumen.csv")
 
 archivos <- list.files(dir_l3, pattern = "\\.csv$", full.names = FALSE)
-# Excluye subproductos que no son series L3 en si (huecos de outliers, resumenes previos).
-archivos <- archivos[!grepl("_outliers\\.csv$|^reporte_exploratorio", archivos)]
+# Excluye subproductos que no son series L3 en si (catalogo de outliers).
+archivos <- archivos[!grepl("_outliers\\.csv$", archivos)]
 
 resumenes <- list()
 
@@ -57,11 +63,11 @@ for (a in archivos) {
 
 resumen_tabla <- do.call(rbind, resumenes)
 resumen_tabla <- resumen_tabla[order(resumen_tabla$serie_id), ]
-write.csv(resumen_tabla, file.path(dir_l3, "reporte_exploratorio_resumen.csv"),
-          row.names = FALSE, na = "")
+resumen_tabla$fecha_generacion <- format(Sys.Date())
+write.csv(resumen_tabla, ruta_resumen, row.names = FALSE, na = "")
 
-cat("OK: resumen exploratorio de ", nrow(resumen_tabla), " serie(s) -> ",
-    file.path(dir_l3, "reporte_exploratorio_resumen.csv"), "\n", sep = "")
+cat("OK: resumen exploratorio de ", nrow(resumen_tabla), " serie(s) -> ", ruta_resumen, "\n",
+    sep = "")
 cat("OK: ", nrow(resumen_tabla), " grafico(s) -> ", dir_out, "/\n", sep = "")
 
 huecos_reales <- resumen_tabla[resumen_tabla$n_hueco > 0, c("serie_id", "n_hueco", "huecos")]

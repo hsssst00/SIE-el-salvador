@@ -58,12 +58,16 @@ master: validate
 
 # Fase 3 — análisis exploratorio de la base maestra (senda §4), en el orden en que se leen:
 # primero descriptivos y gráficos, después las pruebas formales de estacionariedad. Depende de
-# `master` porque ambos scripts leen data/L3_master/, que ese objetivo genera. Salidas (capa
-# generada, no versionada): reporte_exploratorio_resumen.csv, exploracion/<serie>.png y
-# reporte_estacionariedad.csv, todas en data/L3_master/.
+# `master` porque los tres scripts leen data/L3_master/, que ese objetivo genera. Salidas:
+# reporte_exploratorio_resumen.csv, reporte_estacionariedad.csv y reporte_hegy.csv en
+# doc/metodologia/reportes_fase3/ -- VERSIONADOS, con columna `fecha_generacion`, porque los
+# citan documentos versionados (decisión de Harold, 2026-09-23) --, y exploracion/<serie>.png
+# en data/L3_master/ (capa generada, no versionada). hegy.R tarda varios minutos (5000
+# réplicas de simulación por serie).
 explore: master
 	Rscript src/analisis/exploracion_series.R
 	Rscript src/analisis/estacionariedad.R
+	Rscript src/analisis/hegy.R
 
 # Validación de esquema de catálogos (columnas/tipos) e integridad referencial entre ellos.
 validate:
