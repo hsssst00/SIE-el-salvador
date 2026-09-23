@@ -245,10 +245,11 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
 - **Dos aproximaciones, no correspondencias exactas** (detalladas en el código): el techo de
   búsqueda de rezagos de ADF usa la regla de Schwert; el truncamiento de KPSS usa `lags="short"`
   como el análogo más parsimonioso disponible, no una selección BIC real (KPSS no tiene una).
-  El truncamiento no es neutral: con `lags="long"` los rechazos de KPSS caían de 31 a 20 sobre
-  las 64 filas de la corrida de 2026-09-22 —esa sensibilidad no se recomputó al admitir UT—, así
-  que parte de las etiquetas *ambigua_ambas_rechazan* depende de esta elección y no de una
-  propiedad de las series.
+  El truncamiento no es neutral: con `lags="long"` los rechazos de KPSS caen de 35 a 24 sobre
+  las 72 filas vigentes (eran 31 a 20 sobre las 64 del 2026-09-22; las 11 filas que dejan de
+  rechazar son todas de las 64, y las 4 de UT que rechazan con `short` siguen rechazando con
+  `long`), así que parte de las etiquetas *ambigua_ambas_rechazan* depende de esta elección y no
+  de una propiedad de las series. Recomputable con `src/analisis/sensibilidades_estacionariedad.R`.
 - **Autocorrelación residual en 20 de las 72 regresiones ADF** (`adf_ljung_box_p` < 0,05), todas
   en seis series: las cuatro transformaciones de `BCR_EXPORT_FOB_NOM_NSA_M`,
   `BCR_REMESAS_NOM_NSA_M`, `BCR_REMESAS_REAL_NSA_M` y `UT_DEMANDA_ELEC_GWH_NSA_M`, más dos de
@@ -284,17 +285,25 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   mayoría de estas series— induce correlación de tipo MA negativa en la serie diferenciada y
   empuja al **sobre-rechazo**, o sea a declarar estacionariedad espuria (Franses y Haldrup 1994;
   Vogelsang 1999; Perron y Rodríguez 2003).
-  En estos datos domina el segundo: al agregar dummies de impulso de 2020 a la regresión ADF, el
-  estadístico se vuelve **menos** negativo en 41 de las 64 filas de la corrida de 2026-09-22
-  —sin tratar, el shock estaba inflando el rechazo— y cambian 7 veredictos, 5 de ellos hacia
-  menos rechazo. Ese cómputo es exploratorio, fuera del pipeline, y no se repitió sobre las 8
-  filas de UT que entraron el 2026-09-23: la dirección del sesgo se declara para las 64 filas en
-  que se midió, no para las 72 vigentes. Tampoco se sostiene
-  la conjetura de que el shock explicara la no-estacionariedad de las series NSA mensuales en
-  log-nivel: de las 6 filas de entonces, 5 seguían *no_estacionaria* al tratar 2020 y ninguna se acerca a su
-  crítico; la única que se comporta como se conjeturaba es `BCR_EXPORT_FOB_NOM_NSA_M`
-  (−2,96 → −3,66). Esas series salen *no_estacionaria* por lo que son —índices de precios y
-  remesas con tendencia clara y sin términos estacionales (siguiente salvedad)—, no por 2020.
+  En estos datos domina el segundo: al agregar dummies de impulso de 2020 a la regresión ADF (un
+  impulso por período de 2020-M03 a 2020-M12 en mensuales y de 2020-Q1 a 2020-Q4 en trimestrales,
+  rezagos re-elegidos por BIC), el estadístico se vuelve **menos** negativo en 44 de las 72 filas
+  vigentes —sin tratar, el shock estaba inflando el rechazo— y cambian 9 veredictos: 5 hacia
+  menos rechazo y 4 hacia más. Sobre las 64 filas del 2026-09-22 las cifras no cambian (41 de 64,
+  7 veredictos, 5 hacia menos rechazo); las 8 filas de UT suman 3 menos negativas y 2 cambios,
+  ambos hacia **más** rechazo (nivel y log de `UT_DEMANDA_ELEC_GWH_NSA_M`, ver abajo). Es decir,
+  UT va contra la dirección dominante, pero no la invierte. El cómputo sigue siendo exploratorio y
+  fuera del pipeline, ahora versionado en `src/analisis/sensibilidades_estacionariedad.R` (su
+  especificación se reconstruyó el 2026-09-23 reproduciendo las cifras publicadas, ver la
+  cabecera del script). Tampoco se sostiene la conjetura de que el shock explicara la
+  no-estacionariedad de las series NSA mensuales en log: de las 7 filas vigentes (6 del BCR más
+  la de UT), 5 siguen *no_estacionaria* al tratar 2020 y ninguna de esas 5 se acerca a su
+  crítico. Las dos que se comportan como se conjeturaba son `BCR_EXPORT_FOB_NOM_NSA_M`
+  (−2,96 → −3,66) y `UT_DEMANDA_ELEC_GWH_NSA_M` (−2,25 → −3,47, apenas por debajo del crítico
+  de −3,42; su nivel pasa de −2,19 a −3,69). Las otras cinco salen *no_estacionaria* por lo que
+  son —índices de precios y remesas con tendencia clara y sin términos estacionales (siguiente
+  salvedad)—, no por 2020. En la demanda eléctrica, en cambio, el shock de 2020 sí pesa en el
+  veredicto en log/nivel.
   Estas cifras muestran dirección y magnitud, no veredictos alternativos: con dummies de impulso
   la distribución del estadístico ya no es la de Dickey-Fuller y los críticos de `urca` dejan de
   aplicar (Perron 1989; Vogelsang 1999).
@@ -311,7 +320,11 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   ambas direcciones, confirmando la lectura cualitativa que ya tenía este reporte (declarar el
   outlier en el catálogo no protege este análisis). La cifra de −3,31 que esta sección citaba
   antes de esta revisión salió de un cómputo exploratorio fuera del pipeline y se retira: el
-  número que rige es el que produce el código versionado, arriba.
+  número que rige es el que produce el código versionado, arriba. (Ese −3,31 es el de la
+  sensibilidad de impulsos de 2020 de la salvedad anterior, hoy reproducible con
+  `sensibilidades_estacionariedad.R`: responde a otra especificación —un impulso por trimestre de
+  2020, no los dos pulsos de outlier aditivo por outlier declarado de ADR-004—, por eso no
+  coincide con el diagnóstico.)
 - **Univariante únicamente.** No se evaluó cointegración entre series (relevante si Fase 5 usa
   VAR/VECM en niveles) — está fuera del alcance de ADF/KPSS por construcción; se evaluaría con
   la prueba de Johansen si y cuando corresponda.
