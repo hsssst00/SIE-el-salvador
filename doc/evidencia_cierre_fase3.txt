@@ -111,3 +111,131 @@ LECTURA
 - La matriz de predictores cierra con 7 familias (E1/D3) y la base maestra es
   bitemporal por columna `vintage_id` (E3/D4) — ver doc/senda_metodologica.md y
   doc/adr/README.md, "Cierre de Fase 3", para la lectura completa de ambas.
+
+================================================================
+ENMIENDA DEL ALCANCE E1/D3 — UT ENTRA A LA MATRIZ (2026-09-23)
+================================================================
+
+Maquina: la de Harold, con L0 materializada completa.
+Fecha:   2026-09-23
+Decision: de Harold. El cierre del 2026-09-22 fijaba la matriz en 7 familias del BCR y dejaba
+         UT.DEMANDA_ELEC.GWH.NSA.M fuera de ella; eso contradecia
+         doc/relevamiento_predictores_energia_turismo.md (2026-08-27), que ya declaraba que
+         energia entra al conjunto de predictores. Resuelto en favor del relevamiento.
+Comando: Rscript --vanilla por paso, con R_LIBS apuntando a la libreria de renv (el bootstrap
+         de renv y `make` no corren en este entorno; cada paso se corrio confirmando su propio
+         codigo de salida).
+
+Cambios de esta sesion
+----------------------
+
+  catalogos/04_transformaciones.csv   +1 fila  T011_AGREGACION_TRIMESTRAL_UT_DEMANDA (10 -> 11)
+  catalogos/05_series_master.csv      +2 filas UT.DEMANDA_ELEC.GWH.NSA.M / .Q      (17 -> 19)
+  catalogos/03_series.csv             sin altas (106 filas; la fila de UT ya existia desde
+                                      2026-08-27, se amplia solo su nota)
+  src/transformacion/l3_predictores.R entrada de UT en FUENTE_L1 + despacho de vintage
+  src/transformacion/vintage_lib.R    agregar_vintage_por_anio() nueva
+  tests/test-vintage-lib.R            +5 test_that para esa funcion
+
+Por que hizo falta codigo nuevo y no solo una fila de catalogo: UT es la unica publicacion de la
+matriz con mas de un vintage en 08_vintages.csv (25, uno por archivo anual). vintage_vigente()
+devuelve la ULTIMA fila, asi que habria etiquetado las 288 observaciones de 2002-2025 con el
+archivo de 2026. agregar_vintage_por_anio() resuelve cada fila contra el vintage de su propio
+anio de referencia; el resultado tiene 25 vintages distintos en la serie mensual y 25 en la
+trimestral, y el anio del periodo coincide con el del vintage en las 295 + 98 filas.
+
+Resultado de cada paso (todos codigo de salida 0)
+-------------------------------------------------
+
+  1. src/validacion/validate_catalogs.R                   OK (esquemas vs datapackage.json)
+  2. src/validacion/validar_integridad_catalogos.R        OK (03/04/05/08/09)
+  3. src/validacion/validar_l2_predictores.R              OK (8 series, incl. UT 295 obs)
+  4. src/validacion/validar_l2_pib.R                      OK
+  5. src/transformacion/l3_predictores.R                  OK (16 archivos: 14 del BCR + los 2
+                                                              de UT, todos con vintage_id)
+                                                           UT.DEMANDA_ELEC.GWH.NSA.M  295 obs
+                                                           UT.DEMANDA_ELEC.GWH.NSA.Q   98 obs
+  6. src/validacion/verificar_fuente_celda.R (make trace) OK 105 PASS / 0 FAIL /
+                                                              0 NO_VERIFICABLE /
+                                                              1 FUERA_DE_ALCANCE (de 106)
+  7. src/analisis/exploracion_series.R                    OK (18 series, sin huecos internos,
+                                                              18 graficos)
+  8. src/analisis/estacionariedad.R                       OK (18 series, 72 filas)
+                                                           37 estacionaria, 23 no_estacionaria,
+                                                           12 ambigua_ambas_rechazan
+  9. src/analisis/hegy.R                                  OK (18 series, 5000 replicas c/u)
+                                                           18 de 18 rechazan raiz unitaria
+                                                           estacional conjunta; 1 de 18 en
+                                                           frecuencia cero (PIB_SA_PROPIO_Q)
+
+data/L3_master/ queda con 18 series (variable objetivo + 8 familias de predictores, mensual y
+trimestral), cada archivo con columna vintage_id.
+
+Control de no-regresion sobre el analisis
+-----------------------------------------
+
+Las 64 filas de reporte_estacionariedad.csv que ya existian el 2026-09-22 quedan IDENTICAS bit a
+bit tras la regeneracion: mismo adf_estadistico, mismo kpss_estadistico, mismos adf_rezagos y
+misma conclusion en las 64. La diferencia en los agregados son exactamente las 8 filas nuevas de
+UT (4 estacionaria, 2 no_estacionaria, 2 ambigua_ambas_rechazan). HEGY pasa de 16/16 a 18/18 en
+rechazo estacional conjunto, y sigue con 1 sola serie que rechaza en frecuencia cero.
+
+Lo que esta enmienda NO cubre — declarado, no silenciado
+--------------------------------------------------------
+
+- TRAZABILIDAD VALOR->CELDA DE UT. La unica fila FUERA_DE_ALCANCE de verificar_fuente_celda.R es
+  UT.DEMANDA_ELEC.GWH.NSA.M: su vintage vigente es un CSV derivado (25 archivos), no un .xlsx, y
+  el verificador resuelve hoja/fila/rotulo dentro de un .xlsx. Hasta el 2026-09-22 eso era
+  inocuo porque UT no alimentaba L3; ahora una de las 8 familias de la matriz tiene su
+  trazabilidad sostenida por su fuente_celda documental y por las validaciones propias de
+  ut_demanda_serie.R, no por el verificador mecanico. Extenderlo a vintages CSV queda abierto.
+  [REMEDIADO el mismo 2026-09-23 antes del tag -- ver "Rama CSV del verificador" al final.]
+- FECHA DE PUBLICACION SINTETICA. Los 25 vintages de UT tienen fecha_publicacion derivada
+  (31-dic de cada anio, 31-jul para 2026) porque el portal no la expone. La dimension bitemporal
+  de estas dos series es de grano ANUAL y de fecha APROXIMADA; Fase 4 debe tratarla como tal si
+  evalua con datos tal-como-se-conocian.
+- 1998-2001 sigue fuera de la serie (decision de Harold, 2026-08-27: el portal no exporta esos
+  anios en ningun formato y no se transcriben a mano).
+- CONDICIONES DE USO DE UT sin verificar (ADR-008, default conservador) y metodologia_id vacio:
+  no existe entrada de UT en 02_metodologias y no se invento una.
+- Las dos sensibilidades exploratorias FUERA del pipeline que cita el reporte narrativo
+  (truncamiento KPSS "long"; dummies de impulso de 2020) NO se recomputaron sobre las 8 filas
+  nuevas: sus cifras quedan explicitamente ancladas a las 64 filas de la corrida del 2026-09-22.
+
+Entorno de esta corrida (diferencia con la del 2026-09-22)
+----------------------------------------------------------
+
+Los pasos de arriba se corrieron con Rscript --vanilla y R_LIBS apuntando a la libreria de renv,
+no con `make` ni con el bootstrap de renv activo: en este entorno renv no puede escribir su
+libreria. Es la misma libreria de paquetes (renv.lock sin cambios), pero la corrida NO pasa por
+el .Rprofile del proyecto. `make test` y `make audit` se corrieron de la misma forma. Conviene
+reejecutar `make master`/`make test` por la via normal antes de tagear.
+
+Reejecucion por la via normal (2026-09-23, antes del tag)
+---------------------------------------------------------
+
+Cubre el pendiente de arriba. R 4.6.1, make de Rtools45 invocado desde PowerShell, renv activado
+por .Rprofile (renv::status(): sin problemas), sin R_LIBS ni --vanilla:
+
+  make master   codigo 0   validate OK; L2 OK (PIB + 8 predictores); L3 18 series, UT 295/98 obs
+  make trace    codigo 0   105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE (de 106)
+  make test     codigo 0   468 PASS / 0 FAIL / 0 WARN / 0 SKIP
+
+Mismos resultados que la corrida con Rscript --vanilla; los 3 SKIP de aquella eran del entorno.
+Detalle en doc/bitacora_verificaciones.md, entrada del 2026-09-23 "reejecucion por la via normal".
+
+Rama CSV del verificador (2026-09-23, antes del tag)
+----------------------------------------------------
+
+Remedia la fila FUERA_DE_ALCANCE de UT. verificar_fuente_celda.R resuelve ano -> vintage con
+mapa_vintage_por_anio() (extraida de agregar_vintage_por_anio() en vintage_lib.R, misma regla que
+L3) y, en cada uno de los 25 CSV de UT: checksum contra manifiesto, ano del nombre = ano del
+vintage, exactamente una linea igual al encabezado citado en fuente_celda ("MES,,,GWH,,"); y que
+los anos cubran inicio..fin de 03_series.csv sin huecos.
+
+  make trace    codigo 0   106 PASS / 0 FAIL / 0 NO_VERIFICABLE / 0 FUERA_DE_ALCANCE (de 106)
+  make test     codigo 0   471 PASS / 0 FAIL / 0 WARN / 0 SKIP (+3: mapa_vintage_por_anio)
+
+Prueba negativa (catalogos alterados en memoria, L0 intacto): checksum roto, encabezado distinto,
+fin fuera de cobertura, vintage faltante y archivo de otro ano -> FAIL; archivo ausente ->
+NO_VERIFICABLE; fuente_celda sin encabezado citado -> FUERA_DE_ALCANCE.

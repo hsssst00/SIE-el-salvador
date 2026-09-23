@@ -26,6 +26,12 @@
 # - ITCER e IPM (T009-T010) siguen el mismo criterio de "serie de cabecera mas directa/agregada"
 #   ya fijado para IPP/EXPORT_FOB, sin volver a preguntar caso por caso (autorizacion de Harold,
 #   2026-09-16) -- el detalle de cual serie es la de cabecera esta en 03_series.csv.
+# - UT.DEMANDA_ELEC (T011) es el octavo predictor y el primero que NO es del BCR: entra el
+#   2026-09-23 por decision de Harold, enmendando el alcance E1/D3 del cierre de Fase 3, que la
+#   habia dejado admitida en 03_series.csv y en la bateria L2 pero fuera de la matriz. Es la
+#   unica serie insumo de la matriz con mas de un vintage en 08_vintages.csv (25, uno por año
+#   de captura), asi que su columna vintage_id se resuelve por AÑO y no por vintage vigente --
+#   ver VINTAGE_POR_ANIO abajo.
 #
 # Salidas en data/L3_master/ (capa generada, no versionada): un CSV por serie_id (mensual o
 # trimestral), con el punto reemplazado por guion bajo -- p.ej. BCR.IVAE.VOL.SA.Q ->
@@ -45,8 +51,17 @@ FUENTE_L1 <- list(
   "BCR.IPP.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_IPP_series_largo.csv"),
   "BCR.EXPORT_FOB.NOM.NSA.M" = here::here("data", "L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv"),
   "BCR.ITCER.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_ITCER_series_largo.csv"),
-  "BCR.IPM.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv")
+  "BCR.IPM.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv"),
+  "UT.DEMANDA_ELEC.GWH.NSA.M" = here::here("data", "L1_staging", "UT_DEMANDA_series_largo.csv")
 )
+
+# Series insumo cuyo `vintage_id` se resuelve por AÑO de referencia en vez de por vintage
+# vigente (ver src/transformacion/vintage_lib.R). El caso general es una publicacion con un
+# solo vintage en 08_vintages.csv, donde ambas resoluciones coinciden. UT es la excepcion:
+# 25 vintages, uno por archivo anual, y su serie L1 se deriva de los 25 -- el vintage vigente
+# etiquetaria con el archivo de 2026 las 288 observaciones mensuales de 2002-2025, que no las
+# produjo (solo las 7 de 2026 le corresponden).
+VINTAGE_POR_ANIO <- "UT.DEMANDA_ELEC.GWH.NSA.M"
 
 ruta_l3 <- function(serie_id) here::here("data", "L3_master", paste0(gsub("\\.", "_", serie_id), ".csv"))
 
@@ -107,6 +122,26 @@ vintage_de_insumos <- function(serie_ids) {
   paste(unique(vapply(serie_ids, vintage_de_insumo, character(1))), collapse = " + ")
 }
 
+# Agrega la columna `vintage_id` a una serie de L3 (cruda pass-through o producto de una
+# transformacion), eligiendo la resolucion segun sus insumos: por AÑO si el insumo esta en
+# VINTAGE_POR_ANIO, constante (vintage vigente) en el caso general. Devuelve la serie con la
+# columna agregada; NO escribe a disco.
+con_vintage <- function(serie, serie_ids) {
+  por_anio <- intersect(serie_ids, VINTAGE_POR_ANIO)
+  if (length(por_anio) == 0) {
+    serie$vintage_id <- vintage_de_insumos(serie_ids)
+    return(serie)
+  }
+  if (length(serie_ids) > 1) {
+    stop("FALLO VISIBLE [", paste(serie_ids, collapse = ", "), "]: ",
+         paste(por_anio, collapse = ", "), " resuelve su vintage por año, y esta ",
+         "transformacion combina varios insumos -- una fila con dos publicaciones de las ",
+         "cuales una tiene vintage anual necesita una regla explicita (hoy no existe ese ",
+         "caso en la matriz).")
+  }
+  agregar_vintage_por_anio(serie, publicacion_de_insumo(por_anio), vintages_catalogo)
+}
+
 leer_l1 <- function(serie_id) {
   archivo <- FUENTE_L1[[serie_id]]
   if (is.null(archivo)) {
@@ -126,8 +161,7 @@ resolver_insumo <- function(serie_id) {
   assign(serie_id, serie, envir = registro)
   if (serie_id %in% series_con_agregacion_propia) {
     archivo <- ruta_l3(serie_id)
-    serie_con_vintage <- serie
-    serie_con_vintage$vintage_id <- vintage_de_insumo(serie_id)
+    serie_con_vintage <- con_vintage(serie, serie_id)
     write.csv(serie_con_vintage, archivo, row.names = FALSE, na = "")
     cat("OK: ", serie_id, " (", nrow(serie), " obs, pass-through) -> ", archivo, "\n", sep = "")
   }
@@ -155,11 +189,16 @@ for (i in seq_len(nrow(transformaciones))) {
   resultado <- do.call(fn, argumentos)
 
   assign(fila$serie_producto, resultado, envir = registro)
-  vid_producto <- vintage_de_insumos(insumos)
-  assign(fila$serie_producto, vid_producto, envir = vintage_registro)
+  resultado_con_vintage <- con_vintage(resultado, insumos)
+  # El registro de vintage por serie_id solo tiene sentido cuando el vintage es un escalar
+  # (caso constante): lo consume vintage_de_insumo() cuando un producto de L3 es a su vez
+  # insumo de otra fila (hoy solo T006 sobre el producto de T004). Un producto de vintage
+  # anual no se registra; si alguna vez se usa como insumo, vintage_de_insumo() lo buscara en
+  # 03_series.csv y fallara de forma visible en vez de heredar un valor equivocado.
+  if (length(intersect(insumos, VINTAGE_POR_ANIO)) == 0) {
+    assign(fila$serie_producto, vintage_de_insumos(insumos), envir = vintage_registro)
+  }
   archivo <- ruta_l3(fila$serie_producto)
-  resultado_con_vintage <- resultado
-  resultado_con_vintage$vintage_id <- vid_producto
   write.csv(resultado_con_vintage, archivo, row.names = FALSE, na = "")
   cat("OK: ", fila$serie_producto, " (", nrow(resultado), " obs, ", fila$transf_id, ") -> ",
       archivo, "\n", sep = "")

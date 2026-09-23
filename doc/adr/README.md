@@ -245,10 +245,23 @@ ambas certificadas, más dos lecturas que esta nota fija (mismo patrón que "ing
 en Fase 1 y "verifica su integridad" en Fase 2; el detalle completo de las dos lecturas está en
 `doc/senda_metodologica.md`, nota de cierre de Fase 3, v0.6):
 
-- **Alcance de la matriz de predictores (E1/D3):** cierra con **7 familias** del BCR (`IVAE`,
-  `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral). El resto
-  —sub-series declinadas de Balanza Comercial, instituciones nuevas para empleo/energía/turismo/
-  recaudación— se admite en una fase posterior, decisión de Harold.
+- **Alcance de la matriz de predictores (E1/D3, ENMENDADO 2026-09-23):** cierra con **8
+  familias** — las 7 del BCR (`IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`,
+  `IPM`) más `UT.DEMANDA_ELEC` (demanda total de electricidad), mensual y trimestral. La
+  redacción original de este registro (2026-09-22) cerraba con las 7 del BCR y dejaba UT fuera
+  de la matriz; eso contradecía el relevamiento de energía y turismo (2026-08-27), que ya había
+  declarado que energía entra al conjunto de predictores. Harold resolvió la contradicción en
+  favor del relevamiento: UT entra, octavo predictor y primera institución distinta del BCR. El
+  resto —sub-series declinadas de Balanza Comercial, instituciones nuevas para empleo, turismo y
+  recaudación— sigue diferido a una fase posterior. Detalle de la enmienda y de sus
+  consecuencias en `doc/senda_metodologica.md` (nota de cierre de Fase 3) y en
+  `doc/evidencia_cierre_fase3.txt`. **Consecuencia declarada:** la única fila FUERA_DE_ALCANCE
+  de `make trace` es la de UT (vintage vigente CSV, no `.xlsx`), así que desde esta enmienda una
+  de las 8 familias de la matriz no tiene trazabilidad valor→celda comprobada mecánicamente —
+  extender el verificador a vintages CSV es deuda abierta, no criterio relajado. **Remediado el
+  mismo 2026-09-23, antes del tag:** rama CSV por año en `verificar_fuente_celda.R` (checksum,
+  año del nombre y encabezado citado en los 25 archivos de UT); `make trace` → 106 PASS / 0 FAIL
+  / 0 FUERA_DE_ALCANCE. Ver `doc/senda_metodologica.md` (nota de cierre de Fase 3).
 - **Lectura de "base maestra bitemporal" (E3/D4):** la dimensión de vintage vive EN la base
   maestra, no en una lectura documental aparte. Cada archivo de `data/L3_master/` publica una
   columna `vintage_id`, resuelta contra `catalogos/08_vintages.csv` por la(s) publicación(es) de
@@ -262,10 +275,14 @@ en Fase 1 y "verifica su integridad" en Fase 2; el detalle completo de las dos l
   → **105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 106 filas de
   `03_series.csv`; la fuera de alcance es `UT.DEMANDA_ELEC.GWH.NSA.M`, cuyo vintage vigente es
   un CSV derivado, no un `.xlsx` — ver el script). Salida 0. Entrada correspondiente en
-  `doc/bitacora_verificaciones.md` (regla 8 de `CLAUDE.md`).
+  `doc/bitacora_verificaciones.md` (regla 8 de `CLAUDE.md`). Revalidado el 2026-09-23 tras la
+  enmienda de E1/D3 con el mismo resultado: la admisión de UT a la matriz no toca ninguna
+  columna `fuente_celda` y `03_series.csv` sigue en 106 filas. Tras la rama CSV del verificador
+  (mismo día, antes del tag): **106 PASS / 0 FAIL / 0 NO_VERIFICABLE / 0 FUERA_DE_ALCANCE**.
 - **G3 — cadena ejecutable:** `make master` de punta a punta (`validate` → 9 extractores L0→L1
   → `validar_l2_pib.R`/`validar_l2_predictores.R` → `l3_pib_objetivo.R` → `l3_predictores.R`),
-  las 16 salidas de `data/L3_master/` materializadas con su columna `vintage_id`. Salida 0 en
+  las **18** salidas de `data/L3_master/` materializadas con su columna `vintage_id` (16 el
+  2026-09-22; las dos de UT se agregan con la enmienda de E1/D3 del 2026-09-23). Salida 0 en
   cada paso.
 - **H3 — batería completa:** `testthat::test_dir("tests")` y `scripts/auditoria_mecanica.R`.
   Detalle en `doc/evidencia_cierre_fase3.txt` (`make raw`/`make master`/`make test` no corren en
@@ -278,10 +295,12 @@ en `doc/metodologia/reporte_exploratorio_fase3.md` §3):
 - **D1 — componente estacional en las pruebas de estacionariedad.** `src/analisis/hegy_reglas.R`
   implementa HEGY (Hylleberg, Engle, Granger y Yoo 1990; extensión de Beaulieu y Miron 1993) en
   R puro, verificado contra el código fuente publicado de `uroot::hegy.regressors()` — no se
-  agregó `uroot` como dependencia, la decisión sigue abierta en ADR-009. Las 16 series rechazan
-  raíz unitaria estacional conjunta (Δ₁ es la diferenciación correcta); `estacionariedad_reglas.R`
-  publica además una especificación ADF con dummies estacionales, significativas al 5% en 30 de
-  64 filas (todas NSA), y 5 veredictos se mueven al modelarla.
+  agregó `uroot` como dependencia, la decisión sigue abierta en ADR-009. Las **18** series
+  rechazan raíz unitaria estacional conjunta (Δ₁ es la diferenciación correcta);
+  `estacionariedad_reglas.R` publica además una especificación ADF con dummies estacionales,
+  significativas al 5% en 38 de 72 filas (todas NSA), y 9 veredictos se mueven al modelarla
+  (cifras de la corrida del 2026-09-23, sobre 18 series; eran 16 series, 30 de 64 filas y 5
+  veredictos el 2026-09-22, antes de la enmienda de E1/D3).
 - **D2 — ¿las pruebas consumen los outliers declarados en el catálogo?** No, por decisión — el
   veredicto publicado sigue sin tratar 2020, pero `reporte_estacionariedad.csv` gana
   `adf_estadistico_con_outliers` como columna de diagnóstico (no comparable contra los críticos

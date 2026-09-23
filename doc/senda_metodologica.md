@@ -24,7 +24,8 @@
   no es compuerta de cierre. Resuelve el hallazgo A1 de la auditoría de Fase 2. El registro del
   cierre está en `doc/adr/README.md`, "Cierre de Fase 2". Sin otros cambios de contenido.
 - **0.6** (2026-09-22): añade a §4 la nota de cierre de Fase 3, que fija el alcance de la matriz
-  de predictores (7 familias del BCR) y la lectura de "base maestra bitemporal" — cada archivo
+  de predictores (8 familias: 7 del BCR más la demanda eléctrica de UT) y la lectura de "base
+maestra bitemporal" — cada archivo
   de `data/L3_master/` gana una columna `vintage_id`, resuelta contra `08_vintages.csv`, en vez
   de una lectura documental separada. El registro del cierre está en `doc/adr/README.md`,
   "Cierre de Fase 3". Sin otros cambios de contenido.
@@ -418,14 +419,52 @@ tiene dos mitades (trazabilidad valor→celda, cadena ejecutable) más dos entre
 no estaba fijado. Esta nota fija los dos, con la misma disciplina que "ingresa al proyecto" en
 Fase 1 y "verifica su integridad" en Fase 2: la lectura se declara, no se infiere.
 
-- **Alcance de la matriz de predictores (E1/D3).** Cierra con **7 familias** —todas del BCR:
-  `IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral—,
-  agotando los candidatos de BCR que no disparan una compuerta nueva de ADR-008. Queda
-  explícitamente diferido a una fase posterior, no silenciado: sub-series declinadas de Balanza
-  Comercial (importaciones CIF, saldo comercial — mismo `publicacion_id` ya capturado, sin
-  compuerta ADR-008 nueva) e instituciones nuevas para empleo, energía, turismo y recaudación
-  (cada una abre su propia compuerta de licencias). `UT.DEMANDA_ELEC.GWH.NSA.M` queda admitida en
-  `03_series.csv` y con su propia batería L2, pero fuera de esta matriz — no alimenta `L3`.
+- **Alcance de la matriz de predictores (E1/D3, enmendado 2026-09-23).** Cierra con **8
+  familias**: las 7 del BCR —`IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`,
+  `IPM`— más `UT.DEMANDA_ELEC` (demanda total de electricidad del Mercado Mayorista), todas
+  mensual y trimestral. Son 18 archivos en `data/L3_master/` contando la variable objetivo.
+
+  **Enmienda (2026-09-23, decisión de Harold).** La redacción original de esta nota (2026-09-22)
+  cerraba la matriz con las 7 familias del BCR y dejaba `UT.DEMANDA_ELEC.GWH.NSA.M` "admitida en
+  `03_series.csv` y con su propia batería L2, pero fuera de esta matriz — no alimenta `L3`". Eso
+  contradecía a `doc/relevamiento_predictores_energia_turismo.md` (2026-08-27, relevamiento
+  propio de Harold), que ya había declarado que **energía sí entra al conjunto de predictores**
+  del proyecto y contaba seis de las siete categorías de §6.4 con UT incluida. Resuelto en favor
+  del relevamiento: UT entra a la matriz, es el octavo predictor y el primero de una institución
+  distinta del BCR. Consecuencias ejecutadas en la misma sesión: fila `T011` en
+  `04_transformaciones` (agregación trimestral por SUMA — es un flujo en GWh, mismo criterio que
+  REMESAS/EXPORT_FOB), dos filas en `05_series_master`, `l3_predictores.R` materializa
+  `UT_DEMANDA_ELEC_GWH_NSA_M.csv` (295 obs) y `_Q.csv` (98 obs), y las tres corridas de análisis
+  se regeneraron sobre 18 series (72 filas de estacionariedad; ninguno de los 64 veredictos
+  previos cambió). Ver `doc/evidencia_cierre_fase3.txt`, sección de la enmienda.
+
+  **Consecuencia sobre la primera mitad del criterio de cierre, declarada y no resuelta.** La
+  trazabilidad valor→celda de `make trace` sigue en 105 PASS / 0 FAIL sobre las 106 filas de
+  `03_series.csv`, pero la única fila FUERA_DE_ALCANCE de ese verificador es precisamente
+  `UT.DEMANDA_ELEC.GWH.NSA.M`: su vintage vigente es un CSV derivado de 25 archivos anuales, no
+  una celda de un `.xlsx`, y el script resuelve hoja/fila/rótulo dentro de un `.xlsx`. Hasta el
+  2026-09-22 eso era inocuo porque UT no alimentaba la base maestra; desde esta enmienda, una de
+  las 8 familias de la matriz tiene su trazabilidad sostenida por el `fuente_celda` documental y
+  por las validaciones propias de `ut_demanda_serie.R` (conteo por año, huecos, año tomado del
+  nombre del archivo), no por el verificador mecánico. No se relaja el criterio ni se declara
+  cubierto lo que no lo está: extender `verificar_fuente_celda.R` a vintages CSV queda como deuda
+  abierta que Fase 4 hereda a la vista.
+
+  **Remediado el mismo 2026-09-23, antes del tag.** `verificar_fuente_celda.R` ganó una rama
+  para publicaciones capturadas un `.csv` por año: resuelve año→vintage con
+  `mapa_vintage_por_anio()` (la misma regla con la que L3 etiqueta `vintage_id`) y, en cada uno
+  de los 25 archivos de UT, comprueba el checksum contra el manifiesto, que el año del nombre del
+  archivo sea el del vintage y que exista exactamente una línea igual al encabezado citado en
+  `fuente_celda` (`MES,,,GWH,,`), además de que los años cubran `inicio..fin` sin huecos. Es el
+  análogo del rótulo en la fila citada de un `.xlsx`, con el mismo alcance: ancla estructural,
+  no cada valor. `make trace` pasa a **106 PASS / 0 FAIL / 0 FUERA_DE_ALCANCE**. Lo escrito arriba
+  queda como registro de la deuda que se declaró; ver `doc/bitacora_verificaciones.md`.
+
+  Sigue diferido a una fase posterior, no silenciado: sub-series declinadas de Balanza Comercial
+  (importaciones CIF, saldo comercial — mismo `publicacion_id` ya capturado, sin compuerta
+  ADR-008 nueva) e instituciones nuevas para empleo, turismo y recaudación (cada una abre su
+  propia compuerta de licencias). Turismo está además excluido por disponibilidad, no declinado:
+  solo hay entrega anual con casi dos años de rezago (ver el relevamiento).
 - **Lectura de "base maestra bitemporal" (E3/D4).** La senda (D7, §3.4) define bitemporal como
   *cada observación indexada por período de referencia y por fecha de publicación*. Se descartó
   la lectura documental (L3 + `08_vintages.csv` por separado): **la dimensión de vintage vive EN

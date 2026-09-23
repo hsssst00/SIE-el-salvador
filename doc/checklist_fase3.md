@@ -3,10 +3,22 @@
 > Deriva de `doc/senda_metodologica.md` §4 (Fase 3). No sustituye la senda ni el
 > índice de ADR (`doc/adr/README.md`) — es un tablero de seguimiento operativo,
 > vivo, para no perder de vista qué falta antes de poder escribir la nota de
-> cierre en `doc/adr/README.md`. **Última actualización: 2026-09-22 —
-> operacionalización de `checklist_cierre_fase3.md` y cierre de Fase 3.**
-> Cerradas en esta sesión: E1/D3 (matriz de predictores fija en 7 familias
-> BCR), E2 (mapeo 29-vs-28 de PIB, es `FBK`), E3/D4 (columna `vintage_id` en
+> cierre en `doc/adr/README.md`. **Última actualización: 2026-09-23 — enmienda
+> del alcance E1/D3: `UT.DEMANDA_ELEC` (demanda total de electricidad) entra a
+> la matriz de predictores, que pasa a 8 familias y 18 series en
+> `data/L3_master/`.** Decisión de Harold, sobre la contradicción entre esta
+> nota de cierre (que dejaba UT fuera de la matriz) y
+> `doc/relevamiento_predictores_energia_turismo.md` (2026-08-27), que ya
+> declaraba que energía entra al conjunto de predictores. Ejecutado en esa
+> sesión: `T011` en `04_transformaciones`, dos filas en `05_series_master`,
+> `UT_DEMANDA_ELEC_GWH_NSA_M/.Q` materializadas, y exploratorio/estacionariedad/
+> HEGY regenerados sobre 18 series sin que cambie ninguno de los 64 veredictos
+> previos. Se cerró de paso la última casilla `[~]` del tablero (construcción de
+> la matriz de predictores), que contradecía a su propio entregable. Sesión
+> anterior, 2026-09-22 — operacionalización de `checklist_cierre_fase3.md` y
+> cierre de Fase 3.
+> Cerradas en esa sesión: E1/D3 (matriz de predictores fija en 7 familias
+> BCR, enmendado el 2026-09-23 a 8), E2 (mapeo 29-vs-28 de PIB, es `FBK`), E3/D4 (columna `vintage_id` en
 > `data/L3_master/`, `src/transformacion/vintage_lib.R`), A1 (UT normalizada
 > al esquema largo, entra a la batería L2), D1 (componente estacional: HEGY
 > propio en R + dummies en el ADF, nota de seguimiento de ADR-010), D2
@@ -78,8 +90,8 @@
 - [x] **Transformaciones L3** (empalmes, deflactación, ajuste estacional,
   cambios de frecuencia, logaritmos y diferencias). **Cerrado (2026-09-22,
   A2 del checklist de cierre de Fase 3):** completo para la variable
-  objetivo (T001/T002) y para las 7 familias de predictores que cierran la
-  matriz (E1/D3) — el resto de predictores queda diferido, no pendiente de
+  objetivo (T001/T002) y para las 8 familias de predictores que cierran la
+  matriz (E1/D3, enmendado 2026-09-23: las 7 del BCR más UT) — el resto de predictores queda diferido, no pendiente de
   esta actividad. Gana columna `vintage_id` en la misma sesión (E3/D4, ver
   entregable "Base maestra bitemporal").
   **Variable objetivo materializada (2026-09-16):** `src/transformacion/
@@ -210,22 +222,41 @@
   bordes incompletos) + `BCR_IPM_IDX_NSA_M.csv` (257 obs, 2005-M01 a
   2026-M05) + `_Q.csv` (85 obs, 2005-Q1 a 2026-Q1; 2026-Q2 excluido por
   borde, solo abril-mayo). No se agregó ningún `test_that` nuevo: ambos
-  reutilizan `agregar_trimestral_promedio()`, ya cubierta. **Pendiente:** el
-  resto de la matriz de predictores — Exportación/Términos de Intercambio de
-  `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`, bilaterales de `BCR.ITCER`,
-  Importaciones/Balanza de `BCR.BALANZA_COMERCIAL` (todas declinadas, no
-  descartadas), empleo cotizante, energía, turismo, recaudación (senda §6.4)
-  siguen sin extractor ni transformación.
+  reutilizan `agregar_trimestral_promedio()`, ya cubierta.
+  **Octavo predictor materializado (2026-09-23): `UT.DEMANDA_ELEC.GWH.NSA.M/.Q`**
+  (demanda total de electricidad del Mercado Mayorista, senda §6.4, energía).
+  Primera familia de la matriz que NO es del BCR, y la única cuya L0 se capturó
+  a mano (25 archivos anuales, regla 9 de `CLAUDE.md`: `robots.txt` de
+  `ut.com.sv` no permite scraping). No requirió captura nueva ni extractor
+  nuevo: su L1 ya existía desde 2026-08-27 (`ut_demanda_serie.R`) y ya pasaba la
+  batería L2 desde el 2026-09-22. Lo que faltaba era exactamente lo que esta
+  sesión agregó: fila `T011` en `04_transformaciones` (SUMA, es un flujo en GWh),
+  dos filas en `05_series_master` y la entrada en el mapa `FUENTE_L1` de
+  `l3_predictores.R`. Salidas: `UT_DEMANDA_ELEC_GWH_NSA_M.csv` (295 obs,
+  2002-M01 a 2026-M07) + `_Q.csv` (98 obs, 2002-Q1 a 2026-Q2; 2026-Q3 excluido
+  por borde, solo julio). Sí requirió código nuevo para el `vintage_id`:
+  `agregar_vintage_por_anio()` en `vintage_lib.R` (+5 `test_that` en
+  `tests/test-vintage-lib.R`), porque es la única publicación de la matriz con
+  más de un vintage (25) y el vintage "vigente" habría etiquetado las 288
+  observaciones de 2002-2025 con el archivo de 2026.
+  **Pendiente:** el resto de la matriz de predictores — Exportación/Términos de
+  Intercambio de `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`, bilaterales de
+  `BCR.ITCER`, Importaciones/Balanza de `BCR.BALANZA_COMERCIAL` (todas
+  declinadas, no descartadas), empleo cotizante y recaudación (senda §6.4)
+  siguen sin extractor ni transformación; turismo está excluido por
+  disponibilidad, no pendiente.
 - [x] **Análisis exploratorio y de estacionariedad.** (2026-09-17) Ambas
   mitades completas. "Exploratorio": `src/analisis/exploracion_series.R` +
-  `exploracion_series_reglas.R` leen las 16 series de `data/L3_master/`
-  (target + matriz de predictores completa a la fecha) y calculan cobertura,
+  `exploracion_series_reglas.R` leen las 18 series de `data/L3_master/`
+  (target + matriz de predictores completa a la fecha; eran 16 hasta la enmienda
+  de E1/D3 del 2026-09-23, que admite UT) y calculan cobertura,
   huecos internos (distintos de un simple borde de arranque/cierre tardío) y
   momentos muestrales de nivel y primera diferencia. Salidas: `data/L3_master/
   reporte_exploratorio_resumen.csv` (una fila por serie) y
   `data/L3_master/exploracion/<serie>.png` (nivel + primera diferencia) —
   capa generada, no versionada, mismo criterio que el resto de `L3_master`.
-  Corrida real (2026-09-17): 16/16 series sin huecos internos — consistente
+  Corrida real (2026-09-17, reejecutada 2026-09-23): 18/18 series sin huecos
+  internos — consistente
   con que los extractores ya fallan de forma visible ante huecos reales
   (regla 7 de `CLAUDE.md`), así que este resultado confirma, no descubre.
   `tests/test-exploracion-series.R` (4 aserciones, datos sintéticos,
@@ -267,21 +298,34 @@
   tiene un análogo exacto de BIC, se usó `lags="short"` como la opción más
   parsimoniosa disponible. Especificación determinística (trend para
   nivel/log-nivel, drift para las diferencias) fijada por convención
-  económica estándar, no preguntada por separado. Salida real (16 series x
-  hasta 4 transformaciones = 64 filas): `data/L3_master/
+  económica estándar, no preguntada por separado. Salida real (18 series x
+  hasta 4 transformaciones = 72 filas): `data/L3_master/
   reporte_estacionariedad.csv`. **Regenerado dos veces el 2026-09-19**: primero
   tras la remediación de la revisión independiente (31 "estacionaria", 22
   "no_estacionaria", 11 "ambigua" desdoblada en dos etiquetas, y `adf_rezagos`
   pasa a ser la selección BIC efectiva con el techo de Schwert en
   `adf_techo_rezagos`); después al corregir la grilla de selección de rezagos
   (hallazgo C2: `ur.df(selectlags="BIC")` nunca evalúa 0 rezagos), que deja la
-  salida vigente en **33 "estacionaria", 21 "no_estacionaria" y 10
-  `ambigua_ambas_rechazan`**, ninguna `ambigua_ninguna_rechaza`. Las dos
+  salida de esa fecha en **33 "estacionaria", 21 "no_estacionaria" y 10
+  `ambigua_ambas_rechazan`**, ninguna `ambigua_ninguna_rechaza`. **Regenerado por
+  quinta vez el 2026-09-23** al admitir UT a la matriz (enmienda de E1/D3): 18
+  series y 72 filas, **37 "estacionaria", 23 "no_estacionaria" y 12
+  `ambigua_ambas_rechazan`**, y las 64 filas anteriores quedan idénticas bit a
+  bit —mismo estadístico, mismos rezagos, mismo veredicto—, así que la diferencia
+  en los agregados son exactamente las 8 filas nuevas de UT (4 "estacionaria",
+  2 "no_estacionaria", 2 `ambigua_ambas_rechazan`). Las dos
   etiquetas ambiguas se renombraron (hallazgo I1) para que nombren la celda de
   la tabla 2×2 y no una causa; el CSV publica además los valores críticos al
   1/5/10%, `adf_tipo`/`kpss_tipo` y `adf_ljung_box_p`. Patrón econométricamente
   coherente con series macro trending, no una sorpresa.
-- [~] **Construcción de la matriz de predictores.** Iniciada 2026-09-16 con
+- [x] **Construcción de la matriz de predictores.** **Cerrada 2026-09-23** con
+  la enmienda del alcance E1/D3 (decisión de Harold): la matriz son 8 familias
+  —las 7 del BCR más `UT.DEMANDA_ELEC`—, 18 archivos en `data/L3_master/`
+  contando la variable objetivo. Esta casilla había quedado en `[~]` el
+  2026-09-22 mientras su propio entregable ("Matriz de predictores mensuales y
+  trimestrales", abajo) se marcaba `[x]` con la misma decisión: el mismo objeto
+  con dos marcas distintas. Se resuelve acá, no se reinterpreta.
+  Iniciada 2026-09-16 con
   `BCR.IVAE.VOL.SA.M/.Q`, extendida el mismo día con
   `BCR.REMESAS.NOM/REAL.NSA.M/.Q`, luego con `BCR.IPP.IDX.NSA.M/.Q`, luego
   con `BCR.EXPORT_FOB.NOM.NSA.M/.Q` y luego con `BCR.ITCER.IDX.NSA.M/.Q` +
@@ -306,10 +350,18 @@
     Precios de Exportación y de Términos de Intercambio de
     `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`; bilateral con EEUU y con
     Centroamérica de `BCR.ITCER`.
-  - **Instituciones genuinamente nuevas** (empleo cotizante, energía,
-    turismo, recaudación, senda §6.4): ninguna identificada con
-    publicación/fuente concreta todavía — cada una dispararía su propia
-    compuerta *just-in-time* de ADR-008 antes de admitirse, igual que UT.
+  - **Instituciones genuinamente nuevas** (empleo cotizante, turismo,
+    recaudación, senda §6.4): ninguna identificada con publicación/fuente
+    concreta todavía — cada una dispararía su propia compuerta *just-in-time*
+    de ADR-008 antes de admitirse, igual que UT. **Corregido 2026-09-23:**
+    esta lista incluía "energía", que era falso desde el 2026-08-27 — la
+    fuente estaba identificada (Unidad de Transacciones), capturada (25
+    archivos anuales), catalogada (`UT.DEMANDA_ELEC.GWH.NSA.M`) y con su
+    compuerta ADR-008 abierta y cerrada; ver
+    `doc/relevamiento_predictores_energia_turismo.md`. Desde esa misma fecha
+    alimenta L3 (T011). Turismo tampoco pertenece del todo a esta lista: está
+    **excluido por disponibilidad** (única entrega anual, con casi dos años de
+    rezago), no pendiente de relevamiento.
   `BCR.IPRI.BASE_1990` queda descartada como candidato (no solo declinada):
   serie cerrada (oct-2017), predecesora de IPP, sin tabla de concordancia
   verificada (09_rupturas.csv R010) — admitirla exigiría resolver el
@@ -340,32 +392,46 @@
   1 `BCR.IPP.IDX.NSA.M` + 1 `BCR.EXPORT_FOB.NOM.NSA.M` + 1
   `BCR.ITCER.IDX.NSA.M` + 1 `BCR.IPM.IDX.NSA.M`, las siete últimas altas de
   2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE). **Cerrado
-  (2026-09-22, E1/D3 y E2 del checklist de cierre de Fase 3):** la matriz de
-  predictores cierra Fase 3 con estas 7 familias — el resto (sub-series
-  declinadas de Balanza Comercial, instituciones nuevas para empleo/energía/
-  turismo/recaudación) se admite en fase posterior, decisión de Harold. El
+  (2026-09-22, E1/D3 y E2 del checklist de cierre de Fase 3; E1/D3 enmendado el
+  2026-09-23):** la matriz de predictores cierra Fase 3 con 8 familias — estas 7
+  del BCR más `UT.DEMANDA_ELEC.GWH.NSA.M`, que ya tenía fila en `03_series.csv`
+  desde 2026-08-27 y pasa a alimentar L3. El conteo de 106 filas no cambia: la
+  fila de UT ya estaba. El resto (sub-series declinadas de Balanza Comercial,
+  instituciones nuevas para empleo/turismo/recaudación) se admite en fase
+  posterior, decisión de Harold. El
   mapeo 29-vs-28 de variables de volumen de PIB quedó reconciliado: la
   diferencia es exactamente `FBK` (Formación Bruta de Capital total, incluye
   variación de existencias), publicada solo en NOMINAL — el portal no publica
   índice de volumen encadenado de esa línea (`doc/bitacora_fuentes_fragiles.md`).
-- [x] Catálogo `04_transformaciones` poblado — 10 filas (T001–T010), todas
-  con `script_path`/`funcion` reales. Cierra con estas 10 (mismo alcance de
-  matriz que arriba); el resto de predictores queda diferido, no pendiente de
+- [x] Catálogo `04_transformaciones` poblado — **11 filas (T001–T011)**, todas
+  con `script_path`/`funcion` reales. Cierra con estas 11 (mismo alcance de
+  matriz que arriba): las 10 del cierre del 2026-09-22 más
+  `T011_AGREGACION_TRIMESTRAL_UT_DEMANDA`, alta del 2026-09-23 con la enmienda
+  de E1/D3 — agregación por SUMA, porque la demanda eléctrica es un flujo
+  (GWh del mes), mismo criterio que T005/T008 y no el promedio de
+  T003/T007/T009/T010. El resto de predictores queda diferido, no pendiente de
   esta fase.
-- [x] Catálogo `05_series_master` poblado — 17 filas (`PIB.NSA.CONCAT.Q`
+- [x] Catálogo `05_series_master` poblado — **19 filas** (17 al cierre del
+  2026-09-22 más `UT.DEMANDA_ELEC.GWH.NSA.M/.Q` del 2026-09-23): (`PIB.NSA.CONCAT.Q`
   intermedio + `PIB.SA.PROPIO.Q`, `PIB.SA.OFICIAL.Q`, `BCR.IVAE.VOL.SA.M/.Q`,
   `BCR.REMESAS.NOM.NSA.M/.Q`, `BCR.REMESAS.REAL.NSA.M/.Q`,
   `BCR.IPP.IDX.NSA.M/.Q`, `BCR.EXPORT_FOB.NOM.NSA.M/.Q`,
-  `BCR.ITCER.IDX.NSA.M/.Q`, `BCR.IPM.IDX.NSA.M/.Q`), 16 materializadas + 1
-  intermedia (nunca se escribe a disco, ver su fila). Cerrado bajo el mismo
+  `BCR.ITCER.IDX.NSA.M/.Q`, `BCR.IPM.IDX.NSA.M/.Q`,
+  `UT.DEMANDA_ELEC.GWH.NSA.M/.Q`), **18 materializadas + 1 intermedia** (la
+  intermedia nunca se escribe a disco, ver su fila). Cerrado bajo el mismo
   alcance de matriz.
 - [x] Base maestra bitemporal — `data/L3_master/` tiene la variable objetivo
   (`PIB_SA_PROPIO_Q.csv`, `PIB_SA_PROPIO_Q_outliers.csv`,
-  `PIB_SA_OFICIAL_Q.csv`) y seis predictores (`BCR_IVAE_VOL_SA_M/_Q.csv`,
-  `BCR_REMESAS_NOM_NSA_M/_Q.csv`, `BCR_REMESAS_REAL_NSA_M/_Q.csv`,
-  `BCR_IPP_IDX_NSA_M/_Q.csv`, `BCR_EXPORT_FOB_NOM_NSA_M/_Q.csv`,
-  `BCR_ITCER_IDX_NSA_M/_Q.csv`, `BCR_IPM_IDX_NSA_M/_Q.csv`) — el alcance
-  completo de la matriz que cierra Fase 3 (E1). **"Bitemporal" resuelto
+  `PIB_SA_OFICIAL_Q.csv`) y ocho familias de predictores
+  (`BCR_IVAE_VOL_SA_M/_Q.csv`, `BCR_REMESAS_NOM_NSA_M/_Q.csv`,
+  `BCR_REMESAS_REAL_NSA_M/_Q.csv`, `BCR_IPP_IDX_NSA_M/_Q.csv`,
+  `BCR_EXPORT_FOB_NOM_NSA_M/_Q.csv`, `BCR_ITCER_IDX_NSA_M/_Q.csv`,
+  `BCR_IPM_IDX_NSA_M/_Q.csv`, `UT_DEMANDA_ELEC_GWH_NSA_M/_Q.csv`) — el alcance
+  completo de la matriz que cierra Fase 3 (E1, enmendado 2026-09-23). Para UT la
+  columna `vintage_id` NO es constante: se resuelve por año de referencia contra
+  sus 25 vintages anuales (`agregar_vintage_por_anio()` en `vintage_lib.R`),
+  porque el vintage "vigente" habría etiquetado las 288 observaciones de
+  2002-2025 con el archivo de 2026. **"Bitemporal" resuelto
   (2026-09-22, E3/D4):** cada archivo gana una columna `vintage_id`, resuelta
   contra `08_vintages.csv` vía `src/transformacion/vintage_lib.R` — no una
   lectura documental separada. Ver la nota de cierre de Fase 3 en
@@ -390,13 +456,23 @@
   variable objetivo", punto de apertura). Retirada; la unidad de modelación
   de las predictoras sigue explícitamente abierta (regla 4 de `CLAUDE.md`).
 - [x] Matriz de predictores mensuales y trimestrales con cobertura documentada
-  — 7 familias de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
-  real, `BCR.IPP`, `BCR.EXPORT_FOB`, `BCR.ITCER`, `BCR.IPM`, mensual y
-  trimestral). **Cerrado (2026-09-22, E1/D3):** decisión de Harold, la matriz
-  cierra Fase 3 con estas 7 familias — se agotaron los candidatos de BCR sin
-  compuerta ADR-008 nueva, y lo que sigue (sub-series declinadas, o
-  instituciones nuevas para empleo/energía/turismo/recaudación) se admite en
-  una fase posterior, no como continuación mecánica del mismo procedimiento.
+  — **8 familias** de la senda §6.4 (`BCR.IVAE`, `BCR.REMESAS` nominal y
+  real, `BCR.IPP`, `BCR.EXPORT_FOB`, `BCR.ITCER`, `BCR.IPM`, `UT.DEMANDA_ELEC`,
+  mensual y trimestral). **Cerrado (2026-09-22, E1/D3) y enmendado (2026-09-23):**
+  el cierre original fijaba 7 familias, todas del BCR, y dejaba la demanda
+  eléctrica fuera de la matriz; Harold enmendó el alcance para incluirla, porque
+  el relevamiento de 2026-08-27 ya había declarado que energía entra al conjunto
+  de predictores y el dato estaba listo hasta L2. Con eso la matriz cubre **cinco
+  de las siete categorías** que nombra la senda §6.4 —IVAE, remesas, comercio
+  exterior, precios y energía—, más `BCR.ITCER` (tipo de cambio efectivo real),
+  que la senda no lista entre esas siete. Faltan **empleo cotizante** (las
+  publicaciones del ISSS están catalogadas en `01_publicaciones` pero ninguna
+  serie admitida en `03_series.csv`) y **recaudación**, que se admiten en una
+  fase posterior, no como continuación mecánica del mismo procedimiento;
+  **turismo** está excluido por disponibilidad (única entrega anual con casi dos
+  años de rezago, ver el relevamiento). Ojo con el conteo del relevamiento, que
+  decía "seis de las siete": contaba empleo cotizante como cubierto por tener
+  publicación catalogada, que no es lo mismo que tener serie en la matriz.
 
 ## Guards de CI a subsumir
 
@@ -548,3 +624,14 @@ inferencia, no como tarea a resolver de una vez:
    recaudación) ni a las sub-series que la decisión 8 ya había declinado
    explícitamente — eso excede "las restantes" tal como se entendió esta
    instrucción.
+10. **`UT.DEMANDA_ELEC` (octavo predictor, 2026-09-23) no disparó ninguna
+   pregunta metodológica nueva** — se verificó explícitamente contra las
+   decisiones 2, 5 y 6 antes de admitirlo, mismo patrón que la decisión 7 para
+   `BCR.IPP`: (a) agregación por SUMA, no promedio — es un flujo (GWh
+   demandados durante el mes), mismo criterio ya fijado para REMESAS y
+   EXPORT_FOB; (b) sin deflactar — la pregunta "caso por caso" de la decisión 5
+   aplica a series monetarias nominales, y ésta es una magnitud física; (c) sin
+   ajuste estacional propio pese a ser NSA — ya cubierto en general por la
+   decisión 6. Lo que sí fue una decisión de Harold es el ALCANCE de la matriz
+   (E1/D3), no el tratamiento de la serie: ver la enmienda en la cabecera.
+   Queda constancia de que se revisó, no que se infirió.

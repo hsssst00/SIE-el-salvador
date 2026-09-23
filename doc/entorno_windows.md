@@ -64,3 +64,19 @@ Rscript -e 'testthat::test_dir("tests")'
 No se modificó el `Makefile` para trabajar alrededor de esto — ver
 `CLAUDE.md` sobre no introducir cambios no solicitados fuera del alcance de
 la fase actual.
+
+## Addendum (2026-09-23): depende de desde dónde se lanza `make`
+
+Reproducido con R 4.6.1 y `cli` cargado vía `pointblank`: el mismo `make.exe` de Rtools45
+segfaultea al salir cada `Rscript` si se lanza desde Git Bash o vía `cmd /c ... > archivo`, y
+**no** segfaultea si se invoca directamente desde PowerShell:
+
+```
+$env:PATH = "C:\Program Files\R\R-4.6.1\bin\x64;C:\rtools45\usr\bin;" + $env:PATH
+& C:\rtools45\usr\bin\make.exe master
+```
+
+Encaja con la causa de arriba (estado de la consola del proceso hijo). Además, desde Git Bash el
+entorno llega casi vacío a los hijos de `make` (sin `SystemRoot`, `TEMP`, `USERPROFILE`), por el
+choque entre el runtime MSYS de Git y el de Rtools. Con esta invocación, `make master`, `make
+trace` y `make test` corren completos por la vía normal. No se tocó el `Makefile`.

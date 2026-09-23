@@ -65,6 +65,23 @@ de predictores mensuales del proyecto queda en IVAE, remesas, comercio exterior,
 precios, empleo cotizante y **energía (UT, capturado 2002-2026)** — seis de las
 siete categorías nombradas en senda §6.4, con turismo como la única excluida.
 
+## Estado en la matriz de predictores (actualizado 2026-09-23)
+
+Esta nota declaró el 2026-08-27 que energía entra al conjunto de predictores. El cierre de Fase 3
+(2026-09-22) la dejó, sin embargo, fuera de la matriz: admitida en `03_series.csv` y con su
+batería L2, pero sin alimentar L3. **Harold resolvió esa contradicción el 2026-09-23 en favor de
+esta nota:** `UT.DEMANDA_ELEC.GWH.NSA.M/.Q` es el octavo predictor de la matriz, con `T011` en
+`04_transformaciones` (agregación trimestral por suma: es un flujo en GWh) y dos filas en
+`05_series_master`. Ver la enmienda de E1/D3 en `doc/senda_metodologica.md` §4 y en
+`doc/adr/README.md`, "Cierre de Fase 3".
+
+Una precisión sobre el conteo de arriba: "seis de las siete categorías" cuenta **empleo
+cotizante** como cubierto porque el ISSS tiene publicaciones catalogadas en `01_publicaciones`,
+pero no tiene ninguna serie admitida en `03_series.csv` ni en la matriz. Contando series
+efectivamente materializadas en L3, la matriz cubre **cinco** de las siete categorías de §6.4
+—IVAE, remesas, comercio exterior, precios y energía—, más `BCR.ITCER`, que la senda no lista
+entre esas siete.
+
 ## Si la disponibilidad cambia en el futuro
 
 Si el Ministerio de Turismo (o CORSATUR) publica en el futuro una serie mensual o

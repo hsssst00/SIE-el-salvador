@@ -420,3 +420,88 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
 - Notas: corrida ejecutada por Claude Code (Sonnet 5) contra el árbol de trabajo local de
   Harold, con los archivos de `data/L0_raw/` presentes. No requirió cambios al script del
   verificador.
+
+## 2026-09-23 — revalidación tras la enmienda del alcance E1/D3 (UT entra a la matriz)
+
+- **Contexto:** Harold enmendó el alcance de la matriz de predictores para incluir
+  `UT.DEMANDA_ELEC.GWH.NSA.M/.Q` (ver `doc/senda_metodologica.md` §4 y `doc/adr/README.md`,
+  "Cierre de Fase 3"). `catalogos/03_series.csv` sigue en **106 filas** —la fila de UT ya
+  existía desde el 2026-08-27, solo se amplió su `notas`— y ninguna columna `fuente_celda`
+  cambió, pero se corrió el verificador de nuevo porque el catálogo se tocó y porque desde
+  esta enmienda UT alimenta la base maestra.
+- **Resultado: 105 PASS / 0 FAIL / 0 NO_VERIFICABLE / 1 FUERA_DE_ALCANCE** (de 106 filas),
+  idéntico a la corrida de cierre del 2026-09-22. Código de salida 0.
+- **La fila FUERA_DE_ALCANCE importa más que antes:** es `UT.DEMANDA_ELEC.GWH.NSA.M`, cuyo
+  vintage vigente es un CSV derivado de 25 archivos anuales, no un `.xlsx`. Hasta el
+  2026-09-22 eso era inocuo porque UT no entraba a L3; ahora una de las 8 familias de la
+  matriz tiene su trazabilidad valor→celda sostenida por su `fuente_celda` documental y por
+  las validaciones propias de `ut_demanda_serie.R`, no por este verificador. Extenderlo a
+  vintages CSV queda como deuda abierta, declarada en la nota de cierre — no es un criterio
+  relajado en silencio.
+- `testthat::test_dir("tests")` en la misma sesión: **461 PASS / 0 FAIL / 4 WARN / 3 SKIP**.
+  Los 3 skips son los conocidos del entorno (1 por falta de ejecutable `zip`, 2 por
+  X-13ARIMA-SEATS no disponible), no una regresión: la corrida del 2026-09-22 no tuvo skips
+  porque en esa máquina ambas herramientas estaban presentes (ver `doc/entorno_windows.md`).
+  Los 4 WARN son avisos de `library()` a nivel de archivo por paquetes compilados contra R
+  4.5.3, propios de esta corrida, no del código. Incluye las 5 pruebas nuevas de
+  `agregar_vintage_por_anio()` en `tests/test-vintage-lib.R`.
+- `scripts/auditoria_mecanica.R`: 03_series 106 filas, **04_transformaciones 11**,
+  **05_series_master 19**, 08_vintages 56, 09_rupturas 14; integridad referencial con todas
+  las aristas resueltas (`05_master.series_insumo_ids -> 03_series` 23/23 tokens, eran 21);
+  ADR 10/10 consistentes con el índice. Código de salida 0.
+- **Notas de entorno:** corrida ejecutada por Claude Science contra el árbol de trabajo local
+  de Harold, con los archivos de `data/L0_raw/` presentes, pero **por una vía distinta a la
+  habitual**: `Rscript --vanilla` con `R_LIBS` apuntando a la librería de renv, porque en este
+  entorno el bootstrap de renv no puede escribir su librería y `make` no corre. Misma librería
+  de paquetes (`renv.lock` sin cambios), sin pasar por el `.Rprofile` del proyecto. Conviene
+  reejecutar `make master`/`make trace`/`make test` por la vía normal antes de tagear. No
+  requirió cambios al script del verificador.
+
+## 2026-09-23 — reejecución por la vía normal (`make`) antes del tag `v0.6.0-fase3`
+
+- **Contexto:** la entrada anterior se corrió con `Rscript --vanilla` y `R_LIBS` forzado, y
+  dejó pendiente reejecutar por la vía normal antes de tagear. Esta es esa corrida, sobre el
+  mismo árbol de trabajo (la enmienda de UT sin commitear encima de `5968d8c`).
+- **Entorno:** R 4.6.1 (coincide con `renv.lock`), `make` de Rtools45, renv activado por el
+  `.Rprofile` del proyecto; `renv::status()` → "No issues found", sin `R_LIBS` ni `--vanilla`.
+  `make` se invocó directamente desde PowerShell: lanzado desde Git Bash o vía `cmd /c`,
+  cada `Rscript` que carga paquetes con `cli` segfaultea al salir (ver
+  `doc/entorno_windows.md`, addendum del 2026-09-23).
+- `make master` → código de salida 0. `validate` (esquemas + integridad 03/04/05/08/09) OK;
+  L2 OK para PIB y para las 8 series de predictores (UT 295 obs); L3 regenerado: 2 series del
+  objetivo + 16 de predictores, con `UT.DEMANDA_ELEC.GWH.NSA.M` 295 obs y `.Q` 98 obs.
+- `make trace` (`verificar_fuente_celda.R`) → **105 PASS / 0 FAIL / 0 NO_VERIFICABLE /
+  1 FUERA_DE_ALCANCE** (de 106), código de salida 0. Idéntico a la corrida anterior; la fila
+  FUERA_DE_ALCANCE sigue siendo `UT.DEMANDA_ELEC.GWH.NSA.M` (vintage vigente CSV), deuda ya
+  declarada.
+- `make test` → **468 PASS / 0 FAIL / 0 WARN / 0 SKIP**, código de salida 0. Los 3 SKIP y 4
+  WARN de la entrada anterior eran del entorno de esa corrida (sin `zip`/X-13, paquetes
+  compilados contra otra R), no del código. La diferencia 461 → 468 PASS es consistente con
+  las aserciones que esos 3 tests saltados no ejecutaban, pero no se verificó test por test.
+- La corrida no modificó ningún archivo versionado (L1–L3 se generan y no se versionan).
+- Notas: corrida ejecutada por Claude Code (Opus 5.5) contra el árbol de trabajo local de
+  Harold, con `data/L0_raw/` presente. No requirió cambios al verificador.
+
+## 2026-09-23 — rama CSV por año: la fila de UT deja de estar FUERA_DE_ALCANCE
+
+- **Cambio:** `verificar_fuente_celda.R` verifica publicaciones capturadas un `.csv` por año
+  cuando su `fuente_celda` cita un encabezado (`encabezado "..."`). Resuelve año→vintage con
+  `mapa_vintage_por_anio()`, nueva en `src/transformacion/vintage_lib.R` y extraída de
+  `agregar_vintage_por_anio()`: es la misma regla con la que L3 etiqueta `vintage_id`, sin
+  duplicarla. Por cada año comprueba el checksum SHA-256 contra el manifiesto, que el año del
+  nombre de archivo sea el del vintage (`ut_demanda_serie.R` toma el año del nombre) y que haya
+  exactamente una línea igual al encabezado citado; además, que los años cubran `inicio..fin`
+  sin huecos. Mismo alcance que la rama `.xlsx`: ancla estructural, no cada valor.
+  `03_series.csv` no cambió: su `fuente_celda` ya citaba `encabezado ""MES,,,GWH,,""`.
+- `make trace` (invocado desde PowerShell, renv por `.Rprofile`) → **106 PASS / 0 FAIL /
+  0 NO_VERIFICABLE / 0 FUERA_DE_ALCANCE** (de 106), código de salida 0. UT:
+  "25 archivos anuales .csv (2002-2026), uno por vintage: checksum, año del nombre y
+  encabezado "MES,,,GWH,," coinciden en todos".
+- **Prueba negativa** (manifiesto/08_vintages/fuente_celda alterados en memoria, L0 intacto):
+  checksum roto en 2010 → FAIL; encabezado `MES,,,MWH,,` → FAIL (25 de 25); `fin` 2027 → FAIL;
+  vintage 2015 quitado → FAIL; archivo de 2013 asignado al vintage 2012 → FAIL; archivo
+  inexistente → NO_VERIFICABLE; `fuente_celda` sin encabezado → FUERA_DE_ALCANCE.
+- `make test` → **471 PASS / 0 FAIL / 0 WARN / 0 SKIP** (+3 aserciones de
+  `mapa_vintage_por_anio()` en `tests/test-vintage-lib.R`), código de salida 0.
+- Notas: corrida ejecutada por Claude Code (Opus 5.5) contra el árbol local de Harold, con
+  `data/L0_raw/` presente.

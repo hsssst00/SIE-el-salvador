@@ -31,11 +31,11 @@
 # anteriores no se re-verifican aca.
 #
 # QUE QUEDA FUERA DE ALCANCE. Este verificador resuelve hoja -> readxl -> fila dentro de un
-# .xlsx. Una fila cuyo vintage vigente no es un .xlsx (p.ej. UT.DEMANDA_TOTAL_MENSUAL, serie
-# derivada de 25 CSV via src/transformacion/ut_demanda_serie.R, cuyo fuente_celda describe la
-# derivacion en prosa y no cita una celda) no es una verificacion fallida: es una verificacion
-# que esta herramienta no puede hacer. Se reporta como FUERA_DE_ALCANCE, se lista una por una
-# en el resumen para que un humano las lea, y no cuenta como FAIL. La distincion es por
+# .xlsx, y desde 2026-09-23 tambien archivos .csv anuales con encabezado citado (ver "RAMA CSV
+# POR AÑO" abajo; UT.DEMANDA_TOTAL_MENSUAL era hasta entonces la unica fila fuera de alcance).
+# Una fila cuyo vintage vigente no cae en ninguna de las dos ramas no es una verificacion
+# fallida: es una verificacion que esta herramienta no puede hacer. Se reporta como
+# FUERA_DE_ALCANCE, se lista una por una en el resumen para que un humano las lea, y no cuenta como FAIL. La distincion es por
 # extension del archivo de L0, no por publicacion_id: un fuente_celda malformado sobre una
 # publicacion que SI es .xlsx sigue siendo FAIL, que es el fallo que importa conservar.
 #
@@ -56,14 +56,33 @@
 # convencion de readxl. La correccion es leer con la misma libreria y la misma convencion que el
 # extractor, para que este verificador confirme lo que el extractor realmente hace, no una
 # indexacion distinta que por coincidencia suele dar el mismo numero.
+#
+# RAMA CSV POR AÑO (2026-09-23; hasta entonces UT.DEMANDA_ELEC.GWH.NSA.M salia FUERA_DE_ALCANCE).
+# Una publicacion capturada UN ARCHIVO POR AÑO en .csv (hoy solo UT.DEMANDA_TOTAL_MENSUAL, 25
+# archivos 2002-2026) no tiene "vintage vigente" en el sentido de arriba: sus vintages no se
+# reemplazan entre si, cada uno aporta su propio año. Por eso esta rama no toma la ultima fila
+# del manifiesto sino el mapa año -> vintage de mapa_vintage_por_anio() (vintage_lib.R), la
+# MISMA regla con la que L3 etiqueta la columna vintage_id, y comprueba por cada año:
+#   - que el vintage exista en el manifiesto y su archivo en data/L0_raw/ (si falta alguno:
+#     NO_VERIFICABLE, igual que la rama .xlsx);
+#   - checksum SHA-256 contra el manifiesto;
+#   - que el año del nombre de archivo sea el año del vintage (ut_demanda_serie.R toma el año
+#     del NOMBRE, nunca del contenido, asi que esa correspondencia es la que sostiene cada fecha);
+#   - que el archivo tenga exactamente una linea igual al encabezado que cita fuente_celda
+#     (`encabezado "MES,,,GWH,,"`), el analogo del rotulo en la fila citada de un .xlsx.
+# Ademas, que los años del mapa cubran sin huecos inicio..fin de 03_series.csv. Como en la rama
+# .xlsx, se verifica el ancla estructural que el extractor usa, no cada valor numerico.
+# Una fila .csv cuyo fuente_celda no cita un encabezado sigue siendo FUERA_DE_ALCANCE.
 
 library(readxl)
+source(here::here("src", "transformacion", "vintage_lib.R"))
 
 ruta_series <- "catalogos/03_series.csv"
 ruta_manifiesto <- "data/L0_raw/manifiesto.csv"
 dir_l0 <- "data/L0_raw"
 
 patron_fuente_celda <- 'hoja ([^,]+), fila (\\d+) \\("([^"]+)"'
+patron_encabezado_csv <- 'encabezado "([^"]+)"'
 
 # digest no esta en los 14 imports de DESCRIPTION, pero ya esta en renv.lock como
 # dependencia transitiva (de pointblank, ranger, entre otros) — mismo criterio que ADR-009
@@ -134,7 +153,80 @@ verificar_rotulo_en_fila <- function(ruta_archivo, nombre_hoja, num_fila, rotulo
   list(ok = FALSE, motivo = motivo)
 }
 
-verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto) {
+# Rama CSV por año -- ver cabecera. Devuelve una sola fila de resultado para la serie: PASS si
+# los N archivos anuales cumplen, FAIL listando cada año que no, NO_VERIFICABLE si falta alguno
+# localmente y el resto no falla.
+verificar_fila_csv_por_anio <- function(serie_id, publicacion_id, encabezado, inicio, fin,
+                                        manifiesto, vintages) {
+  resultado <- function(estado, detalle) {
+    data.frame(serie_id = serie_id, estado = estado, detalle = detalle, stringsAsFactors = FALSE)
+  }
+
+  mapa <- tryCatch(mapa_vintage_por_anio(publicacion_id, vintages),
+                   error = function(e) conditionMessage(e))
+  if (is.character(mapa) && is.null(names(mapa))) {
+    return(resultado("FAIL", mapa))
+  }
+
+  anios_esperados <- as.character(seq(as.integer(substr(inicio, 1, 4)), as.integer(substr(fin, 1, 4))))
+  if (!setequal(names(mapa), anios_esperados)) {
+    return(resultado("FAIL", paste0(
+      "los años con vintage en 08_vintages.csv (", paste(sort(names(mapa)), collapse = ", "),
+      ") no cubren exactamente inicio..fin de 03_series.csv (", inicio, " .. ", fin, ")"
+    )))
+  }
+
+  fallas <- character(0)
+  ausentes <- character(0)
+  for (anio in sort(names(mapa))) {
+    vid <- mapa[[anio]]
+    fila_m <- manifiesto[manifiesto$vintage_id == vid, ]
+    if (nrow(fila_m) != 1) {
+      fallas <- c(fallas, paste0(anio, ": vintage '", vid, "' tiene ", nrow(fila_m), " filas en manifiesto.csv (se espera 1)"))
+      next
+    }
+    ruta_archivo <- file.path(dir_l0, fila_m$archivo)
+    if (!file.exists(ruta_archivo)) {
+      ausentes <- c(ausentes, fila_m$archivo)
+      next
+    }
+    hash_real <- calcular_sha256(ruta_archivo)
+    if (!identical(hash_real, tolower(fila_m$sha256))) {
+      fallas <- c(fallas, paste0(anio, ": checksum SHA-256 de '", fila_m$archivo, "' no coincide con manifiesto.csv"))
+      next
+    }
+    anio_nombre <- regmatches(fila_m$archivo, regexpr("[0-9]{4}", fila_m$archivo))
+    if (!identical(anio_nombre, anio)) {
+      fallas <- c(fallas, paste0(anio, ": el nombre de archivo '", fila_m$archivo, "' no lleva el año del vintage"))
+      next
+    }
+    lineas <- sub("\r$", "", readLines(ruta_archivo, warn = FALSE))
+    n_encabezado <- sum(trimws(lineas) == encabezado)
+    if (n_encabezado != 1) {
+      fallas <- c(fallas, paste0(anio, ": '", fila_m$archivo, "' tiene ", n_encabezado,
+                                 " lineas iguales al encabezado \"", encabezado, "\" (se espera 1)"))
+    }
+  }
+
+  anios <- sort(names(mapa))
+  rango <- paste0(anios[1], "-", anios[length(anios)])
+  if (length(fallas) > 0) {
+    return(resultado("FAIL", paste0(length(fallas), " de ", length(mapa), " archivos anuales fallan: ",
+                                    paste(fallas, collapse = "; "))))
+  }
+  if (length(ausentes) > 0) {
+    return(resultado("NO_VERIFICABLE", paste0(length(ausentes), " de ", length(mapa),
+                                              " archivos anuales ausentes localmente: ",
+                                              paste(ausentes, collapse = ", "))))
+  }
+  resultado("PASS", paste0(
+    length(mapa), " archivos anuales .csv (", rango, "), uno por vintage: checksum, año del nombre y ",
+    "encabezado \"", encabezado, "\" coinciden en todos"
+  ))
+}
+
+verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto,
+                           inicio = NA_character_, fin = NA_character_, vintages = NULL) {
   pub <- manifiesto[manifiesto$publicacion_id == publicacion_id, ]
 
   if (nrow(pub) == 0) {
@@ -153,8 +245,16 @@ verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto) {
     ""
   }
 
-  # Fuera del alcance de esta herramienta: el vintage vigente no es un .xlsx, asi que no hay
-  # hoja ni sharedStrings que resolver. No es un FAIL — ver cabecera.
+  # .csv con encabezado citado en fuente_celda: rama por año -- ver cabecera.
+  encabezado <- regmatches(fuente_celda, regexec(patron_encabezado_csv, fuente_celda, perl = TRUE))[[1]]
+  if (grepl("\\.csv$", vintage_vigente$archivo, ignore.case = TRUE) && length(encabezado) == 2) {
+    return(verificar_fila_csv_por_anio(serie_id, publicacion_id, encabezado[2], inicio, fin,
+                                       manifiesto, vintages))
+  }
+
+  # Fuera del alcance de esta herramienta: el vintage vigente no es un .xlsx (ni un .csv con
+  # encabezado citado), asi que no hay hoja ni sharedStrings que resolver. No es un FAIL — ver
+  # cabecera.
   if (!grepl("\\.xlsx$", vintage_vigente$archivo, ignore.case = TRUE)) {
     return(data.frame(
       serie_id = serie_id, estado = "FUERA_DE_ALCANCE",
@@ -228,9 +328,11 @@ verificar_fila <- function(serie_id, publicacion_id, fuente_celda, manifiesto) {
 
 series <- utils::read.csv(ruta_series, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
 manifiesto <- utils::read.csv(ruta_manifiesto, stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+vintages <- leer_vintages()
 
 resultados <- do.call(rbind, lapply(seq_len(nrow(series)), function(i) {
-  verificar_fila(series$serie_id[i], series$publicacion_id[i], series$fuente_celda[i], manifiesto)
+  verificar_fila(series$serie_id[i], series$publicacion_id[i], series$fuente_celda[i], manifiesto,
+                 series$inicio[i], series$fin[i], vintages)
 }))
 
 cat("serie_id | estado | detalle\n")
@@ -258,8 +360,8 @@ if (n_fail > 0) {
 if (n_no_verificable > 0) {
   message(sprintf(
     paste0(
-      "AVISO: %d fila(s) quedaron NO_VERIFICABLE (archivo .xlsx ausente localmente en esta ",
-      "corrida) y no fueron comprobadas. Ejecutar con los 4 archivos de data/L0_raw/ presentes ",
+      "AVISO: %d fila(s) quedaron NO_VERIFICABLE (archivo de L0 ausente localmente en esta ",
+      "corrida) y no fueron comprobadas. Ejecutar con los archivos de data/L0_raw/ presentes ",
       "para cobertura completa."
     ),
     n_no_verificable

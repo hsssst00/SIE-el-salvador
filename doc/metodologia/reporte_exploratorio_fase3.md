@@ -11,17 +11,23 @@ metodológica, ver §2— y una tercera al ampliar el esquema del CSV y renombra
 ambiguas (hallazgos I1, I3 y M3), que no movió ningún estadístico ni ninguna clasificación; una
 cuarta el 2026-09-22 al cerrar D1/D2 del checklist de cierre de Fase 3 —componente estacional en
 las pruebas y diagnóstico del outlier del objetivo, `data/L3_master/reporte_hegy.csv` nuevo— que
-tampoco movió `conclusion`, la columna con el veredicto publicado; ver §3).
+tampoco movió `conclusion`, la columna con el veredicto publicado; ver §3; y una quinta el
+2026-09-23 al admitir `UT.DEMANDA_ELEC.GWH.NSA.M/.Q` a la matriz —enmienda del alcance E1/D3 del
+cierre de Fase 3, decisión de Harold—, que lleva el cuadro de 16 a 18 series y de 64 a 72 filas y
+sí mueve los agregados, no los veredictos previos: ninguna fila de las 16 series anteriores
+cambió de `conclusion`).
 Este
 documento interpreta esas cifras; no las sustituye — ante cualquier discrepancia, el CSV es la
 fuente de verdad numérica y este documento se corrige, no al revés.
 
 ## Alcance
 
-Cubre las 16 series materializadas en `data/L3_master/` a la fecha: la variable objetivo
-(`PIB_SA_PROPIO_Q`, `PIB_SA_OFICIAL_Q`) y la matriz de predictores de BCR (`IVAE`, `REMESAS`
-nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`, mensual y trimestral). No cubre series que
-se admitan después — este documento se re-extiende cuando la matriz crezca, no se reescribe.
+Cubre las 18 series materializadas en `data/L3_master/` a la fecha: la variable objetivo
+(`PIB_SA_PROPIO_Q`, `PIB_SA_OFICIAL_Q`) y las 8 familias de la matriz de predictores —las 7 del
+BCR (`IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM`) más la demanda total
+de electricidad de UT (`UT.DEMANDA_ELEC`, admitida 2026-09-23), mensual y trimestral. No cubre
+series que se admitan después — este documento se re-extiende cuando la matriz crezca, no se
+reescribe, y esta es la primera vez que se ejerce esa cláusula.
 
 **Lo que este documento NO decide** (ver §4): la unidad de modelación de las series
 predictoras, ni el orden de integración de la variable objetivo. Da evidencia para esas
@@ -29,7 +35,7 @@ decisiones futuras, no las resuelve.
 
 ## 1. Cobertura (mitad "exploratorio")
 
-Las 16 series cubren sin huecos internos desde su primera hasta su última observación —
+Las 18 series cubren sin huecos internos desde su primera hasta su última observación —
 resultado esperado, no un hallazgo: los extractores L0→L1 ya fallan de forma visible ante un
 hueco real (regla 7 de `CLAUDE.md`), así que esta corrida confirma la garantía existente, no
 descubre una nueva.
@@ -44,6 +50,8 @@ descubre una nueva.
 | `BCR_EXPORT_FOB_NOM_NSA_Q` | Q | 130 | 1994-Q1 – 2026-Q2 |
 | `BCR_ITCER_IDX_NSA_M` | M | 318 | 2000-M01 – 2026-M06 |
 | `BCR_ITCER_IDX_NSA_Q` | Q | 106 | 2000-Q1 – 2026-Q2 |
+| `UT_DEMANDA_ELEC_GWH_NSA_M` | M | 295 | 2002-M01 – 2026-M07 |
+| `UT_DEMANDA_ELEC_GWH_NSA_Q` | Q | 98 | 2002-Q1 – 2026-Q2 |
 | `BCR_IVAE_VOL_SA_M` | M | 257 | 2005-M01 – 2026-M05 |
 | `BCR_IVAE_VOL_SA_Q` | Q | 85 | 2005-Q1 – 2026-Q1 |
 | `BCR_IPM_IDX_NSA_M` | M | 257 | 2005-M01 – 2026-M05 |
@@ -79,8 +87,10 @@ Kwiatkowski et al. para KPSS; los de ADF dependen del tamaño de muestra). El te
 de rezagos es la regla de Schwert, `trunc(12·(n/100)^0,25)`, y el truncamiento de KPSS es
 `trunc(4·(n/100)^0,25)` (`lags = "short"`). **La grilla de la búsqueda BIC va de 0 a ese techo**,
 y la selección la hace `estacionariedad_reglas.R`, no `selectlags = "BIC"` de `urca`: esa opción
-nunca evalúa el modelo con 0 rezagos, de modo que imponía un rezago mínimo en 32 de estas 64
-filas y cambiaba tres veredictos (hallazgo C2, corregido 2026-09-19; `urca` sigue siendo la
+nunca evalúa el modelo con 0 rezagos, de modo que imponía un rezago mínimo en 32 de las 64
+filas de la corrida en que se detectó y cambiaba tres veredictos (hallazgo C2, corregido
+2026-09-19 — esa comparación no se recomputó al pasar a 72 filas, y la grilla vigente ya arranca
+en 0 para todas; `urca` sigue siendo la
 fuente de los valores críticos y hay una guardia que comprueba que las dos implementaciones de
 la regresión coinciden). Como admitir 0 rezagos abre la puerta a una regresión
 sub-parametrizada, cada fila publica además `adf_ljung_box_p`, el valor p de Ljung-Box sobre los
@@ -133,8 +143,10 @@ corridas anteriores a esa fecha son comparables fila por fila bajo los nombres v
 | `BCR_ITCER_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
 | `BCR_IPM_IDX_NSA_Q` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
+| `UT_DEMANDA_ELEC_GWH_NSA_M` | no_estacionaria | no_estacionaria | **estacionaria** | **estacionaria** |
+| `UT_DEMANDA_ELEC_GWH_NSA_Q` | ambigua_ambas_rechazan | ambigua_ambas_rechazan | **estacionaria** | **estacionaria** |
 
-Agregado (64 combinaciones serie×transformación): 33 *estacionaria*, 21 *no_estacionaria* y 10
+Agregado (72 combinaciones serie×transformación): 37 *estacionaria*, 23 *no_estacionaria* y 12
 *ambigua_ambas_rechazan*. Ninguna fila queda en *ambigua_ninguna_rechaza*: las dos que había
 antes de corregir C2 (`BCR_IPP_IDX_NSA_Q` en Δ y Δlog) pasaron a *estacionaria* cuando la grilla
 de BIC admitió 0 rezagos —el modelo que BIC prefiere para esa serie—, con residuos sin
@@ -148,7 +160,7 @@ marginalidad de cada fila se vea sin recomputar la corrida (hallazgo I3)—; `ad
 `adf_techo_rezagos` —el máximo de búsqueda de Schwert—, que son columnas distintas; y
 `adf_ljung_box_p`, el diagnóstico de autocorrelación residual de esa regresión.
 
-Con esos valores críticos publicados se puede ver lo que antes quedaba tapado: **14 de los 64
+Con esos valores críticos publicados se puede ver lo que antes quedaba tapado: **14 de los 72
 veredictos cambian si el umbral se mueve entre el 1% y el 10%**, entre ellos el log-nivel de
 `PIB_SA_OFICIAL_Q`, que es la fila que sostiene la lectura de tendencia-estacionariedad del
 objetivo (§"La variable objetivo"). El 5% es el umbral de decisión de este reporte, no una
@@ -159,11 +171,11 @@ frontera natural.
 primera diferencia y la diferencia del log son mayoritariamente *estacionaria* — esperado si las
 series son integradas de orden 1, el caso típico de indicadores macroeconómicos
 mensuales/trimestrales. Ninguna serie resultó *no_estacionaria* en ambas diferencias, y en la
-corrida vigente **las dos diferencias son *estacionaria* en 15 de las 16 series** (la excepción
+corrida vigente **las dos diferencias son *estacionaria* en 17 de las 18 series** (la excepción
 es `BCR_REMESAS_NOM_NSA_Q`, *ambigua_ambas_rechazan* en Δ y *estacionaria* en Δlog).
 
-Las 10 *ambigua_ambas_rechazan* están en nivel/log-nivel de PIB, IVAE y exportaciones FOB
-(9 casos), más la primera diferencia de `BCR_REMESAS_NOM_NSA_Q`. **La etiqueta dice en qué celda
+Las 12 *ambigua_ambas_rechazan* están en nivel/log-nivel de PIB, IVAE, exportaciones FOB y la
+demanda eléctrica trimestral (11 casos), más la primera diferencia de `BCR_REMESAS_NOM_NSA_Q`. **La etiqueta dice en qué celda
 de la tabla 2×2 cayó la fila —ADF y KPSS rechazan los dos su H0— y no identifica la causa.** Es
 compatible con un quiebre estructural no modelado, como el de 2020 (§3), y también con una parte
 determinística mal especificada, con la estacionalidad que estas regresiones no modelan (§3) o
@@ -190,7 +202,7 @@ se corrió).
    estacionales o dummies de 2020 a la regresión.
 
 2. **Esto no discrimina entre el logaritmo y el nivel.** La primera diferencia del nivel da la
-   misma conclusión que la del log en 15 de las 16 series, y en las dos del objetivo ambas son
+   misma conclusión que la del log en 17 de las 18 series, y en las dos del objetivo ambas son
    *estacionaria* (ADF de −9,56 y −10,63). Una prueba que concluye lo mismo con y sin logaritmo
    no puede respaldar la elección del logaritmo. Esa elección se sostiene en razones que ADR-001
    ya tuvo —interpretación en tasas y elasticidades, dispersión proporcional al nivel— y lo que
@@ -233,15 +245,16 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
 - **Dos aproximaciones, no correspondencias exactas** (detalladas en el código): el techo de
   búsqueda de rezagos de ADF usa la regla de Schwert; el truncamiento de KPSS usa `lags="short"`
   como el análogo más parsimonioso disponible, no una selección BIC real (KPSS no tiene una).
-  El truncamiento no es neutral: con `lags="long"` los rechazos de KPSS caen de 31 a 20 sobre
-  estas mismas 64 filas, así que parte de las etiquetas *ambigua_ambas_rechazan* depende de
-  esta elección y no de una propiedad de las series.
-- **Autocorrelación residual en 16 de las 64 regresiones ADF** (`adf_ljung_box_p` < 0,05), todas
-  en cinco series: las cuatro transformaciones de `BCR_EXPORT_FOB_NOM_NSA_M`,
-  `BCR_REMESAS_NOM_NSA_M` y `BCR_REMESAS_REAL_NSA_M`, más dos de `BCR_IVAE_VOL_SA_M` y dos de
-  `BCR_EXPORT_FOB_NOM_NSA_Q`. El estadístico de esas filas se publica igual —el diagnóstico avisa,
-  no invalida— pero su distribución nominal no es de fiar y el patrón no es casual: 14 de las 16
-  son mensuales, y la causa más plausible es la estacionalidad que la especificación de las
+  El truncamiento no es neutral: con `lags="long"` los rechazos de KPSS caían de 31 a 20 sobre
+  las 64 filas de la corrida de 2026-09-22 —esa sensibilidad no se recomputó al admitir UT—, así
+  que parte de las etiquetas *ambigua_ambas_rechazan* depende de esta elección y no de una
+  propiedad de las series.
+- **Autocorrelación residual en 20 de las 72 regresiones ADF** (`adf_ljung_box_p` < 0,05), todas
+  en seis series: las cuatro transformaciones de `BCR_EXPORT_FOB_NOM_NSA_M`,
+  `BCR_REMESAS_NOM_NSA_M`, `BCR_REMESAS_REAL_NSA_M` y `UT_DEMANDA_ELEC_GWH_NSA_M`, más dos de
+  `BCR_IVAE_VOL_SA_M` y dos de `BCR_EXPORT_FOB_NOM_NSA_Q`. El estadístico de esas filas se publica
+  igual —el diagnóstico avisa, no invalida— pero su distribución nominal no es de fiar y el patrón
+  no es casual: 18 de las 20 son mensuales, y la causa más plausible es la estacionalidad que la especificación de las
   pruebas no modela (siguiente salvedad). Ninguna de las tres filas cuyo veredicto cambió al
   corregir C2 está entre ellas.
 - **Componente estacional: resuelto (D1 del checklist de cierre de Fase 3, 2026-09-22, nota de
@@ -250,13 +263,17 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   con S-1 dummies estacionales (`conclusion_con_estacional`, propios rezagos por BIC, mismos
   críticos de `urca` — agregar dummies deterministicas no cambia la distribución asintótica del
   estadístico) y HEGY (`data/L3_master/reporte_hegy.csv`, `src/analisis/hegy_reglas.R`) para
-  distinguir raíz unitaria estacional de estacionalidad determinística. Resultado: **las 16
+  distinguir raíz unitaria estacional de estacionalidad determinística. Resultado: **las 18
   series rechazan raíz unitaria estacional conjunta** (Δ₁ es la diferenciación correcta, no hace
-  falta Δ₁₂/Δ₄); las dummies son conjuntamente significativas al 5% en **30 de las 64 filas**,
-  las 30 en series NSA, ninguna en SA; y **5 de esos 64 veredictos cambian** al modelarla —de
-  *no_estacionaria* a *ambigua_ambas_rechazan*, en log/nivel de `BCR_REMESAS_REAL_NSA_M/.Q` y en
-  el log de `BCR_EXPORT_FOB_NOM_NSA_M`. Detalle completo y límites en la nota de ADR-010.
-- **El shock de 2020 no tiene tratamiento de outlier propio en ninguna de las 16 series**
+  falta Δ₁₂/Δ₄); las dummies son conjuntamente significativas al 5% en **38 de las 72 filas**,
+  las 38 en series NSA, ninguna en SA; y **9 de esos 72 veredictos cambian** al modelarla: siete
+  de *no_estacionaria* a *ambigua_ambas_rechazan* —log/nivel de `BCR_REMESAS_REAL_NSA_M/.Q` y de
+  `UT_DEMANDA_ELEC_GWH_NSA_M`, más el log de `BCR_EXPORT_FOB_NOM_NSA_M`— y dos en la dirección
+  contraria, de *ambigua_ambas_rechazan* a *no_estacionaria*, en log/nivel de
+  `UT_DEMANDA_ELEC_GWH_NSA_Q`: al absorber la estacionalidad trimestral, KPSS deja de tener con
+  qué rechazar y el ADF pierde el rechazo que tenía. Detalle completo y límites en la nota de
+  ADR-010.
+- **El shock de 2020 no tiene tratamiento de outlier propio en ninguna de las 18 series**
   (ADR-010, enmienda "ajuste estacional en predictoras" — la misma decisión cubre outliers), y
   eso afecta a las pruebas, pero no en la dirección que este reporte afirmaba hasta 2026-09-19
   (hallazgo I5/M1 de la discusión metodológica; la redacción anterior decía que un outlier no
@@ -268,10 +285,13 @@ conversación futura: la tabla de arriba, completa por serie y transformación.
   empuja al **sobre-rechazo**, o sea a declarar estacionariedad espuria (Franses y Haldrup 1994;
   Vogelsang 1999; Perron y Rodríguez 2003).
   En estos datos domina el segundo: al agregar dummies de impulso de 2020 a la regresión ADF, el
-  estadístico se vuelve **menos** negativo en 41 de las 64 filas —sin tratar, el shock estaba
-  inflando el rechazo— y cambian 7 veredictos, 5 de ellos hacia menos rechazo. Tampoco se sostiene
+  estadístico se vuelve **menos** negativo en 41 de las 64 filas de la corrida de 2026-09-22
+  —sin tratar, el shock estaba inflando el rechazo— y cambian 7 veredictos, 5 de ellos hacia
+  menos rechazo. Ese cómputo es exploratorio, fuera del pipeline, y no se repitió sobre las 8
+  filas de UT que entraron el 2026-09-23: la dirección del sesgo se declara para las 64 filas en
+  que se midió, no para las 72 vigentes. Tampoco se sostiene
   la conjetura de que el shock explicara la no-estacionariedad de las series NSA mensuales en
-  log-nivel: de esas 6 filas, 5 siguen *no_estacionaria* al tratar 2020 y ninguna se acerca a su
+  log-nivel: de las 6 filas de entonces, 5 seguían *no_estacionaria* al tratar 2020 y ninguna se acerca a su
   crítico; la única que se comporta como se conjeturaba es `BCR_EXPORT_FOB_NOM_NSA_M`
   (−2,96 → −3,66). Esas series salen *no_estacionaria* por lo que son —índices de precios y
   remesas con tendencia clara y sin términos estacionales (siguiente salvedad)—, no por 2020.
