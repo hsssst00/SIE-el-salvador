@@ -391,7 +391,9 @@
   `BCR.IVAE.VOL.SA.M` + 1 `BCR.REMESAS.NOM.NSA.M` + 1 `ONEC.IPC.IDX.NSA.M` +
   1 `BCR.IPP.IDX.NSA.M` + 1 `BCR.EXPORT_FOB.NOM.NSA.M` + 1
   `BCR.ITCER.IDX.NSA.M` + 1 `BCR.IPM.IDX.NSA.M`, las siete últimas altas de
-  2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE). **Cerrado
+  2026-09-16, verificadas 105 PASS / 0 FAIL / 1 FUERA_DE_ALCANCE en esa fecha;
+  **106 PASS / 0 FAIL / 0 FUERA_DE_ALCANCE** desde la rama CSV de `make trace`
+  del 2026-09-23, que verifica también la fila de UT). **Cerrado
   (2026-09-22, E1/D3 y E2 del checklist de cierre de Fase 3; E1/D3 enmendado el
   2026-09-23):** la matriz de predictores cierra Fase 3 con 8 familias — estas 7
   del BCR más `UT.DEMANDA_ELEC.GWH.NSA.M`, que ya tenía fila en `03_series.csv`
