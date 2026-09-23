@@ -201,6 +201,8 @@ Lo que esta enmienda NO cubre — declarado, no silenciado
 - Las dos sensibilidades exploratorias FUERA del pipeline que cita el reporte narrativo
   (truncamiento KPSS "long"; dummies de impulso de 2020) NO se recomputaron sobre las 8 filas
   nuevas: sus cifras quedan explicitamente ancladas a las 64 filas de la corrida del 2026-09-22.
+  [RECOMPUTADAS despues del tag v0.6.0-fase3 -- ver "Sensibilidades exploratorias recomputadas"
+  al final.]
 
 Entorno de esta corrida (diferencia con la del 2026-09-22)
 ----------------------------------------------------------
@@ -239,3 +241,32 @@ los anos cubran inicio..fin de 03_series.csv sin huecos.
 Prueba negativa (catalogos alterados en memoria, L0 intacto): checksum roto, encabezado distinto,
 fin fuera de cobertura, vintage faltante y archivo de otro ano -> FAIL; archivo ausente ->
 NO_VERIFICABLE; fuente_celda sin encabezado citado -> FUERA_DE_ALCANCE.
+
+Sensibilidades exploratorias recomputadas (2026-09-23, posterior al tag v0.6.0-fase3)
+------------------------------------------------------------------------------------
+
+Las dos sensibilidades que cita el reporte narrativo se habian computado fuera del repositorio,
+sin registro de su especificacion. Quedan versionadas en src/analisis/sensibilidades_estacionariedad.R
+(fuera de `make` y del pipeline; no escribe en data/ ni toca `conclusion`).
+
+Reconstruccion de la especificacion de las dummies de 2020: se probo una grilla (ventanas de meses
+de 2020, 1 o 2 trimestres, impulso simple vs par de pulsos AO, alineacion, rezagos fijos vs
+re-elegidos). La UNICA que reproduce a la vez las cuatro cifras publicadas sobre las 64 filas es:
+un impulso por periodo 2020-M03..M12 / 2020-Q1..Q4, fechado en la fila de Δx, en las cuatro
+transformaciones, rezagos re-elegidos por BIC. Reproduce ademas la cuenta de filas log de NSA
+mensuales (5 de 6 siguen no_estacionaria) y el -3,31 del log de PIB_SA_PROPIO_Q que el reporte
+habia retirado. KPSS "long" es determinista: reproduce 31 -> 20 sin ajuste.
+
+                              64 filas (2026-09-22)   72 filas vigentes
+  KPSS rechazos short -> long        31 -> 20              35 -> 24
+  ADF menos negativo con impulsos    41 de 64              44 de 72
+  Veredictos que cambian             7 (5 menos rech.)     9 (5 menos, 4 mas rechazo)
+  Filas log NSA_M no_estac.          6, siguen 5           7, siguen 5
+
+Lo nuevo por UT: nivel y log de UT_DEMANDA_ELEC_GWH_NSA_M pasan de no_estacionaria a
+ambigua_ambas_rechazan al tratar 2020 (-2,19 -> -3,69 y -2,25 -> -3,47; critico -3,42): la
+demanda electrica va contra la direccion dominante del sesgo. KPSS: las 4 filas de UT que
+rechazan con short siguen rechazando con long.
+
+Comando: Rscript src/analisis/sensibilidades_estacionariedad.R (R 4.6.1, renv via .Rprofile),
+sobre data/L3_master/ regenerado por `make master` el mismo dia. Codigo de salida 0.
