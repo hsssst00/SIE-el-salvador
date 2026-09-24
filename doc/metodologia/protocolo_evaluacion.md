@@ -308,9 +308,8 @@ Criterio de cierre de Fase 5 (una orden, una semilla) queda satisfecho si y solo
 El ajuste único de L3 queda como contraste (R6). Registro: ADR-004, nota de seguimiento del
 2026-09-24, con referencia cruzada en ADR-001.
 
-**Prerrequisito, verificado solo a medias (2026-09-24).** binario presente (verificado: `x13binary` 1.1.61.2 en `renv.lock` y `x13ashtml.exe` en `renv/library` para R-4.5 y R-4.6); ejecución NO verificada: `seasonal::checkX13()` falla desde el entorno de esta sesión con error de programa 133 sobre un `.spc` en una ruta temporal muy larga, compatible con el límite de longitud de ruta de X-13 pero no diagnosticado. Hay que correr `seasonal::checkX13()` en la máquina del proyecto antes del paso 5 del motor. En cualquier caso
-no corre en CI: la evidencia de las corridas con ajuste por origen va a
-`doc/evidencia_cierre_fase4.txt`, no a un run de CI.
+**Prerrequisito verificado (2026-09-24).** Prerrequisito verificado: `seasonal::checkX13()` corrido por Harold en la máquina del proyecto el 2026-09-24 pasa ("'seasonal' should work fine"). La falla que se observaba desde el sandbox de desarrollo (error de programa 133 al correr `seas()` con un `.spc` en una ruta temporal de unos 170 caracteres) era del entorno, no del binario. En cualquier caso no corre en CI: la evidencia
+de las corridas con ajuste por origen va a `doc/evidencia_cierre_fase4.txt`, no a un run de CI.
 
 ## 9. Unidad de modelación de las predictoras (F4-06)
 
