@@ -13,7 +13,13 @@
 #   V5   canario de filtración: un modelo que busca el futuro en su insumo hace fallar al motor
 #   V6   canario de mutación: un modelo que modifica su insumo no altera el estado maestro
 #   V10  reproducibilidad: dos corridas con la misma semilla dan salidas idénticas bit a bit
-# Pendientes (paso 4, dependen de F4-12): V7-V9 y V11, las pruebas de significancia.
+# Bloques del paso 4 (pruebas de significancia; F4-12, F4-15..F4-18):
+#   V7   tamaño de DM/HLN en las 12 celdas grupo×h: estricto en h=1,2 (cota binomial 99%);
+#        en h=4,8 se reporta el tamaño empírico (distorsión documentada, F4-18)
+#   V8   potencia de DM/HLN ante una pérdida 20% menor (solo reporte)
+#   V9   MCS T_max α=0,10: el modelo dominante queda dentro (estricto); con modelos equivalentes
+#        el MCS completo se exige en h=1 y se reporta en h=8
+#   V11  MCS propio contra MCS::MCSprocedure (Suggests; SKIP si el paquete no está instalado)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -174,4 +180,77 @@ h_c <- corrida("V10_otro")
 if (identical(h_a, h_c)) stop("V10: cambiar exp_id no cambió la semilla del modelo estocástico")
 ok("V10", sprintf("dos corridas con los 6 benchmarks + un modelo estocástico: sha256 idéntico (%s…); otro exp_id cambia la semilla", substr(h_a, 1, 12)))
 
-cat("verificación sintética: 7 bloques OK (V1-V6, V10)\n")
+# --- Pruebas de significancia (paso 4; F4-12, F4-15..F4-18) -------------------------------------
+# DGP común: error de pronóstico h pasos = suma de h innovaciones N(0,1) → MA(h-1), como el error
+# óptimo de un paseo aleatorio. Pérdida cuadrática; los pares de las celdas son los de G1/G2/G3.
+ma_err <- function(n, h, sd = 1) {
+  u <- stats::rnorm(n + h - 1L, 0, sd)
+  as.numeric(stats::filter(u, rep(1, h), sides = 1))[h:(n + h - 1L)]
+}
+CELDAS <- data.frame(grupo = rep(c("G1", "G2", "G3"), each = 4), h = rep(c(1L, 2L, 4L, 8L), 3),
+                     n = c(52L, 51L, 49L, 45L, 45L, 44L, 42L, 38L, 25L, 24L, 22L, 18L))
+
+# --- V7 · tamaño de DM/HLN (F4-18: estricto en h=1,2; reportado en h=4,8) ------------------------
+R7 <- 2000L
+cota7 <- stats::qbinom(0.995, R7, 0.05) / R7                     # cota superior 99% bajo tamaño 5%
+set.seed(SEMILLA_RAIZ + 7L)
+v7 <- do.call(rbind, lapply(seq_len(nrow(CELDAS)), function(i) {
+  n <- CELDAS$n[i]; h <- CELDAS$h[i]
+  s <- replicate(R7, { r <- prueba_dm_hln(ma_err(n, h), ma_err(n, h), h)
+                       c(rech = r$p_valor < 0.05, resp = r$varianza != "rectangular") })
+  cbind(CELDAS[i, ], tamano = mean(s["rech", ]), respaldo = mean(s["resp", ]))
+}))
+print(v7, row.names = FALSE, digits = 3)
+malas7 <- v7[v7$h <= 2L & v7$tamano > cota7, ]
+if (nrow(malas7) > 0) stop(sprintf("V7: DM/HLN sobre-rechaza en h<=2 (%s)", paste(malas7$grupo, malas7$h, collapse = ", ")))
+ok("V7", sprintf("tamaño DM/HLN <= %.4f en h=1,2; h=4,8 reportado (máx %.3f): distorsión documentada", cota7, max(v7$tamano[v7$h >= 4L])))
+
+# --- V8 · potencia de DM/HLN (solo reporte) -------------------------------------------------------
+R8 <- 1000L
+set.seed(SEMILLA_RAIZ + 8L)
+v8 <- vapply(seq_len(nrow(CELDAS)), function(i) {
+  n <- CELDAS$n[i]; h <- CELDAS$h[i]
+  mean(replicate(R8, prueba_dm_hln(ma_err(n, h), ma_err(n, h, sqrt(0.8)), h)$p_valor < 0.05))
+}, numeric(1))
+ok("V8", sprintf("potencia ante pérdida 20%% menor, rango %.3f-%.3f (solo reporte)", min(v8), max(v8)))
+
+# --- V9 · cobertura del MCS (α=0,10; F4-15, F4-18) ------------------------------------------------
+perdidas_sim <- function(n, h, escala) {
+  L <- sapply(escala, function(s) ma_err(n, h, sqrt(s))^2)
+  colnames(L) <- paste0("M", seq_along(escala)); L
+}
+R9 <- 200L; B9 <- 500L; m9 <- 6L
+set.seed(SEMILLA_RAIZ + 9L)
+for (cfg in list(c(n = 52L, h = 1L), c(n = 45L, h = 8L), c(n = 18L, h = 8L))) {
+  n <- cfg[["n"]]; h <- cfg[["h"]]
+  eq  <- replicate(R9, all(mcs_tmax(perdidas_sim(n, h, rep(1, m9)), h, B = B9, semilla = sample.int(1e8, 1))$en_mcs))
+  dom <- replicate(R9, mcs_tmax(perdidas_sim(n, h, c(0.8, rep(1, m9 - 1))), h, B = B9, semilla = sample.int(1e8, 1))$en_mcs[1])
+  piso <- 0.90 - 2 * sqrt(0.09 / R9)                              # 1-α menos 2 errores de Monte Carlo
+  if (mean(dom) < piso) stop(sprintf("V9: el modelo dominante queda fuera del MCS (n=%d h=%d: %.3f)", n, h, mean(dom)))
+  if (h == 1L && mean(eq) < piso) stop(sprintf("V9: el MCS descarta modelos equivalentes en h=1 (%.3f)", mean(eq)))
+  ok("V9", sprintf("n=%d h=%d: P(dominante en MCS)=%.3f; P(MCS completo | equivalentes)=%.3f%s",
+                   n, h, mean(dom), mean(eq), if (h == 1L) "" else " (reportado)"))
+}
+
+# --- V11 · oráculo contra el paquete MCS (Suggests) -----------------------------------------------
+if (requireNamespace("MCS", quietly = TRUE)) {
+  set.seed(SEMILLA_RAIZ + 11L)
+  # El paquete remuestrea con bloques móviles fijos y el motor con bootstrap estacionario (F4-15), así
+  # que la comparación se hace con las MISMAS remuestras: se reconstruyen los índices del paquete con
+  # su semilla y se pasan al motor. Lo que se contrasta es el estadístico T_max y la eliminación.
+  k11 <- bloque_mcs(52L, 1L); B11 <- 2000L; s11 <- 11L
+  for (esc in list(c(0.5, 0.55, 1, 1, 1.5, 2), c(1, 1.1, 1.2, 1.3))) {
+    L11 <- perdidas_sim(52L, 1L, esc)
+    oraculo <- MCS::MCSprocedure(L11, alpha = 0.10, B = B11, statistic = "Tmax", k = k11, verbose = FALSE, seed = s11)@show
+    set.seed(s11); idx11 <- t(MCS:::GetIndices(52L, k11, B11))
+    propio <- mcs_tmax(L11, 1L, semilla = s11, indices = idx11)
+    dif <- max(abs(propio$p_mcs[match(rownames(oraculo), propio$modelo_id)] - oraculo[, "MCS p-Value"]))
+    if (dif > 1e-12) stop(sprintf("V11: p-valores MCS propios difieren del oráculo (máx %.3g)", dif))
+    ok("V11", sprintf("%d modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| %.1g)",
+                      length(esc), dif))
+  }
+} else {
+  cat("V11 SKIP  paquete MCS no instalado (Suggests)\n")
+}
+
+cat("verificación sintética: bloques OK (V1-V11)\n")

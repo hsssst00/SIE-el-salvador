@@ -29,3 +29,5 @@ Imports:
     testthat,
     dplyr,
     stringr
+Suggests:
+    MCS
