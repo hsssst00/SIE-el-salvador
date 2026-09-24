@@ -168,11 +168,11 @@ fija, y cada bloque falla con `stop()`:
 | V4 | **Ordenamiento correcto.** Un DGP AR(1) fuerte. | El AR(p) por BIC bate al paseo aleatorio, y el paseo aleatorio bate al AR(p) cuando el DGP *es* un paseo aleatorio. Un motor con el signo del error invertido falla acá |
 | V5 | **Canario de filtración.** Un modelo de prueba que busca en su insumo los períodos posteriores al origen. | Con un recorte correcto no los encuentra, devuelve NA y el motor **falla** con G-3. G-1 se prueba sobre una serie sin recortar. Si el canario lograra RMSE ≈ 0, el motor estaría roto |
 | V6 | **Canario de mutación.** Un modelo que modifica su insumo. | El estado maestro y el insumo que ven los modelos siguientes quedan intactos. En R un `data.frame` se copia al modificarse, así que el bloque certifica esa inmunidad en vez de esperar un fallo; G-2 queda como vigilancia (corregido el 2026-09-24) |
-| V7 | **Tamaño de DM/HLN.** Dos modelos con pérdidas intercambiables, 2000 réplicas, `n` igual al de cada grupo y horizonte (52, 45, 25 y sus derivados) | Tasa de rechazo al 5% dentro del intervalo binomial de 2000 réplicas; sin la corrección HLN debe verse el sobre-rechazo conocido en `n` pequeño, y se reporta la diferencia como evidencia de que la corrección está aplicada |
+| V7 | **Tamaño de DM/HLN.** Dos modelos con pérdidas intercambiables, 2000 réplicas, `n` igual al de cada grupo y horizonte (52, 45, 25 y sus derivados) | **Revisado 2026-09-24 (F4-18):** en h = 1, 2, tasa de rechazo al 5% bajo la cota binomial superior del 99% (0,063); en h = 4, 8 la tasa se reporta. Errores MA(h−1). El contraste sin HLN se hizo en la exploración previa (sobre-rechazo de hasta 0,40) y no se repite en el bloque |
 | V8 | **Potencia de DM/HLN.** Un modelo con pérdida 20% menor. | Potencia reportada por `n` y `h`; no hay criterio de aprobación, es la cifra que dice si el ejercicio puede distinguir algo — sobre todo en G3 con 18 pares |
-| V9 | **Cobertura del MCS.** Un modelo dominante y nueve de ruido, 1000 réplicas. | El dominante pertenece al MCS con frecuencia ≥ 1−α; y con diez modelos equivalentes el MCS retiene en promedio más de uno |
+| V9 | **Cobertura del MCS.** Seis modelos, uno con pérdida 20% menor, en (n, h) = (52, 1), (45, 8), (18, 8); 200 réplicas y B = 500 para que corra en CI (revisado 2026-09-24: la versión anterior pedía diez modelos y 1000 réplicas). | El dominante pertenece al MCS con frecuencia ≥ 1−α menos 2 errores de Monte Carlo en todas las celdas; con seis modelos equivalentes, el MCS completo con la misma cota en h = 1 y reportado en h = 8 (F4-18) |
 | V10 | **Reproducibilidad.** Dos corridas completas con la misma semilla. | `sha256` idéntico de los cuatro CSV de salida |
-| V11 | **Oráculo externo (opcional).** Si `MCS` está instalado, se compara el `p_mcs` propio contra el del paquete en el mismo conjunto de pérdidas. | Diferencia ≤ tolerancia declarada; `skip()` si el paquete no está (F4-12) |
+| V11 | **Oráculo externo.** `MCS` 0.2.0 fijado en `renv.lock` (Suggests). El paquete remuestrea con bloques móviles fijos y el motor con bootstrap estacionario, así que se compara con las **mismas remuestras**: los índices del paquete se reconstruyen con su semilla y se pasan a `mcs_tmax(indices = )`. | `p_mcs` idéntico a tolerancia `1e-12` con 6 y con 4 modelos; `skip` si el paquete no está (F4-12) |
 
 V5 y V6 son el corazón: prueban que el motor detecta la filtración en vez de suponer que no
 la hay. **Límite que ningún bloque cierra:** un modelo que capture datos completos en su
@@ -226,7 +226,7 @@ elige `p = 0`.
 2. `modelos_referencia.R` + pruebas. Depende de F4-04 solo para el reporte, no para el
    cómputo.
 3. `verificar_motor_sintetico.R` V1-V6, V10. Cierra la mitad mecánica del criterio.
-4. DM/HLN, GW y MCS en `eval_lib.R` + V7-V9, V11. Depende de F4-12.
+4. DM/HLN, GW y MCS en `eval_lib.R` + V7-V9, V11. Depende de F4-12. **Hecho** (PR #13; parámetros en F4-15 a F4-18).
 5. `motor_backtesting.R` sobre L3 y la primera corrida de benchmarks. Depende de F4-03,
    F4-05 y F4-09.
 6. Fila en `07_experimentos.csv`, evidencia textual y cierre.

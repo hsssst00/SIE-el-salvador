@@ -230,18 +230,28 @@ Por modelo, por grupo y por horizonte, sobre el conjunto común de pares (origen
 
 Ninguna métrica se agrega entre horizontes.
 
-## 4. Pruebas de significancia [heredado, senda §5.4; detalle propuesto]
+## 4. Pruebas de significancia [heredado, senda §5.4; decidido 2026-09-24, F4-15 a F4-18]
 
 - **Diebold-Mariano con corrección Harvey-Leybourne-Newbold**, para comparaciones por
   pares contra el benchmark del grupo. Pérdida cuadrática sobre la unidad primaria,
   varianza de largo plazo con ventana rectangular de `h−1` rezagos, distribución
   `t_{n−1}`. Indispensable con estos tamaños: en G3 y h=8 hay 18 observaciones de
-  pérdida **[verificado]**.
+  pérdida **[verificado]**. Si la varianza rectangular no es positiva se usa Bartlett con
+  los mismos rezagos y la salida lo registra (F4-16).
 - **Giacomini-White** cuando la comparación involucra modelos reestimados en ventana
-  rodante, que es el caso de la batería de robustez.
+  rodante, que es el caso de la batería de robustez. Versión condicional con instrumentos
+  `(1, d_{t−h})`, varianza HAC Bartlett de `h−1` rezagos y `χ²(2)` (F4-17).
 - **Model Confidence Set** (Hansen, Lunde y Nason) como prueba principal de cada grupo,
-  con `α = 0,10`, bootstrap de bloques estacionarios y el número de réplicas y la semilla
-  declarados en el experimento.
+  con estadístico `T_max`, `α = 0,10`, `B = 5000` réplicas de un bootstrap estacionario
+  circular de bloque medio `max(h, ⌈n^(1/3)⌉)`, y la semilla declarada en el experimento (F4-15).
+- **Distorsión de tamaño documentada (F4-18).** La verificación sintética (V7, V9) mostró
+  que DM/HLN mantiene el tamaño nominal en h = 1, 2 pero sobre-rechaza en h = 4, 8 (hasta
+  0,15 al 5% con los 18 pares de G3 a h = 8), y que con modelos equivalentes el MCS descarta
+  de más a h = 8. Se mantienen ambas pruebas: los p-valores de h = 4, 8 se publican con la
+  marca «distorsión de tamaño documentada» junto al tamaño empírico de su celda, y en esos
+  horizontes que un modelo quede fuera del MCS no se lee como prueba de inferioridad. La
+  potencia es baja (V8: una pérdida 20% menor se detecta entre 7% y 16% de las veces): no
+  rechazar no equivale a equivalencia.
 - **Regla de reporte, fijada antes de ver los resultados:** si el MCS contiene varios
   modelos, el resultado del proyecto es el conjunto, no el mínimo del RMSE. No se declara
   ganador único con base en una diferencia que el MCS no distingue, y la tabla de RMSE se
