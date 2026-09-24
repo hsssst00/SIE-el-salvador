@@ -14,6 +14,7 @@
 #   6. métricas por horizonte                             protocolo §3
 #   7. gramática del token de `esquema_validacion`        F4-11
 #   8. pruebas de significancia: DM/HLN, Giacomini-White y MCS   protocolo §4, F4-15 a F4-17
+#   9. ajuste estacional por origen y vintage: especificación y guardas G-5, G-6   F4-09b, F4-03
 #
 # Desviación declarada respecto de la especificación §1: el bucle de orígenes vive acá y no en
 # motor_backtesting.R, porque la verificación sintética (V1-V6, V10) tiene que ejercitar el mismo
@@ -71,6 +72,16 @@ DISENO_FASE4 <- list(
   horizontes    = c(1L, 2L, 4L, 8L),
   h_max         = 8L
 )
+
+#' Primer origen de cada grupo de comparación (F4-05). Todos terminan en DISENO_FASE4$ultimo_origen;
+#' con el último target 2026-Q1 dan 52/51/49/45, 45/44/42/38 y 25/24/22/18 pares por horizonte.
+GRUPOS_FASE4 <- c(G1 = "2013-Q1", G2 = "2014-Q4", G3 = "2019-Q4")
+
+#' Índices de origen de un grupo de comparación (F4-05).
+origenes_grupo <- function(grupo) {
+  if (length(grupo) != 1L || !grupo %in% names(GRUPOS_FASE4)) stop("grupo de comparación no declarado: ", paste(grupo, collapse = ", "))
+  origenes_diseno(GRUPOS_FASE4[[grupo]], DISENO_FASE4$ultimo_origen)
+}
 
 #' Vector de índices de origen entre dos trimestres, inclusive.
 origenes_diseno <- function(primer = DISENO_FASE4$primer_origen, ultimo = DISENO_FASE4$ultimo_origen) {
@@ -249,8 +260,25 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
 
 #' Agrega yoy_pp_pronosticado y qoq_pp_pronosticado a la salida de correr_backtest().
 #' @param objetivo data.frame `periodo`, `y` (log-nivel observado del vintage de evaluación).
-derivar_unidades <- function(pron, objetivo) {
+#' @param bases    opcional (F4-20): data.frame `origen` (índice), `periodo`, `y` con la historia del
+#'                 objetivo tal como la veía cada origen (el ajuste estacional reestimado en ese
+#'                 origen). Si se da, las bases observadas de la tasa interanual (h <= 4) y de la
+#'                 trimestral (h = 1) salen de ahí y no de `objetivo`. Ninguna base puede ser
+#'                 posterior a su origen.
+derivar_unidades <- function(pron, objetivo, bases = NULL) {
   obs <- stats::setNames(objetivo$y, q_a_ind(objetivo$periodo))
+  if (!is.null(bases)) {
+    faltan <- setdiff(c("origen", "periodo", "y"), names(bases))
+    if (length(faltan)) stop("derivar_unidades: a `bases` le faltan columnas: ", paste(faltan, collapse = ", "))
+    bi <- q_a_ind(bases$periodo)
+    if (any(bi > bases$origen)) {
+      k <- which(bi > bases$origen)[1]
+      stop(sprintf("derivar_unidades: la base %s del origen %s es posterior al origen (G-1)", bases$periodo[k], ind_a_q(bases$origen[k])))
+    }
+    if (anyDuplicated(paste(bases$origen, bi))) stop("derivar_unidades: `bases` trae períodos duplicados dentro de un origen")
+    if (anyNA(bases$y)) stop("derivar_unidades: `bases` trae NA")
+    base_de <- lapply(split(seq_len(nrow(bases)), bases$origen), function(i) stats::setNames(bases$y[i], bi[i]))
+  }
   pron <- pron[order(pron$modelo_id, pron$origen, pron$h), ]
   clave <- paste(pron$modelo_id, pron$origen, sep = "|")
   pron$yoy_pp_pronosticado <- NA_real_
@@ -259,8 +287,15 @@ derivar_unidades <- function(pron, objetivo) {
     idx <- which(clave == cl)
     o <- pron$origen[idx[1]]; s <- pron$log_nivel_pronosticado[idx]; hs <- pron$h[idx]
     if (!identical(as.integer(hs), seq_along(hs))) stop("derivar_unidades: sendero incompleto en ", cl)
-    base4 <- vapply(hs, function(h) if (h <= 4L) obs[[as.character(o + h - 4L)]] else s[h - 4L], numeric(1))
-    base1 <- vapply(hs, function(h) if (h == 1L) obs[[as.character(o)]] else s[h - 1L], numeric(1))
+    hist <- if (is.null(bases)) obs else base_de[[as.character(o)]]
+    if (is.null(hist)) stop("derivar_unidades: faltan las bases del origen ", ind_a_q(o))
+    val <- function(i) {
+      v <- unname(hist[as.character(i)])
+      if (is.na(v)) stop(sprintf("derivar_unidades: falta la base %s del origen %s", ind_a_q(i), ind_a_q(o)))
+      v
+    }
+    base4 <- vapply(hs, function(h) if (h <= 4L) val(o + h - 4L) else s[h - 4L], numeric(1))
+    base1 <- vapply(hs, function(h) if (h == 1L) val(o) else s[h - 1L], numeric(1))
     pron$yoy_pp_pronosticado[idx] <- 100 * (s - base4)
     pron$qoq_pp_pronosticado[idx] <- 100 * (s - base1)
   }
@@ -269,9 +304,11 @@ derivar_unidades <- function(pron, objetivo) {
 }
 
 #' Errores sobre los pares evaluables, en las tres unidades.
+#' El observado sale siempre de `objetivo`; `bases` (opcional, F4-20) solo cambia de dónde salen las
+#' bases de la tasa pronosticada (ver derivar_unidades()).
 #' @return data.frame: modelo_id, origen, h, unidad, pronostico, observado, error (observado - pronostico).
-calcular_errores <- function(pron, objetivo, horizontes = DISENO_FASE4$horizontes) {
-  pron <- derivar_unidades(pron, objetivo)
+calcular_errores <- function(pron, objetivo, horizontes = DISENO_FASE4$horizontes, bases = NULL) {
+  pron <- derivar_unidades(pron, objetivo, bases)
   iq <- q_a_ind(objetivo$periodo)
   y <- stats::setNames(objetivo$y, iq)
   pron <- pron[pron$h %in% horizontes & pron$origen + pron$h <= max(iq), ]
@@ -517,4 +554,83 @@ mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NUL
                     orden_eliminacion = orden, stringsAsFactors = FALSE)
   attr(res, "alpha") <- alpha; attr(res, "B") <- B; attr(res, "bloque") <- bloque
   res
+}
+
+# ---------------------------------------------------------------------------------------------
+# 9. Ajuste estacional por origen (F4-09, F4-09b) y filtro de vintage (F4-03)
+# ---------------------------------------------------------------------------------------------
+#
+# Solo la especificación y las guardas, puras. La llamada a seasonal::seas() vive en
+# motor_backtesting.R porque ejecuta el binario de X-13, que no corre en CI. F4-09b fija tres
+# desvíos respecto de los defaults de seas() que usa T002: transform=log fijo, detección automática
+# de outliers desactivada y los AO declarados como regresores que entran solo desde el origen que
+# los alcanza. El resto de la especificación (SEATS, prueba AIC de pascua y días hábiles, selección
+# automática del ARIMA) queda en los defaults, igual que en el ajuste único de L3, para que R6
+# aísle el efecto de reestimar.
+
+#' "2020-Q2" -> "ao2020.2" (sintaxis de regresores de X-13 para series trimestrales).
+codigo_ao_x13 <- function(periodo) {
+  i <- q_a_ind(periodo)
+  sprintf("ao%d.%d", i %/% 4L, i %% 4L + 1L)
+}
+
+#' AO declarados (PIB_SA_PROPIO_Q_outliers.csv, ADR-004) que el origen `o` alcanza. Falla si el
+#' catálogo declara un tipo de outlier que F4-09b no contempla.
+ao_declarados_origen <- function(outliers, o) {
+  if (!all(c("periodo", "tipo") %in% names(outliers))) stop("ajuste por origen: los outliers declarados necesitan `periodo` y `tipo`")
+  otros <- setdiff(unique(outliers$tipo), "AO")
+  if (length(otros)) stop("ajuste por origen: tipo de outlier declarado no contemplado por F4-09b: ", paste(otros, collapse = ", "))
+  p <- outliers$periodo[q_a_ind(outliers$periodo) <= o]
+  p[order(q_a_ind(p))]
+}
+
+#' G-5 (F4-08): ningún regresor de evento con fecha posterior al origen entra al diseño.
+guarda_dummies <- function(periodos, o) {
+  if (length(periodos) && any(q_a_ind(periodos) > o)) {
+    stop(sprintf("G-5 dummy anticipada: el origen %s recibiría el regresor de %s",
+                 ind_a_q(o), paste(periodos[q_a_ind(periodos) > o], collapse = ", ")))
+  }
+  invisible(TRUE)
+}
+
+#' Argumentos de seasonal::seas() para el origen `o` (F4-09b), además de la serie.
+args_x13_origen <- function(outliers, o) {
+  ao <- ao_declarados_origen(outliers, o)
+  guarda_dummies(ao, o)
+  a <- list(transform.function = "log", outlier = NULL)
+  if (length(ao)) a$regression.variables <- codigo_ao_x13(ao)
+  a
+}
+
+#' Comprueba que el ajuste del origen respetó F4-09b: transformación log y, como outliers, solo los
+#' AO declarados que el origen alcanza (con la detección automática desactivada no debe aparecer
+#' ningún otro).
+verificar_ajuste_origen <- function(transform, periodos_outlier, ao_declarados, o) {
+  if (length(transform) != 1L || is.na(transform) || !identical(trimws(transform), "log")) {
+    stop(sprintf("ajuste por origen %s: X-13 no usó transform=log (usó `%s`)", ind_a_q(o), paste(transform, collapse = ",")))
+  }
+  det <- periodos_outlier[order(q_a_ind(periodos_outlier))]
+  if (!identical(as.character(det), as.character(ao_declarados))) {
+    stop(sprintf("ajuste por origen %s: outliers del modelo [%s] distintos de los AO declarados [%s]",
+                 ind_a_q(o), paste(det, collapse = ", "), paste(ao_declarados, collapse = ", ")))
+  }
+  guarda_dummies(det, o)
+}
+
+#' G-6 (F4-03): filtra por `vintage_id`. `revision_vigente` conserva, en cada período, la fila del
+#' vintage vigente y falla si algún período no la tiene o la tiene repetida. `real_time` no es
+#' implementable hoy (el PIB no tiene vintages anteriores a 2026-06) y falla en vez de degradarse.
+filtrar_vintage <- function(d, politica, vigentes) {
+  if (!all(c("periodo", "vintage_id") %in% names(d))) stop("G-6: la serie necesita `periodo` y `vintage_id`")
+  if (identical(politica, "real_time")) {
+    stop("G-6: vintage=real_time no es implementable con el registro actual de 08_vintages.csv (F4-03, pista prospectiva)")
+  }
+  if (!identical(politica, "revision_vigente")) stop("G-6: política de vintage no declarada: ", paste(politica, collapse = ", "))
+  r <- d[d$vintage_id %in% vigentes, , drop = FALSE]
+  if (anyDuplicated(r$periodo)) stop("G-6: más de una fila del vintage vigente para un mismo período")
+  sin <- setdiff(d$periodo, r$periodo)
+  if (length(sin)) stop("G-6: períodos sin fila del vintage vigente: ", paste(utils::head(sin, 5), collapse = ", "))
+  r <- r[order(q_a_ind(r$periodo)), , drop = FALSE]
+  rownames(r) <- NULL
+  r
 }
