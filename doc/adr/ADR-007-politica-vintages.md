@@ -376,3 +376,23 @@ que es lo que la regla 9 prohíbe.
 compromiso de captura prospectiva y la inmutabilidad de L0 quedan como están; lo que se ajusta
 es la reacción de una herramienta de monitoreo ante un evento (vintage nuevo) que el propio ADR
 declara esperado y deseado.
+
+## Nota de seguimiento — primer consumidor de la dimensión de vintage: la evaluación de Fase 4 (2026-09-24)
+
+La evaluación predictiva de Fase 4 es el primer consumidor de la columna `vintage_id` que
+`data/L3_master/` publica desde el cierre de Fase 3. Esta nota no cambia la política; registra
+dos consecuencias de lo que la política logró hasta ahora.
+
+- **El registro no alcanza al período de evaluación.** No hay vintages del PIB anteriores a
+  `v2026-06`, así que el criterio real-time de ADR-001 no es alcanzable para los orígenes
+  2013-T1 a 2025-T4. ADR-001 se enmendó el 2026-09-24: el ejercicio retrospectivo se evalúa
+  con datos revisados y declarados como tales.
+- **La captura prospectiva pasa a tener un consumidor concreto.** El motor de evaluación
+  filtra por `vintage_id` desde su primera versión. Cada vintage del PIB que se capture según
+  esta política amplía la pista real-time sin cambios de código. Eso agrega al compromiso firme
+  de la vía (a) un uso medible, y a la vía (b) —reconstrucción retrospectiva— un beneficio
+  concreto: cada vintage histórico recuperado vuelve evaluable en real-time un origen.
+
+La restricción que ya estaba declarada para UT se mantiene: sus 25 vintages anuales tienen
+fecha de publicación sintética, y en cualquier corrida real-time su dimensión de publicación
+tiene grano anual.

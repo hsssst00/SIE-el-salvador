@@ -61,3 +61,55 @@ para el target primario, no una de dos.
 Fase 3, no de esta sesión. Hoy se registran las entradas de catálogo que
 documentan y planifican esta transformación; no se ejecuta ni se
 materializa la capa L3 todavía.
+
+## Enmienda — vintage de referencia del ejercicio retrospectivo (2026-09-24)
+
+**Contexto.** La Decisión de este ADR resolvió el vintage de referencia "por extensión de
+ADR-007": evaluación contra el vintage disponible en cada origen de pronóstico (*real-time*)
+como criterio primario, y la última revisión como comparación secundaria. Al especificar el
+motor de evaluación de Fase 4 se verificó que ese criterio no es alcanzable para el período de
+evaluación que fija ADR-002.
+
+**Evidencia (catálogo `08_vintages.csv`, 2026-09-24).** De sus 56 filas, solo 24 tienen fecha
+de publicación anterior a 2026, y las 24 son de `UT.DEMANDA_TOTAL_MENSUAL` (vintages anuales
+con fecha sintética). El PIB trimestral tiene un único vintage,
+`BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA.v2026-06`, y el retropolado
+`BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03` no registra fecha de publicación. Ninguna
+publicación del BCR tiene un vintage anterior a 2026-06. Para los 52 orígenes de 2013-T1 a
+2025-T4 no existe en el sistema el PIB tal como se conocía en ese momento.
+
+**Decisión (Harold, 2026-09-24).** Se separan dos pistas y no se confunden:
+
+1. **Ejercicio retrospectivo (el resultado de Fase 5).** Se evalúa contra el vintage vigente
+   del objetivo, filtrado de forma explícita por `vintage_id` en `data/L3_master/`. **Para
+   este ejercicio se invierte el orden de la Decisión original**: la última revisión es la
+   referencia, y el criterio real-time queda fuera de alcance. Cada tabla de resultados
+   declara que el ejercicio usa datos revisados y cita el `vintage_id` registrado en la fila
+   correspondiente de `catalogos/07_experimentos.csv`. La consecuencia conocida es que se
+   sobreestima la precisión alcanzable en operación real; se declara como límite, no se
+   estima.
+2. **Pista real-time (prospectiva).** El motor filtra por `vintage_id` desde su primera
+   versión, de modo que, cuando el registro prospectivo de ADR-007 acumule vintages del PIB,
+   la misma corrida produzca la evaluación real-time que esta Decisión pedía, sin cambios de
+   código. El registro empieza en `v2026-06` y suma un vintage por publicación trimestral.
+   Esta pista no tiene resultado en Fase 5.
+
+**Qué no cambia.** El concepto, el ajuste estacional, la unidad de modelación (log-nivel), la
+métrica de reporte (tasa interanual) y el enfoque top-down siguen como están. El criterio
+real-time sigue siendo el objetivo del proyecto: esta enmienda registra que es inalcanzable
+con los vintages disponibles y define qué se hace mientras tanto, sin abandonarlo.
+
+**Relación con ADR-007.** Esto no reabre la política de vintages: la captura prospectiva sigue
+siendo compromiso firme y la reconstrucción retrospectiva, mejor empeño. Si la vía (b) de
+ADR-007 recuperara vintages históricos del PIB, el ejercicio retrospectivo podría rehacerse en
+real-time sobre los orígenes cubiertos, y esta enmienda se revisaría.
+
+## Nota de seguimiento — ajuste estacional del objetivo dentro de cada origen de evaluación (2026-09-24)
+
+Para el Ejercicio A, el ajuste estacional propio que construye la variable objetivo primaria
+(X-13ARIMA-SEATS sobre la concatenación NSA) se reestima dentro de cada origen de evaluación,
+con transformación log fija, orden ARIMA seleccionado solo con datos hasta el origen, y los AO
+de 2020 como regresores declarados que entran solo desde el origen que los alcanza. La serie
+`PIB_SA_PROPIO_Q` de L3 no cambia y queda como contraste. El detalle y la justificación están
+en ADR-004, nota de seguimiento del 2026-09-24. Esta nota no cambia la definición del objetivo:
+cambia en qué momento del pipeline se construye para la evaluación.
