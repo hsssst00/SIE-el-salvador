@@ -212,3 +212,42 @@ usar para decidir la especificación de Fase 5.
 
 Registrado también como nota fechada en `doc/senda_metodologica.md`, Fase 3 (mismo criterio que
 las lecturas de "ingresa al proyecto" y "verifica su integridad" en Fases 1 y 2).
+
+## Nota de seguimiento — unidad de modelación de las predictoras (2026-09-24)
+
+**Contexto.** El cierre de Fase 3 dejó explícitamente diferido a Fase 4/5 con qué
+transformación entran las predictoras a los modelos. Este ADR fija las transformaciones que
+producen L3 (agregación temporal, deflactación, outliers, ajuste estacional), pero no la
+unidad de modelación.
+
+**Decisión (Harold, 2026-09-24; ficha F4-06).** Regla uniforme, declarada antes de estimar
+cualquier modelo: **las ocho familias de la matriz de predictores entran como Δlog** —
+`IVAE`, `REMESAS` nominal y real, `IPP`, `EXPORT_FOB`, `ITCER`, `IPM` y `UT.DEMANDA_ELEC`—, en
+la misma unidad que la variación trimestral del objetivo (ADR-001: log-nivel como raíz del
+linaje). La regla no tiene excepciones y no se elige por serie.
+
+**Por qué no se elige por serie con el veredicto de estacionariedad.** El veredicto que publica
+el reporte exploratorio de Fase 3 se estimó con la muestra completa hasta 2026. Usarlo para
+elegir la transformación en un origen de 2013 sería filtración, de la misma clase que evaluar
+contra la serie revisada. Además, el propio análisis de Fase 3 mostró que la etiqueta es frágil
+(40 de 64 filas resisten las cinco perturbaciones de sensibilidad).
+
+**Relación con la nota del 2026-09-22.** Esa nota dice que `conclusion_con_estacional` es la
+lectura que corresponde usar para decidir la especificación de Fase 5. En cuanto a la unidad de
+modelación, el criterio pasa a ser la regla uniforme de esta nota. Se comprobó que ambas
+coinciden en el resultado: con `conclusion_con_estacional`, las ocho familias en frecuencia
+trimestral salen `estacionaria` en Δlog. La nota del 22 sigue vigente en lo demás, en
+particular en su restricción de diseño: **las predictoras NSA entran a Fase 5 con términos
+estacionales explícitos**. Diferenciar en log no elimina la estacionalidad determinística que
+esa nota documentó, así que la restricción sigue siendo necesaria bajo esta regla.
+
+**Extensión no adoptada.** Tratar la transformación como hiperparámetro elegido por validación
+anidada dentro de cada ventana sería la opción más pura respecto de la simetría de la senda
+§5.2. No se adopta ahora porque multiplica el cómputo y no se implementa de forma limpia en
+BVAR, pero queda disponible como robustez de Fase 5.
+
+**Consecuencia sobre la deuda de outliers del veredicto (ficha F4-13).** Como el veredicto de
+estacionariedad ya no alimenta ninguna decisión aguas abajo, la pregunta de si debería consumir
+los outliers declarados se cierra por alcance: su sensibilidad a las dummies de 2020 ya está
+publicada (41 de 64 estadísticos ADF se vuelven menos negativos y cambian 7 veredictos), y
+`estacionariedad.R` no se modifica.
