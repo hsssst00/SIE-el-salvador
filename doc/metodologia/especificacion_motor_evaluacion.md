@@ -26,7 +26,7 @@ delgado que lee y escribe):
 |---|---|---|
 | `src/evaluacion/eval_lib.R` | Funciones puras: aritmética de orígenes, recorte al conjunto de información, **bucle de orígenes con sus guardas**, métricas, DM/HLN, GW, MCS, gramática del token de `esquema_validacion`. Sin I/O. | `tests/test-evaluacion.R` (CI) |
 | `src/evaluacion/modelos_referencia.R` | Los seis benchmarks de §6.1 bajo el contrato de modelo. Sin I/O. | `tests/test-modelos-referencia.R` (CI) |
-| `src/evaluacion/motor_backtesting.R` | Orquestador: lee L3 y `06_modelos/`, llama al bucle de `eval_lib.R`, escribe L4 y la fila de `07_experimentos.csv`. | `make eval` (local) |
+| `src/evaluacion/motor_backtesting.R` | Orquestador: lee L3, la NSA de L1 para el ajuste por origen (F4-19) y `06_modelos/`, corre X-13 en cada origen, llama al bucle de `eval_lib.R` y escribe L4. La fila de `07_experimentos.csv` llega con el paso 6. | `make eval` (local) |
 | `src/evaluacion/verificar_motor_sintetico.R` | Verificación del motor sobre procesos generadores conocidos. No lee L3. | `make eval-sintetico` (**CI**) |
 
 **Corrección al implementar (2026-09-24).** El bucle de orígenes pasó de `motor_backtesting.R` a
@@ -103,15 +103,29 @@ G-1 y G-6 son la razón de existir del motor. Todo lo demás es contabilidad.
 
 ```
 data/L4_experiments/<exp_id>/
-├── pronosticos.csv   exp_id, modelo_id, grupo, origen, h, periodo_objetivo,
-│                     log_nivel_pronosticado, yoy_pp_pronosticado, vintage_id_objetivo
-├── metricas.csv      exp_id, modelo_id, grupo, h, unidad, n_pares, rmse, mae,
-│                     rmse_relativo, sesgo, sesgo_ee_nw, cobertura_80, cobertura_95, crps
-├── pruebas.csv       exp_id, grupo, h, prueba (dm_hln|gw), modelo_a, modelo_b,
-│                     estadistico, p_valor, n_pares
-├── mcs.csv           exp_id, grupo, h, modelo_id, p_mcs, en_mcs, alpha, replicas, semilla
-└── manifiesto.txt    commit_hash, semilla raíz, sessionInfo(), sha256 de cada CSV anterior
+├── pronosticos.csv        exp_id, modelo_id, grupo, origen, h, periodo_objetivo,
+│                          log_nivel_pronosticado, yoy_pp_pronosticado, qoq_pp_pronosticado,
+│                          vintage_id_objetivo
+├── metricas.csv           exp_id, modelo_id, grupo, h, unidad, n_pares, rmse, mae,
+│                          rmse_relativo, sesgo, sesgo_ee_nw, cobertura_80, cobertura_95, crps
+├── pruebas.csv            exp_id, grupo, h, unidad, prueba (dm_hln|gw), modelo_a, modelo_b,
+│                          estadistico, p_valor, n_pares, varianza, media_diferencial, marca_tamano
+├── mcs.csv                exp_id, grupo, h, unidad, modelo_id, p_mcs, en_mcs, orden_eliminacion,
+│                          alpha, replicas, bloque, semilla, marca_tamano
+├── ajuste_estacional.csv  exp_id, origen, n_obs, arima, transform, regresores, ao_declarados
+│                          (solo con sa=reestimado_en_origen; F4-09b)
+└── manifiesto.txt         exp_id, token, commit_hash, estado del árbol, semillas, sha256 de insumos
+                           y de cada CSV anterior, sessionInfo()
 ```
+
+**Actualizado al implementar (2026-09-24).** Columnas agregadas respecto de la versión anterior:
+`qoq_pp_pronosticado` (unidad secundaria), `unidad`, `varianza` y `media_diferencial` en
+`pruebas.csv` (la columna `varianza` es el registro que pide F4-16), `orden_eliminacion` y `bloque`
+en `mcs.csv`, y `marca_tamano` en las dos (F4-21). `ajuste_estacional.csv` es el registro por
+origen que pide F4-09b. `modelo_a` es siempre `BENCH.RW_SIN_DERIVA` y un estadístico positivo
+favorece a `modelo_b`. `cobertura_80`, `cobertura_95` y `crps` quedan vacías mientras el contrato
+de modelo devuelva solo el sendero puntual (protocolo §3.4: no se imputa una densidad). La semilla
+de cada MCS es `semilla_de(exp_id, "MCS", h)`. Los CSV se escriben con fin de línea LF.
 
 `data/L4_experiments/` no se versiona (senda §7); `manifiesto.txt` y la fila de
 `07_experimentos.csv` sí, y son lo que hace auditable la corrida sin publicar los datos.
@@ -228,7 +242,9 @@ elige `p = 0`.
 3. `verificar_motor_sintetico.R` V1-V6, V10. Cierra la mitad mecánica del criterio.
 4. DM/HLN, GW y MCS en `eval_lib.R` + V7-V9, V11. Depende de F4-12. **Hecho** (PR #13; parámetros en F4-15 a F4-18).
 5. `motor_backtesting.R` sobre L3 y la primera corrida de benchmarks. Depende de F4-03,
-   F4-05 y F4-09.
+   F4-05 y F4-09. **Implementado** con F4-19 a F4-22: cinco experimentos declarados en el script
+   (`F4_BENCH_G1`, `_G2`, `_G3` con ajuste por origen; `F4_BENCH_G2_R5` y `_G3_R5` con el objetivo
+   oficial). La batería R1-R4 y R6 llega con el bloque E del checklist.
 6. Fila en `07_experimentos.csv`, evidencia textual y cierre.
 
 Los pasos 1-4 no necesitan datos y pueden escribirse mientras las decisiones del tablero

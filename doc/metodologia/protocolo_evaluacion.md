@@ -252,6 +252,9 @@ Ninguna métrica se agrega entre horizontes.
   horizontes que un modelo quede fuera del MCS no se lee como prueba de inferioridad. La
   potencia es baja (V8: una pérdida 20% menor se detecta entre 7% y 16% de las veces): no
   rechazar no equivale a equivalencia.
+  **[decidido 2026-09-24, F4-21]** El tamaño empírico que acompaña a cada p-valor se toma de
+  una corrida de V7 citada por su run de CI y se publica en el reporte; `pruebas.csv` y
+  `mcs.csv` de L4 llevan solo la columna `marca_tamano`, para no transcribir la cifra a mano.
 - **Regla de reporte, fijada antes de ver los resultados:** si el MCS contiene varios
   modelos, el resultado del proyecto es el conjunto, no el mínimo del RMSE. No se declara
   ganador único con base en una diferencia que el MCS no distingue, y la tabla de RMSE se
@@ -268,7 +271,7 @@ reporta junto al resultado principal:
 | R2 | Tramo homogéneo: estimación solo desde 2005-Q1 **[verificado]** 45 / 44 / 42 / 38 orígenes | ADR-003 |
 | R3 | Submuestras pre/post 2020 con contraste de estabilidad | ADR-004 |
 | R4 | Métricas excluyendo los cuatro trimestres de 2020 como período evaluado | F4-08 |
-| R5 | Objetivo alternativo `PIB_SA_OFICIAL_Q` (2005-Q1 en adelante) | ADR-001 |
+| R5 | Objetivo alternativo `PIB_SA_OFICIAL_Q` (2005-Q1 en adelante). **[decidido 2026-09-24, F4-22]** Solo con los orígenes de G2 y G3 —en 2013-Q1 la serie tiene 33 obs, menos que el mínimo de 40— y con la serie oficial tal cual (`sa=l3_unico`), declarando que hereda la filtración del ajuste bilateral del BCR | ADR-001 |
 | R6 | Ajuste único de L3 como contraste del ajuste reestimado por origen, que es la vía primaria | F4-09 |
 
 **[verificado]** Sobre el peso de 2020 (R4): en la muestra de evaluación la variación interanual del objetivo, sobre los 52 targets de h=1 (2013-Q2 a 2026-Q1), tiene
@@ -317,6 +320,18 @@ Criterio de cierre de Fase 5 (una orden, una semilla) queda satisfecho si y solo
 
 El ajuste único de L3 queda como contraste (R6). Registro: ADR-004, nota de seguimiento del
 2026-09-24, con referencia cruzada en ADR-001.
+
+**[decidido 2026-09-24, F4-19]** La concatenación NSA no se materializa en L3 (es el intermedio
+`PIB.NSA.CONCAT.Q` de T001): el motor la reconstruye desde L1 con la misma función que usa L3,
+`concatenar_pib_nsa()`, y comprueba que su vintage coincida período a período con el de
+`PIB_SA_PROPIO_Q`. El resto de la especificación de X-13 queda en los defaults de `seas()`, igual
+que en T002, para que R6 aísle el efecto de reestimar.
+
+**[decidido 2026-09-24, F4-20]** El observado contra el que se mide el error es `PIB_SA_PROPIO_Q`
+de L3. Las bases de la tasa pronosticada —`Y_{o+h−4}` en la interanual para h ≤ 4 y `Y_o` en la
+trimestral de h = 1— salen del ajuste reestimado en el origen: son lo que el pronosticador veía.
+En log-nivel el error mezcla, por construcción, el nivel del ajuste del origen con el del ajuste
+final, y así se declara.
 
 **Prerrequisito verificado (2026-09-24).** Prerrequisito verificado: `seasonal::checkX13()` corrido por Harold en la máquina del proyecto el 2026-09-24 pasa ("'seasonal' should work fine"). La falla que se observaba desde el sandbox de desarrollo (error de programa 133 al correr `seas()` con un `.spc` en una ruta temporal de unos 170 caracteres) era del entorno, no del binario. En cualquier caso no corre en CI: la evidencia
 de las corridas con ajuste por origen va a `doc/evidencia_cierre_fase4.txt`, no a un run de CI.
