@@ -16,11 +16,11 @@
 # CSV) y por eso no calza con create_agent(tbl=...) de pointblank — mismo motivo
 # estructural que dejó los checks de huecos/identidad de L2 en R base.
 #
-# Lee sólo texto (CSV + 3 escalares de YAML por regex), sin los .xlsx y sin
-# dependencia nueva: `yaml` está en el lockfile como transitiva pero no declarada
-# en DESCRIPTION, y el proyecto ya corrigió antes el uso de transitivas sin
-# declarar (CLAUDE.md, remediación M1 de Fase 2). Para 3 claves escalares planas
-# no se justifica declarar un parser; si Fase 3 lo declara, este bloque se cambia.
+# Lee sólo texto (CSV + 3 escalares de YAML por regex), sin los .xlsx. Cuando se
+# escribió, `yaml` era transitiva y no estaba declarada en DESCRIPTION; desde Fase 4
+# está en Imports (F4-12, nota de ADR-009) y la usa tests/test-catalogo-modelos.R.
+# Este bloque sigue con regex porque lee 3 claves escalares planas y no cambia de
+# comportamiento; pasarlo a yaml::read_yaml() es un cambio aparte.
 
 library(testthat)
 

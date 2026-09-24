@@ -28,6 +28,7 @@ Imports:
     here,
     testthat,
     dplyr,
-    stringr
+    stringr,
+    yaml
 Suggests:
     MCS
