@@ -40,6 +40,7 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-12 | DM/GW/MCS propios, oráculo en Suggests, `yaml` a Imports | ADR-009, nota de seguimiento |
 | F4-13 | Cierre por alcance | ninguno (se menciona en la nota de ADR-010) |
 | F4-09b | Orden ARIMA automático por origen, `transform=log` fijo, AO declarados no anticipados | ADR-004 (nota) y ADR-001 (cruce) |
+| F4-14 | AR(p)-BIC: `p` se selecciona con la muestra común y se reestima con la muestra máxima | ninguno (especificación del motor §5) |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -63,6 +64,15 @@ origen obliga a decidir qué se reestima:
   vino a eliminar.
 
 No bloquea el orden de implementación 1-4 del motor; sí bloquea el paso 5.
+
+### F4-14 — muestra de estimación del benchmark AR(p)-BIC
+
+**DECIDIDO por Harold el 2026-09-24.** El orden `p ∈ 0..8` se selecciona por BIC comparando los nueve
+candidatos en la misma muestra común (la de `p = 8`); el `p` elegido se reestima con la muestra
+máxima, descartando solo las `p` observaciones que sus rezagos exigen. En el primer origen eso son 91
+observaciones en vez de 84. Era la única decisión que la especificación dejaba implícita (decía dónde se
+selecciona, no dónde se estima). Efecto en la verificación sintética V4: el RMSE relativo medio pasa de
+0,821 a 0,820 con DGP AR(1) y de 1,0076 a 1,0068 con DGP paseo aleatorio.
 
 ---
 
@@ -276,7 +286,7 @@ No bloquea el orden de implementación 1-4 del motor; sí bloquea el paso 5.
 
 ## F4-09 — Ajuste estacional dentro del origen
 
-**DECIDIDO por Harold el 2026-09-24:** opción (a) — el ajuste estacional se reestima DENTRO de cada origen, con las fechas AO de 2020-Q2 y 2020-Q3 declaradas fijas; el ajuste único de L3 queda como contraste (R6). Prerrequisito: binario presente (verificado: `x13binary` 1.1.61.2 en `renv.lock` y `x13ashtml.exe` en `renv/library` para R-4.5 y R-4.6); ejecución NO verificada: `seasonal::checkX13()` falla desde el entorno de esta sesión con error de programa 133 sobre un `.spc` en una ruta temporal muy larga, compatible con el límite de longitud de ruta de X-13 pero no diagnosticado. Hay que correr `seasonal::checkX13()` en la máquina del proyecto antes del paso 5 del motor.
+**DECIDIDO por Harold el 2026-09-24:** opción (a) — el ajuste estacional se reestima DENTRO de cada origen, con las fechas AO de 2020-Q2 y 2020-Q3 declaradas fijas; el ajuste único de L3 queda como contraste (R6). Prerrequisito verificado: `seasonal::checkX13()` corrido por Harold en la máquina del proyecto el 2026-09-24 pasa ("'seasonal' should work fine"). La falla que se observaba desde el sandbox de desarrollo (error de programa 133 al correr `seas()` con un `.spc` en una ruta temporal de unos 170 caracteres) era del entorno, no del binario.
 
 **Filtración estructural verificable; condiciona la arquitectura del motor.**
 

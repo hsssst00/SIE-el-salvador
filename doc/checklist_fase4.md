@@ -23,9 +23,9 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 - [ ] **A1b** Nota de aclaración en ADR-002 corrigiendo la ventana inicial a 1990-T1–2013-T1 (93 obs).
 - [x] **A2 · F4-03** Vintage de evaluación: datos revisados en el ejercicio retrospectivo, filtro por `vintage_id` en el motor y pista real-time prospectiva. Decidido 2026-09-24.
 - [ ] **A2b** Nota de enmienda en ADR-001 (su criterio primario no es alcanzable en Fase 5) y mención cruzada en ADR-007.
-- [x] **A3 · F4-09** Ajuste estacional reestimado dentro de cada origen, con las fechas AO de 2020-Q2/Q3 declaradas fijas. Prerrequisito verificado a medias: binario presente en `renv/library`; la ejecución no está verificada (`seasonal::checkX13()` falla desde esta sesión con error 133). No corre en CI.
+- [x] **A3 · F4-09** Ajuste estacional reestimado dentro de cada origen, con las fechas AO de 2020-Q2/Q3 declaradas fijas. Prerrequisito verificado: la ejecución la confirma A3d. No corre en CI.
 - [x] **A3b · F4-09b** Especificación X-13 por origen: orden ARIMA automático con datos ≤ origen, `transform=log` fijo, detección de outliers desactivada y AO declarados que solo entran desde el origen que los alcanza; orden elegido guardado en L4. Decidido 2026-09-24.
-- [ ] **A3d** Correr `seasonal::checkX13()` en la máquina del proyecto y asentar el resultado en `doc/bitacora_verificaciones.md`, antes del paso 5 del motor.
+- [x] **A3d** `seasonal::checkX13()` corrido por Harold en la máquina del proyecto el 2026-09-24: pasa ("'seasonal' should work fine"). La evidencia se transcribe en `doc/evidencia_cierre_fase4.txt` al cerrar la fase. Corregido el destino: la versión anterior de este ítem mandaba el resultado a `doc/bitacora_verificaciones.md`, que es exclusiva de `verificar_fuente_celda.R` (regla 8 de `CLAUDE.md`).
 - [ ] **A3c** Nota de seguimiento en ADR-004 (ajuste estacional dentro de cada origen, con la especificación de F4-09b) y referencia cruzada en ADR-001.
 - [x] **A4 · F4-05** Tres grupos de comparación: G1 desde 2013-Q1 (52/51/49/45), G2 desde 2014-Q4 (45/44/42/38), G3 desde 2019-Q4 (25/24/22/18). Decidido 2026-09-24.
 - [x] **A5 · F4-02** Regla de calendario para el conjunto de información del origen; UT solo con años cerrados. Decidido 2026-09-24.

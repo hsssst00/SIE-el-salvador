@@ -142,7 +142,7 @@ Los seis se reestiman en cada origen sobre `y = log` del objetivo, muestra `[ini
 | `BENCH.RW_SIN_DERIVA` | ninguno | `ŷ_{o+h} = y_o` |
 | `BENCH.RW_CON_DERIVA` | deriva `δ = media(Δy)` en la muestra | `ŷ_{o+h} = y_o + h·δ` |
 | `BENCH.AR1` | AR(1) sobre `Δy` con constante, MCO | recursión a 8 pasos, acumulada a nivel |
-| `BENCH.ARP_BIC` | AR(p) sobre `Δy`, `p ∈ 0..8` por BIC en la **misma** submuestra para todos los `p` (la trampa que Fase 3 documentó en `urca`: la grilla arranca en 0 y la muestra de comparación es común). El `p` elegido se estima en esa misma muestra común, para que el modelo evaluado sea exactamente el seleccionado | recursión a 8 pasos |
+| `BENCH.ARP_BIC` | AR(p) sobre `Δy`, `p ∈ 0..8` por BIC en la **misma** submuestra para todos los `p` (la trampa que Fase 3 documentó en `urca`: la grilla arranca en 0 y la muestra de comparación es común). El `p` elegido se **reestima con la muestra máxima**, descartando solo las `p` observaciones que sus rezagos exigen (decisión de Harold, 2026-09-24: la muestra común sirve para comparar, no para estimar) | recursión a 8 pasos |
 | `BENCH.MEDIA_CRECIMIENTO` | media histórica de la tasa interanual `yoy` | `yoy` constante; el nivel se deriva de la base observada o pronosticada según `h` |
 | `BENCH.ETS` | `fable::ETS(y ~ error("A") + trend("A") + season("N"))`, sin selección automática (el objetivo es SA, así que no lleva componente estacional) | sendero de 8 pasos |
 
