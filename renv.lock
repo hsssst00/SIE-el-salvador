@@ -6142,6 +6142,29 @@
       "Author": "Achim Zeileis [aut, cre] (ORCID: <https://orcid.org/0000-0003-0918-3766>), Gabor Grothendieck [aut], Jeffrey A. Ryan [aut], Joshua M. Ulrich [ctb], Felix Andrews [ctb]",
       "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
       "Repository": "CRAN"
+    },
+    "MCS": {
+      "Package": "MCS",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Model Confidence Set Procedure",
+      "Date": "2026-03-19",
+      "Authors@R": "person(given = \"Leopoldo\", family = \"Catania\", role = c(\"aut\", \"cre\"), email = \"leopoldo.catania@econ.au.dk\", comment = \"ORCID: <https://orcid.org/0000-0002-0981-1921>\")",
+      "Maintainer": "Leopoldo Catania <leopoldo.catania@econ.au.dk>",
+      "Depends": [
+        "R(>= 3.0.1)"
+      ],
+      "Description": "Perform the Model Confidence Set procedure of Hansen et.al (2011).",
+      "License": "GPL-2",
+      "Encoding": "UTF-8",
+      "Imports": [
+        "methods"
+      ],
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "no",
+      "Author": "Leopoldo Catania [aut, cre] (ORCID: <https://orcid.org/0000-0002-0981-1921>)",
+      "Repository": "CRAN"
     }
   }
 }
