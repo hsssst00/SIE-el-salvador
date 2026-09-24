@@ -20,49 +20,49 @@ todas en la opción recomendada; el acta con el texto operativo está en ese doc
 sigue abierto de este bloque no es la decisión sino su **registro** en los ADR. Los siete textos están redactados y en revisión; entran por el PR `fase4/notas-adr`, un commit por ADR.
 
 - [x] **A1 · F4-01** Convención de indexación del origen: convención A (origen = último período estimado, 2013-Q1 a 2025-Q4; target en origen+h). Decidido 2026-09-24.
-- [ ] **A1b** Nota de aclaración en ADR-002 corrigiendo la ventana inicial a 1990-T1–2013-T1 (93 obs).
+- [x] **A1b** Nota de aclaración en ADR-002 corrigiendo la ventana inicial a 1990-T1–2013-T1 (93 obs). — commit `02ec7a6` (PR #11).
 - [x] **A2 · F4-03** Vintage de evaluación: datos revisados en el ejercicio retrospectivo, filtro por `vintage_id` en el motor y pista real-time prospectiva. Decidido 2026-09-24.
-- [ ] **A2b** Nota de enmienda en ADR-001 (su criterio primario no es alcanzable en Fase 5) y mención cruzada en ADR-007.
+- [x] **A2b** Nota de enmienda en ADR-001 (su criterio primario no es alcanzable en Fase 5) y mención cruzada en ADR-007. — commits `7cdb502` (ADR-001) y `405cd6c` (ADR-007), PR #11.
 - [x] **A3 · F4-09** Ajuste estacional reestimado dentro de cada origen, con las fechas AO de 2020-Q2/Q3 declaradas fijas. Prerrequisito verificado: la ejecución la confirma A3d. No corre en CI.
 - [x] **A3b · F4-09b** Especificación X-13 por origen: orden ARIMA automático con datos ≤ origen, `transform=log` fijo, detección de outliers desactivada y AO declarados que solo entran desde el origen que los alcanza; orden elegido guardado en L4. Decidido 2026-09-24.
 - [x] **A3d** `seasonal::checkX13()` corrido por Harold en la máquina del proyecto el 2026-09-24: pasa ("'seasonal' should work fine"). La evidencia se transcribe en `doc/evidencia_cierre_fase4.txt` al cerrar la fase. Corregido el destino: la versión anterior de este ítem mandaba el resultado a `doc/bitacora_verificaciones.md`, que es exclusiva de `verificar_fuente_celda.R` (regla 8 de `CLAUDE.md`).
-- [ ] **A3c** Nota de seguimiento en ADR-004 (ajuste estacional dentro de cada origen, con la especificación de F4-09b) y referencia cruzada en ADR-001.
+- [x] **A3c** Nota de seguimiento en ADR-004 (ajuste estacional dentro de cada origen, con la especificación de F4-09b) y referencia cruzada en ADR-001. — commits `0e7145f` (ADR-004) y `7cdb502` (referencia cruzada en ADR-001), PR #11.
 - [x] **A4 · F4-05** Tres grupos de comparación: G1 desde 2013-Q1 (52/51/49/45), G2 desde 2014-Q4 (45/44/42/38), G3 desde 2019-Q4 (25/24/22/18). Decidido 2026-09-24.
 - [x] **A5 · F4-02** Regla de calendario para el conjunto de información del origen; UT solo con años cerrados. Decidido 2026-09-24.
 - [x] **A6 · F4-04 / F4-07 / F4-08 / F4-10** Pérdida interanual en pp; denominador = paseo aleatorio sin deriva; 2020 incluido con tabla sin 2020 obligatoria y dummies no anticipadas; rodante de 92 trimestres. Decidido 2026-09-24.
 - [x] **A7 · F4-06 / F4-13** Regla uniforme a priori: Δlog en las ocho familias (corregida el mismo día; la versión inicial proponía Δ para el IVAE). Deuda de outliers en el veredicto de estacionariedad cerrada por alcance. Decidido 2026-09-24.
-- [ ] **A7b** Nota de seguimiento en ADR-010 (unidad de modelación de las predictoras).
+- [x] **A7b** Nota de seguimiento en ADR-010 (unidad de modelación de las predictoras). — commit `19d24ca` (PR #11).
 - [x] **A8 · F4-11 / F4-12** Token en `esquema_validacion`; DM/HLN y GW propios, MCS propio con el paquete `MCS` como oráculo en Suggests, `yaml` a Imports. Decidido 2026-09-24.
-- [ ] **A8b** Nota de seguimiento en ADR-009 por `yaml` en Imports y `MCS` en Suggests.
+- [x] **A8b** Nota de seguimiento en ADR-009 por `yaml` en Imports y `MCS` en Suggests. — commit `6c1c917` (PR #11).
 
 ## B. Documento de protocolo (entregable 1)
 
-- [ ] **B1** `doc/metodologia/protocolo_evaluacion.md` reemplazado por el protocolo completo, con cada afirmación marcada como heredada de un ADR, verificada o propuesta.
-- [ ] **B2** El protocolo declara la regla de reporte del MCS *antes* de la primera corrida (si el conjunto contiene varios modelos, el resultado es el conjunto).
-- [ ] **B3** El protocolo declara los límites del ejercicio: datos revisados en vez de tiempo real (F4-03), filtración del ajuste estacional si se adopta la opción (a) de F4-09, y potencia de G3.
-- [ ] **B4** La evidencia numérica que el protocolo cita está en un archivo versionado y regenerable, no transcrita a mano.
+- [x] **B1** `doc/metodologia/protocolo_evaluacion.md` reemplazado por el protocolo completo, con cada afirmación marcada como heredada de un ADR, verificada o propuesta. — commit `2bd1050` (PR #9); las marcas `[propuesto]` pasaron a `[decidido]` el mismo día.
+- [x] **B2** El protocolo declara la regla de reporte del MCS *antes* de la primera corrida (si el conjunto contiene varios modelos, el resultado es el conjunto). — protocolo §4, "Regla de reporte, fijada antes de ver los resultados" (commit `2bd1050`).
+- [x] **B3** El protocolo declara los límites del ejercicio: datos revisados en vez de tiempo real (F4-03), filtración del ajuste estacional si se adopta la opción (a) de F4-09, y potencia de G3. — protocolo §2.4 (datos revisados) y §2.5 (potencia de G3), commit `2bd1050`. El límite del ajuste estacional no aplica: F4-09 adoptó la reestimación dentro de cada origen (protocolo §8).
+- [x] **B4** La evidencia numérica que el protocolo cita está en un archivo versionado y regenerable, no transcrita a mano. — `scripts/evidencia_insumos_fase4.R` → `doc/metodologia/reportes_fase4/evidencia_insumos_fase4.csv`, commit `57fc980` (PR #9), verificado contra una reimplementación independiente.
 
 ## C. Motor de evaluación (entregable 2)
 
-- [ ] **C1** `src/evaluacion/eval_lib.R` — aritmética de orígenes, recorte al conjunto de información, métricas, gramática del token. Sin I/O.
-- [ ] **C2** `src/evaluacion/modelos_referencia.R` — los seis benchmarks de §6.1 bajo el contrato de modelo.
-- [ ] **C3** `src/evaluacion/motor_backtesting.R` — bucle grupo → origen → modelo, con las guardas G-1 a G-6 fallando con `stop()`.
-- [ ] **C4** `src/evaluacion/verificar_motor_sintetico.R` — bloques V1 a V11.
-- [ ] **C5** `tests/test-evaluacion.R` y `tests/test-modelos-referencia.R` en verde, sin datos del proyecto.
-- [ ] **C6** Targets `eval-sintetico` y `eval` en el Makefile, con `eval` dependiendo de `eval-sintetico`.
-- [ ] **C7** `eval-sintetico` incorporado al workflow de CI.
-- [ ] **C8** Los seis benchmarks declarados en `catalogos/06_modelos/<modelo_id>.yaml` **antes** de la primera corrida (es el registro que prueba que la especificación precedió al resultado).
+- [x] **C1** `src/evaluacion/eval_lib.R` — aritmética de orígenes, recorte al conjunto de información, métricas, gramática del token. Sin I/O. — commit `45b0d96` (PR #10). Incluye también el bucle de orígenes con sus guardas (ver especificación §1).
+- [x] **C2** `src/evaluacion/modelos_referencia.R` — los seis benchmarks de §6.1 bajo el contrato de modelo. — commits `45b0d96` y `38a41ba` (F4-14: AR(p)-BIC reestimado con la muestra máxima), PR #10.
+- [ ] **C3** `src/evaluacion/motor_backtesting.R` — bucle grupo → origen → modelo, con las guardas G-1 a G-6 fallando con `stop()`. *Avance:* el bucle y las guardas G-1 a G-4 ya existen en `eval_lib.R`; falta el orquestador sobre L3 (paso 5).
+- [ ] **C4** `src/evaluacion/verificar_motor_sintetico.R` — bloques V1 a V11. *Avance:* V1-V6 y V10 implementados y en verde en CI; faltan V7-V9 y V11 (paso 4).
+- [x] **C5** `tests/test-evaluacion.R` y `tests/test-modelos-referencia.R` en verde, sin datos del proyecto. — paso "Correr pruebas" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`. Local: 566 PASS / 0 FAIL / 3 SKIP.
+- [x] **C6** Targets `eval-sintetico` y `eval` en el Makefile, con `eval` dependiendo de `eval-sintetico`. — commit `23510df` (PR #10).
+- [x] **C7** `eval-sintetico` incorporado al workflow de CI. — commit `a9402d3` (Harold); el paso corre y pasa en run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
+- [ ] **C8** Los seis benchmarks declarados en `catalogos/06_modelos/<modelo_id>.yaml` **antes** de la primera corrida (es el registro que prueba que la especificación precedió al resultado). *Avance:* va con el paso 5, junto con el lector de YAML (`catalogos/README.md` reservaba `06_modelos/` para Fase 5).
 
 ## D. Verificación del motor (la mitad no negociable del criterio de cierre)
 
-- [ ] **D1** V1 — el motor reproduce 52 / 51 / 49 / 45 pares evaluados sobre una serie sintética con las fechas del objetivo.
-- [ ] **D2** V2-V3 — recuperación del pronóstico teórico y del RMSE teórico del AR(1) y del paseo aleatorio.
-- [ ] **D3** V4 — ordenamiento correcto en dos DGP donde se sabe qué modelo debe ganar.
-- [ ] **D4** V5-V6 — los canarios de filtración y de mutación hacen fallar al motor.
+- [x] **D1** V1 — el motor reproduce 52 / 51 / 49 / 45 pares evaluados sobre una serie sintética con las fechas del objetivo. — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
+- [x] **D2** V2-V3 — recuperación del pronóstico teórico y del RMSE teórico del AR(1) y del paseo aleatorio. — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
+- [x] **D3** V4 — ordenamiento correcto en dos DGP donde se sabe qué modelo debe ganar. — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`. Con DGP paseo aleatorio el RMSE relativo medio del AR(p)-BIC es 1,0068: el criterio (≥ 1) se cumple con poco margen.
+- [x] **D4** V5-V6 — el canario de filtración hace fallar al motor (G-3; G-1 sobre una serie sin recortar) y el de mutación no altera el estado maestro (en R un `data.frame` se copia al modificarse; G-2 vigila). — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
 - [ ] **D5** V7-V8 — tamaño nominal de DM/HLN y potencia reportada por `n` y horizonte, incluidos los 18 pares de G3 a h=8.
 - [ ] **D6** V9 — cobertura del MCS.
-- [ ] **D7** V10 — dos corridas con la misma semilla producen `sha256` idénticos.
-- [ ] **D8** Corrida de CI citada como evidencia del cierre (patrón de Fase 0/1), con su número de run y su sha.
+- [x] **D7** V10 — dos corridas con la misma semilla producen `sha256` idénticos. — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
+- [ ] **D8** Corrida de CI citada como evidencia del cierre (patrón de Fase 0/1), con su número de run y su sha. *Avance:* la corrida vigente que certifica V1-V6 y V10 es run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`; la corrida de cierre se cita cuando estén los once bloques.
 
 ## E. Resultados de los benchmarks (entregable 3)
 
@@ -71,7 +71,7 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 - [ ] **E3** Fila por corrida en `catalogos/07_experimentos.csv` con las doce columnas del esquema y el token de protocolo.
 - [ ] **E4** Tabla de RMSE y MAE por horizonte y grupo, con la columna de pertenencia al MCS adyacente.
 - [ ] **E5** Batería de robustez R1-R6 corrida y reportada junto al resultado principal.
-- [ ] **E6** Evidencia textual de la corrida en `doc/evidencia_cierre_fase4.txt` (patrón de Fase 2 y 3, porque `make eval` exige L3 y X-13 y no puede pasar por CI) y entrada en `doc/bitacora_verificaciones.md`.
+- [ ] **E6** Evidencia textual de la corrida en `doc/evidencia_cierre_fase4.txt` (patrón de Fase 2 y 3, porque `make eval` exige L3 y X-13 y no puede pasar por CI). Corregido el 2026-09-24: la versión anterior pedía además una entrada en `doc/bitacora_verificaciones.md`, que es exclusiva de `verificar_fuente_celda.R` (regla 8 de `CLAUDE.md`).
 
 ## F. Cierre de la fase (tres piezas del patrón del proyecto)
 
