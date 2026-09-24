@@ -13,6 +13,7 @@
 #   5. derivación de unidades y cómputo de errores        F4-04
 #   6. métricas por horizonte                             protocolo §3
 #   7. gramática del token de `esquema_validacion`        F4-11
+#   8. pruebas de significancia: DM/HLN, Giacomini-White y MCS   protocolo §4, F4-15 a F4-17
 #
 # Desviación declarada respecto de la especificación §1: el bucle de orígenes vive acá y no en
 # motor_backtesting.R, porque la verificación sintética (V1-V6, V10) tiene que ejercitar el mismo
@@ -374,4 +375,141 @@ validar_token <- function(tok) {
     }
   }
   valores
+}
+
+# ---------------------------------------------------------------------------------------------
+# 8. Pruebas de significancia (protocolo §4)
+# ---------------------------------------------------------------------------------------------
+#
+# Pérdida cuadrática sobre la unidad primaria. Convención de signo en todas las pruebas por pares:
+# d_t = e1_t² - e2_t², así que un estadístico positivo favorece al modelo 2 (pérdida menor).
+# Los vectores de errores deben venir ordenados por origen y ser consecutivos (un par por origen),
+# que es como los entrega calcular_errores() filtrado por modelo, unidad y h.
+#
+# Parámetros decididos por Harold el 2026-09-24 (registro: doc/metodologia/decisiones_fase4.md):
+#   F4-15  DM/HLN: varianza rectangular de h-1 rezagos; si sale <= 0, respaldo Bartlett con los
+#          mismos rezagos, registrado en la columna `varianza`.
+#   F4-16  GW: instrumentos (1, d_{t-h}), χ²(2), varianza HAC de Bartlett con h-1 rezagos.
+#   F4-17  MCS: estadístico T_max, α = 0,10, bootstrap estacionario con bloque medio
+#          max(h, ceiling(n^(1/3))), B = 5000 en las corridas sobre L3.
+
+.autocov <- function(x, k) {
+  n <- length(x); x <- x - mean(x)
+  sum(x[(k + 1L):n] * x[1:(n - k)]) / n
+}
+
+#' Varianza de largo plazo con ventana rectangular de `rezagos` rezagos (sin pesos).
+varianza_rectangular <- function(x, rezagos) {
+  v <- .autocov(x, 0L)
+  if (rezagos > 0L) for (k in seq_len(min(rezagos, length(x) - 1L))) v <- v + 2 * .autocov(x, k)
+  v
+}
+
+.diferencial <- function(e1, e2) {
+  if (length(e1) != length(e2)) stop("prueba por pares: los dos vectores de errores tienen largos distintos")
+  if (anyNA(e1) || anyNA(e2)) stop("prueba por pares: hay errores NA")
+  e1^2 - e2^2
+}
+
+#' Diebold-Mariano con la corrección de Harvey, Leybourne y Newbold (1997).
+#' @return list(estadistico, p_valor (bilateral, t con n-1 gl), n_pares, varianza, media_diferencial)
+prueba_dm_hln <- function(e1, e2, h) {
+  d <- .diferencial(e1, e2); n <- length(d); h <- as.integer(h)
+  if (n < 3L) stop("DM/HLN: se necesitan al menos 3 pares, hay ", n)
+  k2 <- (n + 1 - 2 * h + h * (h - 1) / n) / n
+  if (k2 <= 0) stop(sprintf("DM/HLN: corrección HLN no definida con n = %d y h = %d", n, h))
+  if (all(d == d[1])) {
+    if (d[1] == 0) return(list(estadistico = 0, p_valor = 1, n_pares = n, varianza = "degenerada", media_diferencial = 0))
+    stop("DM/HLN: diferencial de pérdidas constante y no nulo; la varianza es cero")
+  }
+  v <- varianza_rectangular(d, h - 1L); tipo <- "rectangular"
+  if (!is.finite(v) || v <= 0) { v <- varianza_nw(d, h - 1L); tipo <- "bartlett_respaldo" }       # F4-15
+  if (!is.finite(v) || v <= 0) stop("DM/HLN: varianza de largo plazo no positiva también con Bartlett")
+  est <- sqrt(k2) * mean(d) / sqrt(v / n)
+  list(estadistico = est, p_valor = 2 * stats::pt(-abs(est), df = n - 1L), n_pares = n,
+       varianza = tipo, media_diferencial = mean(d))
+}
+
+#' Giacomini-White (2006), test condicional con instrumentos (1, d_{t-h}) (F4-16).
+#' d_{t-h} es el diferencial del target h trimestres anterior: ya observado en el origen de t.
+#' @return list(estadistico, p_valor (χ² con 2 gl), n_pares (usados), media_diferencial)
+prueba_gw <- function(e1, e2, h) {
+  d <- .diferencial(e1, e2); n <- length(d); h <- as.integer(h)
+  m <- n - h
+  if (m < 5L) stop(sprintf("GW: con n = %d y h = %d quedan %d pares útiles; mínimo 5", n, h, m))
+  t_ <- (h + 1L):n
+  Z <- cbind(1, d[t_ - h]) * d[t_]
+  zbar <- colMeans(Z); Zc <- sweep(Z, 2L, zbar)
+  Om <- crossprod(Zc) / m
+  if (h > 1L) for (l in seq_len(min(h - 1L, m - 1L))) {
+    G <- crossprod(Zc[(l + 1L):m, , drop = FALSE], Zc[1:(m - l), , drop = FALSE]) / m
+    Om <- Om + (1 - l / h) * (G + t(G))
+  }
+  inv <- tryCatch(solve(Om), error = function(e) stop("GW: matriz de varianza singular (", conditionMessage(e), ")"))
+  est <- as.numeric(m * t(zbar) %*% inv %*% zbar)
+  list(estadistico = est, p_valor = stats::pchisq(est, df = 2L, lower.tail = FALSE), n_pares = m,
+       media_diferencial = mean(d))
+}
+
+#' Longitud media de bloque del bootstrap del MCS (F4-17).
+bloque_mcs <- function(n, h) max(as.integer(h), as.integer(ceiling(n^(1 / 3))))
+
+#' Índices de un bootstrap estacionario (Politis y Romano 1994), circular, con bloque medio `l`.
+indices_bootstrap_estacionario <- function(n, l, B) {
+  p <- 1 / l
+  idx <- matrix(0L, B, n)
+  idx[, 1] <- sample.int(n, B, replace = TRUE)
+  if (n > 1L) for (t in 2:n) {
+    nuevo <- stats::runif(B) < p
+    idx[, t] <- ifelse(nuevo, sample.int(n, B, replace = TRUE), idx[, t - 1L] %% n + 1L)
+  }
+  idx
+}
+
+#' Model Confidence Set de Hansen, Lunde y Nason (2011), estadístico T_max (F4-17).
+#'
+#' @param perdidas matriz n x m (filas = pares ordenados por origen, columnas = modelos con nombre).
+#' @param h        horizonte, para la longitud de bloque.
+#' @param semilla  entero; el generador del llamador se restaura al salir.
+#' @return data.frame: modelo_id, p_mcs, en_mcs, orden_eliminacion (NA = sobrevive al final),
+#'         con atributos alpha, B, bloque.
+mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NULL) {
+  if (!is.matrix(perdidas) || is.null(colnames(perdidas))) stop("MCS: `perdidas` debe ser matriz con nombres de columna")
+  if (anyNA(perdidas)) stop("MCS: hay pérdidas NA")
+  n <- nrow(perdidas); m <- ncol(perdidas)
+  if (m < 2L) stop("MCS: se necesitan al menos 2 modelos")
+  if (missing(semilla)) stop("MCS: la semilla es obligatoria")
+  if (is.null(bloque)) bloque <- bloque_mcs(n, h)
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    semilla_previa <- get(".Random.seed", envir = globalenv(), inherits = FALSE)
+    on.exit(assign(".Random.seed", semilla_previa, envir = globalenv()), add = TRUE)
+  } else {
+    on.exit(if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) rm(".Random.seed", envir = globalenv()), add = TRUE)
+  }
+  set.seed(semilla)
+  idx <- indices_bootstrap_estacionario(n, bloque, B)          # mismas remuestras en todas las etapas
+  # Medias bootstrap de cada modelo: B x m
+  medias_b <- sapply(seq_len(m), function(j) rowMeans(matrix(perdidas[idx, j], B, n)))
+  if (is.null(dim(medias_b))) medias_b <- matrix(medias_b, nrow = B)
+  medias <- colMeans(perdidas)
+  vivos <- seq_len(m); p_mcs <- rep(NA_real_, m); orden <- rep(NA_integer_, m); p_acum <- 0; paso <- 0L
+  while (length(vivos) > 1L) {
+    dbar   <- medias[vivos] - mean(medias[vivos])                             # d_i. del conjunto vivo
+    dbar_b <- medias_b[, vivos, drop = FALSE] - rowMeans(medias_b[, vivos, drop = FALSE])
+    var_i  <- colMeans(sweep(dbar_b, 2L, dbar)^2)
+    if (any(var_i <= 0)) stop("MCS: varianza bootstrap nula para algún modelo")
+    t_i    <- dbar / sqrt(var_i)
+    t_b    <- apply(sweep(sweep(dbar_b, 2L, dbar), 2L, sqrt(var_i), "/"), 1L, max)
+    p_val  <- mean(t_b >= max(t_i))
+    paso   <- paso + 1L
+    sale   <- vivos[which.max(t_i)]
+    p_acum <- max(p_acum, p_val)
+    p_mcs[sale] <- p_acum; orden[sale] <- paso
+    vivos <- setdiff(vivos, sale)
+  }
+  p_mcs[vivos] <- 1
+  res <- data.frame(modelo_id = colnames(perdidas), p_mcs = p_mcs, en_mcs = p_mcs >= alpha,
+                    orden_eliminacion = orden, stringsAsFactors = FALSE)
+  attr(res, "alpha") <- alpha; attr(res, "B") <- B; attr(res, "bloque") <- bloque
+  res
 }
