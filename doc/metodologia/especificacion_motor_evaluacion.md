@@ -24,10 +24,14 @@ delgado que lee y escribe):
 
 | Archivo | Responsabilidad | Ejercitado por |
 |---|---|---|
-| `src/evaluacion/eval_lib.R` | Funciones puras: aritmética de orígenes, recorte al conjunto de información, métricas, DM/HLN, GW, MCS, gramática del token de `esquema_validacion`. Sin I/O. | `tests/test-evaluacion.R` (CI) |
+| `src/evaluacion/eval_lib.R` | Funciones puras: aritmética de orígenes, recorte al conjunto de información, **bucle de orígenes con sus guardas**, métricas, DM/HLN, GW, MCS, gramática del token de `esquema_validacion`. Sin I/O. | `tests/test-evaluacion.R` (CI) |
 | `src/evaluacion/modelos_referencia.R` | Los seis benchmarks de §6.1 bajo el contrato de modelo. Sin I/O. | `tests/test-modelos-referencia.R` (CI) |
-| `src/evaluacion/motor_backtesting.R` | Orquestador: lee L3 y `06_modelos/`, corre el bucle de orígenes, escribe L4 y la fila de `07_experimentos.csv`. | `make eval` (local) |
+| `src/evaluacion/motor_backtesting.R` | Orquestador: lee L3 y `06_modelos/`, llama al bucle de `eval_lib.R`, escribe L4 y la fila de `07_experimentos.csv`. | `make eval` (local) |
 | `src/evaluacion/verificar_motor_sintetico.R` | Verificación del motor sobre procesos generadores conocidos. No lee L3. | `make eval-sintetico` (**CI**) |
+
+**Corrección al implementar (2026-09-24).** El bucle de orígenes pasó de `motor_backtesting.R` a
+`eval_lib.R`, porque los canarios de V5 y V6 tienen que ejercitar el mismo bucle, con las mismas
+guardas, sin leer L3. El orquestador queda como capa de lectura y escritura.
 
 El punto clave de diseño: **la verificación sintética no necesita datos del proyecto**, así
 que puede correr en integración continua, a diferencia de `make trace` o `make master`. El
@@ -56,7 +60,10 @@ Reglas del contrato:
    lugar. Un modelo que internamente trabaje en diferencias acumula él mismo su sendero.
 3. `ajustar()` debe ser determinista dado `(datos, spec, semilla)`. La semilla se fija por
    `(exp_id, modelo_id, origen)` —no una sola vez por corrida— para que la reejecución de
-   un origen aislado reproduzca el mismo resultado.
+   un origen aislado reproduzca el mismo resultado. **El motor restaura al salir el generador
+   aleatorio del llamador** (corrección del 2026-09-24): sin eso, un bucle de Monte Carlo que
+   llame al motor recibe la misma secuencia en cada réplica. V3 detectó ese defecto en la
+   primera implementación.
 4. Selección de órdenes e hiperparámetros ocurre **dentro** de `ajustar()`. El motor no
    selecciona nada; solo reestima.
 
@@ -135,9 +142,9 @@ Los seis se reestiman en cada origen sobre `y = log` del objetivo, muestra `[ini
 | `BENCH.RW_SIN_DERIVA` | ninguno | `ŷ_{o+h} = y_o` |
 | `BENCH.RW_CON_DERIVA` | deriva `δ = media(Δy)` en la muestra | `ŷ_{o+h} = y_o + h·δ` |
 | `BENCH.AR1` | AR(1) sobre `Δy` con constante, MCO | recursión a 8 pasos, acumulada a nivel |
-| `BENCH.ARP_BIC` | AR(p) sobre `Δy`, `p ∈ 0..8` por BIC en la **misma** submuestra para todos los `p` (la trampa que Fase 3 documentó en `urca`: la grilla arranca en 0 y la muestra de comparación es común) | recursión a 8 pasos |
+| `BENCH.ARP_BIC` | AR(p) sobre `Δy`, `p ∈ 0..8` por BIC en la **misma** submuestra para todos los `p` (la trampa que Fase 3 documentó en `urca`: la grilla arranca en 0 y la muestra de comparación es común). El `p` elegido se estima en esa misma muestra común, para que el modelo evaluado sea exactamente el seleccionado | recursión a 8 pasos |
 | `BENCH.MEDIA_CRECIMIENTO` | media histórica de la tasa interanual `yoy` | `yoy` constante; el nivel se deriva de la base observada o pronosticada según `h` |
-| `BENCH.ETS` | `fable::ETS(y ~ error("A") + trend("A") + season("N"))` con selección automática restringida a no estacional (el objetivo es SA) | sendero de 8 pasos |
+| `BENCH.ETS` | `fable::ETS(y ~ error("A") + trend("A") + season("N"))`, sin selección automática (el objetivo es SA, así que no lleva componente estacional) | sendero de 8 pasos |
 
 `BENCH.RW_SIN_DERIVA` es el denominador del RMSE relativo (F4-07). Ninguno de los seis
 requiere paquetes fuera de `Imports` **[verificado]**: `fable` y `tsibble` ya están
@@ -157,10 +164,10 @@ fija, y cada bloque falla con `stop()`:
 |---|---|---|
 | V1 | **Aritmética de orígenes.** Serie sintética trimestral de 145 observaciones con las mismas fechas que el objetivo. | El motor produce exactamente 52 / 51 / 49 / 45 pares evaluados para h = 1, 2, 4, 8 (F4-01, convención A) |
 | V2 | **Pronóstico del modelo verdadero.** DGP AR(1) en `Δy` con `φ` conocido. | El sendero de `predecir()` coincide con `φ^h·Δy_o` acumulado, a tolerancia `1e-10`, cuando se le pasan los coeficientes verdaderos |
-| V3 | **RMSE teórico.** 2000 réplicas del mismo AR(1). | RMSE(h) simulado dentro de ±3 errores de Monte Carlo de `σ·sqrt((1−φ^{2h})/(1−φ²))`; para el paseo aleatorio, de `σ·sqrt(h)` |
+| V3 | **RMSE teórico.** 2000 réplicas del mismo AR(1) en `Δy`. | RMSE(h) del log-nivel simulado dentro de ±3 errores de Monte Carlo de `σ·sqrt(Σ_{k=0}^{h−1} ((1−φ^{k+1})/(1−φ))²)`; para el paseo aleatorio, de `σ·sqrt(h)`. (Corregido el 2026-09-24: la fórmula anterior, `σ·sqrt((1−φ^{2h})/(1−φ²))`, es la de pronosticar una serie AR(1) en sí misma, no el log-nivel acumulado de un AR(1) en diferencias.) |
 | V4 | **Ordenamiento correcto.** Un DGP AR(1) fuerte. | El AR(p) por BIC bate al paseo aleatorio, y el paseo aleatorio bate al AR(p) cuando el DGP *es* un paseo aleatorio. Un motor con el signo del error invertido falla acá |
-| V5 | **Canario de filtración.** Un modelo de prueba que intenta leer un período posterior al origen. | El motor **falla** (G-1). Si el canario logra RMSE ≈ 0, el motor está roto |
-| V6 | **Canario de mutación.** Un modelo que modifica su insumo. | El motor falla (G-2) |
+| V5 | **Canario de filtración.** Un modelo de prueba que busca en su insumo los períodos posteriores al origen. | Con un recorte correcto no los encuentra, devuelve NA y el motor **falla** con G-3. G-1 se prueba sobre una serie sin recortar. Si el canario lograra RMSE ≈ 0, el motor estaría roto |
+| V6 | **Canario de mutación.** Un modelo que modifica su insumo. | El estado maestro y el insumo que ven los modelos siguientes quedan intactos. En R un `data.frame` se copia al modificarse, así que el bloque certifica esa inmunidad en vez de esperar un fallo; G-2 queda como vigilancia (corregido el 2026-09-24) |
 | V7 | **Tamaño de DM/HLN.** Dos modelos con pérdidas intercambiables, 2000 réplicas, `n` igual al de cada grupo y horizonte (52, 45, 25 y sus derivados) | Tasa de rechazo al 5% dentro del intervalo binomial de 2000 réplicas; sin la corrección HLN debe verse el sobre-rechazo conocido en `n` pequeño, y se reporta la diferencia como evidencia de que la corrección está aplicada |
 | V8 | **Potencia de DM/HLN.** Un modelo con pérdida 20% menor. | Potencia reportada por `n` y `h`; no hay criterio de aprobación, es la cifra que dice si el ejercicio puede distinguir algo — sobre todo en G3 con 18 pares |
 | V9 | **Cobertura del MCS.** Un modelo dominante y nueve de ruido, 1000 réplicas. | El dominante pertenece al MCS con frecuencia ≥ 1−α; y con diez modelos equivalentes el MCS retiene en promedio más de uno |
@@ -168,7 +175,9 @@ fija, y cada bloque falla con `stop()`:
 | V11 | **Oráculo externo (opcional).** Si `MCS` está instalado, se compara el `p_mcs` propio contra el del paquete en el mismo conjunto de pérdidas. | Diferencia ≤ tolerancia declarada; `skip()` si el paquete no está (F4-12) |
 
 V5 y V6 son el corazón: prueban que el motor detecta la filtración en vez de suponer que no
-la hay. Es el mismo patrón que Fase 3 adoptó con `.verificar_contra_urca()`: la duplicación
+la hay. **Límite que ningún bloque cierra:** un modelo que capture datos completos en su
+clausura (una variable global, un entorno) evade el recorte sin que ninguna guarda lo vea. El
+contrato lo prohíbe, y se controla en revisión de código, no en tiempo de ejecución. Es el mismo patrón que Fase 3 adoptó con `.verificar_contra_urca()`: la duplicación
 queda comprobada, no asumida.
 
 ## 7. Targets del Makefile
