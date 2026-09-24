@@ -473,7 +473,9 @@ indices_bootstrap_estacionario <- function(n, l, B) {
 #' @param semilla  entero; el generador del llamador se restaura al salir.
 #' @return data.frame: modelo_id, p_mcs, en_mcs, orden_eliminacion (NA = sobrevive al final),
 #'         con atributos alpha, B, bloque.
-mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NULL) {
+#' @param indices  opcional: matriz B x n de remuestras ya construida (solo para el oráculo V11, que
+#'                 compara contra MCS::MCSprocedure con las mismas remuestras); si se da, ignora bloque.
+mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NULL, indices = NULL) {
   if (!is.matrix(perdidas) || is.null(colnames(perdidas))) stop("MCS: `perdidas` debe ser matriz con nombres de columna")
   if (anyNA(perdidas)) stop("MCS: hay pérdidas NA")
   n <- nrow(perdidas); m <- ncol(perdidas)
@@ -487,7 +489,10 @@ mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NUL
     on.exit(if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) rm(".Random.seed", envir = globalenv()), add = TRUE)
   }
   set.seed(semilla)
-  idx <- indices_bootstrap_estacionario(n, bloque, B)          # mismas remuestras en todas las etapas
+  idx <- if (is.null(indices)) indices_bootstrap_estacionario(n, bloque, B) else {   # mismas remuestras en todas las etapas
+    if (!is.matrix(indices) || ncol(indices) != n) stop("MCS: `indices` debe ser matriz B x n")
+    B <- nrow(indices); indices
+  }
   # Medias bootstrap de cada modelo: B x m
   medias_b <- sapply(seq_len(m), function(j) rowMeans(matrix(perdidas[idx, j], B, n)))
   if (is.null(dim(medias_b))) medias_b <- matrix(medias_b, nrow = B)

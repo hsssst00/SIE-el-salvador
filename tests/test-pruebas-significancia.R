@@ -77,6 +77,14 @@ test_that("MCS: con pérdidas muy separadas conserva solo al mejor; con idéntic
   expect_error(mcs_tmax(Li, 1L, B = 200L, semilla = 1L), "varianza bootstrap nula")   # regla 7: falla visible
 })
 
+test_that("MCS: acepta remuestras externas (oráculo V11) y valida sus dimensiones", {
+  set.seed(8); L <- matrix(rnorm(30 * 3)^2, 30, 3, dimnames = list(NULL, c("A", "B", "C")))
+  idx <- matrix(sample.int(30, 200 * 30, replace = TRUE), 200, 30)
+  expect_identical(mcs_tmax(L, 1L, semilla = 1L, indices = idx), mcs_tmax(L, 1L, semilla = 2L, indices = idx))
+  expect_identical(attr(mcs_tmax(L, 1L, semilla = 1L, indices = idx), "B"), 200L)
+  expect_error(mcs_tmax(L, 1L, semilla = 1L, indices = idx[, 1:29]), "B x n")
+})
+
 test_that("MCS: misma semilla, mismo resultado, y no altera el RNG del llamador", {
   set.seed(6); L <- matrix(rnorm(40 * 3)^2, 40, 3, dimnames = list(NULL, c("A", "B", "C")))
   set.seed(99); antes <- .Random.seed

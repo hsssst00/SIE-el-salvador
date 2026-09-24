@@ -235,12 +235,20 @@ for (cfg in list(c(n = 52L, h = 1L), c(n = 45L, h = 8L), c(n = 18L, h = 8L))) {
 # --- V11 · oráculo contra el paquete MCS (Suggests) -----------------------------------------------
 if (requireNamespace("MCS", quietly = TRUE)) {
   set.seed(SEMILLA_RAIZ + 11L)
-  L11 <- perdidas_sim(52L, 1L, c(0.5, 0.55, 1, 1, 1.5, 2))
-  propio <- mcs_tmax(L11, 1L, B = 5000L, semilla = 11L)
-  oraculo <- MCS::MCSprocedure(L11, alpha = 0.10, B = 5000, statistic = "Tmax", k = bloque_mcs(52L, 1L), verbose = FALSE)
-  sup_o <- sort(rownames(oraculo@show)); sup_p <- sort(propio$modelo_id[propio$en_mcs])
-  if (!identical(sup_o, sup_p)) stop(sprintf("V11: MCS propio {%s} distinto del oráculo {%s}", toString(sup_p), toString(sup_o)))
-  ok("V11", sprintf("MCS propio coincide con MCS::MCSprocedure: {%s}", toString(sup_p)))
+  # El paquete remuestrea con bloques móviles fijos y el motor con bootstrap estacionario (F4-15), así
+  # que la comparación se hace con las MISMAS remuestras: se reconstruyen los índices del paquete con
+  # su semilla y se pasan al motor. Lo que se contrasta es el estadístico T_max y la eliminación.
+  k11 <- bloque_mcs(52L, 1L); B11 <- 2000L; s11 <- 11L
+  for (esc in list(c(0.5, 0.55, 1, 1, 1.5, 2), c(1, 1.1, 1.2, 1.3))) {
+    L11 <- perdidas_sim(52L, 1L, esc)
+    oraculo <- MCS::MCSprocedure(L11, alpha = 0.10, B = B11, statistic = "Tmax", k = k11, verbose = FALSE, seed = s11)@show
+    set.seed(s11); idx11 <- t(MCS:::GetIndices(52L, k11, B11))
+    propio <- mcs_tmax(L11, 1L, semilla = s11, indices = idx11)
+    dif <- max(abs(propio$p_mcs[match(rownames(oraculo), propio$modelo_id)] - oraculo[, "MCS p-Value"]))
+    if (dif > 1e-12) stop(sprintf("V11: p-valores MCS propios difieren del oráculo (máx %.3g)", dif))
+    ok("V11", sprintf("%d modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| %.1g)",
+                      length(esc), dif))
+  }
 } else {
   cat("V11 SKIP  paquete MCS no instalado (Suggests)\n")
 }
