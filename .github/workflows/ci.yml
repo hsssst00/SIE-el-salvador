@@ -35,6 +35,11 @@ jobs:
       - name: Correr pruebas
         run: Rscript -e 'testthat::test_dir("tests")'
 
+      # Criterio de cierre de Fase 4: el motor de evaluación se prueba sobre datos sintéticos antes
+      # de estimar cualquier modelo (senda §4). No necesita L3, así que corre acá. Falla con stop().
+      - name: Verificación sintética del motor de evaluación (make eval-sintetico)
+        run: Rscript src/evaluacion/verificar_motor_sintetico.R
+
   check-l0-integrity:
     runs-on: ubuntu-latest
     steps:
