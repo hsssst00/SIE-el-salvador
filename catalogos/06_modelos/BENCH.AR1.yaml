@@ -1,0 +1,9 @@
+modelo_id: "BENCH.AR1"
+familia: "benchmark"
+especificacion:
+  variables: ["PIB.SA.PROPIO.Q"]
+  ordenes: {p: 1, diferencias: 1}
+  hiperparametros: {constante: true, estimacion: "MCO"}
+  transformaciones_ref: ["T001_CONCAT_PIB_NSA", "T002_AJUSTE_ESTACIONAL_PROPIO"]
+justificacion: "AR(1) sobre Δy con constante, estimado por MCO: Δy_t = c + φ·Δy_{t-1} + e_t. El pronóstico es la recursión a 8 pasos acumulada al log-nivel. Se reestima en cada origen o sobre y = log-nivel del objetivo, muestra [inicio, o]; en el diseño principal inicio = 1990-Q1 con ventana expansiva (ADR-002). Las variantes de robustez (R1 rodante, R2 tramo homogéneo, R5 objetivo oficial, R6 ajuste único de L3) cambian la muestra o el objetivo según el token del experimento en 07_experimentos.csv, no esta especificación. Con sa=reestimado_en_origen el objetivo es el ajuste X-13 reestimado en ese origen (F4-09, F4-09b). Devuelve el sendero h = 1..8 en log-nivel (contrato de modelo, especificación del motor §2). Implementación: src/evaluacion/modelos_referencia.R, modelo_ar1(). Declarado el 2026-09-24, antes de la primera corrida sobre L3 (checklist de Fase 4, C8)."
+referencia_bibliografica: "Box, G. E. P., Jenkins, G. M., Reinsel, G. C. y Ljung, G. M. (2015). Time Series Analysis: Forecasting and Control, 5.ª ed. Wiley"

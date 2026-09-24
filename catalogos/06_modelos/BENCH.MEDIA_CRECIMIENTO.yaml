@@ -1,0 +1,9 @@
+modelo_id: "BENCH.MEDIA_CRECIMIENTO"
+familia: "benchmark"
+especificacion:
+  variables: ["PIB.SA.PROPIO.Q"]
+  ordenes: {}
+  hiperparametros: {rezago_interanual: 4, base_interanual: "observada para h <= 4, pronosticada por el propio sendero para h > 4"}
+  transformaciones_ref: ["T001_CONCAT_PIB_NSA", "T002_AJUSTE_ESTACIONAL_PROPIO"]
+justificacion: "Media histórica de la tasa interanual: yoy constante g = media(y_t - y_{t-4}) en [inicio, o], compuesta sobre la base del mismo trimestre del año previo. La base es observada para h ≤ 4 y pronosticada para h = 8, que es la asimetría declarada en F4-04. Competidor, no denominador (F4-07). Se reestima en cada origen o sobre y = log-nivel del objetivo, muestra [inicio, o]; en el diseño principal inicio = 1990-Q1 con ventana expansiva (ADR-002). Las variantes de robustez (R1 rodante, R2 tramo homogéneo, R5 objetivo oficial, R6 ajuste único de L3) cambian la muestra o el objetivo según el token del experimento en 07_experimentos.csv, no esta especificación. Con sa=reestimado_en_origen el objetivo es el ajuste X-13 reestimado en ese origen (F4-09, F4-09b). Devuelve el sendero h = 1..8 en log-nivel (contrato de modelo, especificación del motor §2). Implementación: src/evaluacion/modelos_referencia.R, modelo_media_crecimiento(). Declarado el 2026-09-24, antes de la primera corrida sobre L3 (checklist de Fase 4, C8)."
+referencia_bibliografica: "Hyndman, R. J. y Athanasopoulos, G. (2021). Forecasting: Principles and Practice, 3.ª ed. OTexts, §5.2 (método de la media, aplicado a la tasa interanual)"

@@ -1,0 +1,9 @@
+modelo_id: "BENCH.ARP_BIC"
+familia: "benchmark"
+especificacion:
+  variables: ["PIB.SA.PROPIO.Q"]
+  ordenes: {p_min: 0, p_max: 8, diferencias: 1}
+  hiperparametros: {constante: true, estimacion: "MCO", criterio: "BIC", muestra_seleccion: "común a los nueve candidatos (la de p = p_max)", muestra_estimacion: "máxima para el p elegido (descarta solo las p primeras observaciones)"}
+  transformaciones_ref: ["T001_CONCAT_PIB_NSA", "T002_AJUSTE_ESTACIONAL_PROPIO"]
+justificacion: "AR(p) sobre Δy con constante, p ∈ 0..8 por BIC. Los nueve candidatos se comparan en la misma muestra común (la de p = 8; la grilla arranca en 0, lección de Fase 3 con urca) y el p elegido se reestima con la muestra máxima (F4-14). La selección ocurre dentro de cada origen, solo con datos ≤ o (protocolo §2.6). Se reestima en cada origen o sobre y = log-nivel del objetivo, muestra [inicio, o]; en el diseño principal inicio = 1990-Q1 con ventana expansiva (ADR-002). Las variantes de robustez (R1 rodante, R2 tramo homogéneo, R5 objetivo oficial, R6 ajuste único de L3) cambian la muestra o el objetivo según el token del experimento en 07_experimentos.csv, no esta especificación. Con sa=reestimado_en_origen el objetivo es el ajuste X-13 reestimado en ese origen (F4-09, F4-09b). Devuelve el sendero h = 1..8 en log-nivel (contrato de modelo, especificación del motor §2). Implementación: src/evaluacion/modelos_referencia.R, modelo_arp_bic() y seleccionar_ar_bic(). Declarado el 2026-09-24, antes de la primera corrida sobre L3 (checklist de Fase 4, C8)."
+referencia_bibliografica: "Box, G. E. P., Jenkins, G. M., Reinsel, G. C. y Ljung, G. M. (2015). Time Series Analysis: Forecasting and Control, 5.ª ed. Wiley; Schwarz, G. (1978). Estimating the dimension of a model. The Annals of Statistics, 6(2), 461-464"

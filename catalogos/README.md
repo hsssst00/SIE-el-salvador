@@ -82,8 +82,30 @@ desciende la serie, vía `transf_id` → `04_transformaciones.csv` → `series_i
 
 ## `06_modelos/`
 
-Reservado para Fase 5 (estimación) — solo `_plantilla.yaml` por ahora, es lo esperado antes de
-esa fase (no es un hallazgo, ver revisión independiente 2026-09-17, "Límites de esta revisión").
+Un archivo `<modelo_id>.yaml` por modelo, con las claves de `_plantilla.yaml`. Es el registro que
+prueba que la especificación precedió al resultado: cada modelo se declara acá **antes** de su
+primera corrida sobre L3 (protocolo de evaluación §2.6; checklist de Fase 4, C8), y el commit que
+lo agrega es anterior al de cualquier `data/L4_experiments/<exp_id>/` que lo use.
+
+| Clave | Contenido |
+|---|---|
+| `modelo_id` | igual al nombre del archivo; es el `modelo_id` del contrato de modelo del motor y de `07_experimentos.csv` |
+| `familia` | `benchmark` \| `univariado` \| `multivariado` \| `midas` \| `regularizado` \| `ml` \| `combinacion` |
+| `especificacion.variables` | `series_master_id` de `05_series_master.csv` que el modelo consume |
+| `especificacion.ordenes` | órdenes fijos o grilla de selección (p. ej. `p_min`/`p_max`) |
+| `especificacion.hiperparametros` | criterio de selección, método de estimación y demás elecciones declaradas |
+| `especificacion.transformaciones_ref` | `transf_id` de `04_transformaciones.csv` en el linaje de las variables |
+| `justificacion` | qué es el modelo, qué decisión lo fija y dónde está implementado |
+| `referencia_bibliografica` | fuente del método |
+
+Estado al 2026-09-24: los seis modelos de referencia de la senda §6.1 que Fase 4 implementa en
+`src/evaluacion/modelos_referencia.R` — `BENCH.RW_SIN_DERIVA` (denominador del RMSE relativo,
+F4-07), `BENCH.RW_CON_DERIVA`, `BENCH.AR1`, `BENCH.ARP_BIC` (F4-14), `BENCH.MEDIA_CRECIMIENTO` y
+`BENCH.ETS`. Los modelos de §6.2 a §6.7 se declaran en Fase 5, con la misma regla.
+`tests/test-catalogo-modelos.R` comprueba las claves contra la plantilla, que `modelo_id` coincida
+con el nombre del archivo, que las referencias resuelvan contra `04_transformaciones.csv` y
+`05_series_master.csv`, y que los `BENCH.*` declarados sean exactamente los que implementa el
+código. La lectura usa `yaml`, declarado en `Imports` (F4-12, nota de ADR-009).
 
 ## `07_experimentos.csv`
 
