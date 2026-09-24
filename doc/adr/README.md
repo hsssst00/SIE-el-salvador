@@ -26,6 +26,13 @@ Cada decisión fundacional (D1–D8, senda metodológica §2) se registra como u
 
 ADR-007 y ADR-009 permanecen cerrados y llevan, desde el 2026-08-12, notas de seguimiento con disparador explícito: clientes de API externa en ADR-009 (se decide antes del primer *script* de `src/adquisicion/` que consuma una API), y alcance de *vintages* de predictores externos en ADR-007 (fuera del núcleo mínimo viable).
 
+El 2026-09-24, la planificación de Fase 4 agregó notas a seis ADR sin reabrir ninguno:
+aclaración de la convención de indexación del origen en ADR-002; enmienda del vintage de
+referencia del ejercicio retrospectivo en ADR-001, con referencia cruzada en ADR-007;
+seguimiento del ajuste estacional del objetivo dentro de cada origen en ADR-004, con referencia
+cruzada en ADR-001; dependencias del motor de evaluación en ADR-009; y unidad de modelación de
+las predictoras en ADR-010. Los diez siguen con el mismo estado.
+
 ## Cierre de Fase 0 (2026-08-07)
 
 Confirmado en CI (GitHub Actions, ubuntu-latest):
