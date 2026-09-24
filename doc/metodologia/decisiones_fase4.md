@@ -41,6 +41,10 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-13 | Cierre por alcance | ninguno (se menciona en la nota de ADR-010) |
 | F4-09b | Orden ARIMA automático por origen, `transform=log` fijo, AO declarados no anticipados | ADR-004 (nota) y ADR-001 (cruce) |
 | F4-14 | AR(p)-BIC: `p` se selecciona con la muestra común y se reestima con la muestra máxima | ninguno (especificación del motor §5) |
+| F4-15 | MCS: T_max, α = 0,10, B = 5000, bootstrap estacionario circular con bloque max(h, ⌈n^(1/3)⌉) | ninguno (especificación §6) |
+| F4-16 | DM/HLN: varianza rectangular h−1; si no es positiva, respaldo Bartlett registrado en la salida | ninguno (especificación §6) |
+| F4-17 | Giacomini-White: instrumentos (1, d_{t−h}), HAC Bartlett h−1, χ²(2) | ninguno (especificación §6) |
+| F4-18 | V7/V9: criterio estricto en h = 1, 2; en h = 4, 8 se reporta el tamaño empírico y los p-valores se marcan con distorsión documentada | protocolo §4 |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -73,6 +77,28 @@ máxima, descartando solo las `p` observaciones que sus rezagos exigen. En el pr
 observaciones en vez de 84. Era la única decisión que la especificación dejaba implícita (decía dónde se
 selecciona, no dónde se estima). Efecto en la verificación sintética V4: el RMSE relativo medio pasa de
 0,821 a 0,820 con DGP AR(1) y de 1,0076 a 1,0068 con DGP paseo aleatorio.
+
+### F4-15 a F4-17 — parámetros de las pruebas de significancia
+
+**DECIDIDO por Harold el 2026-09-24** (paso 4 del motor). MCS con estadístico T_max, α = 0,10 y
+B = 5000 réplicas de un bootstrap estacionario circular de bloque medio max(h, ⌈n^(1/3)⌉), que respeta
+la autocorrelación MA(h−1) de las pérdidas (F4-15). DM/HLN con varianza rectangular de h−1 rezagos; si
+no es positiva se recurre a Bartlett y la salida lo registra en `varianza` (F4-16). Giacomini-White
+condicional con instrumentos (1, d_{t−h}), varianza HAC Bartlett de h−1 rezagos y χ² con 2 gl (F4-17).
+
+### F4-18 — criterio de V7 y V9 en horizontes largos
+
+**DECIDIDO por Harold el 2026-09-24.** La exploración de Monte Carlo del paso 4 mostró que ninguna
+variante de DM probada (HLN; EWC con B = ⌊n^(1/3)⌋ y ⌊n^(2/3)⌋) alcanza el tamaño nominal en todas las
+celdas: HLN está bien en h = 1, 2 y sobre-rechaza en h ≥ 4 (V7: hasta 0,15 al 5% nominal con los 18
+pares de G3 a h = 8). El MCS muestra lo mismo: con seis modelos equivalentes conserva el conjunto
+completo 90% de las veces en h = 1 (n = 52), pero 78% en h = 8 con n = 45 y 49% con n = 18; el modelo
+dominante sí queda dentro (≥ 0,88 en todas las celdas). Se mantienen DM/HLN y el MCS. El criterio
+estricto rige en h = 1, 2 (V7: tamaño bajo la cota binomial superior del 99%) y para la cobertura del
+modelo dominante (V9); en h = 4, 8 el tamaño empírico por celda se publica y los p-valores de esas
+celdas se marcan con «distorsión de tamaño documentada». Alternativas descartadas: calibrar p-valores
+por bootstrap (cambio de método y costo de cómputo) y suprimir la inferencia en h = 4, 8. La potencia
+(V8) es baja: una pérdida 20% menor se detecta entre 7% y 16% de las veces con errores independientes.
 
 ---
 
