@@ -253,3 +253,41 @@ librería local puede estar parcialmente desincronizada).
 
 **Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota es
 sobre qué paquete de R implementa las pruebas de raíz unitaria, no sobre el lenguaje.
+
+## Nota de seguimiento — dependencias del motor de evaluación (2026-09-24)
+
+**Contexto.** El motor de evaluación de Fase 4 (`src/evaluacion/`) necesita tres cosas que los
+paquetes de este ADR no cubren: las pruebas de significancia de la senda §5.4
+(Diebold-Mariano con corrección de Harvey-Leybourne-Newbold, Giacomini-White y Model
+Confidence Set), y un lector de YAML, porque `catalogos/06_modelos/` es un directorio de YAML
+por diseño de la senda §3.3. Los benchmarks de la senda §6.1 no requieren nada nuevo: se
+cubren con `fable` y `tsibble`, ya fijados.
+
+**Alternativas consideradas:**
+
+- **Todo por paquete** (`MCS` y `yaml` en `Imports`): menos código propio, pero el MCS —que es
+  la prueba principal del Ejercicio A— queda como una caja que el proyecto no verifica, y el
+  stack de ejecución suma una dependencia.
+- **Todo propio, sin oráculo, y `06_modelos/` en JSON** con `jsonlite`: cero dependencias
+  nuevas, pero el MCS queda sin contraste independiente, y JSON rompe la convención de la
+  senda para catálogos con campos narrativos.
+
+**Decisión (Harold, 2026-09-24): implementación propia con oráculo.**
+
+- **DM/HLN y Giacomini-White** se implementan en `src/evaluacion/eval_lib.R` con R base
+  (`stats`). Son pocas líneas, y la corrección HLN queda explícita en el código.
+- **MCS** también se implementa en `eval_lib.R`, y se verifica contra el paquete `MCS`
+  declarado en **`Suggests`**, no en `Imports`. En desarrollo el paquete funciona como oráculo
+  (bloque V11 de la verificación sintética), y en CI la prueba hace `skip()` si falta. Es el
+  mismo patrón que se aceptó en Fase 3 con `urca` como fuente de los valores críticos: la
+  duplicación se comprueba, no se asume.
+- **`yaml`** entra a `Imports` para leer `06_modelos/*.yaml`.
+
+**Registro de las dependencias.** `yaml` (2.3.12) ya está en `renv.lock`, así que no amplía lo
+que hay que instalar. `MCS` **no** está en `renv.lock`. Queda por verificar al implementar si
+`renv` lo fija figurando solo en `Suggests`. Si no lo fija, el oráculo no es reproducible desde
+el lockfile y hay que registrarlo con `renv::record()`, mismo procedimiento que `urca` y
+`httr2`.
+
+**Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota
+decide qué se implementa y qué se toma de un paquete, sin tocar el lenguaje.
