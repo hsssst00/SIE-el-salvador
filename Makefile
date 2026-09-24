@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval report validate test audit trace
+.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico report validate test audit trace
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -86,10 +86,18 @@ validate:
 trace:
 	Rscript src/validacion/verificar_fuente_celda.R
 
-# Fase 4/5 — motor de evaluación y estimación. No implementar Fase 5 antes de que
-# el motor de Fase 4 esté probado en datos sintéticos.
-eval:
-	@echo "Pendiente: src/evaluacion/ (Fase 4-5)"
+# Fase 4 — verificación del motor de evaluación sobre procesos generadores conocidos
+# (src/evaluacion/verificar_motor_sintetico.R). NO lee data/L3_master/, así que corre en CI: es la
+# evidencia del criterio de cierre de Fase 4 ("el motor funciona y está probado antes de estimar
+# cualquier modelo sofisticado", senda §4). Bloques vigentes: V1-V6 y V10; V7-V9 y V11 (pruebas de
+# significancia) llegan con el paso 4 del orden de implementación.
+eval-sintetico:
+	Rscript src/evaluacion/verificar_motor_sintetico.R
+
+# Fase 4/5 — motor de evaluación sobre L3. La verificación sintética es prerrequisito y corre primero
+# para fallar barato. No implementar Fase 5 antes de que el motor de Fase 4 esté probado.
+eval: eval-sintetico
+	@echo "Pendiente: src/evaluacion/motor_backtesting.R (Fase 4, paso 5 de la especificación del motor)"
 
 # Fase 7 — sitio de documentación.
 report:
