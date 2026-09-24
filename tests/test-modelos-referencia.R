@@ -52,7 +52,20 @@ test_that("AR(p)-BIC elige p = 0 en ruido blanco y p = 2 en un AR(2) marcado", {
   s <- seleccionar_ar_bic(dy)
   expect_identical(s$p, 2L)
   expect_length(s$bic, 9L)                                 # p = 0..8
-  expect_identical(s$n_eff, n - 8L)                        # muestra común de p_max = 8
+  expect_identical(s$n_eff, n - 8L)                        # selección: muestra común de p_max = 8
+  expect_identical(s$n_est, n - 2L)                        # estimación: muestra máxima para p = 2
+  f <- stats::lm.fit(cbind(1, dy[3:n - 1], dy[3:n - 2]), dy[3:n])
+  expect_equal(c(s$c0, s$phi), unname(f$coefficients))     # coeficientes de la muestra máxima
+})
+
+test_that("con p = 0 la constante del AR(p)-BIC es la media de toda la muestra", {
+  set.seed(15)
+  dy <- rnorm(200, 0.004, 0.01)
+  s <- seleccionar_ar_bic(dy)
+  expect_identical(s$p, 0L)
+  expect_identical(s$n_est, 200L)
+  expect_equal(s$c0, mean(dy))
+  expect_length(s$phi, 0L)
 })
 
 test_that("AR(p)-BIC falla de forma visible con muestra insuficiente", {
