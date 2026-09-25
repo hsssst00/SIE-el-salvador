@@ -95,9 +95,11 @@ eval-sintetico:
 	Rscript src/evaluacion/verificar_motor_sintetico.R
 
 # Fase 4/5 — motor de evaluación sobre L3. La verificación sintética es prerrequisito y corre primero
-# para fallar barato. No implementar Fase 5 antes de que el motor de Fase 4 esté probado.
+# para fallar barato. No implementar Fase 5 antes de que el motor de Fase 4 esté probado. LOCAL: exige
+# data/L3_master/, data/L1_staging/BCR_PIB_series_largo.csv (NSA para el ajuste por origen, F4-19) y
+# X-13ARIMA-SEATS, así que no corre en CI. Escribe data/L4_experiments/<exp_id>/.
 eval: eval-sintetico
-	@echo "Pendiente: src/evaluacion/motor_backtesting.R (Fase 4, paso 5 de la especificación del motor)"
+	Rscript src/evaluacion/motor_backtesting.R
 
 # Fase 7 — sitio de documentación.
 report:

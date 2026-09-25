@@ -1,6 +1,6 @@
 # Fase 4 — registro de decisiones de diseño
 
-**Fecha:** 2026-09-24 · **Estado:** las trece fichas y la F4-09b decididas por Harold el mismo día (ver el Acta).
+**Fecha:** 2026-09-24 · **Estado:** las trece fichas, la F4-09b y las F4-14 a F4-22 decididas por Harold el mismo día (ver el Acta).
 **Para qué sirve este documento.** Fase 4 no puede implementarse sin cerrar trece puntos.
 Nueve son decisiones de diseño que el protocolo propone y Harold confirma o cambia; dos
 exigen enmendar un ADR cerrado porque la realidad verificada del sistema contradice lo que
@@ -45,6 +45,10 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-16 | DM/HLN: varianza rectangular h−1; si no es positiva, respaldo Bartlett registrado en la salida | ninguno (especificación §6) |
 | F4-17 | Giacomini-White: instrumentos (1, d_{t−h}), HAC Bartlett h−1, χ²(2) | ninguno (especificación §6) |
 | F4-18 | V7/V9: criterio estricto en h = 1, 2; en h = 4, 8 se reporta el tamaño empírico y los p-valores se marcan con distorsión documentada | protocolo §4 |
+| F4-19 | El motor reconstruye la NSA concatenada desde L1 con `concatenar_pib_nsa()` (T001); no se materializa en L3 | especificación del motor §1 |
+| F4-20 | Observado = `PIB_SA_PROPIO_Q` de L3; bases de la tasa pronosticada (interanual h ≤ 4, trimestral h = 1) = ajuste X-13 del propio origen | protocolo §8, especificación §4 |
+| F4-21 | `pruebas.csv` lleva `marca_tamano`; el tamaño empírico de cada celda se publica en el reporte desde una corrida de V7 citada | protocolo §4 |
+| F4-22 | R5 (`PIB_SA_OFICIAL_Q`) corre solo con los orígenes de G2 y G3 y la serie oficial tal cual (`sa=l3_unico`) | protocolo §5 |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -99,6 +103,36 @@ modelo dominante (V9); en h = 4, 8 el tamaño empírico por celda se publica y l
 celdas se marcan con «distorsión de tamaño documentada». Alternativas descartadas: calibrar p-valores
 por bootstrap (cambio de método y costo de cómputo) y suprimir la inferencia en h = 4, 8. La potencia
 (V8) es baja: una pérdida 20% menor se detecta entre 7% y 16% de las veces con errores independientes.
+
+
+### F4-19 a F4-22 — orquestador sobre datos del proyecto (paso 5 del motor)
+
+**DECIDIDO por Harold el 2026-09-24**, antes de escribir `motor_backtesting.R` y de cualquier corrida
+sobre L3, las cuatro en la opción recomendada.
+
+- **F4-19 · Insumo NSA del ajuste por origen.** La serie concatenada `PIB.NSA.CONCAT.Q` (T001) está
+  declarada `intermediate` en `05_series_master.csv` y solo existe en memoria dentro de
+  `l3_pib_objetivo.R`, así que L3 no basta para reestimar X-13 en cada origen. El motor lee
+  `data/L1_staging/BCR_PIB_series_largo.csv` y llama a `concatenar_pib_nsa()`, la misma función que usa
+  L3, y comprueba período a período que el vintage de esa NSA sea el de `PIB_SA_PROPIO_Q`. Descartado:
+  materializar la NSA en L3 (cambio de catálogo y de rol, con regeneración de L3, para el mismo resultado).
+- **F4-20 · Observado y bases.** El error se mide contra `PIB_SA_PROPIO_Q` de L3 (datos revisados,
+  F4-03). Las bases observadas de la tasa pronosticada —`Y_{o+h−4}` en la interanual para h ≤ 4 y `Y_o`
+  en la trimestral de h = 1— salen del ajuste reestimado en el origen, que es lo que veía el
+  pronosticador. `derivar_unidades()` y `calcular_errores()` ganan el argumento opcional `bases`; sin él
+  se comportan como antes, así que V1-V11 no cambian. Descartados: todo contra L3, porque en h = 4 la
+  tasa del paseo aleatorio sería pura revisión del factor estacional, y observado = ajuste del origen
+  `o+h`, porque no es la pista de datos revisados y cambiaría el observado según el horizonte.
+- **F4-21 · Tamaño empírico junto a los p-valores.** `pruebas.csv` (y `mcs.csv`) llevan la columna
+  `marca_tamano`, con `distorsion_tamano_documentada` en h = 4, 8 y vacía en h = 1, 2. La cifra del tamaño
+  empírico se publica en el reporte de Fase 5, tomada de una corrida de V7 citada por su run de CI; no se
+  transcribe a L4. Descartado: recomputar la celda de V7 dentro de `make eval`.
+- **F4-22 · R5 con el objetivo oficial.** `PIB_SA_OFICIAL_Q` empieza en 2005-Q1: en 2013-Q1 tiene 33
+  observaciones, menos que el mínimo de 40 de G-4, y el primer origen con 40 es 2014-Q4, el de G2.
+  Además es el SA del BCR y no admite reestimación por origen. R5 corre con los orígenes de G2 y G3 y la
+  serie tal cual (`sa=l3_unico`), y declara que hereda la filtración del ajuste bilateral del BCR.
+  Descartados: bajar el mínimo a 33 solo para R5, y reajustar la NSA nativa (dejaría de ser la serie
+  oficial que pide ADR-001).
 
 ---
 
