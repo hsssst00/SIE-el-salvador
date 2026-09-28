@@ -51,6 +51,11 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-22 | R5 (`PIB_SA_OFICIAL_Q`) corre solo con los orígenes de G2 y G3 y la serie oficial tal cual (`sa=l3_unico`) | protocolo §5 |
 | F4-23 | Las remesas reales no se extienden antes de 2010: en G1 entran las remesas nominales (desde 1991) y las reales siguen en G3 | ninguno (protocolo §2.5 ya lo dice) |
 | F4-24 | El IPP no se amplía con el IPRI base 1990: queda desde 2010-Q1 y sigue definiendo G3 | ninguno; 09_rupturas R010 sin cambios |
+| F4-25 | `07_experimentos.csv`: una fila por (experimento, modelo), `exp_id` = `<exp_id>__<modelo_id>`, escrita por el motor | especificación §4, `catalogos/README.md` |
+| F4-26 | R1: X-13 sobre `[1990-Q1, o]` y modelos con los últimos 92 trimestres de ese SA; G1-G3; DM/HLN, GW y MCS | protocolo §5 |
+| F4-27 | R2: X-13 y estimación solo sobre la NSA nativa `[2005-Q1, o]`; orígenes de G2 y G3; observado de L3, bases del propio ajuste | protocolo §5 |
+| F4-28 | R3: targets ≤ 2019-Q4 / ≥ 2020-Q1; métricas, DM/HLN y MCS por submuestra, más la regresión de d_t sobre (1, D_post) con HAC | protocolo §5 |
+| F4-29 | R4: sin los targets de 2020, y como línea adicional sin 2020 ni 2021 | protocolo §5 |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -165,6 +170,61 @@ fundamento de una decisión de *no* extender, no como resultado del sistema.
   queda desde 2010-Q1 y G3 se mantiene. Descartados: empalmar con el IPRI y usar el PPI del FMI.
 
 Con las dos decisiones, los grupos de F4-05 no cambian.
+
+
+### F4-25 a F4-29 — registro del experimento y batería de robustez (bloque E)
+
+**DECIDIDO por Harold el 2026-09-25**, las cinco en la opción recomendada, antes de correr R1-R4 y R6.
+Ninguna se fijó mirando resultados de robustez.
+
+- **F4-25 · Fila de `07_experimentos.csv`.** La especificación §4 pedía una fila por `exp_id`, pero el
+  esquema cerrado de `datapackage.json` declara `exp_id` único y `modelo_id` con un solo valor, y cada
+  experimento corre seis modelos. **Decisión:** una fila por (experimento, modelo), con `exp_id`
+  compuesto `<exp_id>__<modelo_id>` (p. ej. `F4_BENCH_G1__BENCH.AR1`) y `ruta_resultados` al directorio
+  común `data/L4_experiments/<exp_id>/`. `vintage_id` junta los vintages del objetivo con « + »;
+  `semilla` es la del primer origen del grupo y la regla de derivación queda en el manifiesto. La
+  escribe el motor al final de `make eval`, reemplazando las filas previas de los experimentos que
+  corre. `modelo_id` resuelve contra `06_modelos/` (arista nueva, `tests/test-robustez-registro.R`).
+  Descartados: `modelo_id` como lista (rompe la integridad referencial) y un recurso `07b` nuevo
+  (cambio de esquema sin necesidad).
+- **F4-26 · R1, ventana rodante.** X-13 se reestima sobre `[1990-Q1, o]`, como en la principal, y los
+  modelos se estiman con los últimos 92 trimestres (F4-10) de ese SA; la diferencia con la principal
+  queda atribuible solo a la ventana de estimación. Corre en los tres grupos, con DM/HLN y GW (F4-17)
+  contra el paseo aleatorio sin deriva, y el MCS del grupo. Descartado: X-13 sobre `[o−91, o]` (cambia
+  a la vez el ajuste y la estimación).
+- **F4-27 · R2, tramo homogéneo.** X-13 y la estimación usan solo la NSA nativa `[2005-Q1, o]`, lectura
+  literal de ADR-003; el tramo RETRO no entra ni en el ajuste estacional. Con el mínimo de 40 obs el
+  primer origen posible es 2014-Q4, así que corre con los orígenes de G2 y G3. El observado sigue siendo
+  el de L3 (F4-20) y las bases salen del ajuste del propio origen. Descartado: ajustar sobre
+  `[1990-Q1, o]` y recortar a 2005 para estimar (los factores seguirían informados por el RETRO).
+- **F4-28 · R3, estabilidad pre/post 2020.** Estimar solo con 2020-2026 no es viable, así que se parten
+  los **targets** en ≤ 2019-Q4 y ≥ 2020-Q1. Se reportan métricas, DM/HLN y MCS en cada submuestra, más
+  la regresión de d_t = e²_RW − e²_modelo sobre (1, D_post) por MCO, con varianza HAC de Bartlett de
+  h−1 rezagos y t con n−2 gl sobre D_post (un GW condicional con la dummy como instrumento). Un
+  coeficiente positivo dice que el modelo mejoró respecto del paseo aleatorio después de 2020.
+  Descartados: la prueba de fluctuación de Giacomini-Rossi (2010), método nuevo con valores críticos
+  tabulados, y solo métricas sin contraste (no cumple ADR-004).
+- **F4-29 · R4, sin 2020.** En la unidad primaria los targets de 2021 concentran el 46,7 % de la suma de
+  cuadrados de la variación interanual observada en los 52 targets de h = 1, más que 2020 (32,8 %),
+  porque su base interanual es 2020; juntos suman el 79,6 %. **Decisión:** R4 excluye los targets de
+  2020-Q1..Q4, como dice el protocolo, y se agrega una línea sin los targets de 2020 ni 2021, declarada
+  como ampliación fijada antes de ver R4. Descartados: solo la regla literal (esconde el rebote) y solo
+  la ampliada (se aparta del texto previo).
+- **R6** no requería decisión: `sa=l3_unico` sobre `PIB_SA_PROPIO_Q` en los tres grupos, sin bases por
+  origen.
+
+**Detalle de implementación (no lo fijan las fichas; revertible, declarado en el PR del bloque E).**
+1. El dominio `ventana` del token gana `homogenea2005` para R2.
+2. R3 corre en G1 y G2: G3 empieza en el origen 2019-Q4 y no tiene targets previos a 2020.
+3. R3 y R4 no corren modelos: reevalúan los errores de la principal del mismo grupo y escriben
+   `metricas_submuestras.csv`, `pruebas_submuestras.csv`, `mcs_submuestras.csv` (columna `muestra_eval`)
+   y, con R3, `estabilidad.csv` en el directorio de la principal, que conserva byte a byte sus tablas.
+4. En `sin_2020` y `sin_2020_2021`, DM/HLN y el MCS corren sobre la serie de pares que queda, con el
+   hueco concatenado: la varianza de largo plazo trata como contiguos a los pares de cada lado del
+   hueco. Es una aproximación y se declara en el manifiesto.
+5. La semilla del MCS de una submuestra es `semilla_de(exp_id, "MCS|<muestra>", h)`.
+6. Las filas de GW (R1) y las de `estabilidad.csv` llevan `marca_tamano = tamano_no_verificado` en todos
+   los horizontes: V7 calibró el tamaño de DM/HLN, no el de GW ni el del contraste de estabilidad.
 
 ---
 

@@ -68,9 +68,9 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 
 - [ ] **E1** Primera corrida completa sobre L3 con los seis benchmarks, en los grupos definidos en A4. *Avance:* hecha por Harold sobre `ee60dee` (ver C3): `F4_BENCH_G1`, `_G2` y `_G3`, más R5 en G2 y G3 (F4-22).
 - [ ] **E2** `data/L4_experiments/<exp_id>/` con `pronosticos.csv`, `metricas.csv`, `pruebas.csv`, `mcs.csv` y `manifiesto.txt`. *Avance:* escritos por esa corrida, con `ajuste_estacional.csv` (F4-09b). Los manifiestos registran «1 entrada en git status»; hay que identificarla antes de marcar.
-- [ ] **E3** Fila por corrida en `catalogos/07_experimentos.csv` con las doce columnas del esquema y el token de protocolo.
+- [ ] **E3** Fila por corrida en `catalogos/07_experimentos.csv` con las doce columnas del esquema y el token de protocolo. *Avance:* granularidad fijada por F4-25 (una fila por experimento y modelo, `exp_id` compuesto); el motor las escribe al final de `make eval` y `tests/test-robustez-registro.R` comprueba `modelo_id` contra `06_modelos/` y `vintage_id` contra `08_vintages.csv`. Falta la corrida de Harold que las pueble y el commit de esas filas.
 - [ ] **E4** Tabla de RMSE y MAE por horizonte y grupo, con la columna de pertenencia al MCS adyacente.
-- [ ] **E5** Batería de robustez R1-R6 corrida y reportada junto al resultado principal.
+- [ ] **E5** Batería de robustez R1-R6 corrida y reportada junto al resultado principal. *Avance:* R5 corrida con E1. R1, R2 y R6 implementados como experimentos propios y R3/R4 como submuestras de la principal (F4-26 a F4-29). Falta la corrida de Harold y el reporte.
 - [ ] **E6** Evidencia textual de la corrida en `doc/evidencia_cierre_fase4.txt` (patrón de Fase 2 y 3, porque `make eval` exige L3 y X-13 y no puede pasar por CI). Corregido el 2026-09-24: la versión anterior pedía además una entrada en `doc/bitacora_verificaciones.md`, que es exclusiva de `verificar_fuente_celda.R` (regla 8 de `CLAUDE.md`).
 
 ## F. Cierre de la fase (tres piezas del patrón del proyecto)
@@ -95,7 +95,8 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
   `validar_integridad_catalogos.R` y `tests/test-integridad-referencial.R`)** sigue abierto
   y no bloquea esta fase, pero `07_experimentos.csv` y `06_modelos/` son aristas nuevas del
   grafo de integridad referencial: al poblarlas hay que comprobar que `modelo_id` y
-  `vintage_id` resuelven contra sus catálogos.
+  `vintage_id` resuelven contra sus catálogos. Cubierto para `07_experimentos.csv` por la última prueba de
+  `tests/test-robustez-registro.R` (2026-09-25).
 
 ## Lo que esta fase NO cubre
 

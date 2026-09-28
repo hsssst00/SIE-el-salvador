@@ -114,6 +114,11 @@ data/L4_experiments/<exp_id>/
 │                          alpha, replicas, bloque, semilla, marca_tamano
 ├── ajuste_estacional.csv  exp_id, origen, n_obs, arima, transform, regresores, ao_declarados
 │                          (solo con sa=reestimado_en_origen; F4-09b)
+├── metricas_submuestras.csv  muestra_eval + columnas de metricas.csv    (R3/R4, solo en la principal)
+├── pruebas_submuestras.csv   muestra_eval + columnas de pruebas.csv     (R3/R4)
+├── mcs_submuestras.csv       muestra_eval + columnas de mcs.csv         (R3/R4)
+├── estabilidad.csv        exp_id, grupo, h, unidad, modelo_a, modelo_b, media_pre, cambio_post,
+│                          ee_hac, estadistico, p_valor, n_pre, n_post, marca_tamano   (R3)
 └── manifiesto.txt         exp_id, token, commit_hash, estado del árbol, semillas, sha256 de insumos
                            y de cada CSV anterior, sessionInfo()
 ```
@@ -127,10 +132,27 @@ favorece a `modelo_b`. `cobertura_80`, `cobertura_95` y `crps` quedan vacías mi
 de modelo devuelva solo el sendero puntual (protocolo §3.4: no se imputa una densidad). La semilla
 de cada MCS es `semilla_de(exp_id, "MCS", h)`. Los CSV se escriben con fin de línea LF.
 
+**Actualizado con el bloque E (2026-09-25, F4-25 a F4-29).** `muestra_eval` toma `pre2020`,
+`post2020` (R3, G1 y G2) y `sin_2020`, `sin_2020_2021` (R4, G1-G3); las cuatro son funciones del
+índice del target en `SUBMUESTRAS_FASE4`. La semilla del MCS de una submuestra es
+`semilla_de(exp_id, "MCS|<muestra>", h)`. `estabilidad.csv` es la regresión de d_t sobre
+(1, D_post) de `prueba_cambio_diferencial()`: `media_pre` es la media de d_t antes de 2020 y
+`cambio_post` su cambio desde 2020-Q1; positivo favorece a `modelo_b`. Las tablas de la muestra
+completa no cambian por agregar R3/R4. En R1, `pruebas.csv` agrega las filas `gw` con
+`varianza = bartlett`; ellas y `estabilidad.csv` llevan `marca_tamano = tamano_no_verificado`.
+
 `data/L4_experiments/` no se versiona (senda §7); `manifiesto.txt` y la fila de
 `07_experimentos.csv` sí, y son lo que hace auditable la corrida sin publicar los datos.
 
-**Fila de `07_experimentos.csv`** — una por `(exp_id)`, con las doce columnas ya declaradas.
+**Filas de `07_experimentos.csv`** — una por (experimento, modelo) **[decidido 2026-09-25, F4-25]**,
+con las doce columnas ya declaradas y `exp_id` = `<exp_id>__<modelo_id>`: el esquema declara
+`exp_id` único y `modelo_id` con un solo valor, y cada experimento corre seis modelos. Las escribe
+`registrar_experimentos()` al final de `make eval`, reemplazando las filas previas de los
+experimentos que corrió. `muestra_inicio` es el primer período de la muestra de estimación en el
+primer origen del grupo (1990-Q1, 2005-Q1 en R2 y R5, y el inicio de la ventana de 92 en R1);
+`muestra_fin` es el último período observado del objetivo; `vintage_id` junta con « + » los vintages
+del objetivo en ese tramo; `semilla` es `semilla_de(exp_id, modelo_id, primer origen)`; `entorno`
+lleva la versión de R, la plataforma y los 12 primeros caracteres del sha256 de `renv.lock`.
 `esquema_validacion` lleva el token de F4-11:
 
 ```
@@ -244,8 +266,10 @@ elige `p = 0`.
 5. `motor_backtesting.R` sobre L3 y la primera corrida de benchmarks. Depende de F4-03,
    F4-05 y F4-09. **Implementado** con F4-19 a F4-22: cinco experimentos declarados en el script
    (`F4_BENCH_G1`, `_G2`, `_G3` con ajuste por origen; `F4_BENCH_G2_R5` y `_G3_R5` con el objetivo
-   oficial). La batería R1-R4 y R6 llega con el bloque E del checklist.
-6. Fila en `07_experimentos.csv`, evidencia textual y cierre.
+   oficial).
+6. Batería R1-R4 y R6 y filas en `07_experimentos.csv`. **Implementado** con F4-25 a F4-29: trece
+   experimentos (R1 en G1-G3, R2 en G2-G3, R6 en G1-G3; R3 y R4 como submuestras de la principal).
+   Quedan la evidencia textual y el cierre.
 
 Los pasos 1-4 no necesitan datos y pueden escribirse mientras las decisiones del tablero
 están abiertas; el paso 5 no debe empezar antes de F4-09, que es la que decide si el ajuste

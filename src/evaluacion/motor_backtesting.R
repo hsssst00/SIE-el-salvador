@@ -21,15 +21,19 @@
 #
 # Escribe data/L4_experiments/<exp_id>/ (no versionado, senda §7):
 #   pronosticos.csv, metricas.csv, pruebas.csv, mcs.csv, ajuste_estacional.csv (solo con
-#   sa=reestimado_en_origen: orden ARIMA por origen, F4-09b) y manifiesto.txt con commit, semillas,
+#   sa=reestimado_en_origen: orden ARIMA por origen, F4-09b; en R2, del tramo [2005-Q1, o]) y manifiesto.txt con commit, semillas,
 #   sha256 de insumos y salidas, y sessionInfo().
 #
-# No escribe la fila de catalogos/07_experimentos.csv: es el paso 6 del orden de implementación.
+# Con R3/R4 agrega metricas_submuestras.csv, pruebas_submuestras.csv, mcs_submuestras.csv (columna
+# muestra_eval) y, con R3, estabilidad.csv, sin tocar las tablas de la muestra completa.
+#
+# Al final registra en catalogos/07_experimentos.csv una fila por (experimento, modelo), con exp_id
+# `<exp_id>__<modelo_id>`, reemplazando las filas previas de los exp_id que corrió (F4-25).
 #
 # Decisiones que implementa: F4-01 (orígenes), F4-03 (datos revisados, G-6), F4-04 (pérdida yoy en
 # pp), F4-05 (grupos), F4-07 (denominador), F4-09/F4-09b (X-13 por origen), F4-15 a F4-18 (pruebas),
-# F4-19 (NSA desde L1), F4-20 (observado de L3, bases del origen), F4-21 (marca de tamaño) y F4-22
-# (R5 solo en G2 y G3, serie oficial tal cual). Regla 7 de CLAUDE.md: toda guarda falla con stop().
+# F4-19 (NSA desde L1), F4-20 (observado de L3, bases del origen), F4-21 (marca de tamaño), F4-22
+# (R5 solo en G2 y G3, serie oficial tal cual) y F4-25 a F4-29 (registro 07 y robustez R1 a R4). Regla 7 de CLAUDE.md: toda guarda falla con stop().
 
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
@@ -39,18 +43,35 @@ source(here::here("src", "transformacion", "vintage_lib.R"))
 # ---------------------------------------------------------------------------------------------
 # Experimentos declarados
 # ---------------------------------------------------------------------------------------------
-# Principal: los tres grupos con el ajuste reestimado por origen. R5: objetivo oficial, solo G2 y
-# G3 (en 2013-Q1 tiene 33 obs, menos que el mínimo de G-4) y sin reajuste (es el SA del BCR).
+# Principal: los tres grupos con el ajuste reestimado por origen (F4-09b). Robustez del protocolo §5:
+#   R1  ventana rodante de 92 trimestres; X-13 sobre [1990-Q1, o] como en la principal (F4-26)
+#   R2  tramo homogéneo: X-13 y estimación solo sobre la NSA nativa [2005-Q1, o], orígenes de G2/G3 (F4-27)
+#   R3  submuestras de targets pre/post 2020 con contraste de estabilidad, sobre la principal (F4-28)
+#   R4  métricas sin los targets de 2020, y además sin 2020 ni 2021, sobre la principal (F4-29)
+#   R5  objetivo oficial, solo G2 y G3, serie tal cual (F4-22)
+#   R6  ajuste único de L3 en vez del reestimado por origen
+# R3 y R4 no corren modelos: reevalúan los errores de la principal y escriben *_submuestras.csv en su
+# directorio. R3 no aplica a G3: su primer target es 2020-Q1 y no tiene submuestra previa.
 
-EXPERIMENTOS <- data.frame(
-  exp_id   = c("F4_BENCH_G1", "F4_BENCH_G2", "F4_BENCH_G3", "F4_BENCH_G2_R5", "F4_BENCH_G3_R5"),
-  grupo    = c("G1", "G2", "G3", "G2", "G3"),
-  objetivo = c(rep("PIB_SA_PROPIO_Q", 3), rep("PIB_SA_OFICIAL_Q", 2)),
-  sa       = c(rep("reestimado_en_origen", 3), rep("l3_unico", 2)),
-  ventana  = "expansiva",
-  vintage  = "revision_vigente",
-  perdida  = "yoy_pp",
-  stringsAsFactors = FALSE
+.exp <- function(exp_id, grupo, objetivo = "PIB_SA_PROPIO_Q", sa = "reestimado_en_origen", ventana = "expansiva",
+                 r3 = FALSE, r4 = FALSE) {
+  data.frame(exp_id = exp_id, grupo = grupo, objetivo = objetivo, sa = sa, ventana = ventana,
+             vintage = "revision_vigente", perdida = "yoy_pp", r3 = r3, r4 = r4, stringsAsFactors = FALSE)
+}
+EXPERIMENTOS <- rbind(
+  .exp("F4_BENCH_G1", "G1", r3 = TRUE, r4 = TRUE),
+  .exp("F4_BENCH_G2", "G2", r3 = TRUE, r4 = TRUE),
+  .exp("F4_BENCH_G3", "G3", r4 = TRUE),
+  .exp("F4_BENCH_G2_R5", "G2", objetivo = "PIB_SA_OFICIAL_Q", sa = "l3_unico"),
+  .exp("F4_BENCH_G3_R5", "G3", objetivo = "PIB_SA_OFICIAL_Q", sa = "l3_unico"),
+  .exp("F4_BENCH_G1_R1", "G1", ventana = "rodante92"),
+  .exp("F4_BENCH_G2_R1", "G2", ventana = "rodante92"),
+  .exp("F4_BENCH_G3_R1", "G3", ventana = "rodante92"),
+  .exp("F4_BENCH_G2_R2", "G2", ventana = "homogenea2005"),
+  .exp("F4_BENCH_G3_R2", "G3", ventana = "homogenea2005"),
+  .exp("F4_BENCH_G1_R6", "G1", sa = "l3_unico"),
+  .exp("F4_BENCH_G2_R6", "G2", sa = "l3_unico"),
+  .exp("F4_BENCH_G3_R6", "G3", sa = "l3_unico")
 )
 
 MIN_OBS    <- 40L                    # G-4, mínimo de observaciones del objetivo (F4-05)
@@ -59,6 +80,8 @@ B_MCS      <- 5000L                  # F4-15
 BENCHMARK  <- "BENCH.RW_SIN_DERIVA"  # F4-07
 UNIDADES   <- c("yoy_pp", "qoq_pp", "log_nivel")
 MARCA_TAMANO <- "distorsion_tamano_documentada"   # F4-18 / F4-21, en h = 4, 8
+VENTANA_RODANTE <- 92L                # F4-10
+INICIO_HOMOGENEO <- "2005-Q1"         # ADR-003, F4-27
 
 # ---------------------------------------------------------------------------------------------
 # Lectura
@@ -142,74 +165,91 @@ ajustar_en_origen <- function(nsa, outliers, o) {
 # Un experimento
 # ---------------------------------------------------------------------------------------------
 
-#' Corre un experimento y devuelve sus tablas. `cache_sa` es un entorno compartido entre
-#' experimentos: el ajuste de un origen se computa una sola vez y lo ven todos los grupos.
+#' Serie del objetivo tal como la ve el origen `o` para un experimento: el SA del origen (reestimado o
+#' de L3) y, si corresponde, el registro del ajuste. `cache_sa` guarda los ajustes por (tramo, origen):
+#' la principal, R1 y R3/R4 comparten el de [1990-Q1, o]; R2 usa el de [2005-Q1, o].
+serie_en_origen <- function(ex, o, insumos, cache_sa) {
+  obs <- insumos$objetivos[[ex$objetivo]]
+  if (ex$sa == "l3_unico") {
+    sa <- obs[q_a_ind(obs$periodo) <= o, c("periodo", "y")]
+    if (ex$ventana == "homogenea2005") sa <- sa[q_a_ind(sa$periodo) >= q_a_ind(INICIO_HOMOGENEO), ]
+    return(list(sa = sa, registro = NULL, bases = FALSE))
+  }
+  if (ex$objetivo != "PIB_SA_PROPIO_Q") stop("motor: el ajuste por origen solo está definido para PIB_SA_PROPIO_Q")
+  tramo <- if (ex$ventana == "homogenea2005") INICIO_HOMOGENEO else "1990-Q1"
+  clave <- paste(tramo, o)
+  if (is.null(cache_sa[[clave]])) {
+    nsa <- insumos$nsa[q_a_ind(insumos$nsa$periodo) >= q_a_ind(tramo), ]
+    cache_sa[[clave]] <- ajustar_en_origen(nsa, insumos$outliers, o)
+  }
+  a <- cache_sa[[clave]]
+  list(sa = a$sa, registro = a$registro, bases = TRUE)
+}
+
+#' Corre un experimento y devuelve sus tablas.
 correr_experimento <- function(ex, insumos, cache_sa) {
   token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida)
-  if (ex$ventana != "expansiva") stop("motor: ventana ", ex$ventana, " no implementada en este paso (R1 va con la batería de robustez)")
   if (ex$objetivo == "PIB_SA_OFICIAL_Q" && (ex$sa != "l3_unico" || ex$grupo == "G1")) stop("F4-22: R5 corre solo en G2/G3 y con la serie oficial tal cual")
+  if (ex$ventana == "homogenea2005" && ex$grupo == "G1") stop("F4-27: R2 corre solo con los orígenes de G2 y G3")
   obs <- insumos$objetivos[[ex$objetivo]]
   origenes <- origenes_grupo(ex$grupo)
   modelos <- modelos_referencia()
+  ids <- vapply(modelos, `[[`, character(1), "modelo_id")
 
-  if (ex$sa == "reestimado_en_origen") {
-    if (ex$objetivo != "PIB_SA_PROPIO_Q") stop("motor: el ajuste por origen solo está definido para PIB_SA_PROPIO_Q")
-    partes <- lapply(origenes, function(o) {
-      clave <- as.character(o)
-      if (is.null(cache_sa[[clave]])) cache_sa[[clave]] <- ajustar_en_origen(insumos$nsa, insumos$outliers, o)
-      a <- cache_sa[[clave]]
-      pr <- correr_backtest(list(objetivo = a$sa), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id)
-      list(pron = pr, base = data.frame(origen = o, periodo = a$sa$periodo, y = a$sa$y, stringsAsFactors = FALSE),
-           reg = a$registro)
-    })
-    pron  <- do.call(rbind, lapply(partes, `[[`, "pron"))
-    bases <- do.call(rbind, lapply(partes, `[[`, "base"))
-    ajuste <- cbind(exp_id = ex$exp_id, do.call(rbind, lapply(partes, `[[`, "reg")), stringsAsFactors = FALSE)
-  } else {
-    pron <- correr_backtest(list(objetivo = obs[, c("periodo", "y")]), modelos, origenes, min_obs = MIN_OBS, exp_id = ex$exp_id)
-    bases <- NULL; ajuste <- NULL
-  }
+  partes <- lapply(origenes, function(o) {
+    so <- serie_en_origen(ex, o, insumos, cache_sa)
+    estim <- if (ex$ventana == "rodante92") recortar_ventana_rodante(so$sa, VENTANA_RODANTE) else so$sa   # F4-26
+    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id)
+    base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
+    list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1])
+  })
+  pron  <- do.call(rbind, lapply(partes, `[[`, "pron"))
+  bases <- do.call(rbind, lapply(partes, `[[`, "base"))                  # NULL si ningún origen trae bases
+  ajuste <- NULL
+  regs <- lapply(partes, `[[`, "reg")
+  if (!all(vapply(regs, is.null, logical(1)))) ajuste <- cbind(exp_id = ex$exp_id, do.call(rbind, regs), stringsAsFactors = FALSE)
 
   err <- calcular_errores(pron, obs[, c("periodo", "y")], bases = bases)
   err <- err[order(err$unidad, err$modelo_id, err$h, err$origen), ]
 
-  # Métricas, con el conteo de pares del grupo como guarda (F4-01, F4-05).
-  met <- agregar_rmse_relativo(metricas_por_horizonte(err), BENCHMARK)
+  # Tablas de la muestra completa, con el conteo de pares del grupo como guarda (F4-01, F4-05).
+  tab <- evaluar_errores(err, ids, ex$exp_id, ex$grupo, ex$perdida,
+                         semilla_mcs = function(h) semilla_de(ex$exp_id, "MCS", h), benchmark = BENCHMARK,
+                         gw = ex$ventana == "rodante92", alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
   esperado <- conteo_por_horizonte(pares_evaluables(origenes, DISENO_FASE4$horizontes, obs$periodo[nrow(obs)]))
-  n_obs_h <- tapply(met$n_pares, met$h, unique)
+  n_obs_h <- tapply(tab$metricas$n_pares, tab$metricas$h, unique)
   if (!identical(as.integer(unlist(n_obs_h)), unname(esperado))) stop("motor: pares por horizonte distintos del diseño del grupo ", ex$grupo)
-  met <- data.frame(exp_id = ex$exp_id, modelo_id = met$modelo_id, grupo = ex$grupo, h = met$h, unidad = met$unidad,
-                    n_pares = met$n_pares, rmse = met$rmse, mae = met$mae, rmse_relativo = met$rmse_relativo,
-                    sesgo = met$sesgo, sesgo_ee_nw = met$sesgo_ee_nw,
-                    cobertura_80 = NA_real_, cobertura_95 = NA_real_, crps = NA_real_, stringsAsFactors = FALSE)
 
-  # Pruebas por pares contra el denominador y MCS, sobre la unidad primaria (protocolo §4).
-  ids <- vapply(modelos, `[[`, character(1), "modelo_id")
-  prim <- err[err$unidad == ex$perdida, ]
-  pruebas <- list(); mcs <- list()
-  for (h in DISENO_FASE4$horizontes) {
-    eh <- prim[prim$h == h, ]
-    orig_ref <- sort(unique(eh$origen))
-    E <- matrix(NA_real_, length(orig_ref), length(ids), dimnames = list(orig_ref, ids))
-    for (id in ids) {
-      d <- eh[eh$modelo_id == id, ]; d <- d[order(d$origen), ]
-      if (!identical(as.integer(d$origen), as.integer(orig_ref))) stop("motor: orígenes desalineados entre modelos en h = ", h, " (", id, ")")
-      E[, id] <- d$error
-    }
-    marca <- if (h >= 4L) MARCA_TAMANO else ""
-    for (id in setdiff(ids, BENCHMARK)) {
-      r <- prueba_dm_hln(E[, BENCHMARK], E[, id], h)
-      pruebas[[length(pruebas) + 1L]] <- data.frame(exp_id = ex$exp_id, grupo = ex$grupo, h = h, unidad = ex$perdida,
-        prueba = "dm_hln", modelo_a = BENCHMARK, modelo_b = id, estadistico = r$estadistico, p_valor = r$p_valor,
-        n_pares = r$n_pares, varianza = r$varianza, media_diferencial = r$media_diferencial, marca_tamano = marca,
-        stringsAsFactors = FALSE)
-    }
-    semilla <- semilla_de(ex$exp_id, "MCS", h)
-    res <- mcs_tmax(E^2, h, alpha = ALPHA_MCS, B = B_MCS, semilla = semilla)
-    mcs[[length(mcs) + 1L]] <- data.frame(exp_id = ex$exp_id, grupo = ex$grupo, h = h, unidad = ex$perdida,
-      modelo_id = res$modelo_id, p_mcs = res$p_mcs, en_mcs = res$en_mcs, orden_eliminacion = res$orden_eliminacion,
-      alpha = attr(res, "alpha"), replicas = attr(res, "B"), bloque = attr(res, "bloque"), semilla = semilla,
-      marca_tamano = marca, stringsAsFactors = FALSE)
+  # R3 y R4 (F4-28, F4-29): reevaluación de los mismos errores en submuestras de targets.
+  sub <- NULL; estab <- NULL
+  subs <- c(if (isTRUE(ex$r3)) c("pre2020", "post2020"), if (isTRUE(ex$r4)) c("sin_2020", "sin_2020_2021"))
+  if (length(subs)) {
+    tabs <- lapply(subs, function(nm) {
+      keep <- SUBMUESTRAS_FASE4[[nm]](err$origen + err$h)
+      t_ <- evaluar_errores(err[keep, ], ids, ex$exp_id, ex$grupo, ex$perdida,
+                            semilla_mcs = function(h) semilla_de(ex$exp_id, paste0("MCS|", nm), h), benchmark = BENCHMARK,
+                            alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
+      lapply(t_, function(x) cbind(muestra_eval = nm, x, stringsAsFactors = FALSE))
+    })
+    sub <- list(metricas = do.call(rbind, lapply(tabs, `[[`, "metricas")),
+                pruebas  = do.call(rbind, lapply(tabs, `[[`, "pruebas")),
+                mcs      = do.call(rbind, lapply(tabs, `[[`, "mcs")))
+  }
+  if (isTRUE(ex$r3)) {
+    prim <- err[err$unidad == ex$perdida, ]
+    estab <- do.call(rbind, lapply(DISENO_FASE4$horizontes, function(h) {
+      eb <- prim[prim$h == h & prim$modelo_id == BENCHMARK, ]; eb <- eb[order(eb$origen), ]
+      post <- as.integer(SUBMUESTRAS_FASE4$post2020(eb$origen + eb$h))
+      do.call(rbind, lapply(setdiff(ids, BENCHMARK), function(id) {
+        em <- prim[prim$h == h & prim$modelo_id == id, ]; em <- em[order(em$origen), ]
+        if (!identical(em$origen, eb$origen)) stop("motor: orígenes desalineados en el contraste de estabilidad")
+        r <- prueba_cambio_diferencial(eb$error, em$error, post, h)
+        data.frame(exp_id = ex$exp_id, grupo = ex$grupo, h = h, unidad = ex$perdida, modelo_a = BENCHMARK, modelo_b = id,
+                   media_pre = r$media_pre, cambio_post = r$cambio_post, ee_hac = r$ee_hac, estadistico = r$estadistico,
+                   p_valor = r$p_valor, n_pre = r$n_pre, n_post = r$n_post,
+                   marca_tamano = "tamano_no_verificado", stringsAsFactors = FALSE)
+      }))
+    }))
   }
 
   # Pronósticos con sus unidades derivadas y el vintage del observado en el target.
@@ -221,8 +261,11 @@ correr_experimento <- function(ex, insumos, cache_sa) {
                          qoq_pp_pronosticado = pu$qoq_pp_pronosticado,
                          vintage_id_objetivo = unname(vint[as.character(pu$origen + pu$h)]), stringsAsFactors = FALSE)
 
-  list(token = token, pronosticos = pron_out, metricas = met, pruebas = do.call(rbind, pruebas),
-       mcs = do.call(rbind, mcs), ajuste_estacional = ajuste)
+  semillas <- vapply(ids, function(id) semilla_de(ex$exp_id, id, origenes[1]), numeric(1))
+  list(token = token, pronosticos = pron_out, metricas = tab$metricas, pruebas = tab$pruebas, mcs = tab$mcs,
+       ajuste_estacional = ajuste, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
+       muestra_inicio = partes[[1]]$inicio, muestra_fin = obs$periodo[nrow(obs)],
+       vintages = unique(obs$vintage_id[q_a_ind(obs$periodo) >= q_a_ind(partes[[1]]$inicio)]))
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -262,8 +305,17 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   tablas <- list(pronosticos = res$pronosticos, metricas = res$metricas, pruebas = res$pruebas, mcs = res$mcs)
   if (!is.null(res$ajuste_estacional)) tablas$ajuste_estacional <- res$ajuste_estacional
-  viejo <- file.path(dir, "ajuste_estacional.csv")
-  if (is.null(res$ajuste_estacional) && file.exists(viejo)) file.remove(viejo)
+  if (!is.null(res$sub)) {
+    tablas$metricas_submuestras <- res$sub$metricas
+    tablas$pruebas_submuestras  <- res$sub$pruebas
+    tablas$mcs_submuestras      <- res$sub$mcs
+  }
+  if (!is.null(res$estabilidad)) tablas$estabilidad <- res$estabilidad
+  opcionales <- c("ajuste_estacional", "metricas_submuestras", "pruebas_submuestras", "mcs_submuestras", "estabilidad")
+  for (nm in setdiff(opcionales, names(tablas))) {                               # sin restos de corridas previas
+    viejo <- file.path(dir, paste0(nm, ".csv"))
+    if (file.exists(viejo)) file.remove(viejo)
+  }
   sha <- character(0)
   for (nm in names(tablas)) {
     ruta <- file.path(dir, paste0(nm, ".csv"))
@@ -284,6 +336,14 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
     "calibracion: sin densidad bajo el contrato vigente (predecir() devuelve el sendero puntual); cobertura_80, cobertura_95 y crps quedan vacías (protocolo §3.4)",
     "datos: revisados, no en tiempo real (F4-03)",
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_OFICIAL_Q") "limite: serie SA oficial del BCR tal cual; hereda la filtración de su ajuste bilateral (F4-22)" else NULL,
+    if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_PROPIO_Q") "sa: ajuste único de L3 (R6); hereda la filtración del ajuste sobre la muestra completa" else NULL,
+    if (ex$ventana == "rodante92") paste0("ventana: rodante de ", VENTANA_RODANTE, " trimestres para estimar; X-13 sobre [1990-Q1, o] (F4-26); GW con varianza Bartlett h-1, marca tamano_no_verificado") else NULL,
+    if (ex$ventana == "homogenea2005") paste0("ventana: X-13 y estimación sobre la NSA nativa [", INICIO_HOMOGENEO, ", o]; bases del ajuste propio (F4-27)") else NULL,
+    if (!is.null(res$sub)) paste0("submuestras: ", paste(unique(res$sub$metricas$muestra_eval), collapse = ", "),
+                                  " sobre los mismos errores; semilla MCS por (exp_id, 'MCS|<muestra>', h) (F4-28, F4-29)") else NULL,
+    if (!is.null(res$sub) && any(grepl("^sin_", res$sub$metricas$muestra_eval))) "submuestras: en sin_2020 y sin_2020_2021 DM/HLN y MCS corren sobre pares no consecutivos concatenados (aproximación declarada)" else NULL,
+    if (!is.null(res$estabilidad)) "estabilidad: MCO de d_t sobre (1, D_post), D_post = 1{target >= 2020-Q1}, HAC Bartlett h-1, t con n-2 gl (F4-28)" else NULL,
+    paste0("semilla_registro: la del primer origen del grupo (", ind_a_q(origenes_grupo(ex$grupo)[1]), ") para cada modelo (F4-25)"),
     "",
     "insumos (sha256):", paste0("  ", names(insumos_sha), "  ", insumos_sha),
     "salidas (sha256):", paste0("  ", names(sha), "  ", sha),
@@ -293,6 +353,35 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
   writeLines(enc2utf8(lin), con, sep = "\n", useBytes = TRUE)
   close(con)
   invisible(sha)
+}
+
+#' CSV con comillas solo donde hacen falta, como los catálogos editados a mano, y LF.
+.escribir_csv_catalogo <- function(df, ruta) {
+  esc <- function(x) {
+    x <- ifelse(is.na(x), "", as.character(x))
+    ifelse(grepl('[",\n]', x), paste0('"', gsub('"', '""', x, fixed = TRUE), '"'), x)
+  }
+  lin <- c(paste(names(df), collapse = ","), if (nrow(df)) do.call(paste, c(lapply(df, esc), sep = ",")))
+  con <- file(ruta, open = "wb")
+  writeLines(enc2utf8(lin), con, sep = "\n", useBytes = TRUE)
+  close(con)
+}
+
+#' Entorno de la corrida para 07 (sin comas): versión de R, plataforma y sha256 de renv.lock.
+entorno_corrida <- function() {
+  lock <- here::here("renv.lock")
+  s <- if (file.exists(lock)) substr(.sha256(lock), 1, 12) else "sin_renv_lock"
+  paste0(R.version$version.string, "; ", R.version$platform, "; renv.lock sha256:", s)
+}
+
+#' Filas de 07 de los experimentos corridos, reemplazando las previas de esos exp_id (F4-25).
+registrar_experimentos <- function(filas) {
+  ruta <- here::here("catalogos", "07_experimentos.csv")
+  existente <- utils::read.csv(ruta, colClasses = "character", check.names = FALSE, na.strings = character(0))
+  nuevas <- do.call(rbind, filas)
+  nuevas[] <- lapply(nuevas, as.character)
+  .escribir_csv_catalogo(actualizar_registro_experimentos(existente, nuevas), ruta)
+  invisible(nrow(nuevas))
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -323,14 +412,21 @@ main <- function(exp_ids = character(0)) {
   archivos <- c(archivos, file.path("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
   insumos_sha <- vapply(unique(archivos), function(a) .sha256(here::here(a)), character(1))
   cache_sa <- new.env()
+  filas <- list()
+  fecha <- Sys.Date()
+  entorno <- entorno_corrida()
   for (k in seq_len(nrow(sel))) {
     ex <- sel[k, ]
     t0 <- Sys.time()
     res <- correr_experimento(ex, insumos, cache_sa)
     escribir_experimento(ex, res, commit, insumos_sha)
+    filas[[ex$exp_id]] <- construir_filas_experimento(ex$exp_id, res$ids, res$vintages, res$muestra_inicio, res$muestra_fin,
+                                                      res$token, res$semillas, commit$sha, fecha, entorno)
     cat(sprintf("OK %-16s %s  %d pronósticos  %.0f s\n", ex$exp_id, res$token, nrow(res$pronosticos),
                 as.numeric(difftime(Sys.time(), t0, units = "secs"))))
   }
+  n <- registrar_experimentos(filas)                                            # F4-25, después de todas las salidas
+  cat(sprintf("07_experimentos.csv: %d filas de %d experimentos\n", n, length(filas)))
   invisible(TRUE)
 }
 

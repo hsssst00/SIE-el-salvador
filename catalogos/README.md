@@ -109,9 +109,32 @@ código. La lectura usa `yaml`, declarado en `Imports` (F4-12, nota de ADR-009).
 
 ## `07_experimentos.csv`
 
-Una fila por corrida del protocolo de evaluación (Fase 4+): qué modelo, sobre qué vintage, con
-qué esquema de validación y semilla, y dónde quedaron los resultados. Vacío hasta que exista
-Fase 4 — no es un hallazgo (ver Fase 3 "en curso" en el estado del proyecto).
+Una fila por (experimento, modelo) de cada corrida del protocolo de evaluación (Fase 4+): qué modelo,
+sobre qué vintage, con qué esquema de validación y semilla, y dónde quedaron los resultados. El
+esquema declara `exp_id` único y `modelo_id` con un solo valor, y cada experimento corre varios
+modelos; de ahí la granularidad (F4-25, `doc/metodologia/decisiones_fase4.md`). La escribe
+`src/evaluacion/motor_backtesting.R` al final de `make eval`, reemplazando las filas previas de los
+experimentos que corrió; no se edita a mano.
+
+| Columna | Contenido |
+|---|---|
+| `exp_id` | `<exp_id>__<modelo_id>`; el `<exp_id>` es el del experimento declarado en el motor (p. ej. `F4_BENCH_G1__BENCH.AR1`) |
+| `modelo_id` | resuelve contra `06_modelos/<modelo_id>.yaml` |
+| `vintage_id` | vintages de `08_vintages.csv` del objetivo en la muestra, unidos con « + » |
+| `muestra_inicio` | primer período de la muestra de estimación en el primer origen del grupo (1990-Q1; 2005-Q1 en R2 y R5; inicio de la ventana de 92 en R1) |
+| `muestra_fin` | último período observado del objetivo (último target evaluable) |
+| `esquema_validacion` | token de F4-11, validado por `validar_token()` de `eval_lib.R` |
+| `horizontes` | `1,2,4,8` |
+| `semilla` | `semilla_de(exp_id, modelo_id, primer origen)`; la regla completa por origen está en el manifiesto |
+| `commit_hash` | commit del árbol que corrió; el estado del árbol queda en el manifiesto |
+| `fecha_corrida` | fecha de la corrida (AAAA-MM-DD) |
+| `entorno` | versión de R, plataforma y 12 primeros caracteres del sha256 de `renv.lock` |
+| `ruta_resultados` | `data/L4_experiments/<exp_id>/`, común a los modelos del experimento (no versionado) |
+
+R3 y R4 no tienen filas propias: son tablas `*_submuestras.csv` y `estabilidad.csv` dentro del
+directorio de la principal de cada grupo. `tests/test-robustez-registro.R` comprueba que `modelo_id`
+resuelva contra `06_modelos/`, que `vintage_id` resuelva contra `08_vintages.csv`, que el token sea
+válido y que `exp_id` y `ruta_resultados` sigan la regla.
 
 ## `08_vintages.csv`
 
