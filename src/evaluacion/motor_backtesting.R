@@ -299,6 +299,10 @@ leer_commit <- function() {
 }
 
 .sha256 <- function(ruta) digest::digest(file = ruta, algo = "sha256")
+.sha256_lf <- function(ruta) {
+  b <- readBin(ruta, "raw", n = file.info(ruta)$size)
+  digest::digest(b[b != as.raw(13L)], algo = "sha256", serialize = FALSE)
+}
 
 escribir_experimento <- function(ex, res, commit, insumos_sha) {
   dir <- here::here("data", "L4_experiments", ex$exp_id)
@@ -367,10 +371,12 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
   close(con)
 }
 
-#' Entorno de la corrida para 07 (sin comas): versión de R, plataforma y sha256 de renv.lock.
+#' Entorno de la corrida para 07 (sin comas): versión de R, plataforma y sha256 de renv.lock. El
+#' hash se toma sin retornos de carro: así identifica el renv.lock versionado (LF) y no depende de
+#' cómo la copia de trabajo convierta los fines de línea (en Windows suele quedar en CRLF).
 entorno_corrida <- function() {
   lock <- here::here("renv.lock")
-  s <- if (file.exists(lock)) substr(.sha256(lock), 1, 12) else "sin_renv_lock"
+  s <- if (file.exists(lock)) substr(.sha256_lf(lock), 1, 12) else "sin_renv_lock"
   paste0(R.version$version.string, "; ", R.version$platform, "; renv.lock sha256:", s)
 }
 
