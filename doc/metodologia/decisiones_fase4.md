@@ -1,6 +1,6 @@
 # Fase 4 — registro de decisiones de diseño
 
-**Fecha:** 2026-09-24 · **Estado:** las trece fichas, la F4-09b y las F4-14 a F4-22 decididas por Harold el mismo día (ver el Acta).
+**Fecha:** 2026-09-24 · **Estado:** las trece fichas, la F4-09b y las F4-14 a F4-22 decididas por Harold el 2026-09-24; F4-23 y F4-24 el 2026-09-25 (ver el Acta).
 **Para qué sirve este documento.** Fase 4 no puede implementarse sin cerrar trece puntos.
 Nueve son decisiones de diseño que el protocolo propone y Harold confirma o cambia; dos
 exigen enmendar un ADR cerrado porque la realidad verificada del sistema contradice lo que
@@ -49,6 +49,8 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-20 | Observado = `PIB_SA_PROPIO_Q` de L3; bases de la tasa pronosticada (interanual h ≤ 4, trimestral h = 1) = ajuste X-13 del propio origen | protocolo §8, especificación §4 |
 | F4-21 | `pruebas.csv` lleva `marca_tamano`; el tamaño empírico de cada celda se publica en el reporte desde una corrida de V7 citada | protocolo §4 |
 | F4-22 | R5 (`PIB_SA_OFICIAL_Q`) corre solo con los orígenes de G2 y G3 y la serie oficial tal cual (`sa=l3_unico`) | protocolo §5 |
+| F4-23 | Las remesas reales no se extienden antes de 2010: en G1 entran las remesas nominales (desde 1991) y las reales siguen en G3 | ninguno (protocolo §2.5 ya lo dice) |
+| F4-24 | El IPP no se amplía con el IPRI base 1990: queda desde 2010-Q1 y sigue definiendo G3 | ninguno; 09_rupturas R010 sin cambios |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -133,6 +135,36 @@ sobre L3, las cuatro en la opción recomendada.
   serie tal cual (`sa=l3_unico`), y declara que hereda la filtración del ajuste bilateral del BCR.
   Descartados: bajar el mínimo a 33 solo para R5, y reajustar la NSA nativa (dejaría de ser la serie
   oficial que pide ADR-001).
+
+
+### F4-23 y F4-24 — cobertura de las remesas reales y del IPP
+
+**DECIDIDO por Harold el 2026-09-25**, en la opción recomendada, antes de estimar cualquier modelo con
+predictores. Las dos fichas se prepararon con una revisión de antecedentes y una verificación
+exploratoria. Las cifras de abajo salen de descargas puntuales del portal del BCR y de la API del FMI
+hechas fuera del pipeline: **no se registraron en L0** y no son regenerables con `make`. Se citan como
+fundamento de una decisión de *no* extender, no como resultado del sistema.
+
+- **F4-23 · Remesas reales desde 1993.** Enlazando el IPC base dic-1992 con el base dic-2009 por
+  cociente en el mes de traslape (dic-2009), las remesas reales llegarían a 1993-Q1. El enlace tiene
+  respaldo en el Manual del IPC 2020 (cap. 9: un período de traslape es el mínimo admitido) y precedente
+  en la retropolación del PIB del BCR (2018). Pero en Δlog trimestral, que es como entran por F4-06, las
+  reales y las nominales correlacionan 0,990 en 1993-2009 y 0,996 en 2010-2026. La diferencia entre ambas
+  es la inflación del IPC (desviación estándar de 1,15 pp, frente a 8,17 pp de las remesas nominales).
+  Además, dic-2009 es un mes de enlace estacionalmente alto: +0,95 % en la base 1992, el techo de los
+  diciembres de 1993-2008. Sigue sin explicarse de dónde salen los meses de 2009 de la serie del FMI
+  (IMF.STA/CPI), que no coinciden con la base 1992. **Decisión:** no extender; en G1 entran las remesas
+  nominales y las reales siguen en G3 desde 2010-Q1. No se captura el IPC base 1992 en L0. Descartados:
+  extender con enlace en dic-2009, y postergar hasta consultar a ONEC/BCR.
+- **F4-24 · Cobertura del IPP.** La única vía es el IPRI base 1990 (ene-1998 a oct-2017, solo
+  manufactura), que traslapa 95 meses con el IPP (2009-M12 a 2017-M10). En ese traslape, la correlación
+  del Δlog trimestral con el IPP general es 0,64 (0,70 en 2010-2013 y 0,36 en 2014-2017). La volatilidad
+  trimestral del IPRI es 2,3 pp, frente a 0,8 pp del IPP, y la razón de niveles deriva −2,1 pp por año. El
+  PPI de El Salvador del FMI empalma IPRI e IPP en dic-2009, que es un precedente institucional, pero no
+  resuelve que en el traslape las dos series midan cosas distintas. **Decisión:** no ampliar; el IPP
+  queda desde 2010-Q1 y G3 se mantiene. Descartados: empalmar con el IPRI y usar el PPI del FMI.
+
+Con las dos decisiones, los grupos de F4-05 no cambian.
 
 ---
 
