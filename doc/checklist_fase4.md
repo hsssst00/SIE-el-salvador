@@ -46,12 +46,12 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 
 - [x] **C1** `src/evaluacion/eval_lib.R` — aritmética de orígenes, recorte al conjunto de información, métricas, gramática del token. Sin I/O. — commit `45b0d96` (PR #10). Incluye también el bucle de orígenes con sus guardas (ver especificación §1).
 - [x] **C2** `src/evaluacion/modelos_referencia.R` — los seis benchmarks de §6.1 bajo el contrato de modelo. — commits `45b0d96` y `38a41ba` (F4-14: AR(p)-BIC reestimado con la muestra máxima), PR #10.
-- [ ] **C3** `src/evaluacion/motor_backtesting.R` — bucle grupo → origen → modelo, con las guardas G-1 a G-6 fallando con `stop()`. *Avance:* el bucle y las guardas G-1 a G-4 viven en `eval_lib.R`; G-5 (dummies no anticipadas) y G-6 (vintage) se agregan a su sección 9, y `motor_backtesting.R` queda como orquestador sobre L3 con F4-19 a F4-22. Se marca con la corrida local citada en `doc/evidencia_cierre_fase4.txt`.
+- [ ] **C3** `src/evaluacion/motor_backtesting.R` — bucle grupo → origen → modelo, con las guardas G-1 a G-6 fallando con `stop()`. *Avance:* el bucle y las guardas G-1 a G-4 viven en `eval_lib.R`; G-5 (dummies no anticipadas) y G-6 (vintage) se agregan a su sección 9, y `motor_backtesting.R` queda como orquestador sobre L3 con F4-19 a F4-22. Corrida local de Harold sobre `ee60dee` (2026-09-24): `make eval` sale con código 0, con V1-V11 y los cinco experimentos; sus 23 CSV coinciden en sha256 con los de una segunda máquina. Se marca cuando esa salida esté transcrita en `doc/evidencia_cierre_fase4.txt`.
 - [x] **C4** `src/evaluacion/verificar_motor_sintetico.R` — bloques V1 a V11 implementados y en verde (paso 4). V11 contrasta el MCS propio con `MCS::MCSprocedure` 0.2.0 usando las mismas remuestras: p-valores idénticos.
 - [x] **C5** `tests/test-evaluacion.R` y `tests/test-modelos-referencia.R` en verde, sin datos del proyecto. — paso "Correr pruebas" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`. Local: 566 PASS / 0 FAIL / 3 SKIP.
 - [x] **C6** Targets `eval-sintetico` y `eval` en el Makefile, con `eval` dependiendo de `eval-sintetico`. — commit `23510df` (PR #10).
 - [x] **C7** `eval-sintetico` incorporado al workflow de CI. — commit `a9402d3` (Harold); el paso corre y pasa en run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
-- [ ] **C8** Los seis benchmarks declarados en `catalogos/06_modelos/<modelo_id>.yaml` **antes** de la primera corrida (es el registro que prueba que la especificación precedió al resultado). *Avance:* va con el paso 5, junto con el lector de YAML (`catalogos/README.md` reservaba `06_modelos/` para Fase 5).
+- [x] **C8** Los seis benchmarks declarados en `catalogos/06_modelos/<modelo_id>.yaml` **antes** de la primera corrida (es el registro que prueba que la especificación precedió al resultado). — commit `a78d2c6` (PR #15), anterior a `motor_backtesting.R` y a toda corrida sobre L3. `tests/test-catalogo-modelos.R` comprueba que los YAML y `modelos_referencia()` coincidan y pasa en CI, run [36059671339](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36059671339) sobre `cac1a2f`, job `validate-and-test`.
 
 ## D. Verificación del motor (la mitad no negociable del criterio de cierre)
 
@@ -62,12 +62,12 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 - [x] **D5** V7-V8 — tamaño de DM/HLN y potencia por `n` y horizonte, incluidos los 18 pares de G3 a h=8. Criterio estricto en h=1,2; h=4,8 reportado (F4-18).
 - [x] **D6** V9 — cobertura del MCS: el dominante queda dentro en todas las celdas; con equivalentes, estricto en h=1 y reportado en h=8 (F4-18).
 - [x] **D7** V10 — dos corridas con la misma semilla producen `sha256` idénticos. — paso "Verificación sintética del motor de evaluación" en verde en CI, run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`.
-- [ ] **D8** Corrida de CI citada como evidencia del cierre (patrón de Fase 0/1), con su número de run y su sha. *Avance:* la corrida vigente que certifica V1-V6 y V10 es run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`; la corrida de cierre se cita cuando estén los once bloques.
+- [ ] **D8** Corrida de CI citada como evidencia del cierre (patrón de Fase 0/1), con su número de run y su sha. *Avance:* la corrida vigente que certifica V1-V6 y V10 es run [36038592642](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36038592642) sobre `22fe72e`, job `validate-and-test`; desde el paso 4 los once bloques corren en CI: run [36096484816](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36096484816) sobre `ee60dee` (merge de #16). La corrida de cierre se cita sobre el commit de cierre.
 
 ## E. Resultados de los benchmarks (entregable 3)
 
-- [ ] **E1** Primera corrida completa sobre L3 con los seis benchmarks, en los grupos definidos en A4.
-- [ ] **E2** `data/L4_experiments/<exp_id>/` con `pronosticos.csv`, `metricas.csv`, `pruebas.csv`, `mcs.csv` y `manifiesto.txt`.
+- [ ] **E1** Primera corrida completa sobre L3 con los seis benchmarks, en los grupos definidos en A4. *Avance:* hecha por Harold sobre `ee60dee` (ver C3): `F4_BENCH_G1`, `_G2` y `_G3`, más R5 en G2 y G3 (F4-22).
+- [ ] **E2** `data/L4_experiments/<exp_id>/` con `pronosticos.csv`, `metricas.csv`, `pruebas.csv`, `mcs.csv` y `manifiesto.txt`. *Avance:* escritos por esa corrida, con `ajuste_estacional.csv` (F4-09b). Los manifiestos registran «1 entrada en git status»; hay que identificarla antes de marcar.
 - [ ] **E3** Fila por corrida en `catalogos/07_experimentos.csv` con las doce columnas del esquema y el token de protocolo.
 - [ ] **E4** Tabla de RMSE y MAE por horizonte y grupo, con la columna de pertenencia al MCS adyacente.
 - [ ] **E5** Batería de robustez R1-R6 corrida y reportada junto al resultado principal.
