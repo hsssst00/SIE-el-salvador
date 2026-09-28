@@ -15,6 +15,7 @@
 #   7. gramática del token de `esquema_validacion`        F4-11
 #   8. pruebas de significancia: DM/HLN, Giacomini-White y MCS   protocolo §4, F4-15 a F4-17
 #   9. ajuste estacional por origen y vintage: especificación y guardas G-5, G-6   F4-09b, F4-03
+#  10. tablas de evaluación, submuestras y registro del experimento   F4-25, F4-26, F4-28, F4-29
 #
 # Desviación declarada respecto de la especificación §1: el bucle de orígenes vive acá y no en
 # motor_backtesting.R, porque la verificación sintética (V1-V6, V10) tiene que ejercitar el mismo
@@ -380,7 +381,7 @@ agregar_rmse_relativo <- function(met, benchmark = "BENCH.RW_SIN_DERIVA") {
 # Los seis campos son obligatorios, en ese orden, con los valores declarados en TOKEN_DOMINIOS.
 
 TOKEN_DOMINIOS <- list(
-  ventana = c("expansiva", "rodante92"),
+  ventana = c("expansiva", "rodante92", "homogenea2005"),   # homogenea2005: R2, F4-27
   origen  = c("ultimo_estimado"),
   grupo   = c("G1", "G2", "G3"),
   vintage = c("revision_vigente", "real_time"),
@@ -631,6 +632,143 @@ filtrar_vintage <- function(d, politica, vigentes) {
   sin <- setdiff(d$periodo, r$periodo)
   if (length(sin)) stop("G-6: períodos sin fila del vintage vigente: ", paste(utils::head(sin, 5), collapse = ", "))
   r <- r[order(q_a_ind(r$periodo)), , drop = FALSE]
+  rownames(r) <- NULL
+  r
+}
+
+# ---------------------------------------------------------------------------------------------
+# 10. Tablas de evaluación, submuestras y registro del experimento (bloque E)
+# ---------------------------------------------------------------------------------------------
+#
+# Puras, para que el orquestador sea solo lectura y escritura y CI ejercite el cómputo con datos
+# sintéticos. Decisiones de Harold del 2026-09-25 (registro: doc/metodologia/decisiones_fase4.md).
+
+#' Últimos `n` períodos de una serie ya recortada al origen (R1, F4-26: ventana rodante de 92).
+recortar_ventana_rodante <- function(d, n = 92L) {
+  if (nrow(d) < n) stop(sprintf("ventana rodante: la serie tiene %d obs, se necesitan %d", nrow(d), n))
+  r <- d[(nrow(d) - n + 1L):nrow(d), , drop = FALSE]
+  rownames(r) <- NULL
+  r
+}
+
+#' Contraste de cambio en la precisión relativa entre dos submuestras de targets (R3, F4-28).
+#' Regresión de d_t = e1² - e2² sobre (1, D_post) por MCO, con varianza HAC de Bartlett de h-1
+#' rezagos (la misma ventana que GW, F4-17) y t con n-2 gl sobre el coeficiente de D_post. Un
+#' coeficiente positivo dice que el modelo 2 mejoró respecto del 1 en la submuestra posterior.
+#' @param post vector 0/1 alineado con los errores (1 = target en la submuestra posterior).
+prueba_cambio_diferencial <- function(e1, e2, post, h) {
+  d <- .diferencial(e1, e2); n <- length(d); h <- as.integer(h)
+  if (length(post) != n) stop("cambio de diferencial: `post` y los errores tienen largos distintos")
+  if (anyNA(post) || !all(post %in% c(0, 1))) stop("cambio de diferencial: `post` debe ser 0/1")
+  n1 <- sum(post); n0 <- n - n1
+  if (n0 < 3L || n1 < 3L) stop(sprintf("cambio de diferencial: se necesitan 3 pares por submuestra (pre %d, post %d)", n0, n1))
+  X <- cbind(1, as.numeric(post))
+  XtX_inv <- solve(crossprod(X))
+  b <- as.numeric(XtX_inv %*% crossprod(X, d))
+  u <- as.numeric(d - X %*% b)
+  Z <- X * u
+  S <- crossprod(Z) / n
+  L <- h - 1L
+  if (L > 0L) for (l in seq_len(min(L, n - 1L))) {
+    G <- crossprod(Z[(l + 1L):n, , drop = FALSE], Z[1:(n - l), , drop = FALSE]) / n
+    S <- S + (1 - l / (L + 1)) * (G + t(G))
+  }
+  V <- n * XtX_inv %*% S %*% XtX_inv
+  ee <- sqrt(V[2, 2])
+  if (!is.finite(ee) || ee <= 0) stop("cambio de diferencial: error estándar HAC no positivo")
+  est <- b[2] / ee
+  list(media_pre = b[1], cambio_post = b[2], ee_hac = ee, estadistico = est,
+       p_valor = 2 * stats::pt(-abs(est), df = n - 2L), n_pre = n0, n_post = n1)
+}
+
+#' Métricas, pruebas por pares contra el benchmark y MCS de un experimento sobre un conjunto de
+#' errores (muestra completa o submuestra de targets). `err` es la salida de calcular_errores(),
+#' posiblemente filtrada por target. Devuelve list(metricas, pruebas, mcs).
+#' @param gw         si TRUE agrega Giacomini-White por par (R1, F4-17 y F4-26).
+#' @param semilla_mcs función h -> semilla entera del MCS.
+evaluar_errores <- function(err, ids, exp_id, grupo, perdida, semilla_mcs, benchmark = "BENCH.RW_SIN_DERIVA",
+                            horizontes = DISENO_FASE4$horizontes, gw = FALSE, alpha = 0.10, B = 5000L,
+                            marca_h_largo = "distorsion_tamano_documentada") {
+  err <- err[order(err$unidad, err$modelo_id, err$h, err$origen), ]
+  met <- agregar_rmse_relativo(metricas_por_horizonte(err), benchmark)
+  met <- data.frame(exp_id = exp_id, modelo_id = met$modelo_id, grupo = grupo, h = met$h, unidad = met$unidad,
+                    n_pares = met$n_pares, rmse = met$rmse, mae = met$mae, rmse_relativo = met$rmse_relativo,
+                    sesgo = met$sesgo, sesgo_ee_nw = met$sesgo_ee_nw,
+                    cobertura_80 = NA_real_, cobertura_95 = NA_real_, crps = NA_real_, stringsAsFactors = FALSE)
+  prim <- err[err$unidad == perdida, ]
+  pruebas <- list(); mcs <- list()
+  for (h in horizontes) {
+    eh <- prim[prim$h == h, ]
+    orig_ref <- sort(unique(eh$origen))
+    E <- matrix(NA_real_, length(orig_ref), length(ids), dimnames = list(orig_ref, ids))
+    for (id in ids) {
+      d <- eh[eh$modelo_id == id, ]; d <- d[order(d$origen), ]
+      if (!identical(as.integer(d$origen), as.integer(orig_ref))) stop("evaluar_errores: orígenes desalineados entre modelos en h = ", h, " (", id, ")")
+      E[, id] <- d$error
+    }
+    marca <- if (h >= 4L) marca_h_largo else ""
+    for (id in setdiff(ids, benchmark)) {
+      r <- prueba_dm_hln(E[, benchmark], E[, id], h)
+      pruebas[[length(pruebas) + 1L]] <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
+        prueba = "dm_hln", modelo_a = benchmark, modelo_b = id, estadistico = r$estadistico, p_valor = r$p_valor,
+        n_pares = r$n_pares, varianza = r$varianza, media_diferencial = r$media_diferencial, marca_tamano = marca,
+        stringsAsFactors = FALSE)
+      if (isTRUE(gw)) {
+        g <- prueba_gw(E[, benchmark], E[, id], h)
+        pruebas[[length(pruebas) + 1L]] <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
+          prueba = "gw", modelo_a = benchmark, modelo_b = id, estadistico = g$estadistico, p_valor = g$p_valor,
+          n_pares = g$n_pares, varianza = "bartlett", media_diferencial = g$media_diferencial,
+          marca_tamano = "tamano_no_verificado", stringsAsFactors = FALSE)
+      }
+    }
+    semilla <- semilla_mcs(h)
+    res <- mcs_tmax(E^2, h, alpha = alpha, B = B, semilla = semilla)
+    mcs[[length(mcs) + 1L]] <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
+      modelo_id = res$modelo_id, p_mcs = res$p_mcs, en_mcs = res$en_mcs, orden_eliminacion = res$orden_eliminacion,
+      alpha = attr(res, "alpha"), replicas = attr(res, "B"), bloque = attr(res, "bloque"), semilla = semilla,
+      marca_tamano = marca, stringsAsFactors = FALSE)
+  }
+  list(metricas = met, pruebas = do.call(rbind, pruebas), mcs = do.call(rbind, mcs))
+}
+
+#' Submuestras de targets de R3 (F4-28: <= 2019-Q4 / >= 2020-Q1) y R4 (F4-29: sin 2020; sin 2020
+#' ni 2021). Devuelve una lista nombrada de funciones índice-de-target -> lógico (TRUE = se conserva).
+SUBMUESTRAS_FASE4 <- list(
+  pre2020       = function(t) t <= q_a_ind("2019-Q4"),
+  post2020      = function(t) t >= q_a_ind("2020-Q1"),
+  sin_2020      = function(t) t < q_a_ind("2020-Q1") | t > q_a_ind("2020-Q4"),
+  sin_2020_2021 = function(t) t < q_a_ind("2020-Q1") | t > q_a_ind("2021-Q4")
+)
+
+#' Filas de catalogos/07_experimentos.csv para un experimento (F4-25): una por modelo, con
+#' exp_id compuesto `<exp_id>__<modelo_id>`. Valida el token y falla ante campos vacíos.
+construir_filas_experimento <- function(exp_id, modelos_ids, vintage_ids, muestra_inicio, muestra_fin, token,
+                                        semillas, commit_hash, fecha_corrida, entorno,
+                                        horizontes = DISENO_FASE4$horizontes) {
+  validar_token(token)
+  if (length(semillas) != length(modelos_ids)) stop("registro: una semilla por modelo")
+  for (v in list(exp_id, commit_hash, entorno, muestra_inicio, muestra_fin)) {
+    if (length(v) != 1L || is.na(v) || !nzchar(v)) stop("registro: campo obligatorio vacío")
+  }
+  if (!grepl("^[0-9a-f]{40}$", commit_hash)) stop("registro: commit_hash mal formado: ", commit_hash)
+  data.frame(exp_id = paste0(exp_id, "__", modelos_ids), modelo_id = modelos_ids,
+             vintage_id = paste(sort(unique(vintage_ids)), collapse = " + "),
+             muestra_inicio = muestra_inicio, muestra_fin = muestra_fin, esquema_validacion = token,
+             horizontes = paste(horizontes, collapse = ","), semilla = as.integer(semillas),
+             commit_hash = commit_hash, fecha_corrida = format(as.Date(fecha_corrida), "%Y-%m-%d"),
+             entorno = entorno, ruta_resultados = paste0("data/L4_experiments/", exp_id, "/"),
+             stringsAsFactors = FALSE)
+}
+
+#' Reemplaza en el registro existente las filas de los experimentos que se volvieron a correr y
+#' agrega las nuevas; el resultado queda ordenado por exp_id y sin duplicados.
+actualizar_registro_experimentos <- function(existente, nuevas) {
+  if (!identical(names(existente), names(nuevas))) stop("registro: las columnas no coinciden con 07_experimentos.csv")
+  prefijo <- function(x) sub("__.*$", "", x)
+  quedan <- existente[!prefijo(existente$exp_id) %in% unique(prefijo(nuevas$exp_id)), , drop = FALSE]
+  r <- rbind(quedan, nuevas)
+  if (anyDuplicated(r$exp_id)) stop("registro: exp_id duplicado")
+  r <- r[order(r$exp_id), , drop = FALSE]
   rownames(r) <- NULL
   r
 }
