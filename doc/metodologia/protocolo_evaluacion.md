@@ -267,12 +267,12 @@ reporta junto al resultado principal:
 
 | Código | Variante | Origen de la exigencia |
 |---|---|---|
-| R1 | Ventana rodante de 92 trimestres | senda §5.1 |
-| R2 | Tramo homogéneo: estimación solo desde 2005-Q1 **[verificado]** 45 / 44 / 42 / 38 orígenes | ADR-003 |
-| R3 | Submuestras pre/post 2020 con contraste de estabilidad | ADR-004 |
-| R4 | Métricas excluyendo los cuatro trimestres de 2020 como período evaluado | F4-08 |
+| R1 | Ventana rodante de 92 trimestres. **[decidido 2026-09-25, F4-26]** X-13 sobre `[1990-Q1, o]` como en la principal y modelos con los últimos 92 trimestres de ese SA; G1-G3; DM/HLN, GW y MCS | senda §5.1 |
+| R2 | Tramo homogéneo: estimación solo desde 2005-Q1 **[verificado]** 45 / 44 / 42 / 38 orígenes. **[decidido 2026-09-25, F4-27]** X-13 también solo sobre la NSA nativa `[2005-Q1, o]`; orígenes de G2 y G3; observado de L3 y bases del propio ajuste | ADR-003 |
+| R3 | Submuestras pre/post 2020 con contraste de estabilidad. **[decidido 2026-09-25, F4-28]** Se parten los targets en ≤ 2019-Q4 y ≥ 2020-Q1: métricas, DM/HLN y MCS por submuestra, y MCO de d_t sobre (1, D_post) con HAC de Bartlett de h−1 rezagos y t con n−2 gl. En G1 y G2 (G3 no tiene targets previos a 2020) | ADR-004 |
+| R4 | Métricas excluyendo los cuatro trimestres de 2020 como período evaluado. **[decidido 2026-09-25, F4-29]** Más una línea sin los targets de 2020 ni 2021; G1-G3 | F4-08 |
 | R5 | Objetivo alternativo `PIB_SA_OFICIAL_Q` (2005-Q1 en adelante). **[decidido 2026-09-24, F4-22]** Solo con los orígenes de G2 y G3 —en 2013-Q1 la serie tiene 33 obs, menos que el mínimo de 40— y con la serie oficial tal cual (`sa=l3_unico`), declarando que hereda la filtración del ajuste bilateral del BCR | ADR-001 |
-| R6 | Ajuste único de L3 como contraste del ajuste reestimado por origen, que es la vía primaria | F4-09 |
+| R6 | Ajuste único de L3 como contraste del ajuste reestimado por origen, que es la vía primaria; G1-G3, sin bases por origen | F4-09 |
 
 **[verificado]** Sobre el peso de 2020 (R4): en la muestra de evaluación la variación interanual del objetivo, sobre los 52 targets de h=1 (2013-Q2 a 2026-Q1), tiene
 desviación estándar de 5,33 pp, que baja a 3,68 pp excluyendo 2020; 2020-Q2 marca −22,29 pp interanual y −21,44 pp trimestral;
@@ -280,9 +280,19 @@ y los cuatro trimestres de 2020 concentran el 32,8% de la suma de cuadrados de l
 interanual observada en los 52 targets de h=1. Con ese peso, la pertenencia al MCS puede
 depender de cuatro observaciones, y por eso R4 no es opcional.
 
+**[verificado 2026-09-25]** Los targets de 2021 concentran el 46,7% de esa misma suma de cuadrados, más que
+2020, porque su base interanual es 2020; entre los dos años suman el 79,6%. Por eso R4 lleva, además de la
+regla literal, la línea sin 2020 ni 2021 (F4-29).
+
+R1, R2, R5 y R6 son experimentos propios (`F4_BENCH_<grupo>_R<k>`). R3 y R4 no corren modelos: reevalúan
+los errores de la principal del grupo y escriben sus tablas en el directorio de la principal, en archivos
+`*_submuestras.csv` con la columna `muestra_eval` (`pre2020`, `post2020`, `sin_2020`, `sin_2020_2021`) y
+`estabilidad.csv`. En las submuestras con hueco (`sin_2020`, `sin_2020_2021`), DM/HLN y el MCS tratan como
+contiguos los pares de cada lado del hueco; es una aproximación declarada en el manifiesto.
+
 ## 6. Registro del experimento y reproducibilidad
 
-Cada corrida escribe una fila en `catalogos/07_experimentos.csv` con el esquema ya
+Cada corrida escribe filas en `catalogos/07_experimentos.csv` con el esquema ya
 declarado **[verificado]**: `exp_id, modelo_id, vintage_id, muestra_inicio, muestra_fin,
 esquema_validacion, horizontes, semilla, commit_hash, fecha_corrida, entorno,
 ruta_resultados`. **[decidido 2026-09-24, F4-11]** La variante de protocolo se codifica como token en
@@ -290,6 +300,11 @@ ruta_resultados`. **[decidido 2026-09-24, F4-11]** La variante de protocolo se c
 `expansiva|origen=ultimo_estimado|grupo=G1|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp`—
 para no extender el esquema del catálogo ni la superficie de validación. El detalle está en
 `doc/metodologia/especificacion_motor_evaluacion.md`.
+
+**[decidido 2026-09-25, F4-25]** El esquema declara `exp_id` único y `modelo_id` con un solo valor, así que
+la granularidad es una fila por (experimento, modelo), con `exp_id` = `<exp_id>__<modelo_id>` y
+`ruta_resultados` al directorio común del experimento. La escribe el motor al final de `make eval`,
+reemplazando las filas previas de los experimentos que corre.
 
 Criterio de cierre de Fase 5 (una orden, una semilla) queda satisfecho si y solo si
 `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`.
