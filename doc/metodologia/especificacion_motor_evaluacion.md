@@ -123,6 +123,14 @@ data/L4_experiments/<exp_id>/
                            y de cada CSV anterior, sessionInfo()
 ```
 
+**Actualizado el 2026-09-28 (F4-30, F4-31).** Los sha256 de insumos del manifiesto se toman sin
+retornos de carro, para que identifiquen el contenido versionado y no el fin de línea de la copia de
+trabajo; los de las salidas, que el motor escribe en LF, son de los bytes tal cual. Después del motor,
+`make eval` corre `src/evaluacion/tabla_resultados_fase4.R`, que escribe
+`doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv` (versionado): la tabla de E4 y E5 en formato
+largo (variante, `muestra_eval`, `exp_id`, grupo, h, unidad, `modelo_id`, `n_pares`, `rmse`, `mae`,
+`rmse_relativo`, `en_mcs`, `p_mcs`, `marca_tamano`), solo en la unidad primaria `yoy_pp`.
+
 **Actualizado al implementar (2026-09-24).** Columnas agregadas respecto de la versión anterior:
 `qoq_pp_pronosticado` (unidad secundaria), `unidad`, `varianza` y `media_diferencial` en
 `pruebas.csv` (la columna `varianza` es el registro que pide F4-16), `orden_eliminacion` y `bloque`

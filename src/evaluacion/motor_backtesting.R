@@ -349,7 +349,7 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
     if (!is.null(res$estabilidad)) "estabilidad: MCO de d_t sobre (1, D_post), D_post = 1{target >= 2020-Q1}, HAC Bartlett h-1, t con n-2 gl (F4-28)" else NULL,
     paste0("semilla_registro: la del primer origen del grupo (", ind_a_q(origenes_grupo(ex$grupo)[1]), ") para cada modelo (F4-25)"),
     "",
-    "insumos (sha256):", paste0("  ", names(insumos_sha), "  ", insumos_sha),
+    "insumos (sha256 del contenido sin retornos de carro, F4-31):", paste0("  ", names(insumos_sha), "  ", insumos_sha),
     "salidas (sha256):", paste0("  ", names(sha), "  ", sha),
     "", "sessionInfo():", utils::capture.output(utils::sessionInfo())
   )
@@ -372,8 +372,10 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
 }
 
 #' Entorno de la corrida para 07 (sin comas): versión de R, plataforma y sha256 de renv.lock. El
-#' hash se toma sin retornos de carro: así identifica el renv.lock versionado (LF) y no depende de
-#' cómo la copia de trabajo convierta los fines de línea (en Windows suele quedar en CRLF).
+#' hash se toma sin retornos de carro (.sha256_lf, F4-31): así identifica el renv.lock versionado (LF)
+#' y no depende de cómo la copia de trabajo convierta los fines de línea (en Windows suele quedar en
+#' CRLF). Los insumos del manifiesto se hashean igual; las salidas, que el motor escribe en LF, con
+#' los bytes tal cual.
 entorno_corrida <- function() {
   lock <- here::here("renv.lock")
   s <- if (file.exists(lock)) substr(.sha256_lf(lock), 1, 12) else "sin_renv_lock"
@@ -416,7 +418,7 @@ main <- function(exp_ids = character(0)) {
                   file.path("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
   }
   archivos <- c(archivos, file.path("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
-  insumos_sha <- vapply(unique(archivos), function(a) .sha256(here::here(a)), character(1))
+  insumos_sha <- vapply(unique(archivos), function(a) .sha256_lf(here::here(a)), character(1))   # F4-31
   cache_sa <- new.env()
   filas <- list()
   fecha <- Sys.Date()

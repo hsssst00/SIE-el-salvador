@@ -56,6 +56,8 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-27 | R2: X-13 y estimación solo sobre la NSA nativa `[2005-Q1, o]`; orígenes de G2 y G3; observado de L3, bases del propio ajuste | protocolo §5 |
 | F4-28 | R3: targets ≤ 2019-Q4 / ≥ 2020-Q1; métricas, DM/HLN y MCS por submuestra, más la regresión de d_t sobre (1, D_post) con HAC | protocolo §5 |
 | F4-29 | R4: sin los targets de 2020, y como línea adicional sin 2020 ni 2021 | protocolo §5 |
+| F4-30 | Tabla E4/E5: `src/evaluacion/tabla_resultados_fase4.R` escribe `doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv` (versionado) al final de `make eval` | especificación §4, Makefile |
+| F4-31 | Los sha256 de insumos del manifiesto (y el de `renv.lock` en 07) se toman sin retornos de carro | especificación §4 |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
@@ -225,6 +227,26 @@ Ninguna se fijó mirando resultados de robustez.
 5. La semilla del MCS de una submuestra es `semilla_de(exp_id, "MCS|<muestra>", h)`.
 6. Las filas de GW (R1) y las de `estabilidad.csv` llevan `marca_tamano = tamano_no_verificado` en todos
    los horizontes: V7 calibró el tamaño de DM/HLN, no el de GW ni el del contraste de estabilidad.
+
+
+### F4-30 y F4-31 — tabla de resultados y hash de los insumos
+
+**DECIDIDO por Harold el 2026-09-28**, las dos en la opción recomendada, después de la primera corrida
+completa del bloque E y antes de escribir el reporte.
+
+- **F4-30 · Tabla de E4 y E5.** Un script, `src/evaluacion/tabla_resultados_fase4.R`, lee
+  `data/L4_experiments/` y escribe `doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv`, versionado
+  y en LF, como los reportes de Fase 3. Formato largo, una fila por (experimento, muestra, h, modelo), en
+  la unidad primaria (`yoy_pp`, F4-04): variante (`principal`, `R1`-`R6`), `muestra_eval`, RMSE, MAE,
+  RMSE relativo, `en_mcs`, `p_mcs` y `marca_tamano`. No recalcula nada: une `metricas.csv` con `mcs.csv` (y
+  los `*_submuestras.csv`) y falla si no casan 1 a 1. Corre al final de `make eval`; el CSV se commitea
+  desde esa corrida. Descartado: una tabla transcrita a mano (no es regenerable).
+- **F4-31 · Hash de los insumos.** El `manifiesto.txt` registraba el sha256 de los bytes de cada insumo.
+  En Windows los catálogos y YAML versionados quedan en CRLF y en GitHub en LF, así que el mismo commit
+  daba hashes distintos según la máquina. Desde ahora los insumos se hashean sin retornos de carro, con
+  el mismo criterio que el #20 aplicó a `renv.lock` en `07_experimentos.csv`. Las salidas, que el motor
+  escribe en LF, se hashean tal cual. Descartado: bytes crudos (registra el disco, no el contenido
+  versionado).
 
 ---
 
