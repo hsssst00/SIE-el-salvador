@@ -319,7 +319,7 @@ reemplazando las filas previas de los experimentos que corre.
 Criterio de cierre de Fase 5 (una orden, una semilla) queda satisfecho si y solo si
 `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`.
 
-**[AAAA-MM-DD, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
+**[2026-09-29, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
 antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
 (precedente: C8, `a78d2c6`).
 

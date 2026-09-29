@@ -24,3 +24,9 @@ trabajo, no sobre un clon fresco. Uno de sus hallazgos (A2) resultó falso y fue
 verificación adicional; el episodio se conserva documentado dentro del propio informe, conforme
 a la regla de esta carpeta. La auditoría independiente de Fase 2 (2026-09-15) es la primera
 revisión de ese cierre contra un clon fresco por un tercero, y cierra esa brecha (I2).
+
+**Salvedad sobre el cierre de Fase 3.** La revisión independiente de Fase 3 (2026-09-17) auditó `e8116f1`,
+con la fase en curso. El cierre (`906fb56`, `v0.6.0-fase3`, 2026-09-22/23), con la enmienda de UT a la matriz
+y la extensión de `make trace` a los CSV anuales, no tuvo revisión de un tercero. La auditoría independiente de
+Fase 4 cubrió de ese cierre solo lo que Fase 4 consume (L0 cruzada 56/56, integridad referencial, batería
+completa) y no re-derivó `make trace` 106 PASS (hallazgo M5).

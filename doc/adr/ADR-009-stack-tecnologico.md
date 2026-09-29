@@ -292,9 +292,7 @@ el lockfile y hay que registrarlo con `renv::record()`, mismo procedimiento que 
 **Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota
 decide qué se implementa y qué se toma de un paquete, sin tocar el lenguaje.
 
-## Nota de seguimiento — oráculo del CRPS (AAAA-MM-DD)
-
-**BORRADOR — pendiente de la firma de Harold (F4-33 del acta de Fase 4).**
+## Nota de seguimiento — oráculo del CRPS (2026-09-29)
 
 **Contexto.** La compuerta de Fase 5 (remediación del hallazgo I2 de la auditoría independiente de
 Fase 4) exige evaluar densidades antes del primer modelo de §6.2-§6.7: cobertura al 80 % y 95 % y

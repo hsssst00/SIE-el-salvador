@@ -231,7 +231,7 @@ Ninguna se fijó mirando resultados de robustez.
 
 ### F4-30 y F4-31 — tabla de resultados y hash de los insumos
 
-**DECIDIDO por Harold el 2026-09-28**, las dos en la opción recomendada, después de la primera corrida
+**DECIDIDO por Harold el 2026-09-29**, las dos en la opción recomendada, después de la primera corrida
 completa del bloque E y antes de escribir el reporte.
 
 - **F4-30 · Tabla de E4 y E5.** Un script, `src/evaluacion/tabla_resultados_fase4.R`, lee
@@ -250,8 +250,7 @@ completa del bloque E y antes de escribir el reporte.
 
 ### F4-32 a F4-34 — compuerta de Fase 5: densidad y conjunto de información de las predictoras (remediación de la auditoría de Fase 4, I2)
 
-**BORRADOR — PENDIENTE DE LA FIRMA DE HAROLD** (checklist de remediación, A1-A3). Al firmarse: cambiar
-esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar las filas F4-32 a F4-34 al Acta.
+**DECIDIDO por Harold el 2026-09-2**:
 
 - **F4-32 · Vía de la compuerta (A1).** Opción (i): la evaluación de densidad y el conjunto de
   información de las predictoras se implementan y se verifican en CI **antes** del primer modelo de
@@ -304,8 +303,7 @@ esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar las filas F4-32 
 
 ### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
 
-**BORRADOR — PENDIENTE DE LA FIRMA DE HAROLD** (checklist de remediación, A4). Al firmarse: cambiar
-esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar la fila F4-35 al Acta.
+**DECIDIDO por Harold el 2026-09-28**,
 
 - **Especificación vigente.** F4-30 fija las columnas de `tabla_resultados_fase4.csv`; la única marca
   es `marca_tamano` (F4-18/F4-21, h = 4, 8). V9 de `verificar_motor_sintetico.R` calibra el MCS

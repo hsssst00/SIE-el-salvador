@@ -89,16 +89,19 @@ trace:
 # Fase 4 — verificación del motor de evaluación sobre procesos generadores conocidos
 # (src/evaluacion/verificar_motor_sintetico.R). NO lee data/L3_master/, así que corre en CI: es la
 # evidencia del criterio de cierre de Fase 4 ("el motor funciona y está probado antes de estimar
-# cualquier modelo sofisticado", senda §4). Bloques vigentes: V1-V11 (V12 desde la remediación de la
-# auditoría de Fase 4: orquestación con X-13 por origen sobre insumos sintéticos).
+# cualquier modelo sofisticado", senda §4). Bloques vigentes: V1-V13. V12 (orquestación con X-13 por
+# origen sobre insumos sintéticos), V13 (densidad, F4-33) y el canario anual de V5 (F4-34) llegan con
+# la remediación de la auditoría independiente de Fase 4.
 eval-sintetico:
 	Rscript src/evaluacion/verificar_motor_sintetico.R
 
 # Fase 4/5 — motor de evaluación sobre L3. La verificación sintética es prerrequisito y corre primero
 # para fallar barato. No implementar Fase 5 antes de que el motor de Fase 4 esté probado. LOCAL: exige
 # data/L3_master/, data/L1_staging/BCR_PIB_series_largo.csv (NSA para el ajuste por origen, F4-19) y
-# X-13ARIMA-SEATS, así que no corre en CI. Escribe data/L4_experiments/<exp_id>/, las filas de
-# catalogos/07_experimentos.csv y doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (F4-30).
+# X-13ARIMA-SEATS. No corre en CI porque L3 no está ahí; X-13 sí corre en CI, y la orquestación con
+# X-13 se ejerce en CI con insumos sintéticos (V12; hallazgo I3 de la auditoría independiente de
+# Fase 4). Escribe data/L4_experiments/<exp_id>/, las filas de catalogos/07_experimentos.csv y
+# doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (F4-30).
 eval: eval-sintetico
 	Rscript src/evaluacion/motor_backtesting.R
 	Rscript src/evaluacion/tabla_resultados_fase4.R

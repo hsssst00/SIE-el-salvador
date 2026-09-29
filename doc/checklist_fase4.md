@@ -78,7 +78,7 @@ sigue abierto de este bloque no es la decisión sino su **registro** en los ADR.
 - [x] **F1** Nota `## Cierre de Fase 4` en `doc/adr/README.md`, con la evidencia de CI de D8 y la de E6. — `doc/adr/README.md`, "Cierre de Fase 4 (2026-09-29)".
 - [x] **F2** `doc/evidencia_cierre_fase4.txt` con comando, código de salida y salida de cada corrida que no pasa por CI. — `doc/evidencia_cierre_fase4.txt`.
 - [x] **F3** Nota fechada en `doc/senda_metodologica.md` §4 que fije las lecturas adoptadas, si algún criterio admite más de una — precedentes: "ingresa al proyecto" (Fase 1), "verifica su integridad" (Fase 2), alcance de la matriz y "bitemporal" (Fase 3). Candidatas de esta fase: qué significa "el motor está probado" (se propone: los once bloques V1-V11 en verde en CI para los que no requieren L3) y qué significa "modelos de referencia implementados" (se propone: los seis de §6.1, declarados en `06_modelos/` y corridos en los tres grupos). — nota de cierre fechada 2026-09-29 en `doc/senda_metodologica.md` §4 (Fase 4), con las dos lecturas adoptadas por Harold el mismo día.
-- [ ] **F4** Tag anotado `v0.7.0-fase4` sobre el commit de cierre, con el run de CI citado en el mensaje.
+- [x] **F4** Tag anotado `v0.7.0-fase4` sobre el commit de cierre, con el run de CI citado en el mensaje. — Tag anotado `v0.7.0-fase4` (objeto `9965c10`) → `a67bde9`; el mensaje cita el run 36595407970, en verde.
 - [ ] **F5** Revisión independiente depositada en `doc/auditorias/` y registrada en el índice de esa carpeta (la deposita Harold; las revisiones no tienen autoridad decisoria).
 
 ---

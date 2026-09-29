@@ -406,7 +406,7 @@ resultados, más `data/L4_experiments/`, que no se versiona.
 nota de la senda §4, nunca antes. Antes de tagear hay que confirmar que el run de CI sobre ese
 commit queda en verde.
 
-### Nota de corrección (AAAA-MM-DD) — auditoría independiente de Fase 4, hallazgo I1
+### Nota de corrección (2026-09-29) — auditoría independiente de Fase 4, hallazgo I1
 
 La frase «El empate de la corrida principal depende de los targets de 2020 y 2021, como anticipaba
 el protocolo §5» atribuye al protocolo una anticipación que solo era parcial. El protocolo anterior
@@ -419,7 +419,7 @@ especificaciones de R1, R2 y R3 (F4-26 a F4-28). Los benchmarks, la corrida prin
 la regla de reporte del MCS sí se fijaron antes de cualquier resultado (C8, `a78d2c6`). El texto
 original se conserva sin editar.
 
-### Nota de lectura (AAAA-MM-DD) — auditoría independiente de Fase 4, hallazgo I4
+### Nota de lectura (2026-09-29) — auditoría independiente de Fase 4, hallazgo I4
 
 Las exclusiones del MCS que cita el párrafo «Lo que dicen los benchmarks» se leen con las dos marcas
 que el protocolo fijó antes de los resultados.
@@ -429,7 +429,63 @@ que el protocolo fijó antes de los resultados.
   `sin_2020`.
 - Las celdas con menos de 18 pares están bajo el piso calibrado por V9 y no se interpretan: G2
   `pre2020` con h = 4 (17) y h = 8 (13), y G3 `sin_2020_2021` en los cuatro horizontes (17).
+- El paseo aleatorio sin deriva también queda fuera del MCS en R3 `pre2020`, en G1 y G2 y en los
+  cuatro horizontes. Con h = 4 y 8 vale la primera marca, y G2 `pre2020` con h = 4, 8 está además
+  bajo el piso de n. Con h = 1 y 2 (entre 19 y 27 pares) la exclusión no lleva marca, pero es una
+  submuestra de R3 (F4-28), fijada después de la corrida principal (ver la nota I1).
 
 La lectura que sí se sostiene sin marcas es la de G1 y G2 con h = 1, 2 en `sin_2020_2021` (entre 36
 y 44 pares). Esa línea es la ampliación de F4-29 (ver la nota I1) y trata como contiguos los pares a
 ambos lados del hueco.
+
+## Remediación de la auditoría independiente de Fase 4 (2026-09-29)
+
+`v0.7.0-fase4` certificó el cierre de Fase 4 (`a67bde9`). La auditoría independiente de ese cierre
+(`doc/auditorias/auditoria_independiente_fase4_SIE-el-salvador.md`, clon fresco, por un tercero)
+encontró cuatro IMPORTANTES y cinco MENORES; al preparar la remediación apareció un sexto menor (M6).
+El registro del cierre de Fase 4 no se reescribió: las correcciones entraron como notas fechadas.
+
+- **I1** (anticipación atribuida al protocolo): nota de corrección al final de «Cierre de Fase 4» y
+  regla para Fase 5 en el protocolo §6 (`8c0435e`; fechas y línea sobre R3 `pre2020` en este commit).
+- **I2** (compuerta de Fase 5): F4-32 a F4-34.
+  - Contrato de densidad gaussiana (`predecir_densidad()` → media y covarianza del sendero),
+    cobertura al 80/95 % y CRPS con oráculo `scoringRules` (V13), y rezagos por familia desde
+    `evidencia_insumos_fase4.csv` (`b9b793e`).
+  - Forma operativa de «UT solo años cerrados»: el año `a` desde el origen (a+1)-Q1, con canario
+    anual en V5, y σ² = mean(Δy²) en el paseo sin deriva (`7c5faa8`).
+- **I3** (premisa «CI no tiene X-13»): era falsa. La suite ya ejercía `seasonal::seas()` en CI, y el
+  run 36595407970 da SKIP 0. Desde V12 la orquestación de `motor_backtesting.R` con X-13 por origen
+  corre en CI sobre insumos sintéticos. Nota en la senda §4, v0.8 (`2c1865f`); comentario del objetivo
+  `eval` del `Makefile` en este commit.
+- **I4** (lectura de exclusiones del MCS): nota de lectura (`8c0435e`) y columna `marca_n` en la tabla
+  de resultados (F4-35, `2da3d3b`).
+- **M1** `CITATION.cff` a 0.7.0 / 2026-09-29, con guard en `tests/test-adr-indice.R`. **M2**
+  `fabletools` declarado y conteos de `CLAUDE.md`/`README.md`. **M3** códigos F4-15/16/17 en
+  `eval_lib.R`, comentario del `Makefile` y rótulo del paso de CI. **M4** tags en el `README.md`.
+  **M6** `yaml`, `MCS` y `fabletools` en el bootstrap; V11 falla en CI si falta su oráculo
+  (`81eb337`). `scoringRules` (Suggests, `b9b793e`) lleva el lockfile a 189 paquetes; conteo
+  corregido en este commit.
+- **M5** (hueco de revisión del cierre de Fase 3): registrado en el índice de `doc/auditorias/`, sin
+  revisión retroactiva (A5 = a).
+
+**Decisiones de Harold (2026-09-29):** A1 = (i) → F4-32; A2 → F4-33, con densidad en los dos paseos;
+A3 → F4-34, con rezagos desde la evidencia de insumos y UT por la opción (C); A4 = (a) → F4-35;
+A5 = (a); A6 = tag `v0.7.1-fase4`; A7 = textos de los anexos 1 y 2, más la línea sobre R3 `pre2020`.
+
+**Cambio de sha256 de la tabla de resultados (F4-35).** `tabla_resultados_fase4.csv` pasa de
+`5f03e4d5af34d39e1f8a1c3e369c42d9dd4b566326df72d534e19e46e02b49e5` (cierre de Fase 4, citado sin cambios
+en `doc/evidencia_cierre_fase4.txt`) a
+`8c1581e4bde943e78f36a34a25957371bb90e5608f4ecfe2f1ae34a747325151`. Se regeneró con
+`Rscript src/evaluacion/tabla_resultados_fase4.R` desde la L4 de la corrida de `c4e8b39`, sin volver a
+correr el motor (en este commit). Sin la columna `marca_n`, la tabla nueva es idéntica byte a byte a
+la anterior; 36 de sus 552 filas llevan `n_bajo_calibracion`.
+
+**Cambio en la salida del motor (F4-33).** Desde `b9b793e`, `make eval` llena `cobertura_80`,
+`cobertura_95` y `crps` en `metricas.csv` para los cinco benchmarks con densidad. `pronosticos.csv` no
+cambia: con F4_BENCH_G3 y F4_BENCH_G3_R6 sobre L3, reescrito es idéntico como texto al de la corrida
+de `c4e8b39`. La salida de V1-V11 sigue idéntica a la de `doc/evidencia_cierre_fase4.txt`.
+
+**CI:** run 36624458468 en verde sobre `b9b793e`; run `<run>` sobre este commit.
+
+**Tag: `v0.7.1-fase4`** (A6), sobre el commit que ya contiene esta sección y con el run de CI citado
+en el mensaje, nunca antes. No sustituye a `v0.7.0-fase4` (`a67bde9`), que no se mueve.
