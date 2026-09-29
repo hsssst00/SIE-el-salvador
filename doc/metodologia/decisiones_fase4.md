@@ -248,6 +248,28 @@ completa del bloque E y antes de escribir el reporte.
   escribe en LF, se hashean tal cual. Descartado: bytes crudos (registra el disco, no el contenido
   versionado).
 
+### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
+
+**BORRADOR — PENDIENTE DE LA FIRMA DE HAROLD** (checklist de remediación, A4). Al firmarse: cambiar
+esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar la fila F4-35 al Acta.
+
+- **Especificación vigente.** F4-30 fija las columnas de `tabla_resultados_fase4.csv`; la única marca
+  es `marca_tamano` (F4-18/F4-21, h = 4, 8). V9 de `verificar_motor_sintetico.R` calibra el MCS
+  hasta n = 18 pares, y el cierre de Fase 4 declara que las celdas más chicas «no se interpretan»,
+  pero la tabla no lo dice.
+- **Evidencia.** Sobre la tabla del cierre (sha256 `5f03e4d5…`, 552 filas), 36 filas tienen
+  `n_pares` < 18: G2 `pre2020` con h = 4 (17) y h = 8 (13), 12 filas, y G3 `sin_2020_2021` en los
+  cuatro horizontes (17), 24 filas.
+- **Opciones.** (a) Columna `marca_n` después de `marca_tamano`, con `n_bajo_calibracion` si
+  `n_pares` < 18 y vacía si no; cambia el formato de F4-30 y el sha256 de la tabla, que se regenera
+  desde la L4 existente sin volver a correr el motor. (b) Marcarlo solo en la nota de lectura I4 del
+  índice de ADR.
+- **Recomendación: (a).** La marca viaja con el dato, como `marca_tamano`, y la regla queda en el
+  código (`N_MIN_CALIBRADO_MCS <- 18L` en `tabla_resultados_fase4.R`, con prueba en
+  `tests/test-tabla-resultados.R`) y no en prosa.
+- **Documento a enmendar:** ninguno; el cambio del sha256 de la tabla se registra en la sección de
+  remediación de `doc/adr/README.md` (G1). `doc/evidencia_cierre_fase4.txt` no se edita.
+
 ---
 
 ## F4-01 — Convención de indexación del origen

@@ -7,11 +7,11 @@
 library(testthat)
 source(here::here("src", "evaluacion", "tabla_resultados_fase4.R"))
 
-.l4_sintetico <- function(raiz, exp_id, grupo, submuestras = FALSE, quitar_mcs = FALSE) {
+.l4_sintetico <- function(raiz, exp_id, grupo, submuestras = FALSE, quitar_mcs = FALSE, n_pares = 10L) {
   d <- file.path(raiz, exp_id); dir.create(d, recursive = TRUE)
   mods <- c("M.A", "M.B"); hs <- c(1L, 2L)
   g <- expand.grid(modelo_id = mods, h = hs, unidad = c("yoy_pp", "qoq_pp"), stringsAsFactors = FALSE)
-  met <- data.frame(exp_id = exp_id, modelo_id = g$modelo_id, grupo = grupo, h = g$h, unidad = g$unidad, n_pares = 10L,
+  met <- data.frame(exp_id = exp_id, modelo_id = g$modelo_id, grupo = grupo, h = g$h, unidad = g$unidad, n_pares = n_pares,
                     rmse = seq_len(nrow(g)) / 10, mae = seq_len(nrow(g)) / 20, rmse_relativo = 1, sesgo = 0, sesgo_ee_nw = 0.1,
                     cobertura_80 = NA, cobertura_95 = NA, crps = NA, stringsAsFactors = FALSE)
   gm <- expand.grid(modelo_id = mods, h = hs, stringsAsFactors = FALSE)
@@ -47,6 +47,7 @@ test_that("tabla larga: unidad primaria, submuestras etiquetadas como R3/R4 y or
   expect_identical(unique(t$exp_id[t$variante %in% c("R3", "R4")]), "X_G1")
   expect_true(is.logical(t$en_mcs))
   expect_identical(names(t)[c(1, 2, 12)], c("variante", "muestra_eval", "en_mcs"))
+  expect_identical(names(t)[14:15], c("marca_tamano", "marca_n"))
   expect_equal(t$rmse[t$variante == "principal" & t$h == 1 & t$modelo_id == "M.A"], 0.1)
   f <- tempfile(fileext = ".csv"); escribir_tabla_resultados(t, f)
   expect_false(any(readBin(f, "raw", file.info(f)$size) == as.raw(13L)))       # LF
@@ -59,4 +60,17 @@ test_that("guardas: directorio faltante, MCS incompleto y submuestras no declara
   expect_error(armar_tabla_resultados(raiz, .exp("X_G3", "G3")), "falta el directorio")
   expect_error(armar_tabla_resultados(raiz, .exp("X_G2", "G2")), "no casan")
   expect_error(armar_tabla_resultados(raiz, .exp("X_G1", "G1")), "no son las declaradas")
+})
+test_that("marca_n: n_bajo_calibracion bajo el piso de V9 (F4-35), vacía en el piso y encima", {
+  raiz <- tempfile("l4_"); on.exit(unlink(raiz, recursive = TRUE))
+  .l4_sintetico(raiz, "X_G1", "G1", n_pares = 10L)
+  .l4_sintetico(raiz, "X_G2", "G2", n_pares = 18L)
+  t <- armar_tabla_resultados(raiz, rbind(.exp("X_G1", "G1"), .exp("X_G2", "G2")))
+  expect_identical(N_MIN_CALIBRADO_MCS, 18L)
+  expect_true(all(t$marca_n[t$n_pares == 10L] == "n_bajo_calibracion"))
+  expect_true(all(t$marca_n[t$n_pares == 18L] == ""))
+  f <- tempfile(fileext = ".csv"); escribir_tabla_resultados(t, f)
+  r <- utils::read.csv(f, stringsAsFactors = FALSE, na.strings = "NA")
+  expect_identical(names(r)[ncol(r)], "marca_n")
+  expect_identical(sum(r$marca_n == "n_bajo_calibracion", na.rm = TRUE), 4L)
 })

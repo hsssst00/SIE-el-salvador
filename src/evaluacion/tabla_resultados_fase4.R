@@ -13,7 +13,8 @@
 #   variante      principal | R1 | R2 | R3 | R4 | R5 | R6
 #   muestra_eval  completa | pre2020 | post2020 (R3) | sin_2020 | sin_2020_2021 (R4)
 #   exp_id, grupo, h, unidad, modelo_id, n_pares, rmse, mae, rmse_relativo, en_mcs, p_mcs,
-#   marca_tamano (la del MCS: distorsion_tamano_documentada en h = 4, 8)
+#   marca_tamano (la del MCS: distorsion_tamano_documentada en h = 4, 8),
+#   marca_n      (F4-35: n_bajo_calibracion si n_pares < 18, el piso calibrado por V9; vacía si no)
 # R3 y R4 llevan el exp_id de la principal del grupo, que es donde el motor escribe sus tablas.
 #
 # Regla 7 de CLAUDE.md: si falta un experimento declarado o las tablas no casan 1 a 1, falla.
@@ -22,6 +23,10 @@ source(here::here("src", "evaluacion", "motor_backtesting.R"))   # EXPERIMENTOS;
 
 VARIANTES_ORDEN <- c("principal", "R1", "R2", "R3", "R4", "R5", "R6")
 MUESTRAS_ORDEN  <- c("completa", "pre2020", "post2020", "sin_2020", "sin_2020_2021")
+# F4-35 (hallazgo I4 de la auditoría independiente de Fase 4): V9 de verificar_motor_sintetico.R
+# calibra el MCS hasta n = 18 pares; las celdas con menos pares no se interpretan y se marcan.
+N_MIN_CALIBRADO_MCS <- 18L
+MARCA_N_BAJO <- "n_bajo_calibracion"
 
 #' Variante del protocolo §5 de una fila de EXPERIMENTOS.
 variante_de <- function(ex) {
@@ -73,10 +78,11 @@ armar_tabla_resultados <- function(dir_l4, exps, perdida = "yoy_pp") {
   t <- do.call(rbind, partes)
   if (!all(t$variante %in% VARIANTES_ORDEN) || !all(t$muestra_eval %in% MUESTRAS_ORDEN)) stop("tabla: variante o muestra fuera del dominio")
   t$en_mcs <- as.logical(t$en_mcs)
+  t$marca_n <- ifelse(t$n_pares < N_MIN_CALIBRADO_MCS, MARCA_N_BAJO, "")
   t <- t[order(match(t$variante, VARIANTES_ORDEN), t$grupo, t$exp_id, match(t$muestra_eval, MUESTRAS_ORDEN), t$h, t$modelo_id), ]
   rownames(t) <- NULL
   t[, c("variante", "muestra_eval", "exp_id", "grupo", "h", "unidad", "modelo_id", "n_pares", "rmse", "mae",
-        "rmse_relativo", "en_mcs", "p_mcs", "marca_tamano")]
+        "rmse_relativo", "en_mcs", "p_mcs", "marca_tamano", "marca_n")]
 }
 
 escribir_tabla_resultados <- function(t, ruta) {
