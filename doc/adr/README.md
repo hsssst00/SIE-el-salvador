@@ -405,3 +405,31 @@ resultados, más `data/L4_experiments/`, que no se versiona.
 **Tag: `v0.7.0-fase4`,** sobre el commit que ya contiene esta certificación, la evidencia y la
 nota de la senda §4, nunca antes. Antes de tagear hay que confirmar que el run de CI sobre ese
 commit queda en verde.
+
+### Nota de corrección (AAAA-MM-DD) — auditoría independiente de Fase 4, hallazgo I1
+
+La frase «El empate de la corrida principal depende de los targets de 2020 y 2021, como anticipaba
+el protocolo §5» atribuye al protocolo una anticipación que solo era parcial. El protocolo anterior
+a cualquier resultado sobre L3 (`2bd1050`) anticipaba el peso de **2020** en R4. La línea «sin 2020
+ni 2021» entró con F4-29 (`23eb3d7`, 2026-09-28): después de la corrida principal sobre `ee60dee`
+(2026-09-24) y antes de la primera corrida de robustez (`94ee0db`). Su fundamento es descriptivo (la
+partición de la suma de cuadrados del objetivo observado) y no depende de ningún modelo, pero es una
+ampliación posterior a la corrida principal, no una anticipación. Lo mismo vale para las
+especificaciones de R1, R2 y R3 (F4-26 a F4-28). Los benchmarks, la corrida principal, las pruebas y
+la regla de reporte del MCS sí se fijaron antes de cualquier resultado (C8, `a78d2c6`). El texto
+original se conserva sin editar.
+
+### Nota de lectura (AAAA-MM-DD) — auditoría independiente de Fase 4, hallazgo I4
+
+Las exclusiones del MCS que cita el párrafo «Lo que dicen los benchmarks» se leen con las dos marcas
+que el protocolo fijó antes de los resultados.
+
+- En h = 4 y h = 8 (`distorsion_tamano_documentada`, F4-18), que un modelo quede fuera del MCS no es
+  prueba de inferioridad. Eso incluye la exclusión del paseo aleatorio sin deriva en G3 y en R4
+  `sin_2020`.
+- Las celdas con menos de 18 pares están bajo el piso calibrado por V9 y no se interpretan: G2
+  `pre2020` con h = 4 (17) y h = 8 (13), y G3 `sin_2020_2021` en los cuatro horizontes (17).
+
+La lectura que sí se sostiene sin marcas es la de G1 y G2 con h = 1, 2 en `sin_2020_2021` (entre 36
+y 44 pares). Esa línea es la ampliación de F4-29 (ver la nota I1) y trata como contiguos los pares a
+ambos lados del hueco.

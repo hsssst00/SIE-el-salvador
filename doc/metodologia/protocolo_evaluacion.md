@@ -129,7 +129,9 @@ origen no existían.
 
 La demanda eléctrica de UT tiene grano de disponibilidad **anual** —sus 25 vintages son un
 archivo por año con fecha de publicación sintética (31-dic, 31-jul para 2026)—, así que
-para ella la regla anterior no es aplicable tal cual y requiere decisión (F4-02).
+para ella la regla anterior no es aplicable tal cual y requería decisión: F4-02 (2026-09-24) adoptó
+«UT solo con años cerrados»; su forma operativa y su implementación siguen pendientes (checklist de
+remediación de la auditoría de Fase 4, A3 y E4).
 
 ### 2.4 Vintage contra el que se evalúa [decidido 2026-09-24, F4-03]
 
@@ -308,6 +310,10 @@ reemplazando las filas previas de los experimentos que corre.
 
 Criterio de cierre de Fase 5 (una orden, una semilla) queda satisfecho si y solo si
 `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`.
+
+**[AAAA-MM-DD, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
+antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
+(precedente: C8, `a78d2c6`).
 
 ## 7. Lo que este protocolo no cubre
 
