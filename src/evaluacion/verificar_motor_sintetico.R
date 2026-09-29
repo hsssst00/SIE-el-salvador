@@ -19,7 +19,8 @@
 #   V8   potencia de DM/HLN ante una pérdida 20% menor (solo reporte)
 #   V9   MCS T_max α=0,10: el modelo dominante queda dentro (estricto); con modelos equivalentes
 #        el MCS completo se exige en h=1 y se reporta en h=8
-#   V11  MCS propio contra MCS::MCSprocedure (Suggests; SKIP si el paquete no está instalado)
+#   V11  MCS propio contra MCS::MCSprocedure (Suggests; SKIP si el paquete no está instalado, salvo
+#        en CI, donde su ausencia detiene la corrida con stop())
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -250,7 +251,14 @@ if (requireNamespace("MCS", quietly = TRUE)) {
                       length(esc), dif))
   }
 } else {
+  # En CI el oráculo es obligatorio: MCS está fijado en renv.lock (Suggests, 8c4dec7), así que su
+  # ausencia es un lockfile roto, no una máquina sin el paquete (hallazgo M6, remediación de la
+  # auditoría independiente de Fase 4).
+  if (identical(Sys.getenv("CI"), "true"))
+    stop("V11: paquete MCS no instalado en CI; renv.lock lo fija como oráculo (Suggests)")
   cat("V11 SKIP  paquete MCS no instalado (Suggests)\n")
+  V11_SKIP <- TRUE
 }
 
-cat("verificación sintética: bloques OK (V1-V11)\n")
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V11)\n")

@@ -52,7 +52,16 @@ paquetes <- c(
   # ut_demanda_serie.R, calendario_bcr_extraer.R) sin estar declarados aqui ni en DESCRIPTION,
   # aunque ya estaban en renv.lock como dependencia transitiva.
   "dplyr",        # validate_catalogs.R, ut_demanda_serie.R
-  "stringr"       # calendario_bcr_extraer.R
+  "stringr",      # calendario_bcr_extraer.R
+  # Agregados el 2026-09-29 (remediacion de la auditoria independiente de Fase 4). Mismo patron:
+  # `paquetes` es la lista de la que sale el lockfile, no DESCRIPTION, y estos tres faltaban aqui.
+  "yaml",         # Import desde 0c1fd00 (F4-12, nota de ADR-009): motor_backtesting.R, test-catalogo-modelos.R.
+                  # Hoy sobrevive como transitiva de pointblank/knitr/rmarkdown; no se deja a esa suerte.
+  "fabletools",   # hallazgo M2: modelos_referencia.R llama fabletools::model() y ::forecast() (BENCH.ETS);
+                  # llegaba como transitiva de fable. renv.lock ya fija 0.8.0.
+  "MCS"           # hallazgo M6: Suggests desde 8c4dec7, oraculo de V11 en verificar_motor_sintetico.R.
+                  # Ningun paquete del lockfile lo requiere: sin esta linea, un lockfile regenerado lo
+                  # pierde y V11 pasa a SKIP (en CI, a stop()).
 )
 
 install.packages(paquetes)

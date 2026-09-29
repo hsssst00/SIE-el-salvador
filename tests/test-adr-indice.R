@@ -124,3 +124,30 @@ test_that("CLAUDE.md y README.md declaran cerrada la última fase que doc/adr/RE
     )
   }
 })
+
+# Guard hermano (hallazgo M1 de la auditoría independiente de Fase 4; tercera aparición de la
+# familia: M4 de Fase 0, M1 de la independiente de Fase 2). CITATION.cff debe declarar la versión
+# del tag y la fecha del último "## Cierre de Fase N" del índice de ADR. No usa `git tag`:
+# actions/checkout no trae tags.
+test_that("CITATION.cff declara la versión y la fecha del último cierre de fase certificado", {
+  indice <- .leer_utf8(here::here("doc", "adr", "README.md"))
+  ini <- grep("^## Cierre de Fase \\d+", indice)
+  expect_gt(length(ini), 0L)
+  fases <- as.integer(sub("^## Cierre de Fase (\\d+).*$", "\\1", indice[ini]))
+  k <- ini[which.max(fases)]
+  fecha_cierre <- sub("^## Cierre de Fase \\d+ \\((\\d{4}-\\d{2}-\\d{2})\\).*$", "\\1", indice[k])
+  expect_match(fecha_cierre, "^\\d{4}-\\d{2}-\\d{2}$")
+  sig <- grep("^## ", indice)
+  fin <- min(c(sig[sig > k], length(indice) + 1L)) - 1L
+  seccion <- paste(indice[k:fin], collapse = " ")
+  tag <- regmatches(seccion, regexpr(sprintf("v\\d+\\.\\d+\\.\\d+-fase%d", max(fases)), seccion, perl = TRUE))
+  expect_length(tag, 1L)
+  version_tag <- sub("^v(\\d+\\.\\d+\\.\\d+)-.*$", "\\1", tag)
+  cff <- .leer_utf8(here::here("CITATION.cff"))
+  version_cff <- trimws(sub("^version:\\s*", "", grep("^version:", cff, value = TRUE)))
+  fecha_cff   <- trimws(sub("^date-released:\\s*", "", grep("^date-released:", cff, value = TRUE)))
+  expect_identical(version_cff, version_tag,
+    info = sprintf("CITATION.cff dice version %s; el último cierre (Fase %d) certifica %s", version_cff, max(fases), tag))
+  expect_identical(fecha_cff, fecha_cierre,
+    info = sprintf("CITATION.cff dice date-released %s; el último cierre es del %s", fecha_cff, fecha_cierre))
+})

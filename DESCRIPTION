@@ -29,6 +29,7 @@ Imports:
     testthat,
     dplyr,
     stringr,
-    yaml
+    yaml,
+    fabletools
 Suggests:
     MCS

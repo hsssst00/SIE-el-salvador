@@ -425,11 +425,11 @@ validar_token <- function(tok) {
 # que es como los entrega calcular_errores() filtrado por modelo, unidad y h.
 #
 # Parámetros decididos por Harold el 2026-09-24 (registro: doc/metodologia/decisiones_fase4.md):
-#   F4-15  DM/HLN: varianza rectangular de h-1 rezagos; si sale <= 0, respaldo Bartlett con los
-#          mismos rezagos, registrado en la columna `varianza`.
-#   F4-16  GW: instrumentos (1, d_{t-h}), χ²(2), varianza HAC de Bartlett con h-1 rezagos.
-#   F4-17  MCS: estadístico T_max, α = 0,10, bootstrap estacionario con bloque medio
+#   F4-15  MCS: estadístico T_max, α = 0,10, bootstrap estacionario con bloque medio
 #          max(h, ceiling(n^(1/3))), B = 5000 en las corridas sobre L3.
+#   F4-16  DM/HLN: varianza rectangular de h-1 rezagos; si sale <= 0, respaldo Bartlett con los
+#          mismos rezagos, registrado en la columna `varianza`.
+#   F4-17  GW: instrumentos (1, d_{t-h}), χ²(2), varianza HAC de Bartlett con h-1 rezagos.
 
 .autocov <- function(x, k) {
   n <- length(x); x <- x - mean(x)
@@ -461,14 +461,14 @@ prueba_dm_hln <- function(e1, e2, h) {
     stop("DM/HLN: diferencial de pérdidas constante y no nulo; la varianza es cero")
   }
   v <- varianza_rectangular(d, h - 1L); tipo <- "rectangular"
-  if (!is.finite(v) || v <= 0) { v <- varianza_nw(d, h - 1L); tipo <- "bartlett_respaldo" }       # F4-15
+  if (!is.finite(v) || v <= 0) { v <- varianza_nw(d, h - 1L); tipo <- "bartlett_respaldo" }       # F4-16
   if (!is.finite(v) || v <= 0) stop("DM/HLN: varianza de largo plazo no positiva también con Bartlett")
   est <- sqrt(k2) * mean(d) / sqrt(v / n)
   list(estadistico = est, p_valor = 2 * stats::pt(-abs(est), df = n - 1L), n_pares = n,
        varianza = tipo, media_diferencial = mean(d))
 }
 
-#' Giacomini-White (2006), test condicional con instrumentos (1, d_{t-h}) (F4-16).
+#' Giacomini-White (2006), test condicional con instrumentos (1, d_{t-h}) (F4-17).
 #' d_{t-h} es el diferencial del target h trimestres anterior: ya observado en el origen de t.
 #' @return list(estadistico, p_valor (χ² con 2 gl), n_pares (usados), media_diferencial)
 prueba_gw <- function(e1, e2, h) {
@@ -489,7 +489,7 @@ prueba_gw <- function(e1, e2, h) {
        media_diferencial = mean(d))
 }
 
-#' Longitud media de bloque del bootstrap del MCS (F4-17).
+#' Longitud media de bloque del bootstrap del MCS (F4-15).
 bloque_mcs <- function(n, h) max(as.integer(h), as.integer(ceiling(n^(1 / 3))))
 
 #' Índices de un bootstrap estacionario (Politis y Romano 1994), circular, con bloque medio `l`.
@@ -504,7 +504,7 @@ indices_bootstrap_estacionario <- function(n, l, B) {
   idx
 }
 
-#' Model Confidence Set de Hansen, Lunde y Nason (2011), estadístico T_max (F4-17).
+#' Model Confidence Set de Hansen, Lunde y Nason (2011), estadístico T_max (F4-15).
 #'
 #' @param perdidas matriz n x m (filas = pares ordenados por origen, columnas = modelos con nombre).
 #' @param h        horizonte, para la longitud de bloque.
