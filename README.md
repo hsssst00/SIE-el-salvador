@@ -23,7 +23,7 @@ vez de que se transcriban a mano aquí (hallazgo M5 de la revisión independient
 ## Estructura
 
 ```
-doc/adr/                               decisiones de arquitectura registradas (ADR-001 … ADR-009)
+doc/adr/                               decisiones de arquitectura registradas (ADR-001 … ADR-010)
 doc/metodologia/                       notas metodológicas específicas (empalme, shock 2020, protocolo, supuestos)
 doc/auditorias/                        revisiones independientes del repositorio (sin autoridad decisoria)
 doc/bitacora_verificaciones.md         registro de corridas del verificador de fuente_celda
