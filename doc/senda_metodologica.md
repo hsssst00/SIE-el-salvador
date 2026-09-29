@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.6 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6)
+**Versión:** 0.7 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -29,6 +29,11 @@ maestra bitemporal" — cada archivo
   de `data/L3_master/` gana una columna `vintage_id`, resuelta contra `08_vintages.csv`, en vez
   de una lectura documental separada. El registro del cierre está en `doc/adr/README.md`,
   "Cierre de Fase 3". Sin otros cambios de contenido.
+- **0.7** (2026-09-29): añade a §4 la nota de cierre de Fase 4, que fija las lecturas de «el motor
+  está probado» (V1-V11 en CI más la corrida local de `make eval` registrada) y de «modelos de
+  referencia implementados» (los seis de §6.1, declarados antes de correr y corridos en G1-G3 con
+  R1-R6). El registro del cierre está en `doc/adr/README.md`, "Cierre de Fase 4". Sin otros
+  cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -503,6 +508,30 @@ Entregables: `src/evaluacion/` funcional; documento de protocolo; resultados de 
 **Criterio de cierre:** el motor de evaluación funciona y está probado **antes** de estimar cualquier modelo sofisticado. Definir las reglas después de ver los resultados invalida el ejercicio.
 
 > Este orden no es negociable. Es la diferencia entre una evaluación predictiva y una búsqueda de especificación favorable.
+
+**Nota de cierre — lecturas de «probado» y «modelos de referencia implementados» (2026-09-29).**
+El criterio de cierre tiene dos frases que admiten más de una lectura. Esta nota fija las dos, con
+la misma disciplina que las notas de Fase 1 a 3: la lectura se declara, no se infiere. Las adoptó
+Harold el 2026-09-29, en la opción que proponía el checklist de Fase 4 (F3).
+
+- **«El motor está probado».** Se lee como dos evidencias complementarias:
+  1. Los once bloques V1-V11 de `src/evaluacion/verificar_motor_sintetico.R` en verde en CI. Son
+     los que no requieren L3: recuperación de pronósticos y RMSE teóricos, canarios de filtración y
+     de mutación, reproducibilidad por semilla, tamaño y potencia de DM/HLN, cobertura del MCS y
+     contraste con `MCS::MCSprocedure`.
+  2. La corrida local de `make eval` sobre el commit de cierre, con árbol limpio, registrada en
+     `doc/evidencia_cierre_fase4.txt`. Es la única que ejerce X-13 dentro de cada origen y los
+     datos de L3.
+
+  La primera no alcanza sola porque CI no tiene L3 ni X-13. La segunda no alcanza sola porque no
+  prueba que el motor recupere resultados conocidos.
+- **«Modelos de referencia implementados».** Son los seis benchmarks de §6.1: paseo aleatorio sin
+  y con deriva, AR(1), AR(p) por BIC, media de crecimiento y ETS. Cuentan como implementados porque
+  se declararon en `catalogos/06_modelos/` antes de la primera corrida sobre L3 y se corrieron en
+  los tres grupos de comparación (G1, G2, G3) con la batería de robustez R1-R6 del protocolo §5.
+  No incluye ningún modelo de §6.2 a §6.7: esos son Fase 5.
+
+El registro del cierre, con su evidencia, está en `doc/adr/README.md`, «Cierre de Fase 4».
 
 ### Fase 5 — Estimación y comparación (Ejercicio A)
 

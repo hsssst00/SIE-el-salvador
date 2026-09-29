@@ -341,3 +341,67 @@ completos no corren en CI por las mismas razones que Fase 2: dependen de los `.x
 **Tag: `v0.6.0-fase3`,** sobre el commit que ya contiene esta certificación, la evidencia y la
 nota de senda §4 — nunca antes (misma disciplina que los cierres anteriores). Confirmar que el
 run de CI sobre el commit de cierre queda en verde antes de tagear.
+
+## Cierre de Fase 4 (2026-09-29)
+
+**Criterio de cierre de Fase 4 (senda metodológica §4): SATISFECHO.** «El motor de evaluación
+funciona y está probado **antes** de estimar cualquier modelo sofisticado». Esta nota fija dos
+lecturas, con el mismo patrón que los cierres anteriores; el detalle está en
+`doc/senda_metodologica.md`, nota de cierre de Fase 4:
+
+- **«El motor está probado»:** los once bloques V1-V11 de `verificar_motor_sintetico.R` en verde
+  en CI, que es donde corren los que no requieren L3, más la corrida local de `make eval` sobre el
+  commit de cierre, registrada en `doc/evidencia_cierre_fase4.txt`.
+- **«Modelos de referencia implementados»:** los seis benchmarks de §6.1, declarados en
+  `catalogos/06_modelos/` antes de la primera corrida sobre L3 (C8, commit `a78d2c6`) y corridos en
+  los grupos G1, G2 y G3 con la batería de robustez R1-R6.
+
+Ningún modelo de §6.2 a §6.7 se estimó en esta fase.
+
+**Evidencia.**
+
+- **CI:** run [36583715418](https://github.com/hsssst00/SIE-el-salvador/actions/runs/36583715418)
+  sobre `c4e8b39` (push a `main`), en verde: `validate-and-test` (pruebas unitarias y V1-V11) y
+  `check-l0-integrity`.
+- **Corrida local** (máquina de Harold, R 4.6.1, la de `renv.lock`, árbol limpio):
+  `make eval` sobre `c4e8b39`, código de salida 0. V1-V11 OK, 13 experimentos, 24.288 pronósticos,
+  78 filas en `catalogos/07_experimentos.csv` y 552 en
+  `doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv`. Salida textual en
+  `doc/evidencia_cierre_fase4.txt`, junto con `seasonal::checkX13()` (A3d).
+- **Reproducibilidad entre máquinas:** la tabla de resultados sale con el mismo sha256
+  (`5f03e4d5…`) en la máquina de Harold y en una segunda. Sobre `94ee0db`, los 71 CSV de
+  `data/L4_experiments/` coincidieron byte a byte entre las dos.
+
+**Entregables (senda §4).** `src/evaluacion/`: `eval_lib.R`, `modelos_referencia.R`,
+`motor_backtesting.R`, `verificar_motor_sintetico.R` y `tabla_resultados_fase4.R`. El documento
+de protocolo es `doc/metodologia/protocolo_evaluacion.md`, con la especificación y el acta
+F4-01 a F4-31 en `doc/metodologia/`. Los resultados de los benchmarks están en la tabla de
+resultados, más `data/L4_experiments/`, que no se versiona.
+
+**Lo que dicen los benchmarks, en la unidad primaria (interanual, pp).**
+- Corrida principal: el MCS al 10 % conserva los seis modelos en G1 y G2 en todos los horizontes,
+  y en G3 con h = 1 y 2. En G3 con h = 4 y 8 excluye al paseo aleatorio sin deriva. El mejor RMSE
+  relativo en h = 1 es 0,989 (G1).
+- R4: sin los targets de 2020, el paseo aleatorio sin deriva sale del MCS en h = 4 y 8 en los tres
+  grupos. Sin 2020 ni 2021 sale en todos los horizontes; en G1 el AR(1) queda en 0,778 con h = 1
+  y en 0,393 con h = 4.
+- El empate de la corrida principal depende de los targets de 2020 y 2021, como anticipaba el
+  protocolo §5.
+
+**Lo que queda abierto y NO bloquea este cierre** (declarado, no silenciado; Fase 5 lo hereda):
+
+- Tamaño de DM/HLN en h = 4 y 8: V7 da hasta 0,152 (G3, h = 8). `pruebas.csv` y `mcs.csv` lo
+  marcan con `distorsion_tamano_documentada` (F4-18, F4-21).
+- MCS con pocos pares: V9 calibra hasta n = 18. Celdas más chicas, como R3 `pre2020` en G2 con
+  h = 8 (n = 13), no se interpretan.
+- El tamaño de GW (R1) y el del contraste de estabilidad (R3) no están verificados: llevan la
+  marca `tamano_no_verificado`. En `sin_2020` y `sin_2020_2021`, DM/HLN y MCS tratan como
+  contiguos los pares de cada lado del hueco, como aproximación declarada.
+- D5: el validador de claves foráneas entre catálogos sigue dividido entre dos scripts.
+- La pista en tiempo real (F4-03) es prospectiva; el grano de UT es anual.
+- Pregunta sin resolver, sin efecto en esta fase: de dónde salen los meses 2009-M01 a M11 del IPC
+  que publica el FMI (F4-23).
+
+**Tag: `v0.7.0-fase4`,** sobre el commit que ya contiene esta certificación, la evidencia y la
+nota de la senda §4, nunca antes. Antes de tagear hay que confirmar que el run de CI sobre ese
+commit queda en verde.

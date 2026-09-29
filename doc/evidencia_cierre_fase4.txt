@@ -1,0 +1,125 @@
+EVIDENCIA DE CIERRE DE FASE 4 — A3d + E1-E6 (make eval)
+================================================================
+
+Máquina: la de Harold (Windows 11 x64, build 26200), con L3 materializada y X-13ARIMA-SEATS.
+Fecha:   2026-09-29 (corrida de make eval, 08:50-08:52 -0600).
+Commit:  c4e8b39d249f5dca3e562e8867326e074e9f97ae (merge de #22), árbol limpio.
+R:       R version 4.6.1 (2026-06-24 ucrt), la que fija renv.lock (sha256 del contenido sin
+         retornos de carro: 33e5cba2a702…).
+Comando: system("make eval") desde una sesión de R 4.6.1 (eval depende de eval-sintetico).
+
+`make eval` no corre en CI: exige data/L3_master/, data/L1_staging/BCR_PIB_series_largo.csv y
+X-13ARIMA-SEATS (especificación §7). Este archivo es su evidencia, con el mismo patrón que
+doc/evidencia_cierre_fase2.txt y doc/evidencia_cierre_fase3.txt. La parte que sí corre en CI
+(pruebas unitarias y verificación sintética V1-V11) está citada al final.
+
+----------------------------------------------------------------
+A3d — seasonal::checkX13()  (prerrequisito del ajuste por origen, F4-09)
+----------------------------------------------------------------
+
+Corrido por Harold en la misma máquina el 2026-09-24, antes de la primera corrida del motor.
+Resultado informado: "'seasonal' should work fine". La salida completa no se transcribió en su
+momento; la ejecución efectiva de X-13 en cada origen queda probada por la corrida de abajo,
+que reestima el ajuste en 52 orígenes (G1, que cubren G2 y G3) sobre [1990-Q1, o] y en 45 sobre
+[2005-Q1, o] (R2), y escribe el orden ARIMA elegido en ajuste_estacional.csv.
+
+----------------------------------------------------------------
+E1-E6 — make eval  (salida textual, sin editar)
+----------------------------------------------------------------
+
+> system("make eval")
+Rscript src/evaluacion/verificar_motor_sintetico.R
+V1   OK  52 orígenes 2013-Q1..2025-Q4; pares h=1/2/4/8 = 52/51/49/45; primera muestra 93 obs
+V2   OK  AR(1) φ=0.6: |motor - fórmula cerrada| máx = 8.9e-16 en h=1..8
+V3   OK  AR(1) φ=0,6: RMSE simulado dentro de ±3 EE de Monte Carlo del teórico en h=1/2/4/8 (2000 réplicas)
+V3   OK  paseo aleatorio: RMSE simulado dentro de ±3 EE de Monte Carlo del teórico en h=1/2/4/8 (2000 réplicas)
+V4   OK  DGP AR(1): AR(p)-BIC gana en 96% de 50 réplicas (RMSE relativo medio 0.820); DGP paseo: RMSE relativo medio 1.0068
+V5   OK  el canario que busca el futuro no lo encuentra y G-3 detiene el motor; G-1 rechaza una serie sin recortar
+V6   OK  un modelo que modifica su insumo no altera el estado maestro ni lo que ven los modelos siguientes
+V10  OK  dos corridas con los 6 benchmarks + un modelo estocástico: sha256 idéntico (f3bdc2c613bf…); otro exp_id cambia la semilla
+ grupo h  n tamano respaldo
+    G1 1 52 0.0440   0.0000
+    G1 2 51 0.0495   0.0000
+    G1 4 49 0.0805   0.0005
+    G1 8 45 0.1165   0.0220
+    G2 1 45 0.0470   0.0000
+    G2 2 44 0.0565   0.0000
+    G2 4 42 0.0720   0.0005
+    G2 8 38 0.1195   0.0305
+    G3 1 25 0.0395   0.0000
+    G3 2 24 0.0565   0.0005
+    G3 4 22 0.1140   0.0205
+    G3 8 18 0.1525   0.1485
+V7   OK  tamaño DM/HLN <= 0.0630 en h=1,2; h=4,8 reportado (máx 0.152): distorsión documentada
+V8   OK  potencia ante pérdida 20% menor, rango 0.069-0.161 (solo reporte)
+V9   OK  n=52 h=1: P(dominante en MCS)=0.995; P(MCS completo | equivalentes)=0.905
+V9   OK  n=45 h=8: P(dominante en MCS)=0.975; P(MCS completo | equivalentes)=0.775 (reportado)
+V9   OK  n=18 h=8: P(dominante en MCS)=0.880; P(MCS completo | equivalentes)=0.490 (reportado)
+V11  OK  6 modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| 0)
+V11  OK  4 modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| 0)
+verificación sintética: bloques OK (V1-V11)
+Rscript src/evaluacion/motor_backtesting.R
+OK F4_BENCH_G1      expansiva|origen=ultimo_estimado|grupo=G1|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  2496 pronósticos  50 s
+OK F4_BENCH_G2      expansiva|origen=ultimo_estimado|grupo=G2|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  2160 pronósticos  12 s
+OK F4_BENCH_G3      expansiva|origen=ultimo_estimado|grupo=G3|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  1200 pronósticos  5 s
+OK F4_BENCH_G2_R5   expansiva|origen=ultimo_estimado|grupo=G2|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp  2160 pronósticos  6 s
+OK F4_BENCH_G3_R5   expansiva|origen=ultimo_estimado|grupo=G3|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp  1200 pronósticos  5 s
+OK F4_BENCH_G1_R1   rodante92|origen=ultimo_estimado|grupo=G1|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  2496 pronósticos  10 s
+OK F4_BENCH_G2_R1   rodante92|origen=ultimo_estimado|grupo=G2|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  2160 pronósticos  7 s
+OK F4_BENCH_G3_R1   rodante92|origen=ultimo_estimado|grupo=G3|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  1200 pronósticos  4 s
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+OK F4_BENCH_G2_R2   homogenea2005|origen=ultimo_estimado|grupo=G2|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  2160 pronósticos  31 s
+OK F4_BENCH_G3_R2   homogenea2005|origen=ultimo_estimado|grupo=G3|vintage=revision_vigente|sa=reestimado_en_origen|perdida=yoy_pp  1200 pronósticos  4 s
+OK F4_BENCH_G1_R6   expansiva|origen=ultimo_estimado|grupo=G1|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp  2496 pronósticos  7 s
+OK F4_BENCH_G2_R6   expansiva|origen=ultimo_estimado|grupo=G2|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp  2160 pronósticos  7 s
+OK F4_BENCH_G3_R6   expansiva|origen=ultimo_estimado|grupo=G3|vintage=revision_vigente|sa=l3_unico|perdida=yoy_pp  1200 pronósticos  4 s
+07_experimentos.csv: 78 filas de 13 experimentos
+Rscript src/evaluacion/tabla_resultados_fase4.R
+tabla_resultados_fase4.csv: 552 filas, 13 experimentos, sha256 5f03e4d5af34d39e1f8a1c3e369c42d9dd4b566326df72d534e19e46e02b49e5
+[1] 0
+
+Código de salida: 0 (el `[1] 0` final es el valor que devuelve system()).
+
+Las cuatro líneas "Note: The following floating-point exceptions are signalling:
+IEEE_UNDERFLOW_FLAG IEEE_DENORMAL" las emite R al terminar los procesos de X-13 de R2; son un
+aviso del entorno de punto flotante, no un fallo de ninguna guarda.
+
+----------------------------------------------------------------
+Comprobaciones sobre lo que dejó la corrida
+----------------------------------------------------------------
+
+1. Manifiestos (data/L4_experiments/<exp_id>/manifiesto.txt, 13 directorios): los 13 dicen
+   `commit_hash: c4e8b39d249f5dca3e562e8867326e074e9f97ae`, `arbol: limpio` y R 4.6.1.
+2. catalogos/07_experimentos.csv: 78 filas (13 experimentos x 6 modelos, F4-25), todas con ese
+   commit, fecha 2026-09-29 y `entorno` = "R version 4.6.1 (2026-06-24 ucrt); x86_64-w64-mingw32;
+   renv.lock sha256:33e5cba2a702". Se commitean en el mismo PR que este archivo.
+3. doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (E4/E5, F4-30): 552 filas, sha256
+   5f03e4d5af34d39e1f8a1c3e369c42d9dd4b566326df72d534e19e46e02b49e5, idéntico byte a byte al que
+   produjo una segunda máquina (sandbox, R 4.6.1) con el mismo código. Como la tabla une
+   metricas.csv y mcs.csv (y los *_submuestras.csv) de los 13 experimentos, esa igualdad cubre
+   las métricas y el MCS de toda la batería.
+4. Reproducibilidad entre máquinas de las tablas completas de L4:
+   - sobre ee60dee (2026-09-24/25): 23/23 CSV de los cinco experimentos iniciales con sha256
+     idéntico entre esta máquina y la segunda;
+   - sobre 94ee0db (2026-09-28): 71/71 CSV de los 13 experimentos idénticos entre las dos
+     máquinas, con R 4.6.1 y también con R 4.5.1 en esta (con 4.5.1 V11 se salta porque la
+     biblioteca de renv para R 4.5 no tiene MCS; por eso la evidencia es la corrida con 4.6.1);
+   - sobre c4e8b39 (esta corrida): los 23 CSV de los cinco experimentos iniciales siguen con el
+     mismo sha256 que el 2026-09-24. Entre 94ee0db y c4e8b39 el motor solo cambió el hash de los
+     insumos del manifiesto (F4-31), que no toca ninguna tabla.
+
+----------------------------------------------------------------
+Parte que corre en CI
+----------------------------------------------------------------
+
+Run 36583715418 (push a main, commit c4e8b39), en verde:
+  - job validate-and-test: pasos "Correr pruebas" y "Verificación sintética del motor de
+    evaluación (make eval-sintetico)", V1-V11;
+  - job check-l0-integrity: "Verificar consistencia cruzada de L0 (manifiesto <-> 08_vintages)".
+https://github.com/hsssst00/SIE-el-salvador/actions/runs/36583715418
+
+Los commits posteriores a c4e8b39 que llegan al tag de cierre solo agregan este archivo, las
+filas de 07, la tabla de resultados y documentación: no cambian src/, Makefile ni renv.lock.
