@@ -177,6 +177,7 @@ semilla_de <- function(exp_id, modelo_id, origen) {
   faltan <- setdiff(c("modelo_id", "requiere", "ajustar", "predecir"), names(m))
   if (length(faltan)) stop("modelo sin campos del contrato: ", paste(faltan, collapse = ", "))
   if (!is.function(m$ajustar) || !is.function(m$predecir)) stop("modelo ", m$modelo_id, ": ajustar/predecir deben ser funciones")
+  if (!is.null(m$predecir_densidad) && !is.function(m$predecir_densidad)) stop("modelo ", m$modelo_id, ": predecir_densidad debe ser una función")
   invisible(TRUE)
 }
 
@@ -190,9 +191,12 @@ semilla_de <- function(exp_id, modelo_id, origen) {
 #' @param min_obs  mínimo de observaciones del objetivo para estimar (G-4).
 #' @param exp_id   identificador del experimento; entra en la semilla.
 #' @param spec     lista de especificaciones por modelo_id (opcional).
-#' @return data.frame: modelo_id, origen (índice), h, log_nivel_pronosticado.
+#' @param densidad si TRUE (F4-33), agrega sd_log_nivel, sd_yoy_pp y sd_qoq_pp: la desviación de la
+#'                 densidad gaussiana de los modelos que implementan predecir_densidad(), NA en los
+#'                 demás. Con FALSE (el default) la salida es la de siempre, columna por columna.
+#' @return data.frame: modelo_id, origen (índice), h, log_nivel_pronosticado[, sd_*].
 correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs = 40L,
-                            h_max = DISENO_FASE4$h_max, exp_id = "sin_exp", spec = list()) {
+                            h_max = DISENO_FASE4$h_max, exp_id = "sin_exp", spec = list(), densidad = FALSE) {
   if (is.null(series$objetivo)) stop("correr_backtest: falta series$objetivo")
   if (!"y" %in% names(series$objetivo)) stop("correr_backtest: el objetivo debe traer `y` (log-nivel)")
   if (!is.null(rezagos$objetivo)) stop("correr_backtest: el objetivo no lleva rezago (entra hasta el origen)")
@@ -238,12 +242,22 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
         stop(sprintf("G-3 modelo %s en %s: predecir() debe devolver %d valores finitos (devolvió %d, %d no finitos)",
                      m$modelo_id, ind_a_q(o), h_max, length(sendero), sum(!is.finite(sendero))))
       }
+      if (isTRUE(densidad)) {                                                                              # F4-33
+        sds <- if (is.function(m$predecir_densidad)) {
+          dens <- m$predecir_densidad(ajuste, h_max)
+          validar_densidad(dens, sendero, m$modelo_id, o)
+          sd_unidades_densidad(dens$cov)
+        } else {
+          matrix(NA_real_, h_max, length(COLUMNAS_SD_DENSIDAD), dimnames = list(NULL, COLUMNAS_SD_DENSIDAD))
+        }
+      }
       if (!identical(digest::digest(series), huella_maestra)) {                                            # G-2
         stop(sprintf("G-2 modelo %s en %s alteró el estado maestro del motor", m$modelo_id, ind_a_q(o)))
       }
       k <- k + 1L
       salida[[k]] <- data.frame(modelo_id = m$modelo_id, origen = o, h = seq_len(h_max),
                                 log_nivel_pronosticado = as.numeric(sendero), stringsAsFactors = FALSE)
+      if (isTRUE(densidad)) salida[[k]] <- cbind(salida[[k]], as.data.frame(sds))
     }
   }
   res <- do.call(rbind, salida[seq_len(k)])
@@ -307,7 +321,9 @@ derivar_unidades <- function(pron, objetivo, bases = NULL) {
 #' Errores sobre los pares evaluables, en las tres unidades.
 #' El observado sale siempre de `objetivo`; `bases` (opcional, F4-20) solo cambia de dónde salen las
 #' bases de la tasa pronosticada (ver derivar_unidades()).
-#' @return data.frame: modelo_id, origen, h, unidad, pronostico, observado, error (observado - pronostico).
+#' Si `pron` trae las columnas sd_* de correr_backtest(densidad = TRUE), agrega `sd`: la desviación de
+#' la densidad gaussiana en la unidad de la fila (NA para los modelos sin densidad).
+#' @return data.frame: modelo_id, origen, h, unidad, pronostico, observado, error (observado - pronostico)[, sd].
 calcular_errores <- function(pron, objetivo, horizontes = DISENO_FASE4$horizontes, bases = NULL) {
   pron <- derivar_unidades(pron, objetivo, bases)
   iq <- q_a_ind(objetivo$periodo)
@@ -318,12 +334,16 @@ calcular_errores <- function(pron, objetivo, horizontes = DISENO_FASE4$horizonte
   obs_yoy <- 100 * (obs_log - unname(y[as.character(pron$origen + pron$h - 4L)]))
   obs_qoq <- 100 * (obs_log - unname(y[as.character(pron$origen + pron$h - 1L)]))
   if (anyNA(obs_log) || anyNA(obs_yoy) || anyNA(obs_qoq)) stop("calcular_errores: falta un observado en un par evaluable")
-  arma <- function(u, p, ob) data.frame(modelo_id = pron$modelo_id, origen = pron$origen, h = pron$h,
-                                        unidad = u, pronostico = p, observado = ob, error = ob - p,
-                                        stringsAsFactors = FALSE)
-  res <- rbind(arma("yoy_pp", pron$yoy_pp_pronosticado, obs_yoy),
-               arma("qoq_pp", pron$qoq_pp_pronosticado, obs_qoq),
-               arma("log_nivel", pron$log_nivel_pronosticado, obs_log))
+  con_sd <- all(COLUMNAS_SD_DENSIDAD %in% names(pron))
+  arma <- function(u, p, ob, s) {
+    d <- data.frame(modelo_id = pron$modelo_id, origen = pron$origen, h = pron$h,
+                    unidad = u, pronostico = p, observado = ob, error = ob - p, stringsAsFactors = FALSE)
+    if (con_sd) d$sd <- s
+    d
+  }
+  res <- rbind(arma("yoy_pp", pron$yoy_pp_pronosticado, obs_yoy, pron$sd_yoy_pp),
+               arma("qoq_pp", pron$qoq_pp_pronosticado, obs_qoq, pron$sd_qoq_pp),
+               arma("log_nivel", pron$log_nivel_pronosticado, obs_log, pron$sd_log_nivel))
   rownames(res) <- NULL
   res
 }
@@ -343,13 +363,18 @@ varianza_nw <- function(x, rezagos) {
 }
 
 #' Métricas por modelo, horizonte y unidad: n, RMSE, MAE, sesgo y su error estándar NW (h-1 rezagos).
+#' Si `err` trae `sd` (F4-33), agrega cobertura_80, cobertura_95 y crps para los modelos con densidad;
+#' sin `sd`, la salida es la de siempre.
 metricas_por_horizonte <- function(err) {
+  con_sd <- "sd" %in% names(err)
   g <- split(err, list(err$modelo_id, err$h, err$unidad), drop = TRUE)
   res <- do.call(rbind, lapply(g, function(d) {
     e <- d$error; n <- length(e); h <- d$h[1]
-    data.frame(modelo_id = d$modelo_id[1], h = h, unidad = d$unidad[1], n_pares = n,
-               rmse = sqrt(mean(e^2)), mae = mean(abs(e)), sesgo = mean(e),
-               sesgo_ee_nw = sqrt(varianza_nw(e, h - 1L) / n), stringsAsFactors = FALSE)
+    r <- data.frame(modelo_id = d$modelo_id[1], h = h, unidad = d$unidad[1], n_pares = n,
+                    rmse = sqrt(mean(e^2)), mae = mean(abs(e)), sesgo = mean(e),
+                    sesgo_ee_nw = sqrt(varianza_nw(e, h - 1L) / n), stringsAsFactors = FALSE)
+    if (con_sd) r <- cbind(r, as.data.frame(as.list(calibracion_densidad(e, d$sd))))
+    r
   }))
   res <- res[order(res$unidad, res$h, res$modelo_id), ]
   rownames(res) <- NULL
@@ -694,7 +719,9 @@ evaluar_errores <- function(err, ids, exp_id, grupo, perdida, semilla_mcs, bench
   met <- data.frame(exp_id = exp_id, modelo_id = met$modelo_id, grupo = grupo, h = met$h, unidad = met$unidad,
                     n_pares = met$n_pares, rmse = met$rmse, mae = met$mae, rmse_relativo = met$rmse_relativo,
                     sesgo = met$sesgo, sesgo_ee_nw = met$sesgo_ee_nw,
-                    cobertura_80 = NA_real_, cobertura_95 = NA_real_, crps = NA_real_, stringsAsFactors = FALSE)
+                    cobertura_80 = if (is.null(met$cobertura_80)) NA_real_ else met$cobertura_80,     # F4-33
+                    cobertura_95 = if (is.null(met$cobertura_95)) NA_real_ else met$cobertura_95,
+                    crps = if (is.null(met$crps)) NA_real_ else met$crps, stringsAsFactors = FALSE)
   prim <- err[err$unidad == perdida, ]
   pruebas <- list(); mcs <- list()
   for (h in horizontes) {
@@ -771,4 +798,132 @@ actualizar_registro_experimentos <- function(existente, nuevas) {
   r <- r[order(r$exp_id), , drop = FALSE]
   rownames(r) <- NULL
   r
+}
+
+# ---------------------------------------------------------------------------------------------
+# 11. Densidad predictiva gaussiana (F4-33, remediación de la auditoría de Fase 4, hallazgo I2a)
+# ---------------------------------------------------------------------------------------------
+#
+# Extensión OPCIONAL del contrato de modelo: predecir_densidad(ajuste, h) devuelve
+# list(media, cov), la densidad gaussiana conjunta del sendero en log-nivel: `media` (longitud h)
+# es el mismo sendero de predecir() y `cov` (h x h) su matriz de covarianzas. Con la conjunta, la
+# densidad de cualquier unidad lineal del sendero es gaussiana: yoy (h > 4) y qoq (h > 1) restan
+# dos puntos del mismo sendero y necesitan la covarianza, no solo la marginal. La incertidumbre de
+# parámetros no entra (densidad plug-in); se declara en F4-33. Los modelos sin predecir_densidad
+# quedan con cobertura_80, cobertura_95 y crps vacías (protocolo §3.4).
+
+COLUMNAS_SD_DENSIDAD <- c("sd_log_nivel", "sd_yoy_pp", "sd_qoq_pp")
+
+#' Valida la densidad de un modelo en un origen; falla con stop() ante cualquier forma inválida.
+validar_densidad <- function(dens, sendero, modelo_id = "?", o = NA_integer_) {
+  donde <- sprintf("densidad mal formada: modelo %s en %s: ", modelo_id, if (is.na(o)) "?" else ind_a_q(o))
+  h <- length(sendero)
+  if (!is.list(dens) || !all(c("media", "cov") %in% names(dens))) stop(donde, "se espera list(media, cov)")
+  mu <- dens$media; S <- dens$cov
+  if (!is.numeric(mu) || length(mu) != h || any(!is.finite(mu))) stop(donde, "`media` debe tener ", h, " valores finitos")
+  if (max(abs(mu - sendero)) > 1e-8 * max(1, abs(sendero))) stop(donde, "`media` no coincide con el sendero de predecir()")
+  if (!is.matrix(S) || !is.numeric(S) || !identical(dim(S), c(h, h)) || any(!is.finite(S))) stop(donde, "`cov` debe ser una matriz ", h, "x", h, " finita")
+  esc <- max(abs(S))
+  if (max(abs(S - t(S))) > 1e-10 * esc) stop(donde, "`cov` no es simétrica")
+  if (any(diag(S) <= 0)) stop(donde, "`cov` tiene varianzas no positivas")
+  if (min(eigen((S + t(S)) / 2, symmetric = TRUE, only.values = TRUE)$values) < -1e-10 * esc) stop(donde, "`cov` no es semidefinida positiva")
+  invisible(TRUE)
+}
+
+#' Desviaciones de la densidad en las tres unidades del motor (F4-04), a partir de la covarianza del
+#' sendero en log-nivel. yoy: la base es observada si h <= 4 y pronosticada si h > 4; qoq: observada
+#' si h = 1. Misma convención que derivar_unidades().
+sd_unidades_densidad <- function(S) {
+  h <- nrow(S); j <- seq_len(h)
+  v_dif <- function(j, k) S[cbind(j, j)] + S[cbind(k, k)] - 2 * S[cbind(j, k)]
+  v_yoy <- ifelse(j <= 4L, diag(S), v_dif(j, pmax(j - 4L, 1L)))
+  v_qoq <- ifelse(j == 1L, diag(S), v_dif(j, pmax(j - 1L, 1L)))
+  r <- cbind(sqrt(diag(S)), 100 * sqrt(pmax(v_yoy, 0)), 100 * sqrt(pmax(v_qoq, 0)))
+  if (any(r <= 0)) stop("sd_unidades_densidad: desviación nula en alguna unidad")
+  dimnames(r) <- list(NULL, COLUMNAS_SD_DENSIDAD)
+  r
+}
+
+#' Covarianza del sendero a partir de los pesos C (h x h, triangular inferior): C[j, k] es el
+#' coeficiente de la innovación del período o+k en el error de log-nivel de o+j.
+cov_desde_pesos <- function(C, sigma2) sigma2 * C %*% t(C)
+
+#' Pesos C de un AR(p) en Δy (p = 0: paseo aleatorio): psi_0 = 1, psi_m = Σ φ_i psi_{m-i}, y el error
+#' de log-nivel en o+j acumula Ψ_{j-k} = Σ_{m<=j-k} psi_m sobre la innovación de o+k.
+pesos_ar_dy <- function(phi, h) {
+  p <- length(phi); psi <- numeric(h); psi[1] <- 1
+  if (h > 1L) for (m in 2:h) {
+    i <- seq_len(min(p, m - 1L))
+    psi[m] <- if (length(i)) sum(phi[i] * psi[m - i]) else 0
+  }
+  Psi <- cumsum(psi)
+  C <- matrix(0, h, h)
+  for (jj in seq_len(h)) for (k in seq_len(jj)) C[jj, k] <- Psi[jj - k + 1L]
+  C
+}
+
+#' Pesos C de un ETS(A,A,N): e_{o+j} + Σ_{k<j} (α + β (j - k)) e_{o+k}.
+pesos_ets_aan <- function(alpha, beta, h) {
+  C <- diag(h)
+  for (jj in seq_len(h)) for (k in seq_len(jj - 1L)) C[jj, k] <- alpha + beta * (jj - k)
+  C
+}
+
+#' CRPS de una gaussiana N(mu, sigma²) en y, forma cerrada (Gneiting y Raftery, 2007).
+crps_normal <- function(y, mu, sigma) {
+  z <- (y - mu) / sigma
+  sigma * (z * (2 * stats::pnorm(z) - 1) + 2 * stats::dnorm(z) - 1 / sqrt(pi))
+}
+
+#' Cobertura empírica al 80 % y 95 % y CRPS medio de un conjunto de errores (observado - media) con
+#' sus desviaciones. NA si falta la densidad en algún par: no se imputa (protocolo §3.4).
+calibracion_densidad <- function(error, sd) {
+  if (is.null(sd) || !length(sd) || anyNA(sd)) return(c(cobertura_80 = NA_real_, cobertura_95 = NA_real_, crps = NA_real_))
+  if (length(sd) != length(error) || any(sd <= 0)) stop("calibracion_densidad: `sd` inválida")
+  c(cobertura_80 = mean(abs(error) <= stats::qnorm(0.90) * sd),
+    cobertura_95 = mean(abs(error) <= stats::qnorm(0.975) * sd),
+    crps = mean(crps_normal(error, 0, sd)))
+}
+
+# ---------------------------------------------------------------------------------------------
+# 12. Rezago de publicación de las predictoras (F4-34, borrador; remediación del hallazgo I2b)
+# ---------------------------------------------------------------------------------------------
+#
+# Una sola fuente: el bloque `rezago_publicacion` (métrica `rezago_dias_mediano`) de
+# doc/metodologia/reportes_fase4/evidencia_insumos_fase4.csv, versionado y regenerable con
+# scripts/evidencia_insumos_fase4.R. Las series trimestrales (agregados T003-T011) heredan el
+# rezago de su fuente mensual. UT tiene grano anual y queda fuera de esta regla: su forma operativa
+# («UT solo años cerrados», F4-02) está pendiente de decisión (A3 y E4 del checklist de remediación).
+
+RUTA_EVIDENCIA_INSUMOS <- c("doc", "metodologia", "reportes_fase4", "evidencia_insumos_fase4.csv")
+
+.clave_rezago <- function(id) gsub("[^A-Za-z0-9]", "_", sub("\\.Q$", ".M", id))
+
+#' Rezago en días de cada serie de `ids` (series_master_id), leído de la evidencia de insumos. Falla
+#' si una serie no tiene rezago declarado o si es de UT (regla anual pendiente).
+rezagos_predictoras <- function(ids, evidencia = NULL) {
+  if (is.null(evidencia)) evidencia <- utils::read.csv(do.call(here::here, as.list(RUTA_EVIDENCIA_INSUMOS)),
+                                                       stringsAsFactors = FALSE, na.strings = "")
+  r <- evidencia[evidencia$bloque == "rezago_publicacion", , drop = FALSE]
+  anual <- r$item[r$metrica == "grano_de_disponibilidad" & r$valor == "anual"]
+  med <- r[r$metrica == "rezago_dias_mediano", , drop = FALSE]
+  tabla <- stats::setNames(as.integer(med$valor), .clave_rezago(med$item))
+  if (anyNA(tabla) || anyDuplicated(names(tabla))) stop("rezagos_predictoras: la evidencia trae rezagos inválidos o duplicados")
+  res <- lapply(ids, function(id) {
+    k <- .clave_rezago(id)
+    if (k %in% .clave_rezago(anual)) {
+      stop("rezagos_predictoras: ", id, " tiene grano anual; su regla («UT solo años cerrados», F4-02) está pendiente (F4-34, E4)")
+    }
+    if (!k %in% names(tabla)) stop("rezagos_predictoras: ", id, " no tiene rezago de publicación declarado en la evidencia de insumos")
+    tabla[[k]]
+  })
+  stats::setNames(res, ids)
+}
+
+#' Rezagos de las predictoras que requiere un modelo, con el formato de `rezagos` de correr_backtest().
+#' El objetivo no lleva rezago.
+rezagos_modelo <- function(modelo, evidencia = NULL) {
+  pred <- setdiff(modelo$requiere, "objetivo")
+  if (!length(pred)) return(list())
+  rezagos_predictoras(pred, evidencia)
 }

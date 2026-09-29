@@ -185,3 +185,106 @@ test_that("el token canónico se construye y valida, y los desvíos fallan", {
   expect_error(validar_token(sub("grupo=G1|vintage=revision_vigente", "vintage=revision_vigente|grupo=G1", tok, fixed = TRUE)), "debe ser `grupo=")
   expect_error(validar_token(c(tok, tok)), "único string")
 })
+
+# --- 11. densidad predictiva gaussiana (F4-33; remediación de la auditoría de Fase 4, E1) ---------
+
+test_that("CRPS gaussiano: forma cerrada contra la integral de la definición y valores conocidos", {
+  expect_equal(crps_normal(0, 0, 1), 2 * dnorm(0) - 1 / sqrt(pi), tolerance = 1e-15)
+  expect_equal(crps_normal(0, 0, 1), 0.2336949772, tolerance = 1e-9)
+  for (caso in list(c(0.3, 0, 1), c(-2.1, 0.5, 0.7), c(4, 1, 2.5))) {
+    y <- caso[1]; mu <- caso[2]; s <- caso[3]
+    integ <- integrate(function(x) pnorm(x, mu, s)^2, -Inf, y, rel.tol = 1e-12)$value +
+             integrate(function(x) (1 - pnorm(x, mu, s))^2, y, Inf, rel.tol = 1e-12)$value
+    expect_equal(crps_normal(y, mu, s), integ, tolerance = 1e-8)
+  }
+  expect_equal(crps_normal(3, 1, 2), 2 * crps_normal(1, 0, 1), tolerance = 1e-14)   # escala
+})
+
+test_that("cobertura y CRPS sobre casos armados a mano; sin densidad quedan NA", {
+  cal <- calibracion_densidad(c(0, 1.5, -2, 3), rep(1, 4))
+  expect_identical(unname(cal[c("cobertura_80", "cobertura_95")]), c(0.25, 0.5))
+  expect_equal(unname(cal["crps"]), mean(crps_normal(c(0, 1.5, -2, 3), 0, 1)))
+  expect_true(all(is.na(calibracion_densidad(c(0, 1), c(1, NA)))))
+  expect_true(all(is.na(calibracion_densidad(c(0, 1), NULL))))
+  expect_error(calibracion_densidad(c(0, 1), c(1, 0)), "inválida")
+})
+
+test_that("validar_densidad rechaza densidades mal formadas", {
+  s <- c(1, 2, 3); S <- diag(3)
+  expect_silent(validar_densidad(list(media = s, cov = S), s))
+  expect_error(validar_densidad(list(media = s), s), "list\\(media, cov\\)")
+  expect_error(validar_densidad(list(media = s[1:2], cov = S), s), "`media` debe tener 3")
+  expect_error(validar_densidad(list(media = s + 1e-3, cov = S), s), "no coincide con el sendero")
+  expect_error(validar_densidad(list(media = s, cov = diag(2)), s), "matriz 3x3")
+  A <- S; A[1, 2] <- 0.5
+  expect_error(validar_densidad(list(media = s, cov = A), s), "no es simétrica")
+  expect_error(validar_densidad(list(media = s, cov = diag(c(1, 0, 1))), s), "no positivas")
+  B <- matrix(c(1, 2, 0, 2, 1, 0, 0, 0, 1), 3)
+  expect_error(validar_densidad(list(media = s, cov = B), s), "semidefinida")
+  mala <- list(modelo_id = "PRUEBA.DENSIDAD_MALA", requiere = "objetivo",
+               ajustar = function(datos, spec) list(y_o = utils::tail(datos$objetivo$y, 1)),
+               predecir = function(aj, h) rep(aj$y_o, h),
+               predecir_densidad = function(aj, h) list(media = rep(aj$y_o, h), cov = -diag(h)))
+  obj <- .obj_lineal()
+  expect_error(correr_backtest(list(objetivo = obj), list(mala), q_a_ind("2013-Q1"), densidad = TRUE),
+               "densidad mal formada: modelo PRUEBA.DENSIDAD_MALA en 2013-Q1")
+  expect_silent(correr_backtest(list(objetivo = obj), list(mala), q_a_ind("2013-Q1")))   # sin densidad no se evalúa
+})
+
+test_that("covarianzas del sendero: paseo, AR(1) y ETS contra fórmulas y contra fable", {
+  S <- cov_desde_pesos(pesos_ar_dy(numeric(0), 8L), 2)
+  expect_equal(S, 2 * outer(1:8, 1:8, pmin))
+  sd_u <- sd_unidades_densidad(S)
+  expect_equal(sd_u[, "sd_yoy_pp"], 100 * sqrt(2 * c(1:4, 4, 4, 4, 4)))
+  expect_equal(sd_u[, "sd_qoq_pp"], rep(100 * sqrt(2), 8))
+  # AR(1) en Δy: var(y_{o+2}) = σ² (1 + (1 + φ)²)
+  expect_equal(cov_desde_pesos(pesos_ar_dy(0.5, 2L), 1)[2, 2], 1 + 1.5^2)
+  # ETS(A,A,N): la diagonal es la varianza marginal que publica fable.
+  set.seed(7); y <- cumsum(c(4.6, 0.005 + rnorm(99, 0, 0.01)))
+  d <- list(objetivo = data.frame(periodo = ind_a_q(q_a_ind("2000-Q1") + 0:99), y = y))
+  m <- modelo_ets(); aj <- m$ajustar(d, NULL); de <- m$predecir_densidad(aj, 8L)
+  expect_equal(diag(de$cov), distributional::variance(fabletools::forecast(aj, h = 8)$y), tolerance = 1e-10)
+  expect_equal(de$media, m$predecir(aj, 8L))
+})
+
+test_that("correr_backtest: sin densidad la salida no cambia; con densidad agrega sd_* y NA donde no hay", {
+  obj <- .obj_lineal(); obj$y <- obj$y + 0.01 * sin(seq_along(obj$y))
+  ors <- origenes_diseno("2013-Q1", "2014-Q4")
+  mods <- modelos_referencia()
+  p0 <- correr_backtest(list(objetivo = obj), mods, ors)
+  p1 <- correr_backtest(list(objetivo = obj), mods, ors, densidad = TRUE)
+  expect_identical(names(p0), c("modelo_id", "origen", "h", "log_nivel_pronosticado"))
+  expect_identical(p1[, names(p0)], p0)
+  expect_identical(names(p1), c(names(p0), COLUMNAS_SD_DENSIDAD))
+  sin_dens <- p1$modelo_id == "BENCH.MEDIA_CRECIMIENTO"
+  expect_true(all(is.na(p1$sd_yoy_pp[sin_dens])) && all(p1[!sin_dens, COLUMNAS_SD_DENSIDAD] > 0))
+  e1 <- calcular_errores(p1, obj); e0 <- calcular_errores(p0, obj)
+  expect_identical(e1[, names(e0)], e0)
+  m <- metricas_por_horizonte(e1)
+  expect_true(all(is.na(m$crps[m$modelo_id == "BENCH.MEDIA_CRECIMIENTO"])))
+  expect_true(all(m$crps[m$modelo_id != "BENCH.MEDIA_CRECIMIENTO"] > 0))
+  expect_identical(names(metricas_por_horizonte(e0)), c("modelo_id", "h", "unidad", "n_pares", "rmse", "mae", "sesgo", "sesgo_ee_nw"))
+})
+
+# --- 12. rezagos de publicación de las predictoras (F4-34; remediación, E3) ---------------------
+
+test_that("rezagos por familia: los de la tabla del protocolo §2.3, desde la evidencia de insumos", {
+  r <- rezagos_predictoras(c("BCR.IPP.IDX.NSA.M", "BCR.REMESAS.NOM.NSA.M", "BCR.REMESAS.REAL.NSA.M",
+                             "BCR.EXPORT_FOB.NOM.NSA.M", "BCR.ITCER.IDX.NSA.M", "BCR.IVAE.VOL.SA.M", "BCR.IPM.IDX.NSA.M"))
+  expect_identical(unlist(r, use.names = FALSE), c(10L, 24L, 24L, 24L, 30L, 61L, 61L))
+  # los agregados trimestrales heredan el rezago de su fuente mensual
+  expect_identical(rezagos_predictoras("BCR.IVAE.VOL.SA.Q")[[1]], 61L)
+  # la constante del PIB coincide con la misma fuente
+  ev <- utils::read.csv(do.call(here::here, as.list(RUTA_EVIDENCIA_INSUMOS)), stringsAsFactors = FALSE)
+  expect_identical(as.integer(ev$valor[ev$bloque == "rezago_publicacion" & ev$item == "PIB_SA_PROPIO_Q" &
+                                       ev$metrica == "rezago_dias_mediano"]), REZAGO_PIB_DIAS)
+})
+
+test_that("rezagos: falla si un modelo requiere una predictora sin rezago o de grano anual", {
+  expect_error(rezagos_predictoras("BCR.NO_EXISTE.M"), "no tiene rezago de publicación declarado")
+  expect_error(rezagos_predictoras("UT.DEMANDA_ELEC.GWH.NSA.M"), "grano anual")
+  m <- list(modelo_id = "PRUEBA.PUENTE", requiere = c("objetivo", "BCR.IVAE.VOL.SA.M", "BCR.SIN_CALENDARIO.M"))
+  expect_error(rezagos_modelo(m), "BCR.SIN_CALENDARIO.M no tiene rezago")
+  expect_identical(rezagos_modelo(list(requiere = "objetivo")), list())
+  expect_identical(rezagos_modelo(list(requiere = c("objetivo", "BCR.ITCER.IDX.NSA.M"))), list(BCR.ITCER.IDX.NSA.M = 30L))
+})

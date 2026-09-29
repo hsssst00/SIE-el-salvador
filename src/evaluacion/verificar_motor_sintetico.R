@@ -25,6 +25,10 @@
 #   V12  orquestación de motor_backtesting.R (correr_experimento(), X-13 por origen de F4-09b) sobre
 #        insumos sintéticos en memoria: G2 principal con R3/R4, y R1, R2, R5 y R6 de G3; más dos
 #        canarios (outlier LS no contemplado y NSA más allá del origen con el recorte saboteado)
+# Bloque de la compuerta de Fase 5 (remediación de la auditoría independiente de Fase 4, hallazgo I2a;
+# F4-33, borrador):
+#   V13  densidad gaussiana: cobertura al 80/95 % dentro de ±3 ee de MC con el modelo verdadero, CRPS
+#        del verdadero < paseo aleatorio, y CRPS propio contra scoringRules::crps_norm (Suggests)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -351,5 +355,53 @@ if (!grepl("^G-1", c12b)) stop("V12: una NSA más allá del origen no detuvo el 
 ok("V12", sprintf("canarios: LS 2020-Q2 detiene el ajuste (F4-09b) y una NSA más allá del origen lo detiene con G-1; %d ajustes X-13 en caché",
                   length(ls(cache12))))
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V12)\n")
+# --- V13 · densidad: cobertura y CRPS sobre un DGP conocido (F4-33) --------------------------------
+# Remediación del hallazgo I2(a) de la auditoría independiente de Fase 4. Con un AR(1) gaussiano en Δy
+# y la densidad del modelo verdadero (coeficientes y σ conocidos), la cobertura empírica al 80 % y al
+# 95 % de la tasa interanual debe quedar dentro de ±3 errores de Monte Carlo del nominal en cada h, y
+# el CRPS medio del modelo verdadero debe ser menor que el del paseo aleatorio sin deriva. El error de
+# Monte Carlo sale de la dispersión entre réplicas independientes, así que tolera la superposición de
+# los pares dentro de cada réplica en h > 1.
+modelo_ar1_verdadero_dens <- function(c0, phi, sigma) {
+  m <- modelo_ar1_verdadero(c0, phi)
+  m$predecir_densidad <- function(aj, h) list(media = .recursion_ar(c0, phi, aj$dy, aj$y_o, h),
+                                              cov = cov_desde_pesos(pesos_ar_dy(phi, h), sigma^2))
+  m
+}
+set.seed(SEMILLA_RAIZ + 13L)
+R13 <- 150L; c13 <- 0.003; phi13 <- 0.5; s13 <- 0.01
+mods13 <- list(modelo_ar1_verdadero_dens(c13, phi13, s13), modelo_rw_sin_deriva())
+rep13 <- lapply(seq_len(R13), function(r) {
+  sim <- simular_objetivo(145L, phi13, s13, c0 = c13)
+  p <- correr_backtest(list(objetivo = sim), mods13, ors, exp_id = "V13", densidad = TRUE)
+  m <- metricas_por_horizonte(calcular_errores(p, sim))
+  m[m$unidad == "yoy_pp", c("modelo_id", "h", "cobertura_80", "cobertura_95", "crps")]
+})
+t13 <- do.call(rbind, rep13)
+for (h in DISENO_FASE4$horizontes) {
+  v <- t13[t13$modelo_id == "PRUEBA.AR1_VERDADERO" & t13$h == h, ]
+  rw <- t13[t13$modelo_id == "BENCH.RW_SIN_DERIVA" & t13$h == h, ]
+  for (nv in c(80, 95)) {
+    x <- v[[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(R13)
+    if (abs(mean(x) - nv / 100) > 3 * ee)
+      stop(sprintf("V13: cobertura al %d%% en h=%d fuera de ±3 errores de Monte Carlo (%.3f, ee %.4f)", nv, h, mean(x), ee))
+  }
+  if (!(mean(v$crps) < mean(rw$crps))) stop(sprintf("V13: en h=%d el CRPS del modelo verdadero (%.3f) no es menor que el del paseo (%.3f)", h, mean(v$crps), mean(rw$crps)))
+  ok("V13", sprintf("h=%d: cobertura 80%% %.3f y 95%% %.3f (±3 ee de MC); CRPS verdadero %.3f < paseo %.3f",
+                    h, mean(v$cobertura_80), mean(v$cobertura_95), mean(v$crps), mean(rw$crps)))
+}
+# Oráculo del CRPS (Suggests; F4-33): scoringRules::crps_norm con los mismos argumentos.
+if (requireNamespace("scoringRules", quietly = TRUE)) {
+  set.seed(SEMILLA_RAIZ + 131L)
+  y13 <- stats::rnorm(500, 0, 3); mu13 <- stats::rnorm(500); sg13 <- stats::rexp(500) + 0.05
+  dif13 <- max(abs(crps_normal(y13, mu13, sg13) - scoringRules::crps_norm(y13, mean = mu13, sd = sg13)))
+  if (dif13 > 1e-10) stop(sprintf("V13: CRPS propio difiere de scoringRules::crps_norm (máx %.3g)", dif13))
+  ok("V13", sprintf("CRPS gaussiano propio idéntico a scoringRules::crps_norm en 500 casos (máx |dif| %.1g)", dif13))
+} else {
+  if (identical(Sys.getenv("CI"), "true"))
+    stop("V13: paquete scoringRules no instalado en CI; renv.lock lo fija como oráculo (Suggests)")
+  cat("V13 SKIP  oráculo scoringRules no instalado (Suggests)\n")
+}
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V13 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V13)\n")

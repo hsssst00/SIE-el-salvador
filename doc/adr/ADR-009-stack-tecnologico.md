@@ -291,3 +291,19 @@ el lockfile y hay que registrarlo con `renv::record()`, mismo procedimiento que 
 
 **Restricción que no cambia:** el stack sigue siendo R (regla 5 de `CLAUDE.md`). Esta nota
 decide qué se implementa y qué se toma de un paquete, sin tocar el lenguaje.
+
+## Nota de seguimiento — oráculo del CRPS (AAAA-MM-DD)
+
+**BORRADOR — pendiente de la firma de Harold (F4-33 del acta de Fase 4).**
+
+**Contexto.** La compuerta de Fase 5 (remediación del hallazgo I2 de la auditoría independiente de
+Fase 4) exige evaluar densidades antes del primer modelo de §6.2-§6.7: cobertura al 80 % y 95 % y
+CRPS (protocolo §3.4).
+
+**Decisión propuesta: implementación propia con oráculo, mismo patrón que el MCS (nota del
+2026-09-24).** El CRPS gaussiano en forma cerrada (Gneiting y Raftery, 2007) se implementa en
+`src/evaluacion/eval_lib.R` con R base (`crps_normal()`). Se verifica contra
+`scoringRules::crps_norm` en el bloque V13 de la verificación sintética. `scoringRules` (1.1.3)
+entra en **`Suggests`**, está fijado en `renv.lock` y figura en la lista de `scripts/bootstrap_renv.R`.
+Sus dependencias (`Rcpp`, `RcppArmadillo`, `MASS`, `knitr`) ya estaban en el lockfile. En CI su
+ausencia detiene V13 con `stop()`, igual que la de `MCS` en V11 (hallazgo M6).

@@ -30,6 +30,8 @@ paquetes <- c(
   "jsonlite",     # lectura de datapackage.json
   "here",         # rutas relativas al proyecto
   "testthat",     # pruebas
+  "scoringRules", # Suggests, oraculo del CRPS en V13 (F4-33, borrador; remediacion de la auditoria de
+                  # Fase 4, I2a). Ningun paquete del lockfile lo requiere: sin esta linea se pierde.
   # --- Fase 2, agregados despues de ADR-009 conforme fueron haciendo falta -------------
   "httr2",        # clientes de API (FMI/FRED/BM) — import #15, ADR-009 2026-08-18
   "xml2",         # lectura del XML interno de un .xlsx en verificar_fuente_celda.R

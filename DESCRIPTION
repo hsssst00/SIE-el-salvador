@@ -32,4 +32,5 @@ Imports:
     yaml,
     fabletools
 Suggests:
-    MCS
+    MCS,
+    scoringRules

@@ -20,6 +20,12 @@
 #                            para h <= 4 y pronosticada para h > 4 (asimetría de F4-04)
 #   BENCH.ETS                fable::ETS(y ~ error("A") + trend("A") + season("N")), sin selección
 #                            automática; el objetivo es SA, así que no lleva componente estacional
+#
+# Densidad (F4-33, extensión opcional del contrato; eval_lib.R §11): gaussiana plug-in del sendero,
+# list(media = sendero, cov). La emiten los dos paseos (σ = sd de Δy dentro de la muestra, cov
+# σ²·min(i, j)), el AR(1) y el AR(p)-BIC (σ² = varianza residual con corrección de grados de
+# libertad, pesos de su representación MA) y el ETS (σ², α y β del ajuste de fable). La media de
+# crecimiento no emite densidad: sus columnas de calibración quedan vacías (protocolo §3.4).
 
 .y_de <- function(datos) {
   d <- datos$objetivo
@@ -41,14 +47,17 @@
 
 modelo_rw_sin_deriva <- function() list(
   modelo_id = "BENCH.RW_SIN_DERIVA", requiere = "objetivo",
-  ajustar  = function(datos, spec) list(y_o = utils::tail(.y_de(datos), 1)),
-  predecir = function(aj, h) rep(aj$y_o, h)
+  ajustar  = function(datos, spec) { y <- .y_de(datos); list(y_o = utils::tail(y, 1), s2 = stats::var(diff(y))) },
+  predecir = function(aj, h) rep(aj$y_o, h),
+  predecir_densidad = function(aj, h) list(media = rep(aj$y_o, h), cov = cov_desde_pesos(pesos_ar_dy(numeric(0), h), aj$s2))
 )
 
 modelo_rw_con_deriva <- function() list(
   modelo_id = "BENCH.RW_CON_DERIVA", requiere = "objetivo",
-  ajustar  = function(datos, spec) { y <- .y_de(datos); list(y_o = utils::tail(y, 1), deriva = mean(diff(y))) },
-  predecir = function(aj, h) aj$y_o + seq_len(h) * aj$deriva
+  ajustar  = function(datos, spec) { y <- .y_de(datos); list(y_o = utils::tail(y, 1), deriva = mean(diff(y)), s2 = stats::var(diff(y))) },
+  predecir = function(aj, h) aj$y_o + seq_len(h) * aj$deriva,
+  predecir_densidad = function(aj, h) list(media = aj$y_o + seq_len(h) * aj$deriva,
+                                           cov = cov_desde_pesos(pesos_ar_dy(numeric(0), h), aj$s2))
 )
 
 modelo_ar1 <- function() list(
@@ -56,10 +65,13 @@ modelo_ar1 <- function() list(
   ajustar = function(datos, spec) {
     y <- .y_de(datos); dy <- diff(y); n <- length(dy)
     if (n < 3L) stop("BENCH.AR1: muestra insuficiente")
-    b <- stats::coef(stats::lm(dy[-1] ~ dy[-n]))
-    list(c0 = unname(b[1]), phi = unname(b[2]), dy = dy, y_o = utils::tail(y, 1))
+    ajl <- stats::lm(dy[-1] ~ dy[-n]); b <- stats::coef(ajl)
+    list(c0 = unname(b[1]), phi = unname(b[2]), dy = dy, y_o = utils::tail(y, 1),
+         s2 = sum(stats::residuals(ajl)^2) / ajl$df.residual)
   },
-  predecir = function(aj, h) .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h)
+  predecir = function(aj, h) .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h),
+  predecir_densidad = function(aj, h) list(media = .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h),
+                                           cov = cov_desde_pesos(pesos_ar_dy(aj$phi, h), aj$s2))
 )
 
 #' Selección de p por BIC sobre la muestra común de p_max, y estimación del p elegido sobre la
@@ -83,7 +95,8 @@ seleccionar_ar_bic <- function(dy, p_max = 8L) {
   if (p > 0L) X <- cbind(X, sapply(seq_len(p), function(j) dy[t_est - j]))
   f <- stats::lm.fit(X, dy[t_est])
   list(p = p, c0 = unname(f$coefficients[1]), phi = unname(f$coefficients[-1]),
-       bic = bics, n_eff = n_eff, n_est = length(t_est))
+       bic = bics, n_eff = n_eff, n_est = length(t_est),
+       s2 = sum(f$residuals^2) / (length(t_est) - (p + 1L)))                  # F4-33: varianza residual
 }
 
 modelo_arp_bic <- function(p_max = 8L) list(
@@ -93,7 +106,9 @@ modelo_arp_bic <- function(p_max = 8L) list(
     s <- seleccionar_ar_bic(dy, p_max)
     c(s, list(dy = dy, y_o = utils::tail(y, 1)))
   },
-  predecir = function(aj, h) .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h)
+  predecir = function(aj, h) .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h),
+  predecir_densidad = function(aj, h) list(media = .recursion_ar(aj$c0, aj$phi, aj$dy, aj$y_o, h),
+                                           cov = cov_desde_pesos(pesos_ar_dy(aj$phi, h), aj$s2))
 )
 
 modelo_media_crecimiento <- function() list(
@@ -117,7 +132,12 @@ modelo_ets <- function() list(
     ts_ <- tsibble::tsibble(t = tsibble::yearquarter(sub("-Q", " Q", d$periodo, fixed = TRUE)), y = .y_de(datos), index = t)
     fabletools::model(ts_, ets = fable::ETS(y ~ error("A") + trend("A") + season("N")))
   },
-  predecir = function(aj, h) as.numeric(fabletools::forecast(aj, h = h)$.mean)
+  predecir = function(aj, h) as.numeric(fabletools::forecast(aj, h = h)$.mean),
+  predecir_densidad = function(aj, h) {
+    par <- fabletools::tidy(aj); est <- stats::setNames(par$estimate, par$term)
+    list(media = as.numeric(fabletools::forecast(aj, h = h)$.mean),
+         cov = cov_desde_pesos(pesos_ets_aan(est[["alpha"]], est[["beta"]], h), fabletools::glance(aj)$sigma2))
+  }
 )
 
 #' Los seis benchmarks de la senda §6.1, en el orden en que se reportan.

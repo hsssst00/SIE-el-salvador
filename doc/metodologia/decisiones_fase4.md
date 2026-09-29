@@ -248,6 +248,48 @@ completa del bloque E y antes de escribir el reporte.
   escribe en LF, se hashean tal cual. Descartado: bytes crudos (registra el disco, no el contenido
   versionado).
 
+### F4-32 a F4-34 — compuerta de Fase 5: densidad y conjunto de información de las predictoras (remediación de la auditoría de Fase 4, I2)
+
+**BORRADOR — PENDIENTE DE LA FIRMA DE HAROLD** (checklist de remediación, A1-A3). Al firmarse: cambiar
+esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar las filas F4-32 a F4-34 al Acta.
+
+- **F4-32 · Vía de la compuerta (A1).** Opción (i): la evaluación de densidad y el conjunto de
+  información de las predictoras se implementan y se verifican en CI **antes** del primer modelo de
+  §6.2-§6.7. Descartada (ii): acotar «el motor está probado» con una nota y dejar las dos piezas
+  como compuerta sin código.
+- **F4-33 · Contrato de densidad (A2).**
+  1. *Qué devuelve el modelo.* Una función opcional `predecir_densidad(ajuste, h)` que devuelve
+     `list(media, cov)`: la gaussiana conjunta del sendero en log-nivel, con `media` igual al
+     sendero de `predecir()` y `cov` de h x h. Se pide la conjunta y no solo `media` y `sd` porque
+     la tasa interanual con h > 4 y la trimestral con h > 1 restan dos puntos del mismo sendero.
+     De la conjunta salen las tres unidades del motor (`sd_unidades_densidad()`). La densidad es
+     *plug-in*: no incluye la incertidumbre de los parámetros.
+  2. *CRPS.* Forma cerrada gaussiana propia (`crps_normal()`), con `scoringRules::crps_norm` como
+     oráculo en `Suggests` (nota de seguimiento en ADR-009). Cobertura: la fracción de pares con
+     |error| ≤ z·sd, con z = 1,2816 (80 %) y z = 1,9600 (95 %).
+  3. *Qué benchmarks emiten densidad.* AR(1) y AR(p)-BIC: σ² residual con corrección de grados de
+     libertad y pesos de su representación MA en Δy. ETS: σ², α y β del ajuste de fable; la
+     diagonal coincide con la varianza que publica fable (prueba en `tests/test-evaluacion.R`).
+     Los dos paseos aleatorios usan σ = sd de Δy dentro de la muestra y cov = σ²·min(i, j),
+     decisión de Harold del 2026-09-29. **Punto a confirmar al firmar:** para el paseo *sin*
+     deriva, `sd()` centra Δy en su media. El error cuadrático medio a un paso de ese modelo es
+     `mean(Δy²)`, que incluye la deriva al cuadrado. La diferencia es chica con la deriva
+     trimestral del PIB, pero es de signo conocido: la `sd` centrada subestima la dispersión.
+     La media de crecimiento no emite densidad y sus columnas quedan vacías (protocolo §3.4).
+  - El orquestador llama al motor con `densidad = TRUE`. `pronosticos.csv` no cambia. En
+    `metricas.csv` se llenan `cobertura_80`, `cobertura_95` y `crps`, que en la corrida del cierre
+    estaban vacías, y el manifiesto lo declara. La tabla de resultados (F4-30) no incluye esas
+    columnas y no cambia.
+- **F4-34 · Rezagos por familia y regla de UT (A3).**
+  1. *Fuente del rezago:* opción (a), el bloque `rezago_publicacion` (`rezago_dias_mediano`) de
+     `evidencia_insumos_fase4.csv`, leído por `rezagos_predictoras()`. Los agregados trimestrales
+     toman el rezago de su fuente mensual, y una prueba contrasta `REZAGO_PIB_DIAS` con la misma
+     fuente. Descartadas: (b) una columna nueva en `03_series.csv`, que cambia el esquema, y
+     (c) una constante en el código.
+  2. *Forma operativa de «UT solo años cerrados»:* **abierta.** Harold pidió discutirla y el
+     memo de decisión trae las opciones. Mientras tanto, `rezagos_predictoras()` detiene con
+     `stop()` a cualquier modelo que pida UT.
+
 ### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
 
 **BORRADOR — PENDIENTE DE LA FIRMA DE HAROLD** (checklist de remediación, A4). Al firmarse: cambiar

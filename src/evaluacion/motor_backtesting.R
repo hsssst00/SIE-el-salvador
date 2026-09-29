@@ -199,7 +199,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   partes <- lapply(origenes, function(o) {
     so <- serie_en_origen(ex, o, insumos, cache_sa)
     estim <- if (ex$ventana == "rodante92") recortar_ventana_rodante(so$sa, VENTANA_RODANTE) else so$sa   # F4-26
-    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id)
+    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id, densidad = TRUE)   # F4-33
     base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
     list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1])
   })
@@ -337,7 +337,9 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
     paste0("fecha_corrida: ", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
     "semillas: por (exp_id, modelo_id, origen) con semilla_de() de eval_lib.R (xxhash32); MCS por (exp_id, 'MCS', h), listada en mcs.csv",
     paste0("mcs: T_max, alpha = ", ALPHA_MCS, ", B = ", B_MCS, ", bootstrap estacionario circular, bloque max(h, ceiling(n^(1/3))) (F4-15)"),
-    "calibracion: sin densidad bajo el contrato vigente (predecir() devuelve el sendero puntual); cobertura_80, cobertura_95 y crps quedan vacías (protocolo §3.4)",
+    paste0("calibracion: densidad gaussiana plug-in (F4-33) para los modelos con predecir_densidad(): ",
+           paste(vapply(Filter(function(m) is.function(m$predecir_densidad), modelos_referencia()), `[[`, character(1), "modelo_id"), collapse = ", "),
+           "; los demás quedan con cobertura_80, cobertura_95 y crps vacías (protocolo §3.4)"),
     "datos: revisados, no en tiempo real (F4-03)",
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_OFICIAL_Q") "limite: serie SA oficial del BCR tal cual; hereda la filtración de su ajuste bilateral (F4-22)" else NULL,
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_PROPIO_Q") "sa: ajuste único de L3 (R6); hereda la filtración del ajuste sobre la muestra completa" else NULL,

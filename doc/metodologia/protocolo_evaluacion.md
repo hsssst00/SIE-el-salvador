@@ -108,16 +108,18 @@ Corregido el 2026-09-24: la primera versión de esta tabla decía 3 y 2 meses po
 índice en el cálculo; la cifra vigente la regenera `scripts/evidencia_insumos_fase4.R`, y una
 reimplementación independiente la confirma.
 
-| Familia | Rezago mediano (días tras el cierre del período) | Meses del trimestre `o+1` conocidos al publicarse el PIB de `o` (igual en los 52 orígenes) |
-|---|---|---|
-| `BCR.IPP.IDX.NSA.M` | 10 | 2 |
-| `BCR.REMESAS.NOM.NSA.M` / `REAL` | 24 | 2 |
-| `BCR.EXPORT_FOB.NOM.NSA.M` | 24 | 2 |
-| `BCR.ITCER.IDX.NSA.M` | 30 | 2 |
-| `BCR.IVAE.VOL.SA.M` | 61 | 1 |
-| `BCR.IPM.IDX.NSA.M` | 61 | 1 |
-| `UT.DEMANDA_ELEC.GWH.NSA.M` | grano anual **[verificado]** | ver F4-02 |
-| `PIB_SA_PROPIO_Q` (objetivo) | 92 | — |
+| Familia | Rezago mediano (días tras el cierre del período) | Meses del trimestre `o+1` conocidos al publicarse el PIB de `o` (igual en los 52 orígenes) | Rezago usado en el motor y su fuente (F4-34, borrador) |
+|---|---|---|---|
+| `BCR.IPP.IDX.NSA.M` | 10 | 2 | 10 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `BCR.REMESAS.NOM.NSA.M` / `REAL` | 24 | 2 | 24 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `BCR.EXPORT_FOB.NOM.NSA.M` | 24 | 2 | 24 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `BCR.ITCER.IDX.NSA.M` | 30 | 2 | 30 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `BCR.IVAE.VOL.SA.M` | 61 | 1 | 61 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `BCR.IPM.IDX.NSA.M` | 61 | 1 | 61 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
+| `UT.DEMANDA_ELEC.GWH.NSA.M` | grano anual **[verificado]** | ver F4-02 | pendiente: `rezagos_predictoras()` falla con stop() hasta que F4-34 fije la regla (E4) |
+| `PIB_SA_PROPIO_Q` (objetivo) | 92 | — | 92 · `REZAGO_PIB_DIAS` en `eval_lib.R`, contrastado con la misma fuente en `tests/test-evaluacion.R` |
+
+Los agregados trimestrales de cada familia (`*.Q`, T003-T011) usan el rezago de su fuente mensual.
 
 **Regla decidida (2026-09-24).** El conjunto de información del origen `o` es el de la fecha de
 publicación del PIB de `o` (cierre de `o` + 92 días): cada serie mensual entra hasta el
