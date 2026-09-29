@@ -219,3 +219,37 @@ Relacionado: el `README.md` del tag todavía decía `ADR-001 … ADR-009` en "Es
 Esta revisión no depende solo del texto de la evidencia. Por primera vez en la serie se ejecutó el sistema: la verificación sintética da la misma salida byte a byte en una tercera máquina y otro sistema operativo, la batería completa pasa sin fallos ni saltos, y cada cifra citada en la certificación se recalcula igual. Topología del tag, CI, propagación y registro previo de modelos: todos limpios. Es el cierre mejor certificado de las cinco fases, y el primero en que el error de propagación no reaparece.
 
 Los cuatro IMPORTANTES no invalidan el cierre. Delimitan con precisión qué quedó probado. I1 e I4 son de registro: una ampliación de robustez posterior a la corrida principal presentada como anticipada, y un resumen de resultados que no arrastra las marcas de lectura que el protocolo se impuso. I2 e I3 miran hacia adelante y son los que más importan. La evaluación de densidades, el conjunto de información de las predictoras y la orquestación completa todavía no están probados en CI. Si Fase 5 los escribe o los prueba por primera vez con sus modelos ya corriendo, repite exactamente el escenario que el criterio de Fase 4 prohíbe. Resolverlos antes del primer modelo de Fase 5 convierte "Fase 4 cerrada" en lo que la senda quiere que signifique: que ninguna regla de evaluación se escriba después de ver un resultado.
+
+---
+
+### Nota de remediación (2026-09-29, Claude Code)
+
+I1–I4 y M1–M5 quedaron remediados el mismo día, más un sexto menor (M6) que apareció al preparar
+la remediación. El registro del cierre de Fase 4 no se reescribió: las correcciones entraron como
+notas fechadas. El detalle, las decisiones de Harold (A1–A7) y el cambio de sha256 de la tabla de
+resultados están en `doc/adr/README.md`, «Remediación de la auditoría independiente de Fase 4».
+
+- **I1** (anticipación atribuida al protocolo): nota de corrección al final de «Cierre de Fase 4» y
+  regla para Fase 5 en el protocolo §6 (`8c0435e`).
+- **I2** (compuerta de Fase 5): F4-32 a F4-34. Contrato de densidad gaussiana, cobertura al 80/95 %
+  y CRPS con oráculo `scoringRules` (V13), y rezagos por familia desde
+  `evidencia_insumos_fase4.csv` (`b9b793e`). «UT solo años cerrados» por la opción (C), con canario
+  anual en V5, y σ² del paseo sin deriva = mean(Δy²) (`7c5faa8`).
+- **I3** (premisa «CI no tiene X-13»): era falsa. La suite ya ejercía `seasonal::seas()` en CI, con
+  SKIP 0 en el run 36595407970. Desde V12 la orquestación de `motor_backtesting.R` con X-13 por
+  origen corre en CI sobre insumos sintéticos; nota en la senda §4, v0.8 (`2c1865f`).
+- **I4** (lectura de exclusiones del MCS): nota de lectura (`8c0435e`) y columna `marca_n` en la
+  tabla de resultados, F4-35 (`2da3d3b`). La tabla regenerada difiere de la del cierre solo por esa
+  columna: 36 de sus 552 filas llevan `n_bajo_calibracion`.
+- **M1** `CITATION.cff` a 0.7.0 / 2026-09-29, con guard en `tests/test-adr-indice.R`. **M2**
+  `fabletools` declarado y conteos de `CLAUDE.md` y `README.md` (189 paquetes con `scoringRules`).
+  **M3** códigos F4-15/16/17 en `eval_lib.R`, comentario del `Makefile` y rótulo del paso de CI.
+  **M4** tags en el `README.md` y F4 y F5 del checklist marcados. **M5** hueco de revisión del
+  cierre de Fase 3 registrado en `doc/auditorias/README.md`, sin revisión retroactiva. **M6**
+  (nuevo) `yaml`, `MCS` y `fabletools` en el bootstrap; V11 falla en CI si falta su oráculo
+  (`81eb337`).
+- **Verificación:** los runs de CI #207, #208 y #209 (`b9b793e`, `7c5faa8`, `a4576e9`) terminaron
+  en verde. Esta sesión no ejecutó R localmente: la evidencia de las pruebas nuevas es la de CI.
+- **Pendiente:** el tag `v0.7.1-fase4` (A6), que no sustituye a `v0.7.0-fase4`.
+- **No se tocaron**, por ser abiertos por diseño: la distorsión de tamaño de DM/HLN en h = 4, 8, el
+  MCS no calibrado bajo n = 18 y el resto de la lista de «Pendientes consolidados».
