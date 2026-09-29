@@ -130,6 +130,7 @@ fecha_corte_origen <- function(o, rezago_pib = REZAGO_PIB_DIAS) fin_de_trimestre
 recortar_a_origen <- function(d, o, rezago = NULL, rezago_pib = REZAGO_PIB_DIAS) {
   if (!"periodo" %in% names(d)) stop("recortar_a_origen: falta la columna `periodo`")
   if (nrow(d) == 0L) return(d)
+  if (identical(rezago, REZAGO_ANUAL_CERRADO)) return(d[anio_de_periodo(d$periodo) <= anio_max_cerrado(o), , drop = FALSE])   # F4-34
   if (is.null(rezago)) {
     if (grepl("-M", d$periodo[1], fixed = TRUE)) stop("recortar_a_origen: una serie mensual necesita su rezago de publicación")
     return(d[q_a_ind(d$periodo) <= o, , drop = FALSE])
@@ -141,6 +142,14 @@ recortar_a_origen <- function(d, o, rezago = NULL, rezago_pib = REZAGO_PIB_DIAS)
 #' sobre recortar_a_origen(): la guarda recalcula la condición y falla si no se cumple.
 guarda_recorte <- function(d, o, rezago = NULL, nombre = "serie", rezago_pib = REZAGO_PIB_DIAS) {
   if (nrow(d) == 0L) return(invisible(TRUE))
+  if (identical(rezago, REZAGO_ANUAL_CERRADO)) {                                                       # F4-34
+    fuera <- anio_de_periodo(d$periodo) > anio_max_cerrado(o)
+    if (any(fuera)) {
+      stop(sprintf("G-1 filtración anual: %s trae %d período(s) de años no cerrados en el origen %s (primero: %s; admite hasta %d, F4-34)",
+                   nombre, sum(fuera), ind_a_q(o), d$periodo[which(fuera)[1]], anio_max_cerrado(o)))
+    }
+    return(invisible(TRUE))
+  }
   fuera <- if (is.null(rezago)) {
     q_a_ind(d$periodo) > o
   } else {
@@ -892,15 +901,34 @@ calibracion_densidad <- function(error, sd) {
 # Una sola fuente: el bloque `rezago_publicacion` (métrica `rezago_dias_mediano`) de
 # doc/metodologia/reportes_fase4/evidencia_insumos_fase4.csv, versionado y regenerable con
 # scripts/evidencia_insumos_fase4.R. Las series trimestrales (agregados T003-T011) heredan el
-# rezago de su fuente mensual. UT tiene grano anual y queda fuera de esta regla: su forma operativa
-# («UT solo años cerrados», F4-02) está pendiente de decisión (A3 y E4 del checklist de remediación).
+# rezago de su fuente mensual.
+#
+# UT tiene grano de disponibilidad anual y no lleva rezago en días: su marca es REZAGO_ANUAL_CERRADO.
+# Forma operativa de «UT solo años cerrados» (F4-02), decidida por Harold el 2026-09-29 (F4-34,
+# opción C del memo de decisión): el año `a` entra solo en los orígenes posteriores a `a`-Q4, es
+# decir, desde (a+1)-Q1. Se decide por el período de la observación y el origen, no por la fecha de
+# publicación de 08_vintages.csv, que para UT es sintética (31-dic). Caso borde: el corte del origen
+# 2019-Q3 cae el 2019-12-31, justo la fecha sintética de v2019-12; con esta regla 2019 no entra ahí
+# ni en 2019-Q4, y sí desde 2020-Q1.
+
+REZAGO_ANUAL_CERRADO <- "anual_cerrado"
+
+#' Año de un período "AAAA-Mmm", "AAAA-Qq" o "AAAA".
+anio_de_periodo <- function(periodo) {
+  a <- suppressWarnings(as.integer(substr(periodo, 1L, 4L)))
+  if (anyNA(a) || any(!grepl("^\\d{4}($|-M\\d{2}$|-Q[1-4]$)", periodo))) stop("anio_de_periodo: período mal formado")
+  a
+}
+
+#' Último año cerrado que admite el origen `o` (índice trimestral) bajo F4-34: el anterior al del origen.
+anio_max_cerrado <- function(o) as.integer(o) %/% 4L - 1L
 
 RUTA_EVIDENCIA_INSUMOS <- c("doc", "metodologia", "reportes_fase4", "evidencia_insumos_fase4.csv")
 
 .clave_rezago <- function(id) gsub("[^A-Za-z0-9]", "_", sub("\\.Q$", ".M", id))
 
-#' Rezago en días de cada serie de `ids` (series_master_id), leído de la evidencia de insumos. Falla
-#' si una serie no tiene rezago declarado o si es de UT (regla anual pendiente).
+#' Rezago en días de cada serie de `ids` (series_master_id), leído de la evidencia de insumos; para las
+#' de grano anual (UT), REZAGO_ANUAL_CERRADO. Falla si una serie no tiene rezago declarado.
 rezagos_predictoras <- function(ids, evidencia = NULL) {
   if (is.null(evidencia)) evidencia <- utils::read.csv(do.call(here::here, as.list(RUTA_EVIDENCIA_INSUMOS)),
                                                        stringsAsFactors = FALSE, na.strings = "")
@@ -911,9 +939,7 @@ rezagos_predictoras <- function(ids, evidencia = NULL) {
   if (anyNA(tabla) || anyDuplicated(names(tabla))) stop("rezagos_predictoras: la evidencia trae rezagos inválidos o duplicados")
   res <- lapply(ids, function(id) {
     k <- .clave_rezago(id)
-    if (k %in% .clave_rezago(anual)) {
-      stop("rezagos_predictoras: ", id, " tiene grano anual; su regla («UT solo años cerrados», F4-02) está pendiente (F4-34, E4)")
-    }
+    if (k %in% .clave_rezago(anual)) return(REZAGO_ANUAL_CERRADO)                                     # F4-34
     if (!k %in% names(tabla)) stop("rezagos_predictoras: ", id, " no tiene rezago de publicación declarado en la evidencia de insumos")
     tabla[[k]]
   })

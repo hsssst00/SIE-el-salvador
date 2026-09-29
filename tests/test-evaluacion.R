@@ -280,11 +280,58 @@ test_that("rezagos por familia: los de la tabla del protocolo §2.3, desde la ev
                                        ev$metrica == "rezago_dias_mediano"]), REZAGO_PIB_DIAS)
 })
 
-test_that("rezagos: falla si un modelo requiere una predictora sin rezago o de grano anual", {
+test_that("rezagos: falla si un modelo requiere una predictora sin rezago declarado", {
   expect_error(rezagos_predictoras("BCR.NO_EXISTE.M"), "no tiene rezago de publicación declarado")
-  expect_error(rezagos_predictoras("UT.DEMANDA_ELEC.GWH.NSA.M"), "grano anual")
   m <- list(modelo_id = "PRUEBA.PUENTE", requiere = c("objetivo", "BCR.IVAE.VOL.SA.M", "BCR.SIN_CALENDARIO.M"))
   expect_error(rezagos_modelo(m), "BCR.SIN_CALENDARIO.M no tiene rezago")
   expect_identical(rezagos_modelo(list(requiere = "objetivo")), list())
   expect_identical(rezagos_modelo(list(requiere = c("objetivo", "BCR.ITCER.IDX.NSA.M"))), list(BCR.ITCER.IDX.NSA.M = 30L))
+})
+
+# --- 13. UT solo con años cerrados (F4-34, opción C; remediación, E4) ----------------------------
+
+.ut_mensual <- function(desde = "2016-M01", hasta = "2020-M12") {
+  i <- m_a_ind(desde):m_a_ind(hasta)
+  data.frame(periodo = sprintf("%d-M%02d", i %/% 12L, i %% 12L + 1L), valor = seq_along(i), stringsAsFactors = FALSE)
+}
+
+test_that("UT: el año a entra desde el origen (a+1)-Q1; caso borde 2019-Q3 con la fecha sintética de v2019-12", {
+  expect_identical(anio_max_cerrado(q_a_ind(c("2019-Q3", "2019-Q4", "2020-Q1"))), c(2018L, 2018L, 2019L))
+  # El corte del origen 2019-Q3 coincide con la fecha de publicación (sintética) del vintage de 2019.
+  vg <- utils::read.csv(here::here("catalogos", "08_vintages.csv"), stringsAsFactors = FALSE)
+  f19 <- vg$fecha_publicacion[vg$vintage_id == "UT.DEMANDA_TOTAL_MENSUAL.v2019-12"]
+  expect_identical(format(fecha_corte_origen(q_a_ind("2019-Q3"))), f19)
+  d <- .ut_mensual()
+  for (caso in list(c("2019-Q3", "2018-M12"), c("2019-Q4", "2018-M12"), c("2020-Q1", "2019-M12"))) {
+    r <- recortar_a_origen(d, q_a_ind(caso[1]), REZAGO_ANUAL_CERRADO)
+    expect_identical(utils::tail(r$periodo, 1), caso[2], info = caso[1])
+    expect_silent(guarda_recorte(r, q_a_ind(caso[1]), REZAGO_ANUAL_CERRADO))
+  }
+  q <- data.frame(periodo = ind_a_q(q_a_ind("2017-Q1") + 0:15), valor = 1:16, stringsAsFactors = FALSE)
+  expect_identical(utils::tail(recortar_a_origen(q, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO)$periodo, 1), "2018-Q4")
+})
+
+test_that("UT: la guarda G-1 rechaza meses de un año no cerrado y rezagos_predictoras marca UT como anual", {
+  d <- .ut_mensual(hasta = "2019-M01")
+  expect_error(guarda_recorte(d, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut"),
+               "^G-1 filtración anual: ut trae 1 período\\(s\\) de años no cerrados en el origen 2019-Q3")
+  expect_identical(rezagos_predictoras("UT.DEMANDA_ELEC.GWH.NSA.M")[[1]], REZAGO_ANUAL_CERRADO)
+  expect_identical(rezagos_predictoras("UT.DEMANDA_ELEC.GWH.NSA.Q")[[1]], REZAGO_ANUAL_CERRADO)
+  expect_error(anio_de_periodo("2019/03"), "mal formado")
+})
+
+test_that("UT en el motor: un modelo que pide UT nunca ve el año del origen", {
+  vistos <- new.env()
+  espia <- list(modelo_id = "PRUEBA.ESPIA_UT", requiere = c("objetivo", "UT.DEMANDA_ELEC.GWH.NSA.M"),
+                ajustar = function(datos, spec) {
+                  o <- max(q_a_ind(datos$objetivo$periodo))
+                  assign(ind_a_q(o), max(anio_de_periodo(datos$UT.DEMANDA_ELEC.GWH.NSA.M$periodo)), envir = vistos)
+                  list(y_o = utils::tail(datos$objetivo$y, 1))
+                },
+                predecir = function(aj, h) rep(aj$y_o, h))
+  obj <- .obj_lineal()
+  ors <- q_a_ind(c("2019-Q3", "2019-Q4", "2020-Q1"))
+  correr_backtest(list(objetivo = obj, UT.DEMANDA_ELEC.GWH.NSA.M = .ut_mensual(hasta = "2025-M12")), list(espia), ors,
+                  rezagos = rezagos_modelo(espia))
+  expect_identical(unlist(mget(c("2019-Q3", "2019-Q4", "2020-Q1"), envir = vistos), use.names = FALSE), c(2018L, 2018L, 2019L))
 })

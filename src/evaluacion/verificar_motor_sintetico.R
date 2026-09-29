@@ -29,6 +29,7 @@
 # F4-33, borrador):
 #   V13  densidad gaussiana: cobertura al 80/95 % dentro de ±3 ee de MC con el modelo verdadero, CRPS
 #        del verdadero < paseo aleatorio, y CRPS propio contra scoringRules::crps_norm (Suggests)
+#   V5   (extensión F4-34, al final del archivo) canario de predictora anual: UT solo con años cerrados
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -402,6 +403,33 @@ if (requireNamespace("scoringRules", quietly = TRUE)) {
     stop("V13: paquete scoringRules no instalado en CI; renv.lock lo fija como oráculo (Suggests)")
   cat("V13 SKIP  oráculo scoringRules no instalado (Suggests)\n")
 }
+
+# --- V5 (extensión F4-34) · canario de predictora anual -------------------------------------------
+# Remediación del hallazgo I2(b), E4. Una predictora de grano anual (UT) entra solo con años cerrados:
+# el año `a` desde el origen (a+1)-Q1. El canario busca en su insumo el año del propio origen; con el
+# recorte correcto no lo encuentra, devuelve NA y G-3 detiene el motor. Va al final del archivo, y no
+# junto a V5, para que la salida de V1-V11 siga idéntica byte a byte a doc/evidencia_cierre_fase4.txt.
+canario_anual <- list(
+  modelo_id = "PRUEBA.CANARIO_ANUAL", requiere = c("objetivo", "ut"),
+  ajustar  = function(datos, spec) list(o = max(q_a_ind(datos$objetivo$periodo)), ut = datos$ut, y_o = utils::tail(datos$objetivo$y, 1)),
+  predecir = function(aj, h) {
+    en_curso <- aj$ut$valor[anio_de_periodo(aj$ut$periodo) == aj$o %/% 4L]
+    if (length(en_curso)) rep(aj$y_o + mean(en_curso) * 0, h) else rep(NA_real_, h)
+  }
+)
+set.seed(SEMILLA_RAIZ + 55L)
+obj5b <- simular_objetivo(145L, 0.3, 0.01)
+im5b <- m_a_ind("2002-M01"):m_a_ind("2025-M12")
+ut5b <- data.frame(periodo = sprintf("%d-M%02d", im5b %/% 12L, im5b %% 12L + 1L), valor = stats::rnorm(length(im5b), 500, 20),
+                   stringsAsFactors = FALSE)
+r5c <- tryCatch({ correr_backtest(list(objetivo = obj5b, ut = ut5b), list(canario_anual), ors, exp_id = "V5b",
+                                  rezagos = list(ut = REZAGO_ANUAL_CERRADO)); "sin error" },
+                error = function(e) conditionMessage(e))
+if (!grepl("^G-3", r5c)) stop("V5: el canario anual no detuvo al motor con G-3 (resultado: ", r5c, ")")
+r5d <- tryCatch({ guarda_recorte(ut5b, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut_sin_recortar"); "sin error" },
+                error = function(e) conditionMessage(e))
+if (!grepl("^G-1", r5d)) stop("V5: G-1 no detectó una predictora anual con el año en curso (resultado: ", r5d, ")")
+ok("V5", "canario anual (F4-34): la predictora anual no trae el año del origen y G-3 detiene el motor; G-1 rechaza el año en curso")
 
 cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V13 (V11 SKIP)\n"
     else "verificación sintética: bloques OK (V1-V13)\n")

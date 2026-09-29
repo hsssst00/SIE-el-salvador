@@ -270,12 +270,10 @@ esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar las filas F4-32 
   3. *Qué benchmarks emiten densidad.* AR(1) y AR(p)-BIC: σ² residual con corrección de grados de
      libertad y pesos de su representación MA en Δy. ETS: σ², α y β del ajuste de fable; la
      diagonal coincide con la varianza que publica fable (prueba en `tests/test-evaluacion.R`).
-     Los dos paseos aleatorios usan σ = sd de Δy dentro de la muestra y cov = σ²·min(i, j),
-     decisión de Harold del 2026-09-29. **Punto a confirmar al firmar:** para el paseo *sin*
-     deriva, `sd()` centra Δy en su media. El error cuadrático medio a un paso de ese modelo es
-     `mean(Δy²)`, que incluye la deriva al cuadrado. La diferencia es chica con la deriva
-     trimestral del PIB, pero es de signo conocido: la `sd` centrada subestima la dispersión.
-     La media de crecimiento no emite densidad y sus columnas quedan vacías (protocolo §3.4).
+     Los dos paseos aleatorios emiten densidad con cov = σ²·min(i, j) (decisión de Harold del
+     2026-09-29). **Decidido por Harold el 2026-09-29:** en el paseo *sin* deriva, σ² =
+     `mean(Δy²)`, porque su error a un paso es Δy mismo, deriva incluida; en el paseo *con*
+     deriva, σ² = `var(Δy)`, porque su pronóstico ya absorbe la media. La media de crecimiento no emite densidad y sus columnas quedan vacías (protocolo §3.4).
   - El orquestador llama al motor con `densidad = TRUE`. `pronosticos.csv` no cambia. En
     `metricas.csv` se llenan `cobertura_80`, `cobertura_95` y `crps`, que en la corrida del cierre
     estaban vacías, y el manifiesto lo declara. La tabla de resultados (F4-30) no incluye esas
@@ -286,9 +284,23 @@ esta línea por «DECIDIDO por Harold el AAAA-MM-DD» y agregar las filas F4-32 
      toman el rezago de su fuente mensual, y una prueba contrasta `REZAGO_PIB_DIAS` con la misma
      fuente. Descartadas: (b) una columna nueva en `03_series.csv`, que cambia el esquema, y
      (c) una constante en el código.
-  2. *Forma operativa de «UT solo años cerrados»:* **abierta.** Harold pidió discutirla y el
-     memo de decisión trae las opciones. Mientras tanto, `rezagos_predictoras()` detiene con
-     `stop()` a cualquier modelo que pida UT.
+  2. *Forma operativa de «UT solo años cerrados»:* **decidida por Harold el 2026-09-29, opción (C)
+     del memo de decisión:** el año `a` de UT entra solo en los orígenes posteriores a `a`-Q4, es
+     decir, desde (a+1)-Q1. Se decide por el período de la observación y el origen, no por la
+     `fecha_publicacion` de `08_vintages.csv`, que para UT es sintética (31-dic; la columna `notas`
+     lo declara). Caso borde: el corte del origen 2019-Q3 es `fin(2019-Q3) + 92 = 2019-12-31`,
+     igual a la fecha sintética de `UT.DEMANDA_TOTAL_MENSUAL.v2019-12`. Con la comparación `≤`
+     sobre esa fecha, el año 2019 completo, octubre a diciembre incluidos, habría entrado en
+     2019-Q3, y lo mismo en los 13 orígenes Q3. Con (C), 2019 no entra en 2019-Q3 ni en 2019-Q4
+     y sí desde 2020-Q1. Frente a `fecha_vintage < corte`, (C) usa un año menos de UT en los 13
+     orígenes Q4.
+     - Descartadas: `≤`, que filtra hasta un trimestre en los orígenes Q3; `<`, que apoya el
+       conjunto de información en una fecha sintética; y `corte ≥ 31-dic-a + L`, porque no hay
+       evidencia para fijar `L`.
+     - Implementación: `REZAGO_ANUAL_CERRADO`, `anio_max_cerrado()` y la rama anual de
+       `recortar_a_origen()` y `guarda_recorte()` en `eval_lib.R`, a la que
+       `rezagos_predictoras()` envía UT. Pruebas en `tests/test-evaluacion.R` §13, y canario anual
+       de V5 al final de `verificar_motor_sintetico.R`.
 
 ### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
 

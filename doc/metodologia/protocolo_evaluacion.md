@@ -116,7 +116,7 @@ reimplementación independiente la confirma.
 | `BCR.ITCER.IDX.NSA.M` | 30 | 2 | 30 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
 | `BCR.IVAE.VOL.SA.M` | 61 | 1 | 61 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
 | `BCR.IPM.IDX.NSA.M` | 61 | 1 | 61 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv` |
-| `UT.DEMANDA_ELEC.GWH.NSA.M` | grano anual **[verificado]** | ver F4-02 | pendiente: `rezagos_predictoras()` falla con stop() hasta que F4-34 fije la regla (E4) |
+| `UT.DEMANDA_ELEC.GWH.NSA.M` | grano anual **[verificado]** | ver F4-02 | años cerrados: el año `a` desde el origen (a+1)-Q1 · `REZAGO_ANUAL_CERRADO` (F4-34) |
 | `PIB_SA_PROPIO_Q` (objetivo) | 92 | — | 92 · `REZAGO_PIB_DIAS` en `eval_lib.R`, contrastado con la misma fuente en `tests/test-evaluacion.R` |
 
 Los agregados trimestrales de cada familia (`*.Q`, T003-T011) usan el rezago de su fuente mensual.
@@ -134,6 +134,12 @@ archivo por año con fecha de publicación sintética (31-dic, 31-jul para 2026)
 para ella la regla anterior no es aplicable tal cual y requería decisión: F4-02 (2026-09-24) adoptó
 «UT solo con años cerrados»; su forma operativa y su implementación siguen pendientes (checklist de
 remediación de la auditoría de Fase 4, A3 y E4).
+
+**[decidido 2026-09-29, F4-34]** Forma operativa: el año `a` de UT entra solo en los orígenes
+posteriores a `a`-Q4, es decir, desde (a+1)-Q1. Se decide por el período de la observación y el
+origen, no por la fecha sintética del vintage. En el origen 2019-Q3, cuyo corte (2019-12-31)
+coincide con la fecha sintética de `v2019-12`, entra UT hasta 2018. La implementa la rama anual de
+`recortar_a_origen()` y `guarda_recorte()` (`REZAGO_ANUAL_CERRADO`), con canario en V5.
 
 ### 2.4 Vintage contra el que se evalúa [decidido 2026-09-24, F4-03]
 

@@ -22,8 +22,8 @@
 #                            automática; el objetivo es SA, así que no lleva componente estacional
 #
 # Densidad (F4-33, extensión opcional del contrato; eval_lib.R §11): gaussiana plug-in del sendero,
-# list(media = sendero, cov). La emiten los dos paseos (σ = sd de Δy dentro de la muestra, cov
-# σ²·min(i, j)), el AR(1) y el AR(p)-BIC (σ² = varianza residual con corrección de grados de
+# list(media = sendero, cov). La emiten los dos paseos (cov σ²·min(i, j); σ² = mean(Δy²) en el sin
+# deriva y var(Δy) en el con deriva), el AR(1) y el AR(p)-BIC (σ² = varianza residual con corrección de grados de
 # libertad, pesos de su representación MA) y el ETS (σ², α y β del ajuste de fable). La media de
 # crecimiento no emite densidad: sus columnas de calibración quedan vacías (protocolo §3.4).
 
@@ -47,7 +47,9 @@
 
 modelo_rw_sin_deriva <- function() list(
   modelo_id = "BENCH.RW_SIN_DERIVA", requiere = "objetivo",
-  ajustar  = function(datos, spec) { y <- .y_de(datos); list(y_o = utils::tail(y, 1), s2 = stats::var(diff(y))) },
+  # σ² = mean(Δy²): el error a un paso del paseo sin deriva es Δy mismo, deriva incluida (F4-33,
+  # decisión de Harold del 2026-09-29). El paseo con deriva centra en su media, que es su pronóstico.
+  ajustar  = function(datos, spec) { y <- .y_de(datos); list(y_o = utils::tail(y, 1), s2 = mean(diff(y)^2)) },
   predecir = function(aj, h) rep(aj$y_o, h),
   predecir_densidad = function(aj, h) list(media = rep(aj$y_o, h), cov = cov_desde_pesos(pesos_ar_dy(numeric(0), h), aj$s2))
 )
