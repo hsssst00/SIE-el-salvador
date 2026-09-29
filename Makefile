@@ -89,7 +89,8 @@ trace:
 # Fase 4 — verificación del motor de evaluación sobre procesos generadores conocidos
 # (src/evaluacion/verificar_motor_sintetico.R). NO lee data/L3_master/, así que corre en CI: es la
 # evidencia del criterio de cierre de Fase 4 ("el motor funciona y está probado antes de estimar
-# cualquier modelo sofisticado", senda §4). Bloques vigentes: V1-V11.
+# cualquier modelo sofisticado", senda §4). Bloques vigentes: V1-V11 (V12 desde la remediación de la
+# auditoría de Fase 4: orquestación con X-13 por origen sobre insumos sintéticos).
 eval-sintetico:
 	Rscript src/evaluacion/verificar_motor_sintetico.R
 

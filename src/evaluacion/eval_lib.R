@@ -562,7 +562,7 @@ mcs_tmax <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NUL
 # ---------------------------------------------------------------------------------------------
 #
 # Solo la especificación y las guardas, puras. La llamada a seasonal::seas() vive en
-# motor_backtesting.R porque ejecuta el binario de X-13, que no corre en CI. F4-09b fija tres
+# motor_backtesting.R porque ejecuta el binario de X-13 (en CI, solo sobre insumos sintéticos: V12). F4-09b fija tres
 # desvíos respecto de los defaults de seas() que usa T002: transform=log fijo, detección automática
 # de outliers desactivada y los AO declarados como regresores que entran solo desde el origen que
 # los alcanza. El resto de la especificación (SEATS, prueba AIC de pascua y días hábiles, selección

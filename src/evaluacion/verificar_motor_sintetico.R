@@ -21,6 +21,10 @@
 #        el MCS completo se exige en h=1 y se reporta en h=8
 #   V11  MCS propio contra MCS::MCSprocedure (Suggests; SKIP si el paquete no está instalado, salvo
 #        en CI, donde su ausencia detiene la corrida con stop())
+# Bloque de la remediación de la auditoría independiente de Fase 4 (hallazgo I3):
+#   V12  orquestación de motor_backtesting.R (correr_experimento(), X-13 por origen de F4-09b) sobre
+#        insumos sintéticos en memoria: G2 principal con R3/R4, y R1, R2, R5 y R6 de G3; más dos
+#        canarios (outlier LS no contemplado y NSA más allá del origen con el recorte saboteado)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -260,5 +264,92 @@ if (requireNamespace("MCS", quietly = TRUE)) {
   V11_SKIP <- TRUE
 }
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V11)\n")
+# --- V12 · orquestación con X-13 por origen sobre insumos sintéticos ------------------------------
+# Hallazgo I3 de la auditoría independiente de Fase 4: el bucle de motor_backtesting.R (ajuste X-13
+# por origen de F4-09b, caché por tramo, R1-R6, submuestras de R3/R4, bases del origen y token) no
+# se ejercía en CI. Este bloque corre correr_experimento() sobre un objetivo sintético con la misma
+# grilla de fechas que el real y dos AO declarados en 2020-Q2/Q3. No lee data/ ni escribe nada: no
+# llama a escribir_experimento() ni a registrar_experimentos(), y main() no corre al hacer source().
+source(here::here("src", "evaluacion", "motor_backtesting.R"))
+set.seed(SEMILLA_RAIZ + 12L)
+per12   <- PERIODOS_OBJ
+n12     <- length(per12)
+estac12 <- rep(c(-0.03, 0.01, 0.00, 0.02), length.out = n12)                # estacionalidad conocida
+# Δy AR(1) con φ = 0,5: con un paseo con deriva puro, AR(p)-BIC elige p = 0 y replica al paseo con
+# deriva, y el MCS se detiene por varianza bootstrap nula (pérdidas idénticas).
+ly12    <- simular_objetivo(n12, phi = 0.5, sigma = 0.008, c0 = 0.003, y0 = 4.6)$y
+i20     <- match(c("2020-Q2", "2020-Q3"), per12); ly12[i20] <- ly12[i20] + c(-0.20, -0.08)   # los dos AO
+i05     <- q_a_ind(per12) >= q_a_ind(INICIO_HOMOGENEO)
+insumos12 <- list(
+  objetivos = list(
+    PIB_SA_PROPIO_Q  = data.frame(periodo = per12, y = ly12, vintage_id = "SINT.v1", stringsAsFactors = FALSE),
+    PIB_SA_OFICIAL_Q = data.frame(periodo = per12[i05], y = ly12[i05] + 0.001, vintage_id = "SINT.v1", stringsAsFactors = FALSE)),
+  nsa      = data.frame(periodo = per12, valor = exp(ly12 + estac12), vintage_id = "SINT.v1", stringsAsFactors = FALSE),
+  outliers = data.frame(periodo = c("2020-Q2", "2020-Q3"), tipo = "AO", stringsAsFactors = FALSE))
+cache12 <- new.env()
+exps12  <- c("F4_BENCH_G2", "F4_BENCH_G3_R1", "F4_BENCH_G3_R2", "F4_BENCH_G3_R5", "F4_BENCH_G3_R6")
+PARES12 <- list(G2 = c(45L, 44L, 42L, 38L), G3 = c(25L, 24L, 22L, 18L))
+INICIO12 <- c(F4_BENCH_G3_R1 = "1997-Q1", F4_BENCH_G3_R2 = "2005-Q1", F4_BENCH_G3_R5 = "2005-Q1")
+for (id12 in exps12) {
+  ex12 <- EXPERIMENTOS[EXPERIMENTOS$exp_id == id12, ]
+  if (nrow(ex12) != 1L) stop("V12: el experimento ", id12, " no está declarado en EXPERIMENTOS")
+  r12 <- correr_experimento(ex12, insumos12, cache12)
+  # 1. pares por horizonte del grupo
+  np <- tapply(r12$metricas$n_pares, r12$metricas$h, unique)
+  if (!identical(as.integer(unlist(np)), PARES12[[ex12$grupo]]))
+    stop(sprintf("V12 %s: pares por horizonte %s, se esperan %s", id12, paste(unlist(np), collapse = "/"),
+                 paste(PARES12[[ex12$grupo]], collapse = "/")))
+  # 2. ajuste por origen: AO que entran solo desde el origen que los alcanza, transform=log
+  if (ex12$sa == "reestimado_en_origen") {
+    aj <- r12$ajuste_estacional
+    if (is.null(aj) || nrow(aj) != length(origenes_grupo(ex12$grupo))) stop("V12 ", id12, ": falta una fila de ajuste por origen")
+    oi <- q_a_ind(aj$origen)
+    esp <- ifelse(oi < q_a_ind("2020-Q2"), "", ifelse(oi < q_a_ind("2020-Q3"), "2020-Q2", "2020-Q2 2020-Q3"))
+    if (!identical(aj$ao_declarados, esp)) stop("V12 ", id12, ": AO declarados por origen distintos de F4-09b")
+    reg <- tolower(aj$regresores)
+    if (any(grepl("ao20", reg[oi < q_a_ind("2020-Q2")])) ||
+        !all(grepl("ao2020.2", reg[oi >= q_a_ind("2020-Q2")], fixed = TRUE)) ||
+        any(grepl("ao2020.3", reg[oi < q_a_ind("2020-Q3")], fixed = TRUE)) ||
+        !all(grepl("ao2020.3", reg[oi >= q_a_ind("2020-Q3")], fixed = TRUE)))
+      stop("V12 ", id12, ": regresores AO del modelo X-13 fuera de su origen")
+    if (!all(trimws(aj$transform) == "log")) stop("V12 ", id12, ": algún origen no usó transform=log")
+  } else if (!is.null(r12$ajuste_estacional)) {
+    stop("V12 ", id12, ": sa=l3_unico no debe registrar ajuste por origen")
+  }
+  # 3. paseo aleatorio sin deriva: sendero plano y yoy exactamente 0 en h = 4 (su nivel es la base)
+  rw <- r12$pronosticos[r12$pronosticos$modelo_id == BENCHMARK, ]
+  if (!nrow(rw) || any(rw$yoy_pp_pronosticado[rw$h == 4L] != 0))
+    stop("V12 ", id12, ": el yoy del paseo sin deriva en h = 4 no es exactamente 0")
+  if (any(tapply(rw$log_nivel_pronosticado, rw$origen, function(x) length(unique(x))) != 1L))
+    stop("V12 ", id12, ": el sendero del paseo sin deriva no es plano")
+  # 4. submuestras de R3/R4 y contraste de estabilidad (solo la principal de G2)
+  if (id12 == "F4_BENCH_G2") {
+    if (is.null(r12$sub) || !setequal(unique(r12$sub$metricas$muestra_eval), c("pre2020", "post2020", "sin_2020", "sin_2020_2021")))
+      stop("V12 F4_BENCH_G2: faltan submuestras de R3/R4")
+    if (is.null(r12$estabilidad) || nrow(r12$estabilidad) != 20L) stop("V12 F4_BENCH_G2: estabilidad no trae 20 filas")
+  }
+  # 5. inicio de la muestra de estimación de R1, R2 y R5
+  if (id12 %in% names(INICIO12) && !identical(r12$muestra_inicio, INICIO12[[id12]]))
+    stop(sprintf("V12 %s: muestra_inicio %s, se espera %s", id12, r12$muestra_inicio, INICIO12[[id12]]))
+  # 6. token
+  validar_token(r12$token)
+  ok("V12", sprintf("%-15s pares %s; %s; token válido", id12, paste(unlist(np), collapse = "/"),
+                    if (is.null(r12$ajuste_estacional)) "sa=l3_unico" else sprintf("%d ajustes X-13 por origen", nrow(r12$ajuste_estacional))))
+}
+# Canarios negativos (C3), con tryCatch y grepl sobre el mensaje como V5.
+o12 <- q_a_ind("2021-Q1")
+c12a <- tryCatch({ ajustar_en_origen(insumos12$nsa, data.frame(periodo = "2020-Q2", tipo = "LS", stringsAsFactors = FALSE), o12); "sin error" },
+                 error = function(e) conditionMessage(e))
+if (!grepl("tipo de outlier declarado no contemplado por F4-09b", c12a, fixed = TRUE))
+  stop("V12: un outlier LS declarado no detuvo el ajuste por origen (resultado: ", c12a, ")")
+# NSA más allá del origen con el recorte saboteado: la guarda G-1 (segundo cerrojo) debe detenerlo.
+ajustar_sin_recorte <- ajustar_en_origen
+environment(ajustar_sin_recorte) <- list2env(list(recortar_a_origen = function(d, o, ...) d), parent = globalenv())
+c12b <- tryCatch({ ajustar_sin_recorte(insumos12$nsa, insumos12$outliers, o12); "sin error" },
+                 error = function(e) conditionMessage(e))
+if (!grepl("^G-1", c12b)) stop("V12: una NSA más allá del origen no detuvo el ajuste con G-1 (resultado: ", c12b, ")")
+ok("V12", sprintf("canarios: LS 2020-Q2 detiene el ajuste (F4-09b) y una NSA más allá del origen lo detiene con G-1; %d ajustes X-13 en caché",
+                  length(ls(cache12))))
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V12)\n")
