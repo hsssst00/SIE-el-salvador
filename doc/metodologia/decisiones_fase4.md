@@ -250,7 +250,7 @@ completa del bloque E y antes de escribir el reporte.
 
 ### F4-32 a F4-34 — compuerta de Fase 5: densidad y conjunto de información de las predictoras (remediación de la auditoría de Fase 4, I2)
 
-**DECIDIDO por Harold el 2026-09-2**:
+**DECIDIDO por Harold el 2026-09-29**.
 
 - **F4-32 · Vía de la compuerta (A1).** Opción (i): la evaluación de densidad y el conjunto de
   información de las predictoras se implementan y se verifican en CI **antes** del primer modelo de
@@ -303,7 +303,7 @@ completa del bloque E y antes de escribir el reporte.
 
 ### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
 
-**DECIDIDO por Harold el 2026-09-28**,
+**DECIDIDO por Harold el 2026-09-29**.
 
 - **Especificación vigente.** F4-30 fija las columnas de `tabla_resultados_fase4.csv`; la única marca
   es `marca_tamano` (F4-18/F4-21, h = 4, 8). V9 de `verificar_motor_sintetico.R` calibra el MCS
