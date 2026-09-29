@@ -485,7 +485,7 @@ la anterior; 36 de sus 552 filas llevan `n_bajo_calibracion`.
 cambia: con F4_BENCH_G3 y F4_BENCH_G3_R6 sobre L3, reescrito es idéntico como texto al de la corrida
 de `c4e8b39`. La salida de V1-V11 sigue idéntica a la de `doc/evidencia_cierre_fase4.txt`.
 
-**CI:** run 36624458468 en verde sobre `b9b793e`; run `<run>` sobre este commit.
+**CI:** run 36624458468 en verde sobre `b9b793e`; run 36637875993 (#209) en verde sobre `a4576e9`, el último commit de la remediación antes de este registro.
 
 **Tag: `v0.7.1-fase4`** (A6), sobre el commit que ya contiene esta sección y con el run de CI citado
 en el mensaje, nunca antes. No sustituye a `v0.7.0-fase4` (`a67bde9`), que no se mueve.
