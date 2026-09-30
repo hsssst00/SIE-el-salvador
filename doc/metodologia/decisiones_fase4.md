@@ -58,6 +58,10 @@ Las trece fichas y la F4-09b quedaron resueltas en la opción recomendada. F4-06
 | F4-29 | R4: sin los targets de 2020, y como línea adicional sin 2020 ni 2021 | protocolo §5 |
 | F4-30 | Tabla E4/E5: `src/evaluacion/tabla_resultados_fase4.R` escribe `doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv` (versionado) al final de `make eval` | especificación §4, Makefile |
 | F4-31 | Los sha256 de insumos del manifiesto (y el de `renv.lock` en 07) se toman sin retornos de carro | especificación §4 |
+| F4-32 | Compuerta de Fase 5, vía (i): la densidad y el conjunto de información de las predictoras se implementan y se verifican en CI antes del primer modelo de §6.2-§6.7 | ninguno |
+| F4-33 | Densidad: `predecir_densidad(ajuste, h)` → `list(media, cov)`, gaussiana conjunta *plug-in* del sendero en log-nivel; cobertura 80/95 % y CRPS en forma cerrada; la emiten los dos paseos, AR(1), AR(p)-BIC y ETS, no la media de crecimiento | ADR-009, nota de seguimiento (oráculo `scoringRules`) |
+| F4-34 | Rezagos por familia desde el bloque `rezago_publicacion` de `evidencia_insumos_fase4.csv` (`rezagos_predictoras()`); UT: el año `a` entra desde el origen (a+1)-Q1 (opción C) | protocolo §2.3 |
+| F4-35 | Columna `marca_n` en `tabla_resultados_fase4.csv`: `n_bajo_calibracion` si `n_pares` < 18, el piso calibrado por V9 | ninguno (el cambio de sha256 se registra en el índice de ADR) |
 
 ### Punto nuevo que abre F4-09: F4-09b — selección de la especificación X-13 en cada origen
 
