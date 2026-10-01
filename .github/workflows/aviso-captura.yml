@@ -5,7 +5,7 @@ name: Aviso de captura (BCR y demás)
 # doc/backlog_captura_vintages.md; regla 9: una pasada, al ritmo de publicación, nunca repetida).
 # Compara lo que sirve cada fuente contra sha256_norm del manifiesto, que está versionado, así que
 # no necesita los .xlsx de L0 (por eso no se corre `make raw`, cuyo primer paso exige L0 en disco).
-# Si hay CAMBIO o MANUAL_PENDIENTE abre un issue con el bloque copiable; la captura sigue siendo
+# Si hay CAMBIO o MANUAL_PENDIENTE (aunque otra fuente dé ERROR) abre un issue con el bloque copiable; la captura sigue siendo
 # local y deliberada. Un ERROR (fuente caída o bloqueada desde la IP del runner) hace fallar el
 # workflow, de forma visible (regla 6); el bloqueo NO se evade (regla 9).
 
@@ -48,7 +48,6 @@ jobs:
           exit 0
 
       - name: Abrir issue si hay CAMBIO o MANUAL_PENDIENTE
-        if: steps.verificar.outputs.estado == '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
