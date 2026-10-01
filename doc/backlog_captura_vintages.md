@@ -155,14 +155,22 @@ Captura manual: el robots.txt de ut.com.sv prohíbe el scraping y la regla 9 imp
 3. Bajar a mano un CSV por año desde el formulario de Reportes Estadísticos de UT (salida CSV).
 4. Registrar cada archivo con `src/adquisicion/ut.R`. La función recibe el archivo ya bajado.
    Ver en su salida cuál de los tres casos de la regla de identidad se dio: vintage nuevo, fecha de
-   captura por colisión, o idéntico al último del año (no se registra).
+   captura por colisión, o idéntico al último del año (no se registra). «Idéntico» se juzga por
+   los meses y valores GWH, no por el hash del archivo: cada descarga trae su propia hora de
+   reporte, y el hash cambiaría aunque los datos no.
 5. `make raw` otra vez: UT sigue como `MANUAL_PENDIENTE` (nunca pasa a `PASS`, no se verifica en
-   vivo), pero con 0 días desde la última captura y sin años anteriores sin diciembre. Si alguno
-   queda, ese año quedó incompleto: o UT aún no publicó los meses que faltan, y se retoma en la
-   ventana siguiente, o el archivo se bajó mal, y se revisa.
+   vivo). Si se registró algo, con 0 días desde la última captura; si todo salió sin cambios no hay
+   fila nueva y los días siguen contando desde la última captura registrada. Sin años anteriores
+   sin diciembre; si alguno queda, ese año quedó incompleto: o UT aún no publicó los meses que
+   faltan, y se retoma en la ventana siguiente, o el archivo se bajó mal, y se revisa.
 6. `make master` y `make test`. La L3 de UT se detiene si un año anterior al máximo no trae 12 meses.
-7. Commitear `manifiesto.csv` y `08_vintages.csv`. Límite declarado: una revisión de un año ya
+7. Si entró el primer archivo de un año nuevo, actualizar `fin` de `UT.DEMANDA_ELEC.GWH.NSA.M` en
+   `catalogos/03_series.csv`: `make trace` falla si los años con vintage en `08_vintages.csv` no
+   cubren `inicio..fin`. Correr `make trace` y asentar la corrida en
+   `doc/bitacora_verificaciones.md`, en el mismo commit (regla 8).
+8. Commitear `manifiesto.csv` y `08_vintages.csv`. Límite declarado: una revisión de un año ya
    cerrado en L0 no se detecta.
 
-Hasta que el código del mecanismo de UT esté en `main` (ver «Estado de la implementación» en la
-nota de ADR-007), no correr el paso 4: `ut.R` y `ut_demanda_serie.R` aún tienen valores fijos de 2026.
+Estado al 2026-09-30: hasta que el código del mecanismo de UT esté en `main` (ver «Estado de la
+implementación» en la nota de ADR-007), no correr el paso 4: `ut.R` y `ut_demanda_serie.R` aún
+tienen valores fijos de 2026.
