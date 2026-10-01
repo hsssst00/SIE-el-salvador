@@ -505,3 +505,24 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
   `mapa_vintage_por_anio()` en `tests/test-vintage-lib.R`), código de salida 0.
 - Notas: corrida ejecutada por Claude Code (Opus 5.5) contra el árbol local de Harold, con
   `data/L0_raw/` presente.
+
+## 2026-09-30 — `mapa_vintage_por_anio()` toma el último vintage de cada año (recapturas de UT)
+
+- **Cambio:** `mapa_vintage_por_anio()` (`src/transformacion/vintage_lib.R`) deja de detenerse ante
+  un año con más de un vintage y toma el último registrado de ese año, que es la regla de
+  «vigente = última fila» aplicada por año (ADR-007, nota del 2026-09-30). La rama CSV por año de
+  `verificar_fuente_celda.R` la usa sin cambios propios. El resultado queda ordenado por año.
+- `make trace` (invocado desde PowerShell, `make` de Rtools45, R 4.6.1, renv por `.Rprofile`) →
+  **106 PASS / 0 FAIL / 0 NO_VERIFICABLE / 0 FUERA_DE_ALCANCE** (de 106), código de salida 0.
+  UT: «25 archivos anuales .csv (2002-2026), uno por vintage: checksum, año del nombre y
+  encabezado "MES,,,GWH,," coinciden en todos». Idéntico a la corrida del 2026-09-23: con un
+  vintage por año en la L0 actual, la resolución no cambia.
+- **Alcance de esta corrida:** no ejercita la rama nueva. En `data/L0_raw/` todavía no hay ninguna
+  recaptura de UT, así que cada año tiene un solo vintage. El caso de varios vintages en un año lo
+  cubren `tests/test-vintage-lib.R` y `tests/test-ut-serie.R`, con catálogos y archivos sintéticos.
+- `make master` sobre la L0 actual (sin capturas nuevas) → los 10 archivos de `L1_staging/` y los
+  19 de `L3_master/` quedan idénticos por SHA-256 sin CR a la referencia tomada antes de tocar
+  nada (29 de 29; UT incluida).
+- `make test` → **946 PASS / 0 FAIL / 0 WARN / 0 SKIP**, código de salida 0.
+- Notas: corrida ejecutada por Claude Code (Sonnet 5.5) contra el árbol local de Harold, con
+  `data/L0_raw/` presente. No requirió cambios al verificador.

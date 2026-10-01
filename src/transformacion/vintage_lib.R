@@ -31,12 +31,19 @@
 # 08_vintages.csv y la fila de 03_series.csv). La dimension bitemporal de esta serie es por lo
 # tanto de grano ANUAL y de fecha APROXIMADA; Fase 4 debe tratarla como tal si evalua con datos
 # tal-como-se-conocian.
+#
+# RECAPTURAS DE UT (2026-09-30, ADR-007, nota de seguimiento de esa fecha): desde la primera
+# ventana trimestral un mismo año puede tener varios vintages -- el año en curso gana meses, un
+# año revisado se vuelve a bajar --, y cuenta el ULTIMO registrado de cada año, la misma
+# convencion de "vigente = ultima fila" aplicada por año. mapa_vintage_por_anio() ya no se
+# detiene ante un año con mas de un vintage.
 
 #' Lee catalogos/08_vintages.csv. Separada en su propia funcion para que
 #' tests/test-vintage-lib.R pueda pasarle un data.frame sintetico a las funciones de abajo sin
-#' tocar disco.
-leer_vintages <- function() {
-  read.csv(here::here("catalogos", "08_vintages.csv"), stringsAsFactors = FALSE, na.strings = "")
+#' tocar disco. `ruta` solo se cambia para leer un catalogo que no es el del repo (el repo de
+#' mentira de tests/test-ut-captura.R).
+leer_vintages <- function(ruta = here::here("catalogos", "08_vintages.csv")) {
+  read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
 }
 
 #' publicacion_id declarado en catalogos/03_series.csv para una serie_id. Pura -- recibe el
@@ -101,8 +108,10 @@ agregar_vintage_por_anio <- function(serie, publicacion_id, vintages) {
 #' ARCHIVO POR AÑO. Separado de agregar_vintage_por_anio() el 2026-09-23 para que
 #' src/validacion/verificar_fuente_celda.R resuelva que archivo de L0 corresponde a cada año con
 #' la MISMA regla que usa L3 para etiquetar la columna vintage_id, en vez de repetirla. Falla
-#' visible si la publicacion no tiene vintages, si algun `periodo_referencia_max` no arranca con
-#' un año, o si hay mas de un vintage para el mismo año. Pura.
+#' visible si la publicacion no tiene vintages o si algun `periodo_referencia_max` no arranca con
+#' un año. Con varios vintages para un mismo año (recapturas: el año en curso gana meses, un año
+#' revisado se vuelve a bajar) toma el ULTIMO registrado de ese año, en el orden de las filas de
+#' 08_vintages.csv (append-only). El resultado va ordenado por año. Pura.
 mapa_vintage_por_anio <- function(publicacion_id, vintages) {
   filas <- vintages[vintages$publicacion_id == publicacion_id, ]
   if (nrow(filas) == 0) {
@@ -115,14 +124,9 @@ mapa_vintage_por_anio <- function(publicacion_id, vintages) {
          "no arranca con un año de 4 digitos en todas sus filas -- esta resolucion por año ",
          "exige esa convencion.")
   }
-  duplicado <- anyDuplicated(anio_vintage)
-  if (duplicado > 0) {
-    stop("FALLO VISIBLE ['", publicacion_id, "']: hay mas de un vintage para el año ",
-         anio_vintage[duplicado], " en catalogos/08_vintages.csv -- la resolucion por año ",
-         "exige un archivo por año (si la publicacion pasa a tener revisiones dentro del mismo ",
-         "año, esta serie necesita la resolucion por fila, no por año).")
-  }
-  setNames(filas$vintage_id, anio_vintage)
+  ultimo_del_anio <- !duplicated(anio_vintage, fromLast = TRUE)
+  mapa <- setNames(filas$vintage_id[ultimo_del_anio], anio_vintage[ultimo_del_anio])
+  mapa[order(names(mapa))]
 }
 
 #' Agrega una columna `vintage_id` que varia por fila segun `publicacion_id_por_fila` (vector
