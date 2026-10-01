@@ -84,21 +84,20 @@ PUBLICACIONES_PIB <- c(
 series <- read.csv("catalogos/03_series.csv", stringsAsFactors = FALSE, na.strings = "")
 series <- series[series$publicacion_id %in% PUBLICACIONES_PIB, ]
 
-vintages <- read.csv("catalogos/08_vintages.csv", stringsAsFactors = FALSE, na.strings = "")
-
-archivo_de_publicacion <- function(pub_id) {
-  fila <- vintages[vintages$publicacion_id == pub_id, ]
-  if (nrow(fila) != 1) {
-    stop("FALLO VISIBLE: se esperaba exactamente 1 vintage para ", pub_id,
-         ", se encontraron ", nrow(fila))
-  }
-  file.path("data/L0_raw", fila$archivo_raw)
-}
+# Seleccion del archivo de L0: archivo_l0_vigente() (vintage_lib.R). Sin conjunto es el vintage
+# vigente de siempre; con SIE_CONJUNTO (make master CONJUNTO=... SALIDA=...), el que el conjunto
+# declara, con su sha256 verificado al usarse (conjunto_lib.R).
+# Cambio de comportamiento (2026-09-30, PR-3): este extractor exigia EXACTAMENTE 1 vintage por
+# publicacion (`nrow(fila) != 1`) y se rompia en cuanto se capturaba un segundo vintage del PIB.
+# Ahora toma la ultima fila, como los otros siete extractores; solo cambia el caso que antes fallaba.
+source(here::here("src", "transformacion", "conjunto_lib.R"))
+vintages <- leer_vintages()
+conjunto <- conjunto_activo()
 
 resultados <- vector("list", nrow(series))
 for (i in seq_len(nrow(series))) {
   fila <- series[i, ]
-  path <- archivo_de_publicacion(fila$publicacion_id)
+  path <- archivo_l0_vigente(fila$publicacion_id, conjunto, vintages)
   if (!file.exists(path)) {
     stop("FALLO VISIBLE: archivo L0 ausente para ", fila$serie_id, ": ", path)
   }
@@ -129,9 +128,9 @@ if (n_series_obtenidas != n_series_esperadas) {
        n_series_obtenidas)
 }
 
-dir.create("data/L1_staging", showWarnings = FALSE, recursive = TRUE)
+dir.create(ruta_capa("L1_staging"), showWarnings = FALSE, recursive = TRUE)
 largo <- largo[order(largo$serie_id, largo$periodo), ]
-write.csv(largo, "data/L1_staging/BCR_PIB_series_largo.csv", row.names = FALSE, na = "")
+write.csv(largo, ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"), row.names = FALSE, na = "")
 
 cat("OK:", nrow(largo), "observaciones,", n_series_obtenidas, "series ->",
-    "data/L1_staging/BCR_PIB_series_largo.csv\n")
+    ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"), "\n")

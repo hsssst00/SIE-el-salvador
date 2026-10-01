@@ -42,18 +42,23 @@
 source(here::here("src", "transformacion", "l3_predictores_reglas.R"))
 source(here::here("src", "transformacion", "vintage_lib.R"))
 source(here::here("src", "transformacion", "ut_demanda_lib.R"))
+source(here::here("src", "transformacion", "conjunto_lib.R"))
 
 vintages_catalogo <- leer_vintages()
 
+# Con SIE_CONJUNTO (make master CONJUNTO=... SALIDA=...) cada vintage_id sale del conjunto
+# declarado y L1/L3 se leen/escriben bajo SALIDA (ruta_capa()), no bajo data/ (conjunto_lib.R).
+conjunto <- conjunto_activo()
+
 FUENTE_L1 <- list(
-  "BCR.IVAE.VOL.SA.M" = here::here("data", "L1_staging", "BCR_IVAE_series_largo.csv"),
-  "BCR.REMESAS.NOM.NSA.M" = here::here("data", "L1_staging", "BCR_REMESAS_series_largo.csv"),
-  "ONEC.IPC.IDX.NSA.M" = here::here("data", "L1_staging", "ONEC_IPC_series_largo.csv"),
-  "BCR.IPP.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_IPP_series_largo.csv"),
-  "BCR.EXPORT_FOB.NOM.NSA.M" = here::here("data", "L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv"),
-  "BCR.ITCER.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_ITCER_series_largo.csv"),
-  "BCR.IPM.IDX.NSA.M" = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv"),
-  "UT.DEMANDA_ELEC.GWH.NSA.M" = here::here("data", "L1_staging", "UT_DEMANDA_series_largo.csv")
+  "BCR.IVAE.VOL.SA.M" = ruta_capa("L1_staging", "BCR_IVAE_series_largo.csv"),
+  "BCR.REMESAS.NOM.NSA.M" = ruta_capa("L1_staging", "BCR_REMESAS_series_largo.csv"),
+  "ONEC.IPC.IDX.NSA.M" = ruta_capa("L1_staging", "ONEC_IPC_series_largo.csv"),
+  "BCR.IPP.IDX.NSA.M" = ruta_capa("L1_staging", "BCR_IPP_series_largo.csv"),
+  "BCR.EXPORT_FOB.NOM.NSA.M" = ruta_capa("L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv"),
+  "BCR.ITCER.IDX.NSA.M" = ruta_capa("L1_staging", "BCR_ITCER_series_largo.csv"),
+  "BCR.IPM.IDX.NSA.M" = ruta_capa("L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv"),
+  "UT.DEMANDA_ELEC.GWH.NSA.M" = ruta_capa("L1_staging", "UT_DEMANDA_series_largo.csv")
 )
 
 # Series insumo cuyo `vintage_id` se resuelve por AÑO de referencia en vez de por vintage
@@ -68,9 +73,9 @@ FUENTE_L1 <- list(
 # nota de seguimiento del 2026-09-30).
 VINTAGE_POR_ANIO <- "UT.DEMANDA_ELEC.GWH.NSA.M"
 
-ruta_l3 <- function(serie_id) here::here("data", "L3_master", paste0(gsub("\\.", "_", serie_id), ".csv"))
+ruta_l3 <- function(serie_id) ruta_capa("L3_master", paste0(gsub("\\.", "_", serie_id), ".csv"))
 
-dir.create(here::here("data", "L3_master"), showWarnings = FALSE, recursive = TRUE)
+dir.create(ruta_capa("L3_master"), showWarnings = FALSE, recursive = TRUE)
 
 transformaciones <- read.csv(here::here("catalogos", "04_transformaciones.csv"), stringsAsFactors = FALSE, na.strings = "")
 transformaciones <- transformaciones[transformaciones$script_path == "src/transformacion/l3_predictores.R", ]
@@ -118,7 +123,7 @@ vintage_de_insumo <- function(serie_id) {
   if (exists(serie_id, envir = vintage_registro, inherits = FALSE)) {
     return(get(serie_id, envir = vintage_registro, inherits = FALSE))
   }
-  vid <- vintage_vigente(publicacion_de_insumo(serie_id), vintages_catalogo)
+  vid <- vintage_vigente(publicacion_de_insumo(serie_id), vintages_catalogo, conjunto)
   assign(serie_id, vid, envir = vintage_registro)
   vid
 }
@@ -144,7 +149,7 @@ con_vintage <- function(serie, serie_ids) {
          "cuales una tiene vintage anual necesita una regla explicita (hoy no existe ese ",
          "caso en la matriz).")
   }
-  agregar_vintage_por_anio(serie, publicacion_de_insumo(por_anio), vintages_catalogo)
+  agregar_vintage_por_anio(serie, publicacion_de_insumo(por_anio), vintages_catalogo, conjunto)
 }
 
 leer_l1 <- function(serie_id) {
