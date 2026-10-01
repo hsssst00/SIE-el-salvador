@@ -396,3 +396,67 @@ dos consecuencias de lo que la política logró hasta ahora.
 La restricción que ya estaba declarada para UT se mantiene: sus 25 vintages anuales tienen
 fecha de publicación sintética, y en cualquier corrida real-time su dimensión de publicación
 tiene grano anual.
+
+## Nota de seguimiento — cadencia de captura mensual y mecanismo de captura de UT (2026-09-30)
+
+**Disparador.** La captura prospectiva ya tiene un consumidor concreto (nota del 2026-09-24), pero
+la política no decía *cuándo* se captura ni cómo se vuelve a capturar UT. Sobre lo primero, la nota
+del 2026-09-09 dejó los `CAMBIO` de `make raw` como cola, sin ritmo. Sobre lo segundo, la L0 de UT
+son 25 CSV anuales que no tienen verificación en vivo (están en `.EXCLUIDAS` de
+`scripts/verificar_l0.R`), así que nada avisa cuándo toca volver a bajarlos. Decisiones de Harold,
+2026-09-30.
+
+**D1 — Cadencia de captura de L0: mensual.** Una ventana fija, los días 1 a 3 de cada mes, captura
+todo lo que el BCR publicó el mes anterior: `make raw` detecta y `descargar_*()` registra cada
+`CAMBIO`. El motivo es el de la sección Decisión y el de la nota del 2026-08-12: el portal sirve en
+cada URL solo el vintage vigente, y un vintage mensual del BCR que no se archiva no se puede
+recuperar. Se descartaron dos alternativas. La captura trimestral atada al PIB deja pasar los
+vintages mensuales intermedios de los predictores. La captura por evento no tiene fecha, y depende
+de que alguien actúe sobre cada `CAMBIO` cuando aparece. La ventana mensual es el ritmo real de
+publicación del BCR y se corre una vez por mes, sobre las publicaciones con `CAMBIO`: no contradice
+la regla 9 de `CLAUDE.md`, que prohíbe la captura en bucle y la recolección exhaustiva o repetida.
+
+**D2 — UT: captura manual y trimestral.** El `robots.txt` de ut.com.sv prohíbe el scraping y la
+regla 9 de `CLAUDE.md` no admite evadirlo, de modo que UT no se automatiza. Harold baja un CSV por
+año desde el formulario de Reportes Estadísticos y lo registra con `src/adquisicion/ut.R`, cuya
+función recibe un archivo ya bajado y no hace ningún fetch.
+
+1. **Frecuencia trimestral**, en las ventanas de enero, abril, julio y octubre. En cada una se
+   bajan el año en curso y todos los años anteriores que en L0 todavía no llegan a diciembre
+   (normalmente uno). Sin esa segunda parte el año `a` nunca se cerraría, porque en la ventana de
+   enero de `a+1` el año en curso no tiene datos. Si UT publica con rezago y diciembre aún no está
+   el 1-3 de enero, la ventana de abril vuelve a bajar ese año. Los años que en L0 ya llegan a
+   diciembre no se vuelven a bajar.
+2. **Límite que se declara.** Una revisión de un año ya cerrado no se detecta: nadie vuelve a
+   mirarlo. Es el costo de no pedir cada ventana los 25 años.
+3. **Identidad del vintage.** La `fecha_publicacion` sintética es el último día del
+   `periodo_referencia_max`, que sale del contenido del archivo y no del año del nombre. Es la regla
+   de los 25 vintages actuales, generalizada: 31 de diciembre para un año completo y el fin del
+   último mes con dato para uno parcial. Dos casos:
+   - Si ese `vintage_id` ya existe (archivo revisado sin meses nuevos), se usa la fecha de captura
+     y el motivo va a `notas_vintage`.
+   - Si el archivo trae los mismos meses y valores GWH que el último vintage de su año, no se
+     registra uno nuevo: solo se informa. «Idéntico» se juzga por contenido y no por el hash del
+     archivo: cada CSV de UT trae «Fecha y hora del Reporte» con precisión de minuto, así que su
+     hash cambia en cada descarga aunque los datos no cambien, y con el hash ninguna recaptura
+     daría «idéntico». Se ignoran esa hora y el estilo de fin de línea. Precisión que Harold fijó
+     el 2026-09-30 al implementarlo; no cambia los hashes ya registrados ni ningún esquema.
+4. **Aviso y guarda.** `make raw` lista a UT como `MANUAL_PENDIENTE`, con los días desde la última
+   captura (según `fecha_descarga` del manifiesto) y los años anteriores al actual que no llegan a
+   diciembre. Sale 0, como un `CAMBIO`. La L3 de UT se detiene con `stop()` si un año anterior al
+   máximo no trae 12 meses. La guarda equivalente de la rama anual del motor (F4-34) se implementa
+   aparte.
+
+**Consecuencia sobre la resolución por año.** Con recapturas, un mismo año tendrá más de un vintage.
+`mapa_vintage_por_anio()` pasa de detenerse ante eso a tomar el último registrado de cada año (misma
+convención de «vigente = última fila» de la nota del 2026-08-28).
+
+**Estado de la implementación.** Esta nota fija la política; el código que la cumple llega en una
+entrega posterior. Hasta entonces `src/adquisicion/ut.R` y `src/transformacion/ut_demanda_serie.R`
+siguen con valores fijos de 2026 (periodo máximo `2026-M07`, 295 filas esperadas) y una recaptura de
+UT fallaría de forma visible, no silenciosa: no se debe correr una captura de UT antes de esa entrega.
+
+**Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. La estrategia híbrida, el
+eje bitemporal y el alcance del rescate retrospectivo quedan como están. Tampoco cambia que la
+`fecha_publicacion` de UT es sintética: su dimensión de publicación sigue teniendo grano anual
+(nota del 2026-09-24).
