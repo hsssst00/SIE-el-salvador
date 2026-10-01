@@ -28,14 +28,18 @@ library(dplyr)
 source(here::here("src", "transformacion", "vintage_lib.R"))
 source(here::here("src", "transformacion", "ut_demanda_lib.R"))
 
+source(here::here("src", "transformacion", "conjunto_lib.R"))
+
+# Con SIE_CONJUNTO (make master CONJUNTO=... SALIDA=...) cuenta el vintage que el conjunto declara
+# para cada año, no el último registrado (conjunto_lib.R).
 serie <- construir_serie_ut(
   vintages = leer_vintages(),
-  manifiesto = read.csv(here::here("data", "L0_raw", "manifiesto.csv"),
-                        stringsAsFactors = FALSE, colClasses = "character"),
-  dir_l0 = here::here("data", "L0_raw")
+  manifiesto = leer_manifiesto(here::here("data", "L0_raw")),
+  dir_l0 = here::here("data", "L0_raw"),
+  conjunto = conjunto_activo()
 )
 
-dir.create("data/L1_staging", showWarnings = FALSE, recursive = TRUE)
+dir.create(ruta_capa("L1_staging"), showWarnings = FALSE, recursive = TRUE)
 
 # Esquema largo (serie_id, periodo, valor, provisional) -- remediacion del hallazgo A1 del
 # checklist de cierre de Fase 3 (2026-09-22): hasta acá esta serie escribía
@@ -55,7 +59,7 @@ serie_larga <- data.frame(
   provisional = FALSE,
   stringsAsFactors = FALSE
 )
-ruta_salida <- "data/L1_staging/UT_DEMANDA_series_largo.csv"
+ruta_salida <- ruta_capa("L1_staging", "UT_DEMANDA_series_largo.csv")
 write.csv(serie_larga, ruta_salida, row.names = FALSE)
 
 cat("OK:", nrow(serie_larga), "filas,", min(serie$anio), "-", max(serie$anio),

@@ -21,32 +21,33 @@
 # precios corrientes y no tiene equivalente en una serie predictora aislada.
 
 source(here::here("src", "validacion", "l2_serie_larga_reglas.R"))
+source(here::here("src", "transformacion", "conjunto_lib.R"))  # ruta_capa(): L1/L2 bajo SALIDA con un conjunto activo
 
 # publicacion_id (03_series.csv) -> archivo L1 correspondiente. Mismo universo de siete series
 # que src/transformacion/l3_predictores.R (ver FUENTE_L1 ahí), indexado por publicacion_id en
 # vez de por serie_id porque acá el filtro de catálogo es por publicación, no por serie.
 PREDICTORES <- list(
   list(publicacion_id = "BCR.IVAE.VIGENTE",
-       archivo = here::here("data", "L1_staging", "BCR_IVAE_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_IVAE_series_largo.csv")),
   list(publicacion_id = "BCR.REMESAS_FAMILIARES_MENSUAL",
-       archivo = here::here("data", "L1_staging", "BCR_REMESAS_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_REMESAS_series_largo.csv")),
   list(publicacion_id = "ONEC.IPC.BASE_2009",
-       archivo = here::here("data", "L1_staging", "ONEC_IPC_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "ONEC_IPC_series_largo.csv")),
   list(publicacion_id = "BCR.IPP",
-       archivo = here::here("data", "L1_staging", "BCR_IPP_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_IPP_series_largo.csv")),
   list(publicacion_id = "BCR.BALANZA_COMERCIAL",
-       archivo = here::here("data", "L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_BALANZA_COMERCIAL_series_largo.csv")),
   list(publicacion_id = "BCR.ITCER",
-       archivo = here::here("data", "L1_staging", "BCR_ITCER_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_ITCER_series_largo.csv")),
   list(publicacion_id = "BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR",
-       archivo = here::here("data", "L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv")),
+       archivo = ruta_capa("L1_staging", "BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv")),
   list(publicacion_id = "UT.DEMANDA_TOTAL_MENSUAL",
-       archivo = here::here("data", "L1_staging", "UT_DEMANDA_series_largo.csv"))
+       archivo = ruta_capa("L1_staging", "UT_DEMANDA_series_largo.csv"))
 )
 
 catalogo_completo <- read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
 
-dir.create(here::here("data", "L2_validated"), showWarnings = FALSE, recursive = TRUE)
+dir.create(ruta_capa("L2_validated"), showWarnings = FALSE, recursive = TRUE)
 
 errores_totales <- character(0)
 
@@ -63,7 +64,7 @@ for (p in PREDICTORES) {
   pointblank::export_report(
     resultado$agente,
     filename = reporte_html,
-    path = here::here("data", "L2_validated"),
+    path = ruta_capa("L2_validated"),
     quiet = TRUE
   )
 

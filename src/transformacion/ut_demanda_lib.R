@@ -172,7 +172,9 @@ validar_anios_cerrados_ut <- function(periodos, etiqueta = "UT.DEMANDA_ELEC.GWH.
   invisible(TRUE)
 }
 
-#' Serie mensual de UT a partir del archivo de L0 del vintage vigente de CADA año. `vintages` es
+#' Serie mensual de UT a partir del archivo de L0 del vintage vigente de CADA año (o, con
+#' `conjunto`, del que el conjunto declara para cada año; el «año máximo» es entonces el del
+#' conjunto, y el sha256 de cada archivo se verifica al usarlo). `vintages` es
 #' el contenido de 08_vintages.csv, `manifiesto` el de manifiesto.csv y `dir_l0` el directorio de
 #' los archivos. Devuelve data.frame(anio, mes, periodo, gwh) ordenado. Falla visible si:
 #'   - los años con vintage no son contiguos (un hueco entre el mínimo y el máximo);
@@ -181,8 +183,9 @@ validar_anios_cerrados_ut <- function(periodos, etiqueta = "UT.DEMANDA_ELEC.GWH.
 #'   - algún año no trae los meses esperados (ut_meses_esperados()), lo que incluye un año anterior
 #'     al máximo con menos de 12 meses;
 #'   - hay períodos duplicados.
-construir_serie_ut <- function(vintages, manifiesto, dir_l0, publicacion_id = PUBLICACION_UT) {
-  mapa <- mapa_vintage_por_anio(publicacion_id, vintages)
+construir_serie_ut <- function(vintages, manifiesto, dir_l0, publicacion_id = PUBLICACION_UT,
+                               conjunto = NULL) {
+  mapa <- mapa_vintage_por_anio(publicacion_id, vintages, conjunto)
   anios <- as.integer(names(mapa))
   if (!identical(anios, seq(min(anios), max(anios)))) {
     stop("FALLO VISIBLE ['", publicacion_id, "']: los años con vintage en 08_vintages.csv (",
@@ -199,6 +202,7 @@ construir_serie_ut <- function(vintages, manifiesto, dir_l0, publicacion_id = PU
            nrow(fila), " filas en manifiesto.csv (se espera 1).")
     }
     ruta <- file.path(dir_l0, fila$archivo)
+    if (!is.null(conjunto)) verificar_sha256_l0(vid, vintages, dir_l0, manifiesto)
     if (!file.exists(ruta)) {
       stop("FALLO VISIBLE ['", publicacion_id, "']: no está ", ruta, " (vintage '", vid,
            "', año ", anio, "). Repoblar L0 con `make materializar-l0`.")

@@ -40,7 +40,21 @@ materializar-l0:
 	Rscript scripts/verificar_l0_fisico.R
 
 # Fase 3 — L0 -> L1 -> L2 -> L3, transformaciones y series maestras.
+#
+# Conjunto de vintages declarado (PR-3): `make master CONJUNTO=<ruta.csv> SALIDA=<dir>` construye
+# L1, L2 y L3 con los vintages que declara el CSV (publicacion_id,vintage_id) y los escribe en
+# <dir>/L1_staging, <dir>/L2_validated y <dir>/L3_master, sin tocar la L1/L2/L3 vigentes. Ambas
+# variables se exigen juntas; SALIDA no puede caer en una capa vigente de data/ (se recomienda
+# data/conjuntos/<nombre>/, en .gitignore). Sin ellas, todo igual que siempre. El primer paso
+# valida el conjunto ENTERO antes de escribir nada (src/transformacion/validar_conjunto.R).
+# Los nombres CONJUNTO/SALIDA llegan a los scripts como SIE_CONJUNTO/SIE_SALIDA.
+ifneq ($(strip $(CONJUNTO)$(SALIDA)),)
+export SIE_CONJUNTO := $(CONJUNTO)
+export SIE_SALIDA := $(SALIDA)
+endif
+
 master: validate
+	Rscript src/transformacion/validar_conjunto.R
 	Rscript src/transformacion/extraer_bcr_pib.R
 	Rscript src/transformacion/ut_demanda_serie.R
 	Rscript src/transformacion/extraer_bcr_ivae.R

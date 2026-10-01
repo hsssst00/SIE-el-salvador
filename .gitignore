@@ -8,6 +8,10 @@ data/L4_experiments/*
 !data/L3_master/.gitkeep
 !data/L4_experiments/.gitkeep
 
+# Salidas de make master CONJUNTO=... SALIDA=... (L1/L2/L3 de un conjunto de vintages declarado);
+# ubicacion recomendada para SALIDA: data/conjuntos/<nombre>/ (y los CSV de conjunto, data/conjuntos/*.csv)
+data/conjuntos/*
+
 # L0_raw: archivos crudos no se comprometen directamente (ver ADR-008, hallazgo BCR)
 # Se versiona el manifiesto y los scripts de descarga, no los archivos en sí,
 # salvo que un ADR posterior confirme licencia de redistribución explícita.

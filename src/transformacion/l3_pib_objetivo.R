@@ -18,8 +18,13 @@
 
 source(here::here("src", "transformacion", "l3_pib_objetivo_reglas.R"))
 source(here::here("src", "transformacion", "vintage_lib.R"))
+source(here::here("src", "transformacion", "conjunto_lib.R"))
 
-l1 <- read.csv(here::here("data", "L1_staging", "BCR_PIB_series_largo.csv"),
+# Con SIE_CONJUNTO (make master CONJUNTO=... SALIDA=...) el vintage_id de cada fila sale del
+# conjunto declarado y L1/L3 se leen/escriben bajo SALIDA (ruta_capa()), no bajo data/.
+conjunto <- conjunto_activo()
+
+l1 <- read.csv(ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"),
                 stringsAsFactors = FALSE, na.strings = "")
 series_catalogo <- read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
 vintages <- leer_vintages()
@@ -39,18 +44,18 @@ serie_a_publicacion <- function(serie_ids) {
 }
 
 fuente_por_periodo <- unname(serie_a_publicacion(fuente_pib_nsa_por_periodo(l1, ajuste$sa$periodo)))
-sa_con_vintage <- agregar_vintage_por_fila(ajuste$sa, fuente_por_periodo, vintages)
+sa_con_vintage <- agregar_vintage_por_fila(ajuste$sa, fuente_por_periodo, vintages, conjunto)
 outliers_fuente <- unname(serie_a_publicacion(fuente_pib_nsa_por_periodo(l1, ajuste$outliers$periodo)))
-outliers_con_vintage <- agregar_vintage_por_fila(ajuste$outliers, outliers_fuente, vintages)
-oficial_con_vintage <- agregar_vintage_constante(oficial, resolver_publicacion("BCR.PIB.VOL.SA.Q", series_catalogo), vintages)
+outliers_con_vintage <- agregar_vintage_por_fila(ajuste$outliers, outliers_fuente, vintages, conjunto)
+oficial_con_vintage <- agregar_vintage_constante(oficial, resolver_publicacion("BCR.PIB.VOL.SA.Q", series_catalogo), vintages, conjunto)
 
-dir.create(here::here("data", "L3_master"), showWarnings = FALSE, recursive = TRUE)
+dir.create(ruta_capa("L3_master"), showWarnings = FALSE, recursive = TRUE)
 
-write.csv(sa_con_vintage, here::here("data", "L3_master", "PIB_SA_PROPIO_Q.csv"), row.names = FALSE, na = "")
-write.csv(outliers_con_vintage, here::here("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv"), row.names = FALSE, na = "")
-write.csv(oficial_con_vintage, here::here("data", "L3_master", "PIB_SA_OFICIAL_Q.csv"), row.names = FALSE, na = "")
+write.csv(sa_con_vintage, ruta_capa("L3_master", "PIB_SA_PROPIO_Q.csv"), row.names = FALSE, na = "")
+write.csv(outliers_con_vintage, ruta_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv"), row.names = FALSE, na = "")
+write.csv(oficial_con_vintage, ruta_capa("L3_master", "PIB_SA_OFICIAL_Q.csv"), row.names = FALSE, na = "")
 
 cat("OK: PIB.SA.PROPIO.Q (", nrow(ajuste$sa), " obs, ", nrow(ajuste$outliers),
-    " outlier(es) declarado(s)) -> data/L3_master/PIB_SA_PROPIO_Q.csv\n", sep = "")
+    " outlier(es) declarado(s)) -> ", ruta_capa("L3_master", "PIB_SA_PROPIO_Q.csv"), "\n", sep = "")
 cat("OK: PIB.SA.OFICIAL.Q (", nrow(oficial), " obs, pass-through) -> ",
-    "data/L3_master/PIB_SA_OFICIAL_Q.csv\n", sep = "")
+    ruta_capa("L3_master", "PIB_SA_OFICIAL_Q.csv"), "\n", sep = "")
