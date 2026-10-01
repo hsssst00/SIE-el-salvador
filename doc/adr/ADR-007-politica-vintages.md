@@ -435,8 +435,12 @@ función recibe un archivo ya bajado y no hace ningún fetch.
    último mes con dato para uno parcial. Dos casos:
    - Si ese `vintage_id` ya existe (archivo revisado sin meses nuevos), se usa la fecha de captura
      y el motivo va a `notas_vintage`.
-   - Si el archivo es idéntico por hash al último vintage de su año, no se registra uno nuevo: solo
-     se informa.
+   - Si el archivo trae los mismos meses y valores GWH que el último vintage de su año, no se
+     registra uno nuevo: solo se informa. «Idéntico» se juzga por contenido y no por el hash del
+     archivo: cada CSV de UT trae «Fecha y hora del Reporte» con precisión de minuto, así que su
+     hash cambia en cada descarga aunque los datos no cambien, y con el hash ninguna recaptura
+     daría «idéntico». Se ignoran esa hora y el estilo de fin de línea. Precisión que Harold fijó
+     el 2026-09-30 al implementarlo; no cambia los hashes ya registrados ni ningún esquema.
 4. **Aviso y guarda.** `make raw` lista a UT como `MANUAL_PENDIENTE`, con los días desde la última
    captura (según `fecha_descarga` del manifiesto) y los años anteriores al actual que no llegan a
    diciembre. Sale 0, como un `CAMBIO`. La L3 de UT se detiene con `stop()` si un año anterior al
