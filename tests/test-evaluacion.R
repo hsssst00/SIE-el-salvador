@@ -320,6 +320,18 @@ test_that("UT: la guarda G-1 rechaza meses de un año no cerrado y rezagos_predi
   expect_error(anio_de_periodo("2019/03"), "mal formado")
 })
 
+test_that("UT: la guarda G-1 rechaza un año cerrado con menos de 12 meses (o 4 trimestres)", {
+  m <- .ut_mensual(desde = "2016-M01", hasta = "2018-M12")
+  expect_silent(guarda_recorte(m, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut"))
+  hueco <- m[m$periodo != "2017-M05", ]
+  expect_error(guarda_recorte(hueco, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut"),
+               "^G-1 año incompleto: ut .* origen 2019-Q3 sin sus 12 períodos: 2017 \\(11\\)")
+  q <- data.frame(periodo = ind_a_q(q_a_ind("2017-Q1") + 0:7), valor = 1:8, stringsAsFactors = FALSE)
+  expect_silent(guarda_recorte(q, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut"))
+  expect_error(guarda_recorte(q[-3, ], q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut"),
+               "sin sus 4 períodos: 2017 \\(3\\)")
+})
+
 test_that("UT en el motor: un modelo que pide UT nunca ve el año del origen", {
   vistos <- new.env()
   espia <- list(modelo_id = "PRUEBA.ESPIA_UT", requiere = c("objetivo", "UT.DEMANDA_ELEC.GWH.NSA.M"),

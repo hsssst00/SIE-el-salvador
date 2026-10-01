@@ -148,6 +148,15 @@ guarda_recorte <- function(d, o, rezago = NULL, nombre = "serie", rezago_pib = R
       stop(sprintf("G-1 filtración anual: %s trae %d período(s) de años no cerrados en el origen %s (primero: %s; admite hasta %d, F4-34)",
                    nombre, sum(fuera), ind_a_q(o), d$periodo[which(fuera)[1]], anio_max_cerrado(o)))
     }
+    # Guarda de año completo (ADR-007, captura de UT): un año que el origen trata como cerrado debe
+    # traer todos sus períodos (12 meses o 4 trimestres); un año parcial no es un año cerrado.
+    esperados <- if (grepl("-M", d$periodo[1], fixed = TRUE)) 12L else 4L
+    n_anio <- table(anio_de_periodo(d$periodo))
+    parcial <- n_anio[n_anio != esperados]
+    if (length(parcial) > 0) {
+      stop(sprintf("G-1 año incompleto: %s trae años tratados como cerrados en el origen %s sin sus %d períodos: %s (F4-34, ADR-007)",
+                   nombre, ind_a_q(o), esperados, paste0(names(parcial), " (", parcial, ")", collapse = ", ")))
+    }
     return(invisible(TRUE))
   }
   fuera <- if (is.null(rezago)) {

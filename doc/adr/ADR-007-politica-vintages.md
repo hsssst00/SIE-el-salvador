@@ -445,7 +445,7 @@ función recibe un archivo ya bajado y no hace ningún fetch.
    captura (según `fecha_descarga` del manifiesto) y los años anteriores al actual que no llegan a
    diciembre. Sale 0, como un `CAMBIO`. La L3 de UT se detiene con `stop()` si un año anterior al
    máximo no trae 12 meses. La guarda equivalente de la rama anual del motor (F4-34) se implementa
-   aparte.
+   aparte (2026-10-01: `guarda_recorte()` en `eval_lib.R` detiene el motor, G-1, si un año tratado como cerrado trae menos de 12 meses o 4 trimestres; prueba en `tests/test-evaluacion.R` §13).
 
 **Consecuencia sobre la resolución por año.** Con recapturas, un mismo año tendrá más de un vintage.
 `mapa_vintage_por_anio()` pasa de detenerse ante eso a tomar el último registrado de cada año (misma
