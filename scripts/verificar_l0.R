@@ -89,8 +89,10 @@ source("src/adquisicion/manual_pendiente.R") # estado_manual_pendiente, formatea
 
 .FORMULA_BASE <- "0"  # representacion base del componente vista-serie; uniforme en bcr.R
 
-.mecanismo <- function(fuente) {
-  if (fuente == "BCR") "bcr" else "api"
+# El mecanismo depende de DONDE esta alojada la serie, no de quien la produce: ONEC.IPC.BASE_2009
+# tiene fuente ONEC pero se sirve desde el portal del BCR (ver bcr.R, descargar_onec_ipc_base2009).
+.mecanismo <- function(fuente, url) {
+  if (fuente == "BCR" || startsWith(url, "https://estadisticas.bcr.gob.sv/")) "bcr" else "api"
 }
 
 .refetch <- function(fuente, url) {
@@ -131,7 +133,7 @@ manuales_pendientes <- lapply(
 
 excluidas <- vigentes[vigentes$publicacion_id %in% names(.EXCLUIDAS), ]
 trabajo   <- vigentes[!vigentes$publicacion_id %in% names(.EXCLUIDAS), ]
-trabajo$mecanismo <- vapply(trabajo$fuente, .mecanismo, character(1))
+trabajo$mecanismo <- unname(mapply(.mecanismo, trabajo$fuente, trabajo$url))
 if (.ALCANCE %in% c("api", "bcr")) trabajo <- trabajo[trabajo$mecanismo == .ALCANCE, ]
 trabajo <- trabajo[order(trabajo$mecanismo, trabajo$publicacion_id), ]
 
