@@ -88,3 +88,81 @@ donde un vintage no capturado es irrecuperable (ADR-007), y aun ahí la polític
 ritmo de publicación, no en respuesta inmediata a cada `CAMBIO`. FRED y FMI son recuperables a
 demanda. Se capturan cuando se catalogue una serie suya (Fase 3) o en la próxima ventana de
 captura prospectiva, lo que ocurra primero.
+
+## Nota del 2026-09-30 — corrección, vintages intermedios y procedimiento de las ventanas
+
+Decisiones D1 y D2 de la nota de seguimiento del 2026-09-30 en `doc/adr/ADR-007-politica-vintages.md`.
+
+### Corrección a la nota del 2026-09-09 (sin reescribirla)
+
+La nota «Las 15, en conjunto (2026-09-09)» dice que ningún `CAMBIO` de esa tanda toca una variable
+ya admitida al proyecto. Era cierto el 2026-09-09 y dejó de serlo el 2026-09-16, cuando
+`catalogos/03_series.csv` admitió IVAE, remesas, FOB, IPP, ITCER e IPM. Hoy **4 de los 15 `CAMBIO`
+pendientes alimentan L3**:
+
+| Publicación con `CAMBIO` | Serie(s) de L3 que alimenta |
+|---|---|
+| `BCR.BALANZA_COMERCIAL` | `BCR.EXPORT_FOB.NOM.NSA.M` y `.Q` |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | `BCR.IPM.IDX.NSA.M` y `.Q` |
+| `BCR.ITCER` | `BCR.ITCER.IDX.NSA.M` y `.Q` |
+| `BCR.IVAE.VIGENTE` | `BCR.IVAE.VOL.SA.M` y `.Q` |
+
+Las otras once siguen sin fila en `03_series.csv`. La frase de «Ritmo de captura» («no hay urgencia
+de capturarlas todas de una») sigue valiendo para ellas, no para estas cuatro. Que `BCR.IPP`
+(capturada el 2026-08-26) y las dos que se recapturaron el 2026-09-16 (`BCR.REMESAS_FAMILIARES_MENSUAL`
+y `ONEC.IPC.BASE_2009`) no figuren entre los 15 no las exime de la ventana mensual.
+
+### Posible pérdida de vintages intermedios (hipótesis, no hecho)
+
+El último vintage en L0 de esas cuatro se capturó entre el 2026-08-25 (`BCR.IVAE.VIGENTE`) y el
+2026-08-26 (las otras tres), y el `CAMBIO` se detectó el 2026-09-09. El portal sirve en cada URL
+solo el vintage vigente. Si el BCR ya reemplazó esos archivos más de una vez desde la captura, los
+vintages publicados entre medio **se perdieron** y no hay cómo recuperarlos. No se sabe todavía
+cuántos: la primera ventana lo verifica. Al capturar cada una, comparar el
+`periodo_referencia_max` del vintage nuevo con el del último vintage en L0 (`08_vintages.csv`): si
+avanzó más de un período, hay vintages intermedios no capturados, y se asienta acá con la fecha y
+la publicación. Si avanzó uno solo, no se perdió nada.
+
+### Ventana mensual (BCR y demás publicaciones con `CAMBIO`)
+
+Días 1 a 3 de cada mes. Una sola pasada: no se repite dentro de la ventana (regla 9).
+
+1. `make raw`. Es local: usa navegador headless y sale a la red. El paso offline va primero y debe
+   pasar. El resultado trae los `CAMBIO` con un bloque copiable para la tabla de arriba, y
+   `MANUAL_PENDIENTE` para UT (ver la ventana trimestral).
+2. Por cada `CAMBIO`, capturar con su `descargar_*()` de `src/adquisicion/`, pasando
+   `fecha_publicacion` como `AAAA-MM-01` del mes de publicación conocido de la fuente (convención de
+   `src/adquisicion/bcr.R`; ante duda manda `doc/calendario_divulgacion_bcr.csv`). Si el
+   `vintage_id` resultante ya existe, `registrar_descarga()` se detiene: no se fuerza, se avisa.
+3. Para las cuatro publicaciones de la tabla de arriba, hacer además la comprobación de vintages
+   intermedios (sección anterior).
+4. `make raw` otra vez. Lo capturado debe salir `PASS`; lo que siga en `CAMBIO` es una publicación
+   que se movió durante la ventana, y se deja para la siguiente.
+5. Marcar cada entrada capturada en la tabla de «Entradas» con su `vintage_id`, como dicen las
+   reglas de arriba, y registrar las nuevas con el bloque copiable.
+6. `make master` y `make test` si algo capturado alimenta L3. Commitear `manifiesto.csv` y
+   `08_vintages.csv`; los archivos de L0 no se versionan (ADR-008).
+
+### Ventana trimestral de UT (enero, abril, julio y octubre)
+
+Captura manual: el robots.txt de ut.com.sv prohíbe el scraping y la regla 9 impide evadirlo.
+
+1. `make raw`. UT figura como `MANUAL_PENDIENTE`, con los días desde la última captura y los años
+   anteriores al actual que no llegan a diciembre.
+2. Elegir los años a bajar: el año en curso, más todos los años anteriores que en L0 no llegan a
+   diciembre. En la ventana de enero el año en curso no tiene datos y se omite; en las demás se
+   baja siempre.
+3. Bajar a mano un CSV por año desde el formulario de Reportes Estadísticos de UT (salida CSV).
+4. Registrar cada archivo con `src/adquisicion/ut.R`. La función recibe el archivo ya bajado.
+   Ver en su salida cuál de los tres casos de la regla de identidad se dio: vintage nuevo, fecha de
+   captura por colisión, o idéntico al último del año (no se registra).
+5. `make raw` otra vez: UT sigue como `MANUAL_PENDIENTE` (nunca pasa a `PASS`, no se verifica en
+   vivo), pero con 0 días desde la última captura y sin años anteriores sin diciembre. Si alguno
+   queda, ese año quedó incompleto: o UT aún no publicó los meses que faltan, y se retoma en la
+   ventana siguiente, o el archivo se bajó mal, y se revisa.
+6. `make master` y `make test`. La L3 de UT se detiene si un año anterior al máximo no trae 12 meses.
+7. Commitear `manifiesto.csv` y `08_vintages.csv`. Límite declarado: una revisión de un año ya
+   cerrado en L0 no se detecta.
+
+Hasta que el código del mecanismo de UT esté en `main` (ver «Estado de la implementación» en la
+nota de ADR-007), no correr el paso 4: `ut.R` y `ut_demanda_serie.R` aún tienen valores fijos de 2026.
