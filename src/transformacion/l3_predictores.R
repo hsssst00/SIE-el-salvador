@@ -29,9 +29,9 @@
 # - UT.DEMANDA_ELEC (T011) es el octavo predictor y el primero que NO es del BCR: entra el
 #   2026-09-23 por decision de Harold, enmendando el alcance E1/D3 del cierre de Fase 3, que la
 #   habia dejado admitida en 03_series.csv y en la bateria L2 pero fuera de la matriz. Es la
-#   unica serie insumo de la matriz con mas de un vintage en 08_vintages.csv (25, uno por año
-#   de captura), asi que su columna vintage_id se resuelve por AÑO y no por vintage vigente --
-#   ver VINTAGE_POR_ANIO abajo.
+#   unica serie insumo de la matriz con mas de un vintage en 08_vintages.csv (uno por año
+#   de captura: 25 al 2026-09-23, y mas desde las recapturas trimestrales), asi que su columna
+#   vintage_id se resuelve por AÑO y no por vintage vigente -- ver VINTAGE_POR_ANIO abajo.
 #
 # Salidas en data/L3_master/ (capa generada, no versionada): un CSV por serie_id (mensual o
 # trimestral), con el punto reemplazado por guion bajo -- p.ej. BCR.IVAE.VOL.SA.Q ->
@@ -41,6 +41,7 @@
 
 source(here::here("src", "transformacion", "l3_predictores_reglas.R"))
 source(here::here("src", "transformacion", "vintage_lib.R"))
+source(here::here("src", "transformacion", "ut_demanda_lib.R"))
 
 vintages_catalogo <- leer_vintages()
 
@@ -58,9 +59,13 @@ FUENTE_L1 <- list(
 # Series insumo cuyo `vintage_id` se resuelve por AÑO de referencia en vez de por vintage
 # vigente (ver src/transformacion/vintage_lib.R). El caso general es una publicacion con un
 # solo vintage en 08_vintages.csv, donde ambas resoluciones coinciden. UT es la excepcion:
-# 25 vintages, uno por archivo anual, y su serie L1 se deriva de los 25 -- el vintage vigente
-# etiquetaria con el archivo de 2026 las 288 observaciones mensuales de 2002-2025, que no las
-# produjo (solo las 7 de 2026 le corresponden).
+# un vintage por archivo anual (25 en la captura original, mas las recapturas), y su serie L1 se
+# deriva del ultimo de cada año -- el vintage vigente etiquetaria con el archivo del año maximo
+# las observaciones mensuales de todos los años anteriores, que no las produjo.
+#
+# Estas series ademas pasan por la guarda de año completo (validar_anios_cerrados_ut(), en
+# ut_demanda_lib.R): todo año anterior al maximo trae sus 12 meses, o la L3 se detiene (ADR-007,
+# nota de seguimiento del 2026-09-30).
 VINTAGE_POR_ANIO <- "UT.DEMANDA_ELEC.GWH.NSA.M"
 
 ruta_l3 <- function(serie_id) here::here("data", "L3_master", paste0(gsub("\\.", "_", serie_id), ".csv"))
@@ -150,6 +155,7 @@ leer_l1 <- function(serie_id) {
   }
   l1 <- read.csv(archivo, stringsAsFactors = FALSE, na.strings = "")
   l1 <- l1[l1$serie_id == serie_id, c("periodo", "valor")]
+  if (serie_id %in% VINTAGE_POR_ANIO) validar_anios_cerrados_ut(l1$periodo, serie_id)
   l1[order(l1$periodo), ]
 }
 
