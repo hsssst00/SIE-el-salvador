@@ -108,12 +108,15 @@ test_that("agregar_vintage_por_anio falla de forma visible ante un año sin vint
   expect_error(agregar_vintage_por_anio(serie, "PUB_D", v), "FALLO VISIBLE.*2005")
 })
 
-test_that("agregar_vintage_por_anio falla de forma visible ante dos vintages del mismo año", {
+test_that("agregar_vintage_por_anio, ante dos vintages del mismo año, etiqueta con el ULTIMO registrado", {
+  # Recapturas de UT (ADR-007, nota 2026-09-30): hasta el 2026-09-30 esto era un FALLO VISIBLE
+  # porque "un archivo por año" era el supuesto; ahora un año puede tener varios vintages.
   v <- .vintages_anuales()
-  v <- rbind(v, data.frame(vintage_id = "PUB_D.v2003-06", publicacion_id = "PUB_D",
-                           periodo_referencia_max = "2003-M06", stringsAsFactors = FALSE))
-  serie <- data.frame(periodo = "2003-M01", valor = 1, stringsAsFactors = FALSE)
-  expect_error(agregar_vintage_por_anio(serie, "PUB_D", v), "FALLO VISIBLE.*2003")
+  v <- rbind(v, data.frame(vintage_id = "PUB_D.v2026-10", publicacion_id = "PUB_D",
+                           periodo_referencia_max = "2003-M12", stringsAsFactors = FALSE))
+  serie <- data.frame(periodo = c("2003-M01", "2004-M01"), valor = 1:2, stringsAsFactors = FALSE)
+  expect_equal(agregar_vintage_por_anio(serie, "PUB_D", v)$vintage_id,
+               c("PUB_D.v2026-10", "PUB_D.v2004-07"))
 })
 
 test_that("agregar_vintage_por_anio falla de forma visible si la publicacion no tiene vintages", {
@@ -129,6 +132,35 @@ test_that("mapa_vintage_por_anio devuelve el vintage de cada año, nombrado por 
   mapa <- mapa_vintage_por_anio("PUB_D", .vintages_anuales())
   expect_equal(names(mapa), c("2002", "2003", "2004"))
   expect_equal(unname(mapa[["2004"]]), "PUB_D.v2004-07")
+})
+
+test_that("mapa_vintage_por_anio: con varios vintages en un año gana el ultimo registrado", {
+  v <- .vintages_anuales()
+  # recaptura del año parcial con meses nuevos, y revision de un año cerrado sin meses nuevos
+  # (su vintage_id sale de la fecha de captura): ambos quedan DESPUES en el catalogo append-only.
+  v <- rbind(v, data.frame(vintage_id = c("PUB_D.v2004-09", "PUB_D.v2026-10"),
+                           publicacion_id = "PUB_D",
+                           periodo_referencia_max = c("2004-M09", "2002-M12"),
+                           stringsAsFactors = FALSE))
+  mapa <- mapa_vintage_por_anio("PUB_D", v)
+  expect_equal(names(mapa), c("2002", "2003", "2004"))
+  expect_equal(unname(mapa[["2004"]]), "PUB_D.v2004-09")
+  expect_equal(unname(mapa[["2002"]]), "PUB_D.v2026-10")
+  expect_equal(unname(mapa[["2003"]]), "PUB_D.v2003-12")
+})
+
+test_that("mapa_vintage_por_anio ordena por año aunque el ultimo registrado de un año sea posterior", {
+  v <- .vintages_anuales()
+  v <- rbind(v, data.frame(vintage_id = "PUB_D.v2026-10", publicacion_id = "PUB_D",
+                           periodo_referencia_max = "2002-M12", stringsAsFactors = FALSE))
+  expect_equal(names(mapa_vintage_por_anio("PUB_D", v)), c("2002", "2003", "2004"))
+})
+
+test_that("mapa_vintage_por_anio ignora los vintages de otras publicaciones", {
+  v <- rbind(.vintages_anuales(),
+             data.frame(vintage_id = "PUB_E.v2003-01", publicacion_id = "PUB_E",
+                        periodo_referencia_max = "2003-M01", stringsAsFactors = FALSE))
+  expect_equal(unname(mapa_vintage_por_anio("PUB_D", v)[["2003"]]), "PUB_D.v2003-12")
 })
 
 test_that("mapa_vintage_por_anio falla de forma visible ante un periodo_referencia_max sin año", {

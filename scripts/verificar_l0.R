@@ -14,6 +14,12 @@
 #              compromiso firme. Se reporta fuerte, con un bloque para doc/backlog_captura_
 #              vintages.md, y NO aborta: `make raw` sale 0 si offline paso y no hubo ERROR.
 #   - PASS   -> la fuente sigue sirviendo el mismo vintage.
+#   - MANUAL_PENDIENTE -> (2026-09-30, ADR-007) una publicacion que se captura a mano y de forma
+#              periodica, y que por eso no se puede re-pedir en vivo: hoy UT. Se lista con los
+#              dias desde su ultima captura registrada y los años anteriores al actual que no
+#              llegan a diciembre (src/adquisicion/manual_pendiente.R). Como un CAMBIO, NO aborta
+#              y `make raw` sale 0: es la senal de que toca mirar la ventana trimestral de
+#              doc/backlog_captura_vintages.md, no un defecto de L0.
 # Este script es un MONITOR DE DERIVA, no el certificador de integridad de L0: eso lo hacen
 # los dos checks offline de abajo.
 #
@@ -48,6 +54,7 @@
 # script carga sin errores- sin gastar una sola peticion a ninguna fuente.
 
 source("src/adquisicion/lib_adquisicion.R")  # calcular_sha256_norm, leer_manifiesto
+source("src/adquisicion/manual_pendiente.R") # estado_manual_pendiente, formatear_manual_pendiente
 
 .ALCANCE <- local({
   a <- commandArgs(trailingOnly = TRUE)
@@ -109,6 +116,19 @@ vigentes <- do.call(rbind, lapply(unique(manifiesto$publicacion_id), function(pi
   filas[nrow(filas), ]
 }))
 
+# MANUAL_PENDIENTE: capturas manuales periodicas (hoy UT). Solo lee el manifiesto y el catalogo de
+# vintages: no pide nada a ninguna fuente, asi que corre igual en `plan` y en cualquier alcance.
+manuales_pendientes <- lapply(
+  intersect(PUBLICACIONES_MANUALES_PERIODICAS, manifiesto$publicacion_id),
+  estado_manual_pendiente, manifiesto = manifiesto, vintages = leer_vintages()
+)
+.informar_manuales <- function() {
+  if (length(manuales_pendientes) == 0) return(invisible())
+  message("\n== MANUAL_PENDIENTE (", length(manuales_pendientes), "): captura manual periodica, ",
+          "no se verifica en vivo ==")
+  for (e in manuales_pendientes) message("   ", formatear_manual_pendiente(e))
+}
+
 excluidas <- vigentes[vigentes$publicacion_id %in% names(.EXCLUIDAS), ]
 trabajo   <- vigentes[!vigentes$publicacion_id %in% names(.EXCLUIDAS), ]
 trabajo$mecanismo <- vapply(trabajo$fuente, .mecanismo, character(1))
@@ -131,6 +151,7 @@ if (.SOLO_PLAN) {
   }
   message("\n== Excluidas de la verificacion en vivo (", nrow(excluidas), ") ==")
   for (pid in excluidas$publicacion_id) message("   ", pid, ": ", .EXCLUIDAS[[pid]])
+  .informar_manuales()
   message("\nCobertura: ", nrow(trabajo), " en vivo + ", nrow(excluidas), " excluidas = ",
           nrow(vigentes), " publicacion(es) del manifiesto. Sin huecos por construccion.")
   quit(status = 0)
@@ -191,6 +212,7 @@ message("\n== Resumen (alcance: ", .ALCANCE, ") ==")
 for (i in seq_len(nrow(resultados))) {
   message("   ", formatC(resultados$estado[i], width = -7), resultados$publicacion_id[i])
 }
+.informar_manuales()
 
 n_pass   <- sum(resultados$estado == "PASS")
 n_cambio <- sum(resultados$estado == "CAMBIO")
@@ -221,5 +243,8 @@ message("\nOK verificar-l0: ", n_pass, " PASS, ", n_cambio, " CAMBIO, 0 ERROR (d
                                         "', el criterio de cierre de Fase 2 exige la corrida completa") else "",
         "). ",
         if (n_cambio > 0) paste0(n_cambio, " vintage(s) nuevo(s) por registrar en el backlog; ")
+        else "",
+        if (length(manuales_pendientes) > 0) paste0(length(manuales_pendientes),
+                                                    " captura(s) manual(es) MANUAL_PENDIENTE; ")
         else "",
         "L0 integra frente a la fuente en lo que no cambio.")
