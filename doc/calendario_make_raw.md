@@ -6,10 +6,13 @@ agenda: el procedimiento de cada ventana vive en `doc/backlog_captura_vintages.m
 (secciones «Ventana mensual» y «Ventana trimestral de UT»), y rige la regla 9 de `CLAUDE.md`:
 una sola pasada por ventana, nunca repetida.
 
-**Por qué es local.** El workflow `Aviso de captura (BCR y demás)` falló en su única corrida
-(2026-10-01, 23 ERROR: FRED sin `FRED_API_KEY` en el runner, BCR sin causa confirmada). Hasta
-que se resuelva, no se confía en él como único aviso: el calendario de abajo es el recordatorio
-que sí cuenta.
+**Por qué es local, y por qué no hay GitHub Actions (cerrado el 2026-10-02).** Se intentó un
+workflow mensual de aviso (`Aviso de captura (BCR y demás)`, commit `78376ce`). Su única corrida
+(2026-10-01) dio 23 ERROR: las 5 de FRED por falta de `FRED_API_KEY` en el runner, y las de BCR
+sin causa confirmada (hipótesis: IP de datacenter bloqueada o Chrome en el runner). No se
+profundizó y se retiró: la regla 9 prohíbe evadir un bloqueo, y las capturas son locales de todos
+modos. El recordatorio que cuenta es este calendario; la verificación, `make raw` y
+`make raw-rapido`. Si más adelante se retoma, partir de ese commit.
 
 ## Regla
 
