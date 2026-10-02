@@ -214,8 +214,16 @@ Detalle del 2026-10-02 (prefijos; registrado → observado; el registrado es el 
 Sigue valiendo lo dicho en «Ritmo de captura»: FRED y FMI son recuperables a demanda; ninguna de
 estas ocho tiene fila en `03_series.csv` (verificado el 2026-10-02: el catálogo no tiene ninguna serie de FRED ni FMI).
 
-**UT.** `MANUAL_PENDIENTE`: 37 días desde la última captura registrada (2026-08-26). Octubre es
-mes de su ventana trimestral y **no se hizo**.
+**UT (ventana trimestral de octubre).** Antes de la captura, `MANUAL_PENDIENTE` marcaba 37 días
+desde la última captura registrada (2026-08-26) y ningún año anterior sin diciembre, así que solo
+había que bajar 2026. Archivo de UT con «Fecha y hora del Reporte» 02/10/2026 1.12 PM, datos hasta
+agosto. `registrar_ut_demanda_anual()` lo registró como vintage nuevo
+`UT.DEMANDA_TOTAL_MENSUAL.v2026-08` (`fecha_publicacion` sintética 2026-08-31,
+`periodo_referencia_max` 2026-M08, archivo `UT_demanda_total_2026_2026-10-02.csv`). Avanzó un solo
+mes (M07 → M08): no se perdió ningún vintage intermedio. `ut_demanda_serie.R`: 296 filas (295 + el
+mes nuevo), 2002-2026. `check_l0_integrity` 74 vintages consistentes, `verificar_l0_fisico` 74/74 y
+`make test` 1054 PASS, 0 FAIL. No se corrió `make trace` (paso 7: no entró un año nuevo). El
+verificador de celda no se usó, así que no hay entrada en `doc/bitacora_verificaciones.md`.
 
 **Comprobación de vintages intermedios** (la hipótesis de arriba, ahora con datos): `periodo_
 referencia_max` del vintage nuevo frente al último previo en `08_vintages.csv`.
