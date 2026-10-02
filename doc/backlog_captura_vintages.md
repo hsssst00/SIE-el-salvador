@@ -36,16 +36,16 @@ nota de grupo abajo). El set coincide exactamente con el de la corrida previa de
 
 | Publicación | Detectado | Estado | Acción | Capturado |
 |---|---|---|---|---|
-| `BCR.BALANZA_COMERCIAL` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.ISI` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.ITCER` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.IVAE.VIGENTE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.PANORAMA_BANCO_CENTRAL` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.RESERVAS_INTERNACIONALES_NETAS` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
-| `BCR.SPNF_VIGENTE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
+| `BCR.BALANZA_COMERCIAL` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.BALANZA_COMERCIAL.v2026-09` (2026-10-01) |
+| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.GOBIERNO_CENTRAL_CONSOLIDADO.v2026-09` (2026-10-02) |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR.v2026-09` (2026-10-01) |
+| `BCR.ISI` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.ISI.v2026-09` (2026-10-02) |
+| `BCR.ITCER` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.ITCER.v2026-09` (2026-10-01) |
+| `BCR.IVAE.VIGENTE` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.IVAE.VIGENTE.v2026-09` (2026-10-01) |
+| `BCR.PANORAMA_BANCO_CENTRAL` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.PANORAMA_BANCO_CENTRAL.v2026-09` (2026-10-02) |
+| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.PANORAMA_SOCIEDADES_DEPOSITO.v2026-09` (2026-10-02) |
+| `BCR.RESERVAS_INTERNACIONALES_NETAS` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.RESERVAS_INTERNACIONALES_NETAS.v2026-09` (2026-10-02) |
+| `BCR.SPNF_VIGENTE` | 2026-09-09 | `CAMBIO` | Capturado | `BCR.SPNF_VIGENTE.v2026-09` (2026-10-02) |
 | `FRED.PAYEMS` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
 | `FRED.UNRATE` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
 | `FMI.PCPS.PALLFNF` | 2026-09-09 | `CAMBIO` | Pendiente de captura | — |
@@ -174,3 +174,70 @@ Captura manual: el robots.txt de ut.com.sv prohíbe el scraping y la regla 9 imp
 Estado al 2026-09-30: hasta que el código del mecanismo de UT esté en `main` (ver «Estado de la
 implementación» en la nota de ADR-007), no correr el paso 4: `ut.R` y `ut_demanda_serie.R` aún
 tienen valores fijos de 2026.
+
+## Nota del 2026-10-02 — ventana de octubre
+
+Primera ventana mensual con el procedimiento de arriba. `make raw` completo en dos pasadas, ambas
+el 2026-10-02 (salida de cada una en la sesión; el verificador de celda no se usó, así que no hay
+entrada en `doc/bitacora_verificaciones.md`). Antes, el 2026-10-01, se capturaron 9 series BCR
+(commit `1c08c66`).
+
+**Parte BCR.** Integridad física 71/71 y 18 publicaciones en vivo: 16 `PASS`, 2 `CAMBIO`
+(`BCR.BALANZA_PAGOS_TRIMESTRAL` e `BCR.IPI.VIGENTE`), 0 `ERROR`. Las dos se capturaron ese mismo
+día (commit `7c460bc`). Con la captura del 2026-10-01 y esta, **las 10 publicaciones BCR de la tabla
+de «Entradas» quedan capturadas** (columna «Capturado»), y las cuatro que alimentan L3 también.
+
+**Parte API.** 12 publicaciones en vivo: 4 `PASS` (`BM.WDI.BX_TRF_PWKR_CD_DT`,
+`BM.WDI.NY_GDP_MKTP_KD`, `FMI.BOP`, `FMI.QNEA`), 8 `CAMBIO`, 0 `ERROR`. Siguen **pendientes de
+captura**, con el `sha256_norm` observado el 2026-10-02:
+
+| Publicación | Detectado | Estado | Acción | Capturado |
+|---|---|---|---|---|
+| `FMI.PCPS.PALLFNF` | 2026-10-02 | `CAMBIO` (en la tabla de arriba desde el 2026-09-09) | Pendiente de captura | — |
+| `FMI.PCPS.PFOOD` | 2026-10-02 | `CAMBIO` (ídem) | Pendiente de captura | — |
+| `FMI.PCPS.POILAPSP` | 2026-10-02 | `CAMBIO` (ídem) | Pendiente de captura | — |
+| `FRED.PAYEMS` | 2026-10-02 | `CAMBIO` (ídem) | Pendiente de captura | — |
+| `FRED.UNRATE` | 2026-10-02 | `CAMBIO` (ídem) | Pendiente de captura | — |
+| `FRED.BEA_PIB_EEUU` | 2026-10-02 | `CAMBIO` | Pendiente de captura | — |
+| `FRED.CPIAUCSL` | 2026-10-02 | `CAMBIO` | Pendiente de captura | — |
+| `FRED.INDPRO` | 2026-10-02 | `CAMBIO` | Pendiente de captura | — |
+
+Detalle del 2026-10-02 (prefijos; registrado → observado; el registrado es el de L0 hoy):
+
+- `FMI.PCPS.PALLFNF` `6d64a2cf…` → `f38ef529…`; `FMI.PCPS.PFOOD` `0a5e5018…` → `cb0472cf…`;
+  `FMI.PCPS.POILAPSP` `a87c6118…` → `04d0f81b…`
+- `FRED.BEA_PIB_EEUU` `56593aeb…` → `918267df…`; `FRED.CPIAUCSL` `7c1540ad…` → `cb690091…`;
+  `FRED.INDPRO` `36d66eb5…` → `f2b291c3…`
+- `FRED.PAYEMS` `68dea9ce…` → `2ff38aab…` (el 2026-09-09 era `9d759f6b…`: la fuente se movió otra
+  vez desde entonces); `FRED.UNRATE` `3c730395…` → `4627995a…` (el 2026-09-09 era `5de16554…`)
+
+Sigue valiendo lo dicho en «Ritmo de captura»: FRED y FMI son recuperables a demanda; ninguna de
+estas ocho tiene fila en `03_series.csv` (verificado el 2026-10-02: el catálogo no tiene ninguna serie de FRED ni FMI).
+
+**UT.** `MANUAL_PENDIENTE`: 37 días desde la última captura registrada (2026-08-26). Octubre es
+mes de su ventana trimestral y **no se hizo**.
+
+**Comprobación de vintages intermedios** (la hipótesis de arriba, ahora con datos): `periodo_
+referencia_max` del vintage nuevo frente al último previo en `08_vintages.csv`.
+
+| Publicación | Previo → nuevo | ¿Avanzó más de un período? |
+|---|---|---|
+| `BCR.IVAE.VIGENTE` | M05 → M07 | Sí: falta M06 |
+| `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` | M05 → M07 | Sí: falta M06 |
+| `BCR.BALANZA_COMERCIAL` | M06 → M08 | Sí: falta M07 |
+| `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` | M06 → M08 | Sí: falta M07 |
+| `BCR.PANORAMA_SOCIEDADES_DEPOSITO` | M06 → M08 | Sí: falta M07 |
+| `BCR.SPNF_VIGENTE` | M06 → M08 | Sí: falta M07 |
+| `BCR.ITCER`, `BCR.IPI.VIGENTE`, `BCR.ISI`, `BCR.IPP`, `BCR.PANORAMA_BANCO_CENTRAL`, `BCR.RESERVAS_INTERNACIONALES_NETAS`, `BCR.REMESAS_FAMILIARES_MENSUAL` | un período | No |
+| `BCR.BALANZA_PAGOS_TRIMESTRAL`, `BCR.PIB_T.*` (NSA, SA, NOMINAL) | T1 → T2 | No |
+
+Las seis primeras tienen al menos un período intermedio sin vintage propio en L0. Que el período
+falte no prueba que el BCR haya publicado un vintage distinto en el medio (podría haber saltado de
+un archivo al siguiente sin que el intermedio se sirviera), pero ya no es recuperable: el portal
+sirve solo el vigente. Entre las seis, `BCR.IVAE.VIGENTE`, `BCR.BALANZA_COMERCIAL` y
+`BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR` alimentan L3.
+
+**Herramienta nueva (2026-10-02).** `make raw-rapido` / `make raw-calendario`: precheck barato del
+portal del BCR (calendario + sondeo del último período). No ve revisiones de valores de períodos
+ya publicados, así que no sustituye al `make raw` del paso 1 ni al `PASS` del paso 4. Calendario de
+ventanas: `doc/calendario_make_raw.md`.
