@@ -47,6 +47,14 @@ renv::restore()
 
 Eso reproduce el entorno exacto en cualquier máquina limpia — confirmado en CI sobre `ubuntu-latest`. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile (`renv::snapshot()` a partir de `DESCRIPTION`) por si hace falta regenerarlo tras cambiar el stack de ADR-009.
 
+## Calendario de captura
+
+`make raw` completo se corre a mano, en local, los días 1 a 3 de cada mes (una sola pasada por ventana, regla 9); en enero, abril, julio y octubre se suma la captura trimestral de UT. Próximas ventanas y última cumplida: [`doc/calendario_make_raw.md`](doc/calendario_make_raw.md). Procedimiento: [`doc/backlog_captura_vintages.md`](doc/backlog_captura_vintages.md).
+
+`make raw-rapido` es un precheck barato del portal del BCR (calendario + sondeo del último período); no reemplaza a `make raw`, porque no ve revisiones de valores viejos.
+
+Próxima ventana: **1–3 de noviembre de 2026**.
+
 ## Licencia
 
 Código bajo MIT (`LICENSE`). Documentación bajo CC-BY-4.0 (`LICENSE-docs`). Ver ADR-008 para la política de datos no redistribuibles.

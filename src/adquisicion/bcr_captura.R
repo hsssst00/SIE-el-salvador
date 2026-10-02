@@ -294,3 +294,37 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
        n_variables_con_datos = n_con_datos, n_periodos = meta$n_periodos,
        url = url, capturado_en = Sys.time())
 }
+
+# -----------------------------------------------------------------------------
+# bcr_sondear_ultimo_periodo()
+#   Nivel 2 de `make raw-rapido` (src/adquisicion/verificacion_rapida.R). Carga la pagina de
+#   la publicacion y lee el ultimo periodo que sirve la fuente en /api/rangos/<idPublic>,
+#   SIN cambiar a modo tabular, filtrar ni exportar: no renderiza la tabla. Devuelve
+#   list(id_publicacion, ultimo_periodo) con el periodo en formato 2026-T2 / 2026-M07.
+#   No detecta revisiones de valores de periodos ya publicados (solo make raw completo).
+# -----------------------------------------------------------------------------
+bcr_sondear_ultimo_periodo <- function(url, timeout_s = 60) {
+  b <- ChromoteSession$new()
+  on.exit(try(b$close(), silent = TRUE), add = TRUE)
+  b$go_to(url)
+  .bcr_wait(b, .BCR_BOOT, timeout_s = timeout_s, que = "montaje de vista-serie")
+  id_pub <- .bcr_eval(b, sprintf("%s.data.idPublic", .BCR_CMP))
+  rangos <- fromJSON(.bcr_eval(
+    b, sprintf("fetch('/api/rangos/%s',{headers:{Accept:'application/json'}}).then(r=>r.text())", id_pub),
+    await = TRUE), simplifyVector = FALSE)
+  if (length(rangos) == 0) stop("FALLO VISIBLE: /api/rangos/", id_pub, " no devolvio ningun año.")
+  ultimo <- rangos[[length(rangos)]]
+  simbolos <- unlist(ultimo$periodos$simbolo)
+  if (length(simbolos) == 0) {
+    stop("FALLO VISIBLE: el ultimo año de /api/rangos/", id_pub, " no trae periodos (estructura cambio).")
+  }
+  # /api/rangos trae el mes completo ('Julio', visto en ITCER 2026-10-02); la tabla, la
+  # abreviatura ('Jul') que mapea .bcr_periodo_T(). Solo se traducen los 12 nombres completos;
+  # cualquier otro simbolo sigue fallando visible en .bcr_periodo_T().
+  simbolo <- simbolos[length(simbolos)]
+  meses <- c("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+             "septiembre", "octubre", "noviembre", "diciembre")
+  if (tolower(simbolo) %in% meses) simbolo <- paste0(toupper(substr(simbolo, 1, 1)), tolower(substr(simbolo, 2, 3)))
+  list(id_publicacion = id_pub,
+       ultimo_periodo = paste0(as.integer(ultimo$year), "-", .bcr_periodo_T(simbolo)))
+}

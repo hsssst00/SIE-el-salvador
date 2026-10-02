@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico report validate test audit trace
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico report validate test audit trace
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -18,6 +18,15 @@ setup:
 # levantar un navegador 16 veces.
 raw: raw-fisico
 	Rscript scripts/verificar_l0.R
+
+# Precheck barato del portal del BCR (NO reemplaza a `raw`): nivel 1 por calendario + nivel 2
+# por sondeo del ultimo periodo, sin renderizar tablas. No ve revisiones de valores viejos.
+raw-rapido: raw-fisico
+	Rscript scripts/verificar_l0_rapido.R
+
+# Solo el nivel 1 (calendario): sin red ni navegador.
+raw-calendario:
+	Rscript scripts/verificar_l0_rapido.R calendario
 
 # Solo el disco. Sin red, sin navegador.
 raw-fisico:

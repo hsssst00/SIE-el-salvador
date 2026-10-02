@@ -50,6 +50,11 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
 
 Ver `Makefile`. Objetivos previstos: `make raw | clean | master | eval | report`. Muchos aún no tienen script detrás — no lo inventes de una vez; impleméntalo cuando la fase correspondiente lo requiera, conforme al orden de fases de la senda metodológica (§4).
 
+`make raw-rapido` — precheck barato del portal del BCR (`scripts/verificar_l0_rapido.R`):
+nivel 1 por calendario, nivel 2 por sondeo del último período, sin renderizar tablas;
+`make raw-calendario` es solo el nivel 1 (sin red). No ve revisiones de valores viejos:
+no reemplaza a `make raw`. Una pasada por ventana (regla 9).
+
 `make audit` — factsheet de orientación pre-auditoría (`scripts/auditoria_mecanica.R`):
 conteos de catálogo, integridad referencial cuantitativa, L0/vintages, ADR,
 auditorías, claves canónicas YAML y snapshot de licencias. No es validación — no
