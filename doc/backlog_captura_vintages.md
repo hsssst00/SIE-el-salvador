@@ -171,9 +171,10 @@ Captura manual: el robots.txt de ut.com.sv prohíbe el scraping y la regla 9 imp
 8. Commitear `manifiesto.csv` y `08_vintages.csv`. Límite declarado: una revisión de un año ya
    cerrado en L0 no se detecta.
 
-Estado al 2026-09-30: hasta que el código del mecanismo de UT esté en `main` (ver «Estado de la
-implementación» en la nota de ADR-007), no correr el paso 4: `ut.R` y `ut_demanda_serie.R` aún
-tienen valores fijos de 2026.
+Estado al 2026-10-02: el código del mecanismo de UT está en `main` (commit `c9dbf77`, 2026-09-30) y
+el paso 4 ya se corrió una vez, en la ventana de octubre (ver la nota del 2026-10-02 más abajo y la
+nota de seguimiento del 2026-10-02 de ADR-007). La advertencia del 2026-09-30 («no correr el paso 4»)
+quedó superada.
 
 ## Nota del 2026-10-02 — ventana de octubre
 

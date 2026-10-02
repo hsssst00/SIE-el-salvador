@@ -455,8 +455,45 @@ convención de «vigente = última fila» de la nota del 2026-08-28).
 entrega posterior. Hasta entonces `src/adquisicion/ut.R` y `src/transformacion/ut_demanda_serie.R`
 siguen con valores fijos de 2026 (periodo máximo `2026-M07`, 295 filas esperadas) y una recaptura de
 UT fallaría de forma visible, no silenciosa: no se debe correr una captura de UT antes de esa entrega.
+**Superado el 2026-09-30/2026-10-02:** ese código ya está en `main` y la primera captura trimestral
+se hizo; ver la nota de seguimiento del 2026-10-02 al final de este ADR.
 
 **Lo que esta nota no cambia.** Ninguna decisión de la sección Decisión. La estrategia híbrida, el
 eje bitemporal y el alcance del rescate retrospectivo quedan como están. Tampoco cambia que la
 `fecha_publicacion` de UT es sintética: su dimensión de publicación sigue teniendo grano anual
 (nota del 2026-09-24).
+
+## Nota de seguimiento — el mecanismo de captura de UT está implementado y se ejerció por primera vez (2026-10-02)
+
+**Disparador.** La nota del 2026-09-30 dejó dicho que el código que cumple la política de UT llegaba
+«en una entrega posterior» y que hasta entonces no se debía capturar UT. Esa entrega ocurrió y la
+ventana trimestral de octubre fue su primer uso real. La nota se corrige para que ADR-007 no
+afirme dos cosas opuestas sobre el mismo hecho. Sin decisión nueva: documenta lo hecho.
+
+**Estado de la implementación (reemplaza al párrafo del mismo nombre de la nota del 2026-09-30).**
+Desde el commit `c9dbf77` (2026-09-30), `src/adquisicion/ut.R` y `src/transformacion/ut_demanda_serie.R`
+ya no llevan valores fijos de la captura original (periodo máximo `2026-M07`, 295 filas): el periodo
+máximo sale del contenido del archivo y lo esperado se deriva de `catalogos/08_vintages.csv`.
+`registrar_ut_demanda_anual()` implementa los tres resultados de D2.3 (mismo contenido: no registra;
+contenido distinto: vintage nuevo con fecha sintética; colisión de `vintage_id`: fecha de captura y
+motivo en `notas_vintage`) y rechaza el retroceso (menos meses que el vigente). `make raw` lista a UT
+como `MANUAL_PENDIENTE` y la L3 se detiene si un año anterior al máximo no trae 12 meses (D2.4).
+
+**Primer uso (ventana trimestral de octubre, 2026-10-02).**
+
+- `MANUAL_PENDIENTE` marcaba 37 días desde la última captura registrada (2026-08-26) y ningún año
+  anterior sin diciembre, así que solo había que bajar el año en curso, 2026.
+- Harold bajó el CSV de 2026 del formulario de UT (hora del reporte 02/10/2026 1.12 PM, datos hasta
+  agosto). Se registró con `registrar_ut_demanda_anual()` como `UT.DEMANDA_TOTAL_MENSUAL.v2026-08`:
+  `fecha_publicacion` sintética 2026-08-31, `periodo_referencia_max` 2026-M08, archivo
+  `UT_demanda_total_2026_2026-10-02.csv`. Fue el caso 2 de D2.3 (contenido distinto, `vintage_id`
+  nuevo); no hubo colisión.
+- Avanzó un solo mes (M07 → M08): no se perdió ningún vintage intermedio de UT.
+- Verificación posterior: `check_l0_integrity` 74 vintages consistentes, `verificar_l0_fisico` 74/74,
+  `ut_demanda_serie.R` 296 filas (2002-2026) y `make test` 1054 PASS / 0 FAIL. No se corrió
+  `make trace` (no entró un año nuevo; paso 7 del procedimiento) ni el verificador de celda, así que
+  no hay entrada en `doc/bitacora_verificaciones.md`.
+- Procedimiento y registro operativo: `doc/backlog_captura_vintages.md`.
+
+**Lo que esta nota no cambia.** Ninguna decisión de D1 ni de D2. El límite declarado sigue igual: una
+revisión de un año ya cerrado en L0 no se detecta. El `Estado` del ADR sigue siendo Cerrado.
