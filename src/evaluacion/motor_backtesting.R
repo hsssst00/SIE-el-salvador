@@ -162,6 +162,33 @@ leer_nsa_concat <- function(vintages, objetivo_l3, conjunto = NULL, l1 = NULL) {
   cc[order(q_a_ind(cc$periodo)), ]
 }
 
+#' C-5 (F5-16): L1 no trae vintage_id, así que la parte «L1 vs L3» de G-6 no ve una L1 armada con otro
+#' corte. L3 sale de L1 por ajustar_estacional_propio(concatenar_pib_nsa(L1)) (l3_pib_objetivo.R), y
+#' X-13 propaga cualquier cambio de la NSA a toda la serie: se exige que el `ajuste` recalculado desde
+#' L1 sea idéntico, período por período y sin tolerancia, al SA de L3 (`sa_l3`: periodo, valor) y que
+#' sus AO coincidan con `outliers_l3` (periodo, tipo). Pura salvo el stop().
+verificar_l1_contra_l3 <- function(ajuste, sa_l3, outliers_l3) {
+  p1 <- as.character(ajuste$sa$periodo); p3 <- as.character(sa_l3$periodo)
+  if (!identical(p1, p3)) {
+    stop("C-5: el SA recalculado desde L1 y PIB_SA_PROPIO_Q de L3 no cubren los mismos períodos (L1: ",
+         p1[1], "..", p1[length(p1)], ", ", length(p1), " obs; L3: ", p3[1], "..", p3[length(p3)], ", ",
+         length(p3), " obs): L1 y L3 no salen del mismo corte")
+  }
+  a <- as.numeric(ajuste$sa$valor); b <- as.numeric(sa_l3$valor)
+  dif <- which(is.na(a) | is.na(b) | a != b)
+  if (length(dif)) {
+    stop(sprintf("C-5: el SA recalculado desde L1 difiere del de L3 en %d período(s) (primero %s: %s frente a %s): L1 y L3 no salen del mismo corte",
+                 length(dif), p1[dif[1]], format(a[dif[1]], digits = 17), format(b[dif[1]], digits = 17)))
+  }
+  o1 <- paste(ajuste$outliers$periodo, ajuste$outliers$tipo)
+  o3 <- paste(outliers_l3$periodo, outliers_l3$tipo)
+  if (!identical(o1, o3)) {
+    stop("C-5: los AO del ajuste recalculado desde L1 (", paste(o1, collapse = ", "),
+         ") no coinciden con PIB_SA_PROPIO_Q_outliers.csv (", paste(o3, collapse = ", "), ")")
+  }
+  invisible(TRUE)
+}
+
 # ---------------------------------------------------------------------------------------------
 # Ajuste estacional por origen (F4-09b)
 # ---------------------------------------------------------------------------------------------
@@ -455,6 +482,8 @@ main <- function(exp_ids = character(0)) {
     l1 <- .leer_capa("L1_staging", "BCR_PIB_series_largo.csv")
     insumos$nsa <- leer_nsa_concat(vintages, prop, conjunto, l1 = l1)
     insumos$outliers <- .leer_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv")
+    verificar_l1_contra_l3(ajustar_estacional_propio(concatenar_pib_nsa(l1)),               # C-5
+                           .leer_capa("L3_master", "PIB_SA_PROPIO_Q.csv"), insumos$outliers)
     archivos <- c(archivos, ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"),
                   ruta_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
   }

@@ -81,3 +81,21 @@ test_that("ruta_relativa: relativa a la raíz con /, absoluta si cae fuera", {
   fuera <- tempfile("fuera_")
   expect_identical(ruta_relativa(fuera, raiz), normalizePath(fuera, winslash = "/", mustWork = FALSE))
 })
+
+test_that("C-5: el SA recalculado desde L1 debe ser idéntico al de L3", {
+  per <- ind_a_q(seq.int(q_a_ind("2018-Q1"), q_a_ind("2021-Q4")))
+  sa <- data.frame(periodo = per, valor = 100 + seq_along(per) / 3)
+  out <- data.frame(periodo = c("2020-Q2", "2020-Q3"), tipo = "AO")
+  aj <- list(sa = sa, outliers = out)
+  l3 <- cbind(sa, vintage_id = "PUB.v1"); ol3 <- cbind(out, vintage_id = "PUB.v1")
+  expect_true(verificar_l1_contra_l3(aj, l3, ol3))
+  # una diferencia en la última cifra binaria basta (sin tolerancia)
+  l3b <- l3; l3b$valor[5] <- l3b$valor[5] * (1 + .Machine$double.eps)
+  expect_error(verificar_l1_contra_l3(aj, l3b, ol3), "C-5: el SA recalculado desde L1 difiere del de L3 en 1 período")
+  l3c <- l3; l3c$valor[3] <- NA
+  expect_error(verificar_l1_contra_l3(aj, l3c, ol3), "difiere del de L3")
+  expect_error(verificar_l1_contra_l3(aj, l3[-nrow(l3), ], ol3), "no cubren los mismos períodos")
+  expect_error(verificar_l1_contra_l3(aj, l3, ol3[1, ]), "AO")
+  ol3d <- ol3; ol3d$tipo[2] <- "LS"
+  expect_error(verificar_l1_contra_l3(aj, l3, ol3d), "AO")
+})
