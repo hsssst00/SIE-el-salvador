@@ -9,6 +9,12 @@
 # Uso:  Rscript src/evaluacion/motor_backtesting.R              corre todos los experimentos declarados
 #       Rscript src/evaluacion/motor_backtesting.R F4_BENCH_G1  corre solo los exp_id indicados
 #
+# Corte congelado de Fase 5 (F5-16, decisiones C-1 a C-8 de doc/metodologia/decisiones_fase5.md): el
+# motor exige SIE_CONJUNTO/SIE_SALIDA (make eval CONJUNTO=<corte> SALIDA=<dir>, los mismos de
+# make master) y se detiene con stop() sin ellos (C-3). Las capas L1/L3 de abajo se leen con
+# ruta_capa(), es decir de <SALIDA>/L1_staging y <SALIDA>/L3_master, y el vintage vigente de cada
+# publicación es el que declara el corte.
+#
 # Lee:
 #   data/L3_master/PIB_SA_PROPIO_Q.csv           observado del objetivo primario (F4-20) y R6
 #   data/L3_master/PIB_SA_PROPIO_Q_outliers.csv  AO declarados (ADR-004) para el ajuste por origen
@@ -39,6 +45,7 @@ source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "transformacion", "l3_pib_objetivo_reglas.R"))   # concatenar_pib_nsa(), T001
 source(here::here("src", "transformacion", "vintage_lib.R"))
+source(here::here("src", "transformacion", "conjunto_lib.R"))   # conjunto_activo(), ruta_capa() (F5-16)
 
 # ---------------------------------------------------------------------------------------------
 # Experimentos declarados
@@ -93,6 +100,26 @@ INICIO_HOMOGENEO <- "2005-Q1"         # ADR-003, F4-27
   read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
 }
 
+#' Archivo de una capa generada (L1_staging, L3_master): data/<capa>/ sin conjunto, <SALIDA>/<capa>/ con
+#' él (ruta_capa() de conjunto_lib.R, que falla si CONJUNTO y SALIDA vienen a medias). Toda lectura de
+#' L1/L3 del motor pasa por acá (F5-16).
+.leer_capa <- function(capa, archivo) {
+  ruta <- ruta_capa(capa, archivo)
+  if (!file.exists(ruta)) stop("motor: no existe ", ruta)
+  read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
+}
+
+#' C-3 (F5-16): en Fase 5 la evaluación corre solo contra el corte declarado. Devuelve el conjunto o
+#' se detiene con el comando correcto.
+exigir_conjunto <- function(conjunto) {
+  if (is.null(conjunto)) {
+    stop("C-3 (F5-16): el motor de Fase 5 corre solo contra un corte declarado. Uso:\n",
+         "  make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5\n",
+         "  make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5")
+  }
+  conjunto
+}
+
 #' Registro previo (C8): cada modelo que se corre tiene su YAML, con modelo_id igual al del código.
 verificar_registro_modelos <- function(modelos) {
   for (m in modelos) {
@@ -104,17 +131,18 @@ verificar_registro_modelos <- function(modelos) {
   invisible(TRUE)
 }
 
-#' vintage_id vigente de cada publicación que aparece en una serie de L3.
-vigentes_de <- function(d, vintages) {
+#' vintage_id vigente de cada publicación que aparece en una serie de L3: el último de 08_vintages.csv
+#' o, con `conjunto`, el que el conjunto declara (F5-16).
+vigentes_de <- function(d, vintages, conjunto = NULL) {
   pubs <- unique(vintages$publicacion_id[vintages$vintage_id %in% unique(d$vintage_id)])
   if (!length(pubs)) stop("G-6: ningún vintage_id de la serie está en 08_vintages.csv")
-  vapply(pubs, vintage_vigente, character(1), vintages = vintages)
+  vapply(pubs, vintage_vigente, character(1), vintages = vintages, conjunto = conjunto)
 }
 
 #' Objetivo observado (log-nivel) del vintage vigente, con su vintage_id por período.
-leer_objetivo <- function(archivo, politica, vintages) {
-  d <- .leer_csv("data", "L3_master", archivo)
-  d <- filtrar_vintage(d, politica, vigentes_de(d, vintages))                    # G-6
+leer_objetivo <- function(archivo, politica, vintages, conjunto = NULL) {
+  d <- .leer_capa("L3_master", archivo)
+  d <- filtrar_vintage(d, politica, vigentes_de(d, vintages, conjunto))          # G-6
   if (anyNA(d$valor) || any(d$valor <= 0)) stop("motor: ", archivo, " trae valores ausentes o no positivos")
   i <- q_a_ind(d$periodo)
   if (!identical(i, seq.int(i[1], length.out = length(i)))) stop("motor: ", archivo, " tiene huecos o desorden")
@@ -123,12 +151,12 @@ leer_objetivo <- function(archivo, politica, vintages) {
 
 #' NSA concatenada (T001) desde L1, con el vintage de cada fila, que debe coincidir con el del
 #' observado en L3: si L1 y L3 vienen de vintages distintos el ajuste por origen no es comparable.
-leer_nsa_concat <- function(vintages, objetivo_l3) {
-  l1 <- .leer_csv("data", "L1_staging", "BCR_PIB_series_largo.csv")
+leer_nsa_concat <- function(vintages, objetivo_l3, conjunto = NULL, l1 = NULL) {
+  if (is.null(l1)) l1 <- .leer_capa("L1_staging", "BCR_PIB_series_largo.csv")
   cc <- concatenar_pib_nsa(l1)
   series <- .leer_csv("catalogos", "03_series.csv")
   pub <- vapply(fuente_pib_nsa_por_periodo(l1, cc$periodo), resolver_publicacion, character(1), catalogo_series = series)
-  cc$vintage_id <- vapply(pub, vintage_vigente, character(1), vintages = vintages, USE.NAMES = FALSE)
+  cc$vintage_id <- vapply(pub, vintage_vigente, character(1), vintages = vintages, conjunto = conjunto, USE.NAMES = FALSE)
   m <- merge(cc[, c("periodo", "vintage_id")], objetivo_l3[, c("periodo", "vintage_id")], by = "periodo", all = TRUE)
   if (anyNA(m) || any(m$vintage_id.x != m$vintage_id.y)) stop("G-6: la NSA de L1 y PIB_SA_PROPIO_Q de L3 no son del mismo vintage período a período")
   cc[order(q_a_ind(cc$periodo)), ]
@@ -298,6 +326,14 @@ leer_commit <- function() {
   stop("motor: no se pudo resolver ", ref, " en .git")
 }
 
+#' Ruta relativa a la raíz del repo, con "/", para el manifiesto; las que caen fuera quedan absolutas.
+ruta_relativa <- function(rutas, raiz = here::here()) {
+  r <- normalizePath(raiz, winslash = "/", mustWork = FALSE)
+  p <- normalizePath(rutas, winslash = "/", mustWork = FALSE)
+  dentro <- startsWith(tolower(p), paste0(tolower(r), "/"))
+  ifelse(dentro, substring(p, nchar(r) + 2L), p)
+}
+
 .sha256 <- function(ruta) digest::digest(file = ruta, algo = "sha256")
 .sha256_lf <- function(ruta) {
   b <- readBin(ruta, "raw", n = file.info(ruta)$size)
@@ -401,26 +437,30 @@ registrar_experimentos <- function(filas) {
 main <- function(exp_ids = character(0)) {
   sel <- if (length(exp_ids)) EXPERIMENTOS[EXPERIMENTOS$exp_id %in% exp_ids, ] else EXPERIMENTOS
   if (length(exp_ids) && nrow(sel) != length(unique(exp_ids))) stop("motor: exp_id no declarado: ", paste(setdiff(exp_ids, EXPERIMENTOS$exp_id), collapse = ", "))
+  conjunto <- exigir_conjunto(conjunto_activo())                               # C-3 (F5-16)
   verificar_registro_modelos(modelos_referencia())                              # C8
   commit <- leer_commit()
   vintages <- leer_vintages()
   pol <- unique(sel$vintage)
   if (length(pol) != 1L) stop("motor: una corrida usa una sola política de vintage")
   objetivos <- list()
-  for (ob in unique(sel$objetivo)) objetivos[[ob]] <- leer_objetivo(paste0(ob, ".csv"), pol, vintages)
+  for (ob in unique(sel$objetivo)) objetivos[[ob]] <- leer_objetivo(paste0(ob, ".csv"), pol, vintages, conjunto)
   necesita_sa <- any(sel$sa == "reestimado_en_origen")
   insumos <- list(objetivos = objetivos)
-  archivos <- c(file.path("data", "L3_master", paste0(unique(sel$objetivo), ".csv")),
-                file.path("catalogos", c("03_series.csv", "08_vintages.csv")))
+  # Rutas absolutas de los insumos; el manifiesto las lista relativas a la raíz del repo.
+  archivos <- c(vapply(paste0(unique(sel$objetivo), ".csv"), function(a) ruta_capa("L3_master", a), character(1)),
+                here::here("catalogos", c("03_series.csv", "08_vintages.csv")))
   if (necesita_sa) {
-    prop <- if (!is.null(objetivos$PIB_SA_PROPIO_Q)) objetivos$PIB_SA_PROPIO_Q else leer_objetivo("PIB_SA_PROPIO_Q.csv", pol, vintages)
-    insumos$nsa <- leer_nsa_concat(vintages, prop)
-    insumos$outliers <- .leer_csv("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv")
-    archivos <- c(archivos, file.path("data", "L1_staging", "BCR_PIB_series_largo.csv"),
-                  file.path("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
+    prop <- if (!is.null(objetivos$PIB_SA_PROPIO_Q)) objetivos$PIB_SA_PROPIO_Q else leer_objetivo("PIB_SA_PROPIO_Q.csv", pol, vintages, conjunto)
+    l1 <- .leer_capa("L1_staging", "BCR_PIB_series_largo.csv")
+    insumos$nsa <- leer_nsa_concat(vintages, prop, conjunto, l1 = l1)
+    insumos$outliers <- .leer_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv")
+    archivos <- c(archivos, ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"),
+                  ruta_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
   }
-  archivos <- c(archivos, file.path("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
-  insumos_sha <- vapply(unique(archivos), function(a) .sha256_lf(here::here(a)), character(1))   # F4-31
+  archivos <- c(archivos, here::here("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
+  archivos <- unique(unname(archivos))
+  insumos_sha <- stats::setNames(vapply(archivos, .sha256_lf, character(1), USE.NAMES = FALSE), ruta_relativa(archivos))   # F4-31
   cache_sa <- new.env()
   filas <- list()
   fecha <- Sys.Date()
