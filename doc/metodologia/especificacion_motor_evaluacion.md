@@ -99,6 +99,19 @@ conjunto de información. Esto es lo que hace verdadera la premisa del MCS.
 
 G-1 y G-6 son la razón de existir del motor. Todo lo demás es contabilidad.
 
+**Nota (2026-10-03, F5-16, decisiones C-3 a C-8 de `decisiones_fase5.md`).** Desde Fase 5, la capa de
+lectura de `motor_backtesting.R` agrega cuatro guardas, todas con `stop()`:
+
+- **Corte requerido (C-3).** Sin `SIE_CONJUNTO` (`make eval CONJUNTO=… SALIDA=…`) el motor no corre.
+- **G-6 sobre el corte.** L1 y L3 se leen con `ruta_capa()` (de `<SALIDA>/`), y el vintage vigente de cada
+  publicación es el que declara el corte (`vintage_vigente(…, conjunto)`).
+- **L1 frente a L3 (C-5).** El SA recalculado desde la NSA de L1 debe ser idéntico, valor por valor, al de
+  L3, y los AO deben coincidir.
+- **Fase 4 cerrada (C-8).** Un `exp_id` `F4_*` se rechaza; la reproducción usa `F5_REPRO_*`, con las semillas
+  del experimento que reproduce (C-7).
+
+El token de §4 admite un séptimo campo opcional, `|conjunto=<nombre>@<sha8>` (C-4).
+
 ## 4. Persistencia
 
 ```
