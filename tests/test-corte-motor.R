@@ -128,3 +128,68 @@ test_that("C-4: identidad del corte, con el sha256 sin CR", {
   expect_match(a$etiqueta, TOKEN_PATRON_CONJUNTO)
   expect_error(identidad_conjunto(file.path(d, "no.csv"), salida = d), "C-4: no existe")
 })
+
+test_that("C-6/C-7: F5_REPRO_* repite cada F4_BENCH_* con sus semillas", {
+  expect_identical(nrow(EXPERIMENTOS_FASE5), nrow(EXPERIMENTOS))
+  expect_identical(nrow(EXPERIMENTOS), 13L)
+  expect_identical(EXPERIMENTOS_FASE5$exp_id, sub("^F4_BENCH_", "F5_REPRO_", EXPERIMENTOS$exp_id))
+  expect_identical(EXPERIMENTOS_FASE5$semilla_exp, EXPERIMENTOS$exp_id)
+  expect_identical(EXPERIMENTOS$semilla_exp, EXPERIMENTOS$exp_id)          # en Fase 4, la de siempre
+  otras <- setdiff(names(EXPERIMENTOS), c("exp_id", "semilla_exp"))
+  expect_identical(EXPERIMENTOS_FASE5[, otras], EXPERIMENTOS[, otras])
+  expect_error(experimentos_reproduccion(EXPERIMENTOS_FASE5), "C-6")
+})
+
+test_that("C-8: los exp_id F4_* se rechazan; por defecto corren los de Fase 5", {
+  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_FASE5$exp_id)
+  expect_identical(seleccionar_experimentos(c("F5_REPRO_G3_R6", "F5_REPRO_G1"))$exp_id, c("F5_REPRO_G1", "F5_REPRO_G3_R6"))
+  expect_error(seleccionar_experimentos("F4_BENCH_G1"), "C-8: F4_BENCH_G1 es de Fase 4")
+  expect_error(seleccionar_experimentos("F4_BENCH_G1"), "F5_REPRO_G1", fixed = TRUE)
+  expect_error(seleccionar_experimentos(c("F5_REPRO_G1", "F4_BENCH_G2_R5")), "C-8")
+  expect_error(seleccionar_experimentos("F5_REPRO_G9"), "exp_id no declarado: F5_REPRO_G9")
+})
+
+test_that("C-7: F5_REPRO_G3_R6 reproduce F4_BENCH_G3_R6 salvo exp_id (insumos sintéticos)", {
+  # El mismo objetivo sintético que V12 de verificar_motor_sintetico.R: Δy AR(1) con φ = 0,5 y dos AO en
+  # 2020-Q2/Q3. Con un paseo puro, AR(p)-BIC replica al paseo con deriva y el MCS se detiene.
+  set.seed(20260924L + 12L)
+  per <- ind_a_q(q_a_ind("1990-Q1") + 0:144)
+  dy <- numeric(length(per)); e <- stats::rnorm(length(per), 0, 0.008)
+  for (t in 2:length(per)) dy[t] <- 0.003 + 0.5 * dy[t - 1] + e[t]
+  y <- 4.6 + cumsum(dy)
+  i20 <- match(c("2020-Q2", "2020-Q3"), per); y[i20] <- y[i20] + c(-0.20, -0.08)
+  insumos <- list(objetivos = list(PIB_SA_PROPIO_Q = data.frame(periodo = per, y = y, vintage_id = "SINT.v1", stringsAsFactors = FALSE)),
+                  conjunto = list(etiqueta = "corte_sint@0123abcd"))
+  f4 <- correr_experimento(EXPERIMENTOS[EXPERIMENTOS$exp_id == "F4_BENCH_G3_R6", ], insumos, new.env())
+  f5 <- correr_experimento(EXPERIMENTOS_FASE5[EXPERIMENTOS_FASE5$exp_id == "F5_REPRO_G3_R6", ], insumos, new.env())
+  sin_id <- function(d) { d$exp_id <- NULL; d }
+  for (tb in c("pronosticos", "metricas", "pruebas", "mcs")) {
+    expect_true(all(f5[[tb]]$exp_id == "F5_REPRO_G3_R6"), info = tb)
+    expect_identical(sin_id(f5[[tb]]), sin_id(f4[[tb]]), info = tb)
+  }
+  expect_identical(f5$semillas, f4$semillas)
+  expect_identical(f5$token, f4$token)
+  expect_match(f5$token, "\\|conjunto=corte_sint@0123abcd$")
+  # con otra semilla el MCS sí cambia: la herencia no es trivial
+  otro <- EXPERIMENTOS_FASE5[EXPERIMENTOS_FASE5$exp_id == "F5_REPRO_G3_R6", ]; otro$semilla_exp <- otro$exp_id
+  f5b <- correr_experimento(otro, insumos, new.env())
+  expect_identical(sin_id(f5b$pronosticos), sin_id(f4$pronosticos))     # los benchmarks son deterministas
+  expect_false(identical(f5b$semillas, f4$semillas))
+})
+
+test_that("C-1/C-2: el corte congelado de Fase 5 no cambia y es coherente con los catálogos", {
+  ruta <- here::here("doc", "metodologia", "corte_fase5.csv")
+  b <- readBin(ruta, "raw", n = file.info(ruta)$size)
+  expect_identical(digest::digest(b[b != as.raw(13L)], algo = "sha256", serialize = FALSE),
+                   "901b0f7959b5cc40b82f376f469eaaa80adb931ecfcee4d7624910440021ff17")
+  cj <- leer_conjunto(ruta)
+  expect_identical(nrow(cj), 36L)
+  series <- utils::read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
+  expect_setequal(unique(cj$publicacion_id), unique(stats::na.omit(series$publicacion_id)))
+  v <- leer_vintages()
+  expect_true(all(cj$vintage_id %in% v$vintage_id))
+  expect_identical(vintage_vigente("BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA", v, cj), "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA.v2026-06")
+  expect_identical(vintage_vigente("BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA", v, cj), "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA.v2026-06")
+  expect_identical(vintage_vigente("BCR.PIB_T.SERIE_RETROPOLADA_1990_2005", v, cj), "BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03")
+  expect_identical(identidad_conjunto(ruta, salida = tempdir())$etiqueta, "corte_fase5@901b0f79")
+})

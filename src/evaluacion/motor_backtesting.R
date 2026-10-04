@@ -6,8 +6,9 @@
 # (puras, ejercitadas en CI por tests/ y por verificar_motor_sintetico.R); los modelos, en
 # modelos_referencia.R, declarados antes de la primera corrida en catalogos/06_modelos/.
 #
-# Uso:  Rscript src/evaluacion/motor_backtesting.R              corre todos los experimentos declarados
-#       Rscript src/evaluacion/motor_backtesting.R F4_BENCH_G1  corre solo los exp_id indicados
+# Uso:  Rscript src/evaluacion/motor_backtesting.R               corre los experimentos de Fase 5 declarados
+#       Rscript src/evaluacion/motor_backtesting.R F5_REPRO_G1   corre solo los exp_id indicados
+# Los exp_id F4_* están cerrados (C-8) y se rechazan; Fase 4 se reproduce con F5_REPRO_* (C-6, C-7).
 #
 # Corte congelado de Fase 5 (F5-16, decisiones C-1 a C-8 de doc/metodologia/decisiones_fase5.md): el
 # motor exige SIE_CONJUNTO/SIE_SALIDA (make eval CONJUNTO=<corte> SALIDA=<dir>, los mismos de
@@ -61,9 +62,10 @@ source(here::here("src", "transformacion", "conjunto_lib.R"))   # conjunto_activ
 # directorio. R3 no aplica a G3: su primer target es 2020-Q1 y no tiene submuestra previa.
 
 .exp <- function(exp_id, grupo, objetivo = "PIB_SA_PROPIO_Q", sa = "reestimado_en_origen", ventana = "expansiva",
-                 r3 = FALSE, r4 = FALSE) {
+                 r3 = FALSE, r4 = FALSE, semilla_exp = exp_id) {
   data.frame(exp_id = exp_id, grupo = grupo, objetivo = objetivo, sa = sa, ventana = ventana,
-             vintage = "revision_vigente", perdida = "yoy_pp", r3 = r3, r4 = r4, stringsAsFactors = FALSE)
+             vintage = "revision_vigente", perdida = "yoy_pp", r3 = r3, r4 = r4, semilla_exp = semilla_exp,
+             stringsAsFactors = FALSE)
 }
 EXPERIMENTOS <- rbind(
   .exp("F4_BENCH_G1", "G1", r3 = TRUE, r4 = TRUE),
@@ -80,6 +82,37 @@ EXPERIMENTOS <- rbind(
   .exp("F4_BENCH_G2_R6", "G2", sa = "l3_unico"),
   .exp("F4_BENCH_G3_R6", "G3", sa = "l3_unico")
 )
+
+# Fase 5 (F5-16, decisiones C-6 a C-8). Los F4_* de arriba son los de la corrida de cierre de Fase 4
+# (v0.7.x): siguen declarados porque V12 y tabla_resultados_fase4.R los usan, pero el motor ya no los
+# corre (C-8). Cada F5_REPRO_X repite F4_BENCH_X sobre el corte congelado con las semillas de F4_BENCH_X
+# (semilla_exp, C-7), de modo que sus tablas reproducen las del cierre salvo exp_id y las columnas de
+# densidad, que en el cierre estaban vacías (C-6). Los modelos de Fase 5 se agregan a EXPERIMENTOS_FASE5.
+PATRON_EXP_CERRADOS <- "^F4_"
+
+experimentos_reproduccion <- function(exps) {
+  if (!all(grepl("^F4_BENCH_", exps$exp_id))) stop("C-6: solo se reproducen experimentos F4_BENCH_*")
+  r <- exps
+  r$exp_id <- sub("^F4_BENCH_", "F5_REPRO_", exps$exp_id)
+  r$semilla_exp <- exps$exp_id
+  r
+}
+EXPERIMENTOS_FASE5 <- experimentos_reproduccion(EXPERIMENTOS)
+
+#' Experimentos de una corrida: todos los de Fase 5 sin argumentos, o los `exp_id` pedidos. Un F4_* se
+#' rechaza (C-8): sus directorios de L4 y sus filas de 07 son los del cierre de Fase 4.
+seleccionar_experimentos <- function(exp_ids = character(0), declarados = EXPERIMENTOS_FASE5) {
+  cerrados <- unique(exp_ids[grepl(PATRON_EXP_CERRADOS, exp_ids)])
+  if (length(cerrados)) {
+    stop("C-8: ", paste(cerrados, collapse = ", "), " es de Fase 4, cerrada; sus resultados son los de la corrida ",
+         "de cierre y no se sobrescriben. Para reproducirlos sobre el corte: ",
+         paste(sub("^F4_BENCH_", "F5_REPRO_", cerrados), collapse = ", "))
+  }
+  if (!length(exp_ids)) return(declarados)
+  faltan <- setdiff(exp_ids, declarados$exp_id)
+  if (length(faltan)) stop("motor: exp_id no declarado: ", paste(faltan, collapse = ", "))
+  declarados[declarados$exp_id %in% exp_ids, , drop = FALSE]
+}
 
 MIN_OBS    <- 40L                    # G-4, mínimo de observaciones del objetivo (F4-05)
 ALPHA_MCS  <- 0.10                   # F4-15
@@ -244,6 +277,7 @@ serie_en_origen <- function(ex, o, insumos, cache_sa) {
 #' Corre un experimento y devuelve sus tablas.
 correr_experimento <- function(ex, insumos, cache_sa) {
   token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida, conjunto = insumos$conjunto$etiqueta)   # C-4
+  sem <- if (is.null(ex$semilla_exp)) ex$exp_id else ex$semilla_exp                  # C-7: semillas de F4 en F5_REPRO_*
   if (ex$objetivo == "PIB_SA_OFICIAL_Q" && (ex$sa != "l3_unico" || ex$grupo == "G1")) stop("F4-22: R5 corre solo en G2/G3 y con la serie oficial tal cual")
   if (ex$ventana == "homogenea2005" && ex$grupo == "G1") stop("F4-27: R2 corre solo con los orígenes de G2 y G3")
   obs <- insumos$objetivos[[ex$objetivo]]
@@ -254,7 +288,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   partes <- lapply(origenes, function(o) {
     so <- serie_en_origen(ex, o, insumos, cache_sa)
     estim <- if (ex$ventana == "rodante92") recortar_ventana_rodante(so$sa, VENTANA_RODANTE) else so$sa   # F4-26
-    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id, densidad = TRUE)   # F4-33
+    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = sem, densidad = TRUE)   # F4-33
     base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
     list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1])
   })
@@ -269,7 +303,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
 
   # Tablas de la muestra completa, con el conteo de pares del grupo como guarda (F4-01, F4-05).
   tab <- evaluar_errores(err, ids, ex$exp_id, ex$grupo, ex$perdida,
-                         semilla_mcs = function(h) semilla_de(ex$exp_id, "MCS", h), benchmark = BENCHMARK,
+                         semilla_mcs = function(h) semilla_de(sem, "MCS", h), benchmark = BENCHMARK,
                          gw = ex$ventana == "rodante92", alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
   esperado <- conteo_por_horizonte(pares_evaluables(origenes, DISENO_FASE4$horizontes, obs$periodo[nrow(obs)]))
   n_obs_h <- tapply(tab$metricas$n_pares, tab$metricas$h, unique)
@@ -282,7 +316,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
     tabs <- lapply(subs, function(nm) {
       keep <- SUBMUESTRAS_FASE4[[nm]](err$origen + err$h)
       t_ <- evaluar_errores(err[keep, ], ids, ex$exp_id, ex$grupo, ex$perdida,
-                            semilla_mcs = function(h) semilla_de(ex$exp_id, paste0("MCS|", nm), h), benchmark = BENCHMARK,
+                            semilla_mcs = function(h) semilla_de(sem, paste0("MCS|", nm), h), benchmark = BENCHMARK,
                             alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
       lapply(t_, function(x) cbind(muestra_eval = nm, x, stringsAsFactors = FALSE))
     })
@@ -316,7 +350,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
                          qoq_pp_pronosticado = pu$qoq_pp_pronosticado,
                          vintage_id_objetivo = unname(vint[as.character(pu$origen + pu$h)]), stringsAsFactors = FALSE)
 
-  semillas <- vapply(ids, function(id) semilla_de(ex$exp_id, id, origenes[1]), numeric(1))
+  semillas <- vapply(ids, function(id) semilla_de(sem, id, origenes[1]), numeric(1))
   list(token = token, pronosticos = pron_out, metricas = tab$metricas, pruebas = tab$pruebas, mcs = tab$mcs,
        ajuste_estacional = ajuste, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
        muestra_inicio = partes[[1]]$inicio, muestra_fin = obs$periodo[nrow(obs)],
@@ -412,6 +446,8 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
                                    "  (corte congelado de Fase 5, F5-16; capas leídas de ", conjunto$salida, "/)") else NULL,
     paste0("fecha_corrida: ", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
     "semillas: por (exp_id, modelo_id, origen) con semilla_de() de eval_lib.R (xxhash32); MCS por (exp_id, 'MCS', h), listada en mcs.csv",
+    if (!is.null(ex$semilla_exp) && ex$semilla_exp != ex$exp_id) paste0("semilla_exp: ", ex$semilla_exp,
+      " (C-7: las semillas se derivan de este exp_id, el del experimento de Fase 4 que se reproduce)") else NULL,
     paste0("mcs: T_max, alpha = ", ALPHA_MCS, ", B = ", B_MCS, ", bootstrap estacionario circular, bloque max(h, ceiling(n^(1/3))) (F4-15)"),
     paste0("calibracion: densidad gaussiana plug-in (F4-33) para los modelos con predecir_densidad(): ",
            paste(vapply(Filter(function(m) is.function(m$predecir_densidad), modelos_referencia()), `[[`, character(1), "modelo_id"), collapse = ", "),
@@ -475,8 +511,7 @@ registrar_experimentos <- function(filas) {
 # ---------------------------------------------------------------------------------------------
 
 main <- function(exp_ids = character(0)) {
-  sel <- if (length(exp_ids)) EXPERIMENTOS[EXPERIMENTOS$exp_id %in% exp_ids, ] else EXPERIMENTOS
-  if (length(exp_ids) && nrow(sel) != length(unique(exp_ids))) stop("motor: exp_id no declarado: ", paste(setdiff(exp_ids, EXPERIMENTOS$exp_id), collapse = ", "))
+  sel <- seleccionar_experimentos(exp_ids)                                       # C-8
   conjunto <- exigir_conjunto(conjunto_activo())                               # C-3 (F5-16)
   verificar_registro_modelos(modelos_referencia())                              # C8
   commit <- leer_commit()
