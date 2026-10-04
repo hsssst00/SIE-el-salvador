@@ -99,3 +99,32 @@ test_that("C-5: el SA recalculado desde L1 debe ser idéntico al de L3", {
   ol3d <- ol3; ol3d$tipo[2] <- "LS"
   expect_error(verificar_l1_contra_l3(aj, l3, ol3d), "AO")
 })
+
+test_that("C-4: el token admite un séptimo campo conjunto=<nombre>@<sha8>", {
+  base <- construir_token("expansiva", "G1", "revision_vigente", "reestimado_en_origen", "yoy_pp")
+  tok <- construir_token("expansiva", "G1", "revision_vigente", "reestimado_en_origen", "yoy_pp", conjunto = "corte_fase5@901b0f79")
+  expect_identical(tok, paste0(base, "|conjunto=corte_fase5@901b0f79"))
+  v <- validar_token(tok)
+  expect_identical(v$conjunto, "corte_fase5@901b0f79")
+  expect_identical(v$grupo, "G1")
+  expect_null(validar_token(base)$conjunto)                       # los tokens de Fase 4 siguen valiendo
+  expect_error(validar_token(paste0(base, "|corte=corte_fase5@901b0f79")), "solo puede ser `conjunto=")
+  expect_error(validar_token(paste0(base, "|conjunto=corte_fase5@901B0F79")), "conjunto mal formado")
+  expect_error(validar_token(paste0(base, "|conjunto=corte_fase5")), "conjunto mal formado")
+  expect_error(validar_token(paste0(base, "|conjunto=a b@901b0f79")), "conjunto mal formado")
+  expect_error(validar_token(paste0(tok, "|conjunto=otro@00000000")), "8 campos")
+  expect_error(construir_token("expansiva", "G1", "revision_vigente", "l3_unico", "yoy_pp", conjunto = "x@1"), "conjunto mal formado")
+})
+
+test_that("C-4: identidad del corte, con el sha256 sin CR", {
+  d <- tempfile("id_corte_"); dir.create(d)
+  lf <- file.path(d, "corte_x.csv"); crlf <- file.path(d, "corte_y.csv")
+  writeBin(charToRaw("publicacion_id,vintage_id\nPUB,PUB.v1\n"), lf)
+  writeBin(charToRaw("publicacion_id,vintage_id\r\nPUB,PUB.v1\r\n"), crlf)
+  a <- identidad_conjunto(lf, salida = d); b <- identidad_conjunto(crlf, salida = d)
+  expect_identical(a$sha256, b$sha256)
+  expect_identical(a$sha256, digest::digest("publicacion_id,vintage_id\nPUB,PUB.v1\n", algo = "sha256", serialize = FALSE))
+  expect_identical(a$etiqueta, paste0("corte_x@", substr(a$sha256, 1, 8)))
+  expect_match(a$etiqueta, TOKEN_PATRON_CONJUNTO)
+  expect_error(identidad_conjunto(file.path(d, "no.csv"), salida = d), "C-4: no existe")
+})

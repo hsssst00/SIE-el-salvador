@@ -243,7 +243,7 @@ serie_en_origen <- function(ex, o, insumos, cache_sa) {
 
 #' Corre un experimento y devuelve sus tablas.
 correr_experimento <- function(ex, insumos, cache_sa) {
-  token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida)
+  token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida, conjunto = insumos$conjunto$etiqueta)   # C-4
   if (ex$objetivo == "PIB_SA_OFICIAL_Q" && (ex$sa != "l3_unico" || ex$grupo == "G1")) stop("F4-22: R5 corre solo en G2/G3 y con la serie oficial tal cual")
   if (ex$ventana == "homogenea2005" && ex$grupo == "G1") stop("F4-27: R2 corre solo con los orígenes de G2 y G3")
   obs <- insumos$objetivos[[ex$objetivo]]
@@ -353,6 +353,17 @@ leer_commit <- function() {
   stop("motor: no se pudo resolver ", ref, " en .git")
 }
 
+#' C-4 (F5-16): identidad del corte para el token y el manifiesto. `etiqueta` = nombre del CSV sin
+#' extensión + "@" + los 8 primeros hex del sha256 sin CR (TOKEN_PATRON_CONJUNTO de eval_lib.R).
+identidad_conjunto <- function(ruta_conjunto, salida = Sys.getenv("SIE_SALIDA")) {
+  if (!file.exists(ruta_conjunto)) stop("C-4: no existe el corte ", ruta_conjunto)
+  sha <- .sha256_lf(ruta_conjunto)
+  nombre <- tools::file_path_sans_ext(basename(ruta_conjunto))
+  et <- paste0(nombre, "@", substr(sha, 1, 8))
+  if (!grepl(TOKEN_PATRON_CONJUNTO, et)) stop("C-4: el nombre del corte no cabe en el token: ", et)
+  list(ruta = ruta_relativa(ruta_conjunto), sha256 = sha, etiqueta = et, salida = ruta_relativa(salida))
+}
+
 #' Ruta relativa a la raíz del repo, con "/", para el manifiesto; las que caen fuera quedan absolutas.
 ruta_relativa <- function(rutas, raiz = here::here()) {
   r <- normalizePath(raiz, winslash = "/", mustWork = FALSE)
@@ -367,7 +378,7 @@ ruta_relativa <- function(rutas, raiz = here::here()) {
   digest::digest(b[b != as.raw(13L)], algo = "sha256", serialize = FALSE)
 }
 
-escribir_experimento <- function(ex, res, commit, insumos_sha) {
+escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) {
   dir <- here::here("data", "L4_experiments", ex$exp_id)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   tablas <- list(pronosticos = res$pronosticos, metricas = res$metricas, pruebas = res$pruebas, mcs = res$mcs)
@@ -397,6 +408,8 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
     paste0("objetivo: ", ex$objetivo),
     paste0("commit_hash: ", commit$sha),
     paste0("arbol: ", commit$arbol),
+    if (!is.null(conjunto)) paste0("conjunto: ", conjunto$ruta, "  sha256 sin CR ", conjunto$sha256,
+                                   "  (corte congelado de Fase 5, F5-16; capas leídas de ", conjunto$salida, "/)") else NULL,
     paste0("fecha_corrida: ", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
     "semillas: por (exp_id, modelo_id, origen) con semilla_de() de eval_lib.R (xxhash32); MCS por (exp_id, 'MCS', h), listada en mcs.csv",
     paste0("mcs: T_max, alpha = ", ALPHA_MCS, ", B = ", B_MCS, ", bootstrap estacionario circular, bloque max(h, ceiling(n^(1/3))) (F4-15)"),
@@ -473,9 +486,10 @@ main <- function(exp_ids = character(0)) {
   objetivos <- list()
   for (ob in unique(sel$objetivo)) objetivos[[ob]] <- leer_objetivo(paste0(ob, ".csv"), pol, vintages, conjunto)
   necesita_sa <- any(sel$sa == "reestimado_en_origen")
-  insumos <- list(objetivos = objetivos)
+  insumos <- list(objetivos = objetivos, conjunto = identidad_conjunto(Sys.getenv("SIE_CONJUNTO")))   # C-4
   # Rutas absolutas de los insumos; el manifiesto las lista relativas a la raíz del repo.
-  archivos <- c(vapply(paste0(unique(sel$objetivo), ".csv"), function(a) ruta_capa("L3_master", a), character(1)),
+  archivos <- c(normalizePath(Sys.getenv("SIE_CONJUNTO"), winslash = "/", mustWork = TRUE),   # el corte es insumo (C-4)
+                vapply(paste0(unique(sel$objetivo), ".csv"), function(a) ruta_capa("L3_master", a), character(1)),
                 here::here("catalogos", c("03_series.csv", "08_vintages.csv")))
   if (necesita_sa) {
     prop <- if (!is.null(objetivos$PIB_SA_PROPIO_Q)) objetivos$PIB_SA_PROPIO_Q else leer_objetivo("PIB_SA_PROPIO_Q.csv", pol, vintages, conjunto)
@@ -498,7 +512,7 @@ main <- function(exp_ids = character(0)) {
     ex <- sel[k, ]
     t0 <- Sys.time()
     res <- correr_experimento(ex, insumos, cache_sa)
-    escribir_experimento(ex, res, commit, insumos_sha)
+    escribir_experimento(ex, res, commit, insumos_sha, insumos$conjunto)
     filas[[ex$exp_id]] <- construir_filas_experimento(ex$exp_id, res$ids, res$vintages, res$muestra_inicio, res$muestra_fin,
                                                       res$token, res$semillas, commit$sha, fecha, entorno)
     cat(sprintf("OK %-16s %s  %d pronósticos  %.0f s\n", ex$exp_id, res$token, nrow(res$pronosticos),
