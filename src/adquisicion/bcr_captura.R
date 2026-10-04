@@ -274,15 +274,19 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
   #    disparo; PANORAMA_SOCIEDADES_DEPOSITO (37 x 306, ~11300 celdas) agotó los
   #    120s de espera de la descarga. Mismo mecanismo, tablas más grandes que las
   #    que motivaron el timeout anterior.
+  #    Subido de 600s/300s a 1800s/900s (2026-10-03, restauracion de L0 en otra maquina):
+  #    GOBIERNO_CENTRAL_CONSOLIDADO, ya con 392 periodos, agoto los 600s del disparo
+  #    ("Chromote: timed out waiting for response to command Runtime.evaluate") en dos
+  #    corridas seguidas. Mismo mecanismo, tabla mas grande.
   antes <- list.files(dir_descarga)
   ok_disparo <- .bcr_eval(b, sprintf(
     '(function(){ if (typeof html_table_to_excel !== "function") return false;
        html_table_to_excel("%s"); return true; })()', .BCR_EXPORT_ARG),
-    timeout_s = 600)
+    timeout_s = 1800)
   if (!isTRUE(ok_disparo)) {
     stop("FALLO VISIBLE: html_table_to_excel no está disponible o no se pudo invocar.")
   }
-  ruta_xlsx <- .bcr_esperar_descarga(dir_descarga, antes, timeout_s = 300)
+  ruta_xlsx <- .bcr_esperar_descarga(dir_descarga, antes, timeout_s = 900)
   bytes <- readBin(ruta_xlsx, "raw", file.info(ruta_xlsx)$size)
   if (!verificacion_xlsx(bytes)) {
     stop("FALLO VISIBLE: el archivo descargado no tiene firma PK (.xlsx). Ruta: ", ruta_xlsx)

@@ -42,6 +42,8 @@
 #   Rscript scripts/restaurar_l0_perdido.R aplicar    # recaptura y escribe TODAS las ausentes
 #   Rscript scripts/restaurar_l0_perdido.R aplicar 4  # ... solo las primeras 4 de la lista
 #   Rscript scripts/restaurar_l0_perdido.R aplicar 4 --omitir=BCR.ITCER,BCR.IPP
+#   Rscript scripts/restaurar_l0_perdido.R aplicar --omitir-no-bcr   # restaura solo el BCR e
+#                                      informa los ausentes de otras fuentes (UT, manual)
 #
 # --omitir= existe por la regla 9 de CLAUDE.md, no por comodidad. Una publicacion cuya
 # recaptura ya probo ser IRRECUPERABLE seguira figurando como ausente hasta que se decida que
@@ -57,6 +59,7 @@ source("src/adquisicion/lib_adquisicion.R")
   if (length(a) == 0) return(character(0))
   trimws(strsplit(sub("^--omitir=", "", a[1]), ",", fixed = TRUE)[[1]])
 })
+.OMITIR_NO_BCR <- "--omitir-no-bcr" %in% .ARGS
 .MAX <- local({
   posicionales <- .ARGS[!grepl("^--", .ARGS)]
   if (length(posicionales) < 2) return(Inf)
@@ -82,11 +85,22 @@ if (nrow(ausentes) == 0) {
 }
 
 no_bcr <- ausentes[ausentes$fuente != "BCR", ]
-if (nrow(no_bcr) > 0) {
+if (nrow(no_bcr) > 0 && !.OMITIR_NO_BCR) {
   fallar("hay ", nrow(no_bcr), " archivo(s) ausente(s) que NO son del BCR (",
          paste(unique(no_bcr$fuente), collapse = ", "), "). Este script solo sabe recapturar ",
          "publicaciones de la familia vista-serie del portal del BCR. Resolver esas por ",
-         "separado antes de seguir.")
+         "separado antes de seguir, o pasar --omitir-no-bcr para restaurar solo el BCR.")
+}
+if (nrow(no_bcr) > 0) {
+  # Opt-in explicito (2026-10-03): caso de una maquina sin acceso al almacen de L0 donde falta,
+  # ademas del BCR, un archivo de captura manual (UT) que no se puede recapturar. Se informa
+  # cada uno; NO se silencia.
+  message("NO SE RESTAURAN (no son del BCR, --omitir-no-bcr): ", nrow(no_bcr), " archivo(s)")
+  for (i in seq_len(nrow(no_bcr))) {
+    message("   ", no_bcr$publicacion_id[i], "  ->  ", no_bcr$archivo[i])
+  }
+  message("")
+  ausentes <- ausentes[ausentes$fuente == "BCR", ]
 }
 
 message("Archivos de L0 ausentes: ", nrow(ausentes), "\n")
@@ -209,8 +223,8 @@ nota_restauracion <- function(sha_viejo, sha_nuevo, tam_viejo, tam_nuevo) {
     paste0(" tamano_bytes cambio de ", tam_viejo, " a ", tam_nuevo, ".")
   }
   paste0(
-    " ARCHIVO RESTAURADO ", .HOY, " (hallazgo B1 de la auditoria de Fase 2): el .xlsx de este ",
-    "vintage se perdio de data/L0_raw/ entre el 2026-08-26 y el 2026-08-28. Se recapturo del ",
+    " ARCHIVO RESTAURADO ", .HOY, ": el .xlsx de este vintage no estaba en data/L0_raw/ de ",
+    "esta maquina aunque su fila ya figuraba en el manifiesto. Se recapturo del ",
     "portal con el mismo mecanismo y parametros que la captura original, y su sha256_norm ",
     "-identidad de vintage- coincide exactamente con el registrado, lo que prueba que el ",
     "contenido es el mismo dato. ", cambio_sha, cambio_tam,
