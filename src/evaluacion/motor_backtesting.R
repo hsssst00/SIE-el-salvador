@@ -6,8 +6,15 @@
 # (puras, ejercitadas en CI por tests/ y por verificar_motor_sintetico.R); los modelos, en
 # modelos_referencia.R, declarados antes de la primera corrida en catalogos/06_modelos/.
 #
-# Uso:  Rscript src/evaluacion/motor_backtesting.R              corre todos los experimentos declarados
-#       Rscript src/evaluacion/motor_backtesting.R F4_BENCH_G1  corre solo los exp_id indicados
+# Uso:  Rscript src/evaluacion/motor_backtesting.R               corre los experimentos de Fase 5 declarados
+#       Rscript src/evaluacion/motor_backtesting.R F5_REPRO_G1   corre solo los exp_id indicados
+# Los exp_id F4_* están cerrados (C-8) y se rechazan; Fase 4 se reproduce con F5_REPRO_* (C-6, C-7).
+#
+# Corte congelado de Fase 5 (F5-16, decisiones C-1 a C-8 de doc/metodologia/decisiones_fase5.md): el
+# motor exige SIE_CONJUNTO/SIE_SALIDA (make eval CONJUNTO=<corte> SALIDA=<dir>, los mismos de
+# make master) y se detiene con stop() sin ellos (C-3). Las capas L1/L3 de abajo se leen con
+# ruta_capa(), es decir de <SALIDA>/L1_staging y <SALIDA>/L3_master, y el vintage vigente de cada
+# publicación es el que declara el corte.
 #
 # Lee:
 #   data/L3_master/PIB_SA_PROPIO_Q.csv           observado del objetivo primario (F4-20) y R6
@@ -39,6 +46,7 @@ source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "transformacion", "l3_pib_objetivo_reglas.R"))   # concatenar_pib_nsa(), T001
 source(here::here("src", "transformacion", "vintage_lib.R"))
+source(here::here("src", "transformacion", "conjunto_lib.R"))   # conjunto_activo(), ruta_capa() (F5-16)
 
 # ---------------------------------------------------------------------------------------------
 # Experimentos declarados
@@ -54,9 +62,10 @@ source(here::here("src", "transformacion", "vintage_lib.R"))
 # directorio. R3 no aplica a G3: su primer target es 2020-Q1 y no tiene submuestra previa.
 
 .exp <- function(exp_id, grupo, objetivo = "PIB_SA_PROPIO_Q", sa = "reestimado_en_origen", ventana = "expansiva",
-                 r3 = FALSE, r4 = FALSE) {
+                 r3 = FALSE, r4 = FALSE, semilla_exp = exp_id) {
   data.frame(exp_id = exp_id, grupo = grupo, objetivo = objetivo, sa = sa, ventana = ventana,
-             vintage = "revision_vigente", perdida = "yoy_pp", r3 = r3, r4 = r4, stringsAsFactors = FALSE)
+             vintage = "revision_vigente", perdida = "yoy_pp", r3 = r3, r4 = r4, semilla_exp = semilla_exp,
+             stringsAsFactors = FALSE)
 }
 EXPERIMENTOS <- rbind(
   .exp("F4_BENCH_G1", "G1", r3 = TRUE, r4 = TRUE),
@@ -73,6 +82,37 @@ EXPERIMENTOS <- rbind(
   .exp("F4_BENCH_G2_R6", "G2", sa = "l3_unico"),
   .exp("F4_BENCH_G3_R6", "G3", sa = "l3_unico")
 )
+
+# Fase 5 (F5-16, decisiones C-6 a C-8). Los F4_* de arriba son los de la corrida de cierre de Fase 4
+# (v0.7.x): siguen declarados porque V12 y tabla_resultados_fase4.R los usan, pero el motor ya no los
+# corre (C-8). Cada F5_REPRO_X repite F4_BENCH_X sobre el corte congelado con las semillas de F4_BENCH_X
+# (semilla_exp, C-7), de modo que sus tablas reproducen las del cierre salvo exp_id y las columnas de
+# densidad, que en el cierre estaban vacías (C-6). Los modelos de Fase 5 se agregan a EXPERIMENTOS_FASE5.
+PATRON_EXP_CERRADOS <- "^F4_"
+
+experimentos_reproduccion <- function(exps) {
+  if (!all(grepl("^F4_BENCH_", exps$exp_id))) stop("C-6: solo se reproducen experimentos F4_BENCH_*")
+  r <- exps
+  r$exp_id <- sub("^F4_BENCH_", "F5_REPRO_", exps$exp_id)
+  r$semilla_exp <- exps$exp_id
+  r
+}
+EXPERIMENTOS_FASE5 <- experimentos_reproduccion(EXPERIMENTOS)
+
+#' Experimentos de una corrida: todos los de Fase 5 sin argumentos, o los `exp_id` pedidos. Un F4_* se
+#' rechaza (C-8): sus directorios de L4 y sus filas de 07 son los del cierre de Fase 4.
+seleccionar_experimentos <- function(exp_ids = character(0), declarados = EXPERIMENTOS_FASE5) {
+  cerrados <- unique(exp_ids[grepl(PATRON_EXP_CERRADOS, exp_ids)])
+  if (length(cerrados)) {
+    stop("C-8: ", paste(cerrados, collapse = ", "), " es de Fase 4, cerrada; sus resultados son los de la corrida ",
+         "de cierre y no se sobrescriben. Para reproducirlos sobre el corte: ",
+         paste(sub("^F4_BENCH_", "F5_REPRO_", cerrados), collapse = ", "))
+  }
+  if (!length(exp_ids)) return(declarados)
+  faltan <- setdiff(exp_ids, declarados$exp_id)
+  if (length(faltan)) stop("motor: exp_id no declarado: ", paste(faltan, collapse = ", "))
+  declarados[declarados$exp_id %in% exp_ids, , drop = FALSE]
+}
 
 MIN_OBS    <- 40L                    # G-4, mínimo de observaciones del objetivo (F4-05)
 ALPHA_MCS  <- 0.10                   # F4-15
@@ -93,6 +133,26 @@ INICIO_HOMOGENEO <- "2005-Q1"         # ADR-003, F4-27
   read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
 }
 
+#' Archivo de una capa generada (L1_staging, L3_master): data/<capa>/ sin conjunto, <SALIDA>/<capa>/ con
+#' él (ruta_capa() de conjunto_lib.R, que falla si CONJUNTO y SALIDA vienen a medias). Toda lectura de
+#' L1/L3 del motor pasa por acá (F5-16).
+.leer_capa <- function(capa, archivo) {
+  ruta <- ruta_capa(capa, archivo)
+  if (!file.exists(ruta)) stop("motor: no existe ", ruta)
+  read.csv(ruta, stringsAsFactors = FALSE, na.strings = "")
+}
+
+#' C-3 (F5-16): en Fase 5 la evaluación corre solo contra el corte declarado. Devuelve el conjunto o
+#' se detiene con el comando correcto.
+exigir_conjunto <- function(conjunto) {
+  if (is.null(conjunto)) {
+    stop("C-3 (F5-16): el motor de Fase 5 corre solo contra un corte declarado. Uso:\n",
+         "  make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5\n",
+         "  make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5")
+  }
+  conjunto
+}
+
 #' Registro previo (C8): cada modelo que se corre tiene su YAML, con modelo_id igual al del código.
 verificar_registro_modelos <- function(modelos) {
   for (m in modelos) {
@@ -104,17 +164,18 @@ verificar_registro_modelos <- function(modelos) {
   invisible(TRUE)
 }
 
-#' vintage_id vigente de cada publicación que aparece en una serie de L3.
-vigentes_de <- function(d, vintages) {
+#' vintage_id vigente de cada publicación que aparece en una serie de L3: el último de 08_vintages.csv
+#' o, con `conjunto`, el que el conjunto declara (F5-16).
+vigentes_de <- function(d, vintages, conjunto = NULL) {
   pubs <- unique(vintages$publicacion_id[vintages$vintage_id %in% unique(d$vintage_id)])
   if (!length(pubs)) stop("G-6: ningún vintage_id de la serie está en 08_vintages.csv")
-  vapply(pubs, vintage_vigente, character(1), vintages = vintages)
+  vapply(pubs, vintage_vigente, character(1), vintages = vintages, conjunto = conjunto)
 }
 
 #' Objetivo observado (log-nivel) del vintage vigente, con su vintage_id por período.
-leer_objetivo <- function(archivo, politica, vintages) {
-  d <- .leer_csv("data", "L3_master", archivo)
-  d <- filtrar_vintage(d, politica, vigentes_de(d, vintages))                    # G-6
+leer_objetivo <- function(archivo, politica, vintages, conjunto = NULL) {
+  d <- .leer_capa("L3_master", archivo)
+  d <- filtrar_vintage(d, politica, vigentes_de(d, vintages, conjunto))          # G-6
   if (anyNA(d$valor) || any(d$valor <= 0)) stop("motor: ", archivo, " trae valores ausentes o no positivos")
   i <- q_a_ind(d$periodo)
   if (!identical(i, seq.int(i[1], length.out = length(i)))) stop("motor: ", archivo, " tiene huecos o desorden")
@@ -123,15 +184,42 @@ leer_objetivo <- function(archivo, politica, vintages) {
 
 #' NSA concatenada (T001) desde L1, con el vintage de cada fila, que debe coincidir con el del
 #' observado en L3: si L1 y L3 vienen de vintages distintos el ajuste por origen no es comparable.
-leer_nsa_concat <- function(vintages, objetivo_l3) {
-  l1 <- .leer_csv("data", "L1_staging", "BCR_PIB_series_largo.csv")
+leer_nsa_concat <- function(vintages, objetivo_l3, conjunto = NULL, l1 = NULL) {
+  if (is.null(l1)) l1 <- .leer_capa("L1_staging", "BCR_PIB_series_largo.csv")
   cc <- concatenar_pib_nsa(l1)
   series <- .leer_csv("catalogos", "03_series.csv")
   pub <- vapply(fuente_pib_nsa_por_periodo(l1, cc$periodo), resolver_publicacion, character(1), catalogo_series = series)
-  cc$vintage_id <- vapply(pub, vintage_vigente, character(1), vintages = vintages, USE.NAMES = FALSE)
+  cc$vintage_id <- vapply(pub, vintage_vigente, character(1), vintages = vintages, conjunto = conjunto, USE.NAMES = FALSE)
   m <- merge(cc[, c("periodo", "vintage_id")], objetivo_l3[, c("periodo", "vintage_id")], by = "periodo", all = TRUE)
   if (anyNA(m) || any(m$vintage_id.x != m$vintage_id.y)) stop("G-6: la NSA de L1 y PIB_SA_PROPIO_Q de L3 no son del mismo vintage período a período")
   cc[order(q_a_ind(cc$periodo)), ]
+}
+
+#' C-5 (F5-16): L1 no trae vintage_id, así que la parte «L1 vs L3» de G-6 no ve una L1 armada con otro
+#' corte. L3 sale de L1 por ajustar_estacional_propio(concatenar_pib_nsa(L1)) (l3_pib_objetivo.R), y
+#' X-13 propaga cualquier cambio de la NSA a toda la serie: se exige que el `ajuste` recalculado desde
+#' L1 sea idéntico, período por período y sin tolerancia, al SA de L3 (`sa_l3`: periodo, valor) y que
+#' sus AO coincidan con `outliers_l3` (periodo, tipo). Pura salvo el stop().
+verificar_l1_contra_l3 <- function(ajuste, sa_l3, outliers_l3) {
+  p1 <- as.character(ajuste$sa$periodo); p3 <- as.character(sa_l3$periodo)
+  if (!identical(p1, p3)) {
+    stop("C-5: el SA recalculado desde L1 y PIB_SA_PROPIO_Q de L3 no cubren los mismos períodos (L1: ",
+         p1[1], "..", p1[length(p1)], ", ", length(p1), " obs; L3: ", p3[1], "..", p3[length(p3)], ", ",
+         length(p3), " obs): L1 y L3 no salen del mismo corte")
+  }
+  a <- as.numeric(ajuste$sa$valor); b <- as.numeric(sa_l3$valor)
+  dif <- which(is.na(a) | is.na(b) | a != b)
+  if (length(dif)) {
+    stop(sprintf("C-5: el SA recalculado desde L1 difiere del de L3 en %d período(s) (primero %s: %s frente a %s): L1 y L3 no salen del mismo corte",
+                 length(dif), p1[dif[1]], format(a[dif[1]], digits = 17), format(b[dif[1]], digits = 17)))
+  }
+  o1 <- paste(ajuste$outliers$periodo, ajuste$outliers$tipo)
+  o3 <- paste(outliers_l3$periodo, outliers_l3$tipo)
+  if (!identical(o1, o3)) {
+    stop("C-5: los AO del ajuste recalculado desde L1 (", paste(o1, collapse = ", "),
+         ") no coinciden con PIB_SA_PROPIO_Q_outliers.csv (", paste(o3, collapse = ", "), ")")
+  }
+  invisible(TRUE)
 }
 
 # ---------------------------------------------------------------------------------------------
@@ -188,7 +276,8 @@ serie_en_origen <- function(ex, o, insumos, cache_sa) {
 
 #' Corre un experimento y devuelve sus tablas.
 correr_experimento <- function(ex, insumos, cache_sa) {
-  token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida)
+  token <- construir_token(ex$ventana, ex$grupo, ex$vintage, ex$sa, ex$perdida, conjunto = insumos$conjunto$etiqueta)   # C-4
+  sem <- if (is.null(ex$semilla_exp)) ex$exp_id else ex$semilla_exp                  # C-7: semillas de F4 en F5_REPRO_*
   if (ex$objetivo == "PIB_SA_OFICIAL_Q" && (ex$sa != "l3_unico" || ex$grupo == "G1")) stop("F4-22: R5 corre solo en G2/G3 y con la serie oficial tal cual")
   if (ex$ventana == "homogenea2005" && ex$grupo == "G1") stop("F4-27: R2 corre solo con los orígenes de G2 y G3")
   obs <- insumos$objetivos[[ex$objetivo]]
@@ -199,7 +288,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   partes <- lapply(origenes, function(o) {
     so <- serie_en_origen(ex, o, insumos, cache_sa)
     estim <- if (ex$ventana == "rodante92") recortar_ventana_rodante(so$sa, VENTANA_RODANTE) else so$sa   # F4-26
-    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = ex$exp_id, densidad = TRUE)   # F4-33
+    pr <- correr_backtest(list(objetivo = estim), modelos, o, min_obs = MIN_OBS, exp_id = sem, densidad = TRUE)   # F4-33
     base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
     list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1])
   })
@@ -214,7 +303,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
 
   # Tablas de la muestra completa, con el conteo de pares del grupo como guarda (F4-01, F4-05).
   tab <- evaluar_errores(err, ids, ex$exp_id, ex$grupo, ex$perdida,
-                         semilla_mcs = function(h) semilla_de(ex$exp_id, "MCS", h), benchmark = BENCHMARK,
+                         semilla_mcs = function(h) semilla_de(sem, "MCS", h), benchmark = BENCHMARK,
                          gw = ex$ventana == "rodante92", alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
   esperado <- conteo_por_horizonte(pares_evaluables(origenes, DISENO_FASE4$horizontes, obs$periodo[nrow(obs)]))
   n_obs_h <- tapply(tab$metricas$n_pares, tab$metricas$h, unique)
@@ -227,7 +316,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
     tabs <- lapply(subs, function(nm) {
       keep <- SUBMUESTRAS_FASE4[[nm]](err$origen + err$h)
       t_ <- evaluar_errores(err[keep, ], ids, ex$exp_id, ex$grupo, ex$perdida,
-                            semilla_mcs = function(h) semilla_de(ex$exp_id, paste0("MCS|", nm), h), benchmark = BENCHMARK,
+                            semilla_mcs = function(h) semilla_de(sem, paste0("MCS|", nm), h), benchmark = BENCHMARK,
                             alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
       lapply(t_, function(x) cbind(muestra_eval = nm, x, stringsAsFactors = FALSE))
     })
@@ -261,7 +350,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
                          qoq_pp_pronosticado = pu$qoq_pp_pronosticado,
                          vintage_id_objetivo = unname(vint[as.character(pu$origen + pu$h)]), stringsAsFactors = FALSE)
 
-  semillas <- vapply(ids, function(id) semilla_de(ex$exp_id, id, origenes[1]), numeric(1))
+  semillas <- vapply(ids, function(id) semilla_de(sem, id, origenes[1]), numeric(1))
   list(token = token, pronosticos = pron_out, metricas = tab$metricas, pruebas = tab$pruebas, mcs = tab$mcs,
        ajuste_estacional = ajuste, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
        muestra_inicio = partes[[1]]$inicio, muestra_fin = obs$periodo[nrow(obs)],
@@ -298,13 +387,32 @@ leer_commit <- function() {
   stop("motor: no se pudo resolver ", ref, " en .git")
 }
 
+#' C-4 (F5-16): identidad del corte para el token y el manifiesto. `etiqueta` = nombre del CSV sin
+#' extensión + "@" + los 8 primeros hex del sha256 sin CR (TOKEN_PATRON_CONJUNTO de eval_lib.R).
+identidad_conjunto <- function(ruta_conjunto, salida = Sys.getenv("SIE_SALIDA")) {
+  if (!file.exists(ruta_conjunto)) stop("C-4: no existe el corte ", ruta_conjunto)
+  sha <- .sha256_lf(ruta_conjunto)
+  nombre <- tools::file_path_sans_ext(basename(ruta_conjunto))
+  et <- paste0(nombre, "@", substr(sha, 1, 8))
+  if (!grepl(TOKEN_PATRON_CONJUNTO, et)) stop("C-4: el nombre del corte no cabe en el token: ", et)
+  list(ruta = ruta_relativa(ruta_conjunto), sha256 = sha, etiqueta = et, salida = ruta_relativa(salida))
+}
+
+#' Ruta relativa a la raíz del repo, con "/", para el manifiesto; las que caen fuera quedan absolutas.
+ruta_relativa <- function(rutas, raiz = here::here()) {
+  r <- normalizePath(raiz, winslash = "/", mustWork = FALSE)
+  p <- normalizePath(rutas, winslash = "/", mustWork = FALSE)
+  dentro <- startsWith(tolower(p), paste0(tolower(r), "/"))
+  ifelse(dentro, substring(p, nchar(r) + 2L), p)
+}
+
 .sha256 <- function(ruta) digest::digest(file = ruta, algo = "sha256")
 .sha256_lf <- function(ruta) {
   b <- readBin(ruta, "raw", n = file.info(ruta)$size)
   digest::digest(b[b != as.raw(13L)], algo = "sha256", serialize = FALSE)
 }
 
-escribir_experimento <- function(ex, res, commit, insumos_sha) {
+escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) {
   dir <- here::here("data", "L4_experiments", ex$exp_id)
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   tablas <- list(pronosticos = res$pronosticos, metricas = res$metricas, pruebas = res$pruebas, mcs = res$mcs)
@@ -334,8 +442,12 @@ escribir_experimento <- function(ex, res, commit, insumos_sha) {
     paste0("objetivo: ", ex$objetivo),
     paste0("commit_hash: ", commit$sha),
     paste0("arbol: ", commit$arbol),
+    if (!is.null(conjunto)) paste0("conjunto: ", conjunto$ruta, "  sha256 sin CR ", conjunto$sha256,
+                                   "  (corte congelado de Fase 5, F5-16; capas leídas de ", conjunto$salida, "/)") else NULL,
     paste0("fecha_corrida: ", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
     "semillas: por (exp_id, modelo_id, origen) con semilla_de() de eval_lib.R (xxhash32); MCS por (exp_id, 'MCS', h), listada en mcs.csv",
+    if (!is.null(ex$semilla_exp) && ex$semilla_exp != ex$exp_id) paste0("semilla_exp: ", ex$semilla_exp,
+      " (C-7: las semillas se derivan de este exp_id, el del experimento de Fase 4 que se reproduce)") else NULL,
     paste0("mcs: T_max, alpha = ", ALPHA_MCS, ", B = ", B_MCS, ", bootstrap estacionario circular, bloque max(h, ceiling(n^(1/3))) (F4-15)"),
     paste0("calibracion: densidad gaussiana plug-in (F4-33) para los modelos con predecir_densidad(): ",
            paste(vapply(Filter(function(m) is.function(m$predecir_densidad), modelos_referencia()), `[[`, character(1), "modelo_id"), collapse = ", "),
@@ -399,28 +511,34 @@ registrar_experimentos <- function(filas) {
 # ---------------------------------------------------------------------------------------------
 
 main <- function(exp_ids = character(0)) {
-  sel <- if (length(exp_ids)) EXPERIMENTOS[EXPERIMENTOS$exp_id %in% exp_ids, ] else EXPERIMENTOS
-  if (length(exp_ids) && nrow(sel) != length(unique(exp_ids))) stop("motor: exp_id no declarado: ", paste(setdiff(exp_ids, EXPERIMENTOS$exp_id), collapse = ", "))
+  sel <- seleccionar_experimentos(exp_ids)                                       # C-8
+  conjunto <- exigir_conjunto(conjunto_activo())                               # C-3 (F5-16)
   verificar_registro_modelos(modelos_referencia())                              # C8
   commit <- leer_commit()
   vintages <- leer_vintages()
   pol <- unique(sel$vintage)
   if (length(pol) != 1L) stop("motor: una corrida usa una sola política de vintage")
   objetivos <- list()
-  for (ob in unique(sel$objetivo)) objetivos[[ob]] <- leer_objetivo(paste0(ob, ".csv"), pol, vintages)
+  for (ob in unique(sel$objetivo)) objetivos[[ob]] <- leer_objetivo(paste0(ob, ".csv"), pol, vintages, conjunto)
   necesita_sa <- any(sel$sa == "reestimado_en_origen")
-  insumos <- list(objetivos = objetivos)
-  archivos <- c(file.path("data", "L3_master", paste0(unique(sel$objetivo), ".csv")),
-                file.path("catalogos", c("03_series.csv", "08_vintages.csv")))
+  insumos <- list(objetivos = objetivos, conjunto = identidad_conjunto(Sys.getenv("SIE_CONJUNTO")))   # C-4
+  # Rutas absolutas de los insumos; el manifiesto las lista relativas a la raíz del repo.
+  archivos <- c(normalizePath(Sys.getenv("SIE_CONJUNTO"), winslash = "/", mustWork = TRUE),   # el corte es insumo (C-4)
+                vapply(paste0(unique(sel$objetivo), ".csv"), function(a) ruta_capa("L3_master", a), character(1)),
+                here::here("catalogos", c("03_series.csv", "08_vintages.csv")))
   if (necesita_sa) {
-    prop <- if (!is.null(objetivos$PIB_SA_PROPIO_Q)) objetivos$PIB_SA_PROPIO_Q else leer_objetivo("PIB_SA_PROPIO_Q.csv", pol, vintages)
-    insumos$nsa <- leer_nsa_concat(vintages, prop)
-    insumos$outliers <- .leer_csv("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv")
-    archivos <- c(archivos, file.path("data", "L1_staging", "BCR_PIB_series_largo.csv"),
-                  file.path("data", "L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
+    prop <- if (!is.null(objetivos$PIB_SA_PROPIO_Q)) objetivos$PIB_SA_PROPIO_Q else leer_objetivo("PIB_SA_PROPIO_Q.csv", pol, vintages, conjunto)
+    l1 <- .leer_capa("L1_staging", "BCR_PIB_series_largo.csv")
+    insumos$nsa <- leer_nsa_concat(vintages, prop, conjunto, l1 = l1)
+    insumos$outliers <- .leer_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv")
+    verificar_l1_contra_l3(ajustar_estacional_propio(concatenar_pib_nsa(l1)),               # C-5
+                           .leer_capa("L3_master", "PIB_SA_PROPIO_Q.csv"), insumos$outliers)
+    archivos <- c(archivos, ruta_capa("L1_staging", "BCR_PIB_series_largo.csv"),
+                  ruta_capa("L3_master", "PIB_SA_PROPIO_Q_outliers.csv"))
   }
-  archivos <- c(archivos, file.path("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
-  insumos_sha <- vapply(unique(archivos), function(a) .sha256_lf(here::here(a)), character(1))   # F4-31
+  archivos <- c(archivos, here::here("catalogos", "06_modelos", paste0(vapply(modelos_referencia(), `[[`, character(1), "modelo_id"), ".yaml")))
+  archivos <- unique(unname(archivos))
+  insumos_sha <- stats::setNames(vapply(archivos, .sha256_lf, character(1), USE.NAMES = FALSE), ruta_relativa(archivos))   # F4-31
   cache_sa <- new.env()
   filas <- list()
   fecha <- Sys.Date()
@@ -429,7 +547,7 @@ main <- function(exp_ids = character(0)) {
     ex <- sel[k, ]
     t0 <- Sys.time()
     res <- correr_experimento(ex, insumos, cache_sa)
-    escribir_experimento(ex, res, commit, insumos_sha)
+    escribir_experimento(ex, res, commit, insumos_sha, insumos$conjunto)
     filas[[ex$exp_id]] <- construir_filas_experimento(ex$exp_id, res$ids, res$vintages, res$muestra_inicio, res$muestra_fin,
                                                       res$token, res$semillas, commit$sha, fecha, entorno)
     cat(sprintf("OK %-16s %s  %d pronósticos  %.0f s\n", ex$exp_id, res$token, nrow(res$pronosticos),

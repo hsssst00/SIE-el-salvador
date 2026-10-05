@@ -1,0 +1,92 @@
+EVIDENCIA DE LA REPRODUCCIÓN DE FASE 4 SOBRE EL CORTE CONGELADO DE FASE 5 — F5-16 (C-6, C-7)
+=======================================================================================
+
+Máquina: la de Harold (Windows 11 x64, build 26200), con L0 materializada y X-13ARIMA-SEATS.
+Fechas:  make master: archivos de data/conjuntos/corte_f5 escritos el 2026-10-03, 22:11-22:13 -0600.
+         make eval:   fecha_corrida de los manifiestos F5_REPRO_*: 2026-10-03, 22:24:48 a 22:27:02 -0600.
+Commit de la corrida: e5a51dc6ec40a2c50f7c757c70bbd994c3d963f8 (rama fase5/corte-congelado, PR #28),
+         árbol limpio en los 13 manifiestos.
+Commit que fijó el corte: 54dfb6c86b106e5386c58af2b287f5e8fb949f4a (agrega doc/metodologia/corte_fase5.csv,
+         sha256 del contenido sin retornos de carro: 901b0f7959b5cc40b82f376f469eaaa80adb931ecfcee4d7624910440021ff17).
+         Es anterior a la corrida y a cualquier resultado de Fase 5 (protocolo §6, nota I1).
+R:       R version 4.6.1 (2026-06-24 ucrt); renv.lock sha256 sin CR fae32aacc3dc… (el de la corrida de
+         cierre era 33e5cba2a702…; la diferencia es el registro de scoringRules 1.1.3 agregado en b9b793e).
+Comandos: los de «Uso» en doc/metodologia/decisiones_fase5.md:
+         make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+         make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+
+Criterio de aceptación (decisiones_fase5.md, C-6 y C-7): (1) make master con el corte reproduce los cuatro
+insumos del motor de la corrida de cierre de Fase 4 (c4e8b39, 2026-09-29); (2) cada F5_REPRO_X reproduce
+las tablas de su F4_BENCH_X salvo la columna exp_id y las columnas cobertura_80, cobertura_95 y crps, que en
+el cierre estaban vacías.
+
+La comprobación de los puntos 1 a 4 se hizo leyendo los archivos de la máquina de Harold con una verificación
+independiente en Python (el pipeline produce en R, Python verifica); comparar_repro_fase4.R hace las mismas
+comprobaciones 1 y 2 en R.
+
+----------------------------------------------------------------
+1. Insumos del motor: sha256 sin CR bajo data/conjuntos/corte_f5 frente al manifiesto de F4_BENCH_G1
+----------------------------------------------------------------
+
+L3_master/PIB_SA_PROPIO_Q.csv           c465233d56ccd00f90fdc1082cbc7e0c1f773d0659bad14340d65c065bc6aa41   = cierre
+L3_master/PIB_SA_OFICIAL_Q.csv          c65ef7599519273e65bff90b3f5b867d14c2833e6e53b22fa7b789f3ecd8d93d   = cierre
+L1_staging/BCR_PIB_series_largo.csv     e3fc398db8f103647dc2b7eb8ef3cf4f91b676e23117e076774279e814993f41   = cierre
+L3_master/PIB_SA_PROPIO_Q_outliers.csv  9d802cc98a4b1ccac94e7afb8297db033b8a49442b423f4acbf24e4839fad949   = cierre
+
+Los cuatro coinciden. catalogos/08_vintages.csv no entra en el criterio: su hash cambió
+(a9ed0e19… -> a1908264…) por las capturas de octubre, como se esperaba.
+
+----------------------------------------------------------------
+2. Tablas de L4: F5_REPRO_* frente a F4_BENCH_*
+----------------------------------------------------------------
+
+13 directorios F5_REPRO_*, 71 archivos .csv. Cada directorio trae los mismos archivos que su F4_BENCH_*, las
+mismas columnas y las mismas dimensiones. Celdas distintas, sin contar exp_id ni cobertura_80, cobertura_95
+y crps: 0. En esas tres columnas, vacías en todo el cierre, hay 4140 celdas nuevas con valor (las demás
+quedan vacías: la media de crecimiento no emite densidad, protocolo §3.4). exp_id cambia en todas las filas.
+Los 13 manifiestos declaran semilla_exp = el F4_BENCH_* que reproducen (C-7) y el corte
+corte_fase5@901b0f79 con su sha256.
+
+----------------------------------------------------------------
+3. Registro: catalogos/07_experimentos.csv
+----------------------------------------------------------------
+
+156 filas = 78 de Fase 4 + 78 F5_REPRO_* (13 experimentos x 6 modelos). Frente a main (06d0d11): 78
+líneas agregadas, 0 quitadas. Todas las filas nuevas llevan el token con |conjunto=corte_fase5@901b0f79, el
+commit_hash e5a51dc6ec40a2c50f7c757c70bbd994c3d963f8 y fecha_corrida 2026-10-03. Las filas se agregaron en
+ee1cb21, posterior al commit de la corrida: el commit_hash de las filas es el de la corrida, no el de ee1cb21.
+
+----------------------------------------------------------------
+4. Tabla de resultados de Fase 4
+----------------------------------------------------------------
+
+doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv: sha256 sin CR
+8c1581e4bde943e78f36a34a25957371bb90e5608f4ecfe2f1ae34a747325151, idéntico al versionado en HEAD.
+make eval la regenera desde los directorios F4_* de L4, que esta corrida no toca.
+
+----------------------------------------------------------------
+5. Lo que corre en CI
+----------------------------------------------------------------
+
+e5a51dc: los dos runs de CI (push y pull_request) terminaron en success. La verificación sintética V1-V13 y
+las pruebas unitarias (tests/test-corte-motor.R incluida) corren ahí; V12 y V13 ejercen el motor y la
+densidad con insumos sintéticos.
+
+----------------------------------------------------------------
+Límites
+----------------------------------------------------------------
+
+- La reproducción prueba que los datos, las semillas y el código de los benchmarks son los de Fase 4. No
+  evalúa ningún modelo de Fase 5.
+- Las densidades son plug-in, sin incertidumbre de parámetros (F4-33), como en la verificación sintética.
+- Los datos son revisados, no en tiempo real (F4-03).
+- El corte congela los vintages; no resuelve el origen de 2009-M01..M11 del IPC del FMI (F4-23) ni los
+  demás abiertos heredados por Fase 5.
+
+----------------------------------------------------------------
+Salida de consola (make master y make eval)
+----------------------------------------------------------------
+
+La salida de consola no se transcribió; la corrida queda probada por los manifiestos de
+data/L4_experiments/F5_REPRO_* y por las comprobaciones de arriba (precedente: A3d en
+doc/evidencia_cierre_fase4.txt).
