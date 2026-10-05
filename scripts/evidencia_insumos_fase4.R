@@ -11,7 +11,8 @@
 #   origenes_evaluables  pares (origen, h) evaluables bajo las cuatro lecturas de ADR-002
 #   origenes_por_grupo   primer origen viable y pares por grupo de comparación (F4-05)
 #   rezago_publicacion   rezago mediano de divulgación por familia y meses del trimestre o+1
-#                        conocidos al publicarse el PIB de o, min/max sobre los 52 orígenes (F4-02)
+#                        conocidos al publicarse el PIB de o, min/max sobre los 52 orígenes (F4-02);
+#                        UT lleva un rezago SUPUESTO de 30 días (F5-04), con su propia métrica
 #   peso_del_shock_2020  dispersión de la tasa interanual del objetivo en la muestra de
 #                        evaluación, con y sin 2020 (F4-08)
 #   vintages             lo que 08_vintages.csv permite para una evaluación real-time (F4-03)
@@ -169,11 +170,24 @@ for (f in names(familias)) {
          sprintf("sobre los %d orígenes, a la publicación del PIB de o (%s días)", length(origenes), REZAGO_PIB))
   )
 }
+# UT (F5-04, decidido por Harold el 2026-10-05): rezago SUPUESTO de 30 días, no una mediana medida.
+# UT no publica calendario de divulgación y sus 25 vintages anuales llevan fecha de publicación sintética
+# (31-dic; 31-jul y 31-ago para 2026), así que de 2013-2025 no hay ninguna fecha real. Lo único observado
+# son dos cotas superiores de 2026: julio ya estaba en la bajada del 2026-08-26 (<= 26 días) y agosto en el
+# reporte del 2026-09-30 18:07 (<= 30 días). La métrica es distinta de `rezago_dias_mediano` para que la
+# procedencia no se confunda: rezagos_predictoras() lee las dos, y un mismo item no puede traer ambas.
+REZAGO_UT_SUPUESTO <- 30L
+k_ut <- mapply(meses_conocidos, origenes, pub_pib, MoreArgs = list(rezago = REZAGO_UT_SUPUESTO))
 salida[[length(salida) + 1L]] <- rbind(
   fila("rezago_publicacion", "PIB_SA_PROPIO_Q", "rezago_dias_mediano", REZAGO_PIB,
        "calendario de divulgación del BCR, PIB trimestral"),
-  fila("rezago_publicacion", "UT_DEMANDA_ELEC_GWH_NSA_M", "grano_de_disponibilidad", "anual",
-       "vintages anuales con fecha de publicación sintética (31-dic; 31-jul para 2026)")
+  fila("rezago_publicacion", "UT_DEMANDA_ELEC_GWH_NSA_M", "rezago_dias_supuesto", REZAGO_UT_SUPUESTO,
+       paste("SUPUESTO declarado por Harold (F5-04, 2026-10-05), no una mediana medida: cotas superiores observadas",
+             "solo en 2026 (julio <= 26 d, agosto <= 30 d); sin fechas reales de publicación para 2013-2025")),
+  fila("rezago_publicacion", "UT_DEMANDA_ELEC_GWH_NSA_M", "meses_trimestre_siguiente_conocidos_min", min(k_ut),
+       sprintf("sobre los %d orígenes, a la publicación del PIB de o (%s días)", length(origenes), REZAGO_PIB)),
+  fila("rezago_publicacion", "UT_DEMANDA_ELEC_GWH_NSA_M", "meses_trimestre_siguiente_conocidos_max", max(k_ut),
+       sprintf("sobre los %d orígenes, a la publicación del PIB de o (%s días)", length(origenes), REZAGO_PIB))
 )
 
 # --- peso_del_shock_2020 (F4-08) ---------------------------------------------------------

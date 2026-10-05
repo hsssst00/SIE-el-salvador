@@ -305,6 +305,13 @@ completa del bloque E y antes de escribir el reporte.
        `rezagos_predictoras()` envía UT. Pruebas en `tests/test-evaluacion.R` §13, y canario anual
        de V5 al final de `verificar_motor_sintetico.R`.
 
+**Nota (2026-10-05, F5-04).** El punto 2 (UT solo con años cerrados, opción C) queda superado para Fase 5: Harold
+decidió que UT entre mes a mes con un rezago supuesto de 30 días, como cualquier serie mensual (ver
+`decisiones_fase5.md`, F5-04). Lo registrado arriba no se reescribe: era lo decidido el 2026-09-29, cuando no
+había evidencia para fijar `L` (ver «Descartadas»), y los benchmarks de Fase 4 no usan UT. La rama anual
+(`REZAGO_ANUAL_CERRADO`, `anio_max_cerrado()`) y sus pruebas se conservan; `rezagos_predictoras()` ya no envía
+UT a ella.
+
 ### F4-35 — marca de n bajo el piso calibrado del MCS (remediación de la auditoría de Fase 4, I4)
 
 **DECIDIDO por Harold el 2026-09-29**.

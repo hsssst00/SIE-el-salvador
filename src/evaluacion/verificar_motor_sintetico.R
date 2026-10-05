@@ -405,8 +405,10 @@ if (requireNamespace("scoringRules", quietly = TRUE)) {
 }
 
 # --- V5 (extensión F4-34) · canario de predictora anual -------------------------------------------
-# Remediación del hallazgo I2(b), E4. Una predictora de grano anual (UT) entra solo con años cerrados:
-# el año `a` desde el origen (a+1)-Q1. El canario busca en su insumo el año del propio origen; con el
+# Remediación del hallazgo I2(b), E4. Mecanismo retenido: una predictora de grano anual entra solo con
+# años cerrados, el año `a` desde el origen (a+1)-Q1. UT dejó de usarlo (F5-04, 2026-10-05: rezago de
+# 30 días, cubierto en tests/test-evaluacion.R §13), pero la rama sigue siendo parte del motor y se
+# prueba aquí. El canario busca en su insumo el año del propio origen; con el
 # recorte correcto no lo encuentra, devuelve NA y G-3 detiene el motor. Va al final del archivo, y no
 # junto a V5, para que la salida de V1-V11 siga idéntica byte a byte a doc/evidencia_cierre_fase4.txt.
 canario_anual <- list(
@@ -429,7 +431,7 @@ if (!grepl("^G-3", r5c)) stop("V5: el canario anual no detuvo al motor con G-3 (
 r5d <- tryCatch({ guarda_recorte(ut5b, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO, nombre = "ut_sin_recortar"); "sin error" },
                 error = function(e) conditionMessage(e))
 if (!grepl("^G-1", r5d)) stop("V5: G-1 no detectó una predictora anual con el año en curso (resultado: ", r5d, ")")
-ok("V5", "canario anual (F4-34): la predictora anual no trae el año del origen y G-3 detiene el motor; G-1 rechaza el año en curso")
+ok("V5", "canario anual (F4-34, rama retenida): la predictora anual no trae el año del origen y G-3 detiene el motor; G-1 rechaza el año en curso")
 
 cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V13 (V11 SKIP)\n"
     else "verificación sintética: bloques OK (V1-V13)\n")

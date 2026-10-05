@@ -141,6 +141,15 @@ origen, no por la fecha sintética del vintage. En el origen 2019-Q3, cuyo corte
 coincide con la fecha sintética de `v2019-12`, entra UT hasta 2018. La implementa la rama anual de
 `recortar_a_origen()` y `guarda_recorte()` (`REZAGO_ANUAL_CERRADO`), con canario en V5.
 
+**Nota (2026-10-05, F5-04).** Para Fase 5, UT deja de entrar por años cerrados y pasa a la regla general de
+esta sección, con un rezago **supuesto** de 30 días (no una mediana medida: lo observado son dos cotas
+superiores de 2026, y de 2013-2025 no hay fechas reales de publicación). La fila de la tabla sería:
+`UT.DEMANDA_ELEC.GWH.NSA.M` | 30 (supuesto) | 2 | 30 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv`
+(métrica `rezago_dias_supuesto`). El agregado `.Q` entra hasta `o`. Lo escrito arriba sobre UT queda como lo
+decidido en F4-02 y F4-34 y no se reescribe; la rama anual de `recortar_a_origen()` y `guarda_recorte()`
+(`REZAGO_ANUAL_CERRADO`) se conserva como mecanismo, hoy sin series. Decisión y razones en
+`doc/metodologia/decisiones_fase5.md`, F5-04.
+
 ### 2.4 Vintage contra el que se evalúa [decidido 2026-09-24, F4-03]
 
 ADR-001 fija como criterio **primario** "evaluación contra el vintage disponible en cada
@@ -339,6 +348,15 @@ antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas 
 - La especificación de los modelos de Fase 5 más allá de los benchmarks de §6.1 de la
   senda, que son los que Fase 4 implementa y prueba.
 
+
+**Nota (2026-10-05, F5-01 a F5-05).** La tercera línea de arriba sigue vigente en lo que dice, pero Fase 5 ya
+tiene marco decidido: alcance y orden de los bloques (F5-01), preregistro completo antes de la corrida única
+sobre L3 (F5-02), asignación a grupos y piso de muestra efectiva (F5-03), alineación de las predictoras con el
+origen (F5-04) y estrategia multihorizonte (F5-05), todo en `doc/metodologia/decisiones_fase5.md`. Siguen
+fuera de este protocolo la especificación de cada familia (F5-06 a F5-10 y F5-13), la validación anidada
+(F5-11), la densidad de los modelos nuevos (F5-12) y la robustez, el costo y la reproducibilidad (F5-14 y
+F5-15), que se incorporan cuando Harold las decida. Los factoriales dinámicos quedan fuera de Fase 5
+(extensión 4, F5-01).
 
 ---
 
