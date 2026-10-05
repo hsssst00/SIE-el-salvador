@@ -2,8 +2,7 @@
 
 **Fecha:** 2026-10-03, actualizado el 2026-10-05 · **Estado:** F5-16 y F5-17 decididas por Harold el
 2026-09-30; las decisiones de implementación del corte congelado (C-1 a C-8, abajo), el 2026-10-03; F5-01 a
-F5-05, el 2026-10-05. F5-06 a F5-15 siguen pendientes de respuesta y entran a este documento cuando se
-decidan (Regla 4); hasta entonces sus fichas no son vinculantes.
+F5-15 y F5-04c, el 2026-10-05. Con eso las diecisiete fichas de Fase 5 están decididas.
 
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase4.md` para Fase 5: cada ficha lleva
 la línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran
@@ -19,7 +18,18 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-02 | Preregistro completo: todos los YAML antes de la corrida única sobre L3 | ninguno (continúa C8 y la nota I1) |
 | F5-03 | Un `modelo_id` por grupo; guarda de 20 grados de libertad | ninguno aquí; la guarda se documenta al implementarla |
 | F5-04 | Parte 1: trimestres completos, borde irregular solo en MIDAS/puente. Parte 2: UT mes a mes con rezago supuesto de 30 días (reabre F4-34) | decisiones_fase4.md F4-34 y protocolo §2.3 (notas 2026-10-05); evidencia de insumos |
+| F5-04c | Experimento de robustez R7: los modelos con UT de G2 y G3 con UT a 61 días | protocolo §5 (nota 2026-10-05) |
 | F5-05 | Iterada en los econométricos; directa en regularizados y ML | ninguno |
+| F5-06 | Una ARIMAX por grupo con todas las predictoras, más una ARIMAX-IVAE en G2; UC con `StructTS` entra | ninguno aquí |
+| F5-07 | G1 con VAR en diferencias, VAR en niveles, VECM y BVAR; G2 y G3 con VAR en diferencias y BVAR; UT entra al BVAR | ninguno aquí |
+| F5-08 | U-MIDAS sin restricciones y ecuación puente | ninguno aquí |
+| F5-09 | Un solo elastic net con α elegido, más PCR; PLS y predictores dirigidos fuera | ninguno aquí |
+| F5-10 | Random forest (`ranger`) y LightGBM; sin importancia por permutación | ninguno aquí |
+| F5-11 | Validación anidada con K = 12, reoptimizando en cada origen (solo en Q1 si el costo medido no da) | ninguno aquí |
+| F5-12 | Densidad analítica en los lineales (sistema conjunto en ARIMAX y puente); predictiva posterior en el BVAR; covarianza de errores internos en regularizados y árboles; combinaciones fuera | protocolo §3, punto 4 (nota 2026-10-05) |
+| F5-13 | Miembros: todos los modelos de Fase 5 del grupo; media, mediana, recortada al 10 % e inversa al ECM con δ = 0,9 | ninguno aquí |
+| F5-14 | Principal, R3, R4 y R7 para todos; R1, R2, R5 y R6 bajo un tope medido con datos sintéticos | protocolo §5 (nota 2026-10-05) |
+| F5-15 | Un hilo, semilla del motor y doble corrida en CI; tolerancia declarada solo para la paridad Windows/Linux del BVAR | protocolo §6 (nota 2026-10-05) |
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
@@ -116,6 +126,19 @@ antes de los árboles.
 - Descartadas: parte 1 (a) y (b); parte 2 rezago uniforme de 4 trimestres, proyectar los trimestres faltantes
   de UT con un AR, y excluir UT de los modelos trimestrales.
 
+## F5-04c — Robustez del rezago supuesto de UT
+
+**DECIDIDO por Harold el 2026-10-05.** UT entra a modelos de G2 y G3 (F5-04, F5-06 a F5-10), así que un rezago
+real mayor que el supuesto de 30 días daría a esos modelos una ventaja que no es real.
+
+- Un **experimento de robustez aparte**, código **R7** (el código lo asignó el agente, siguiendo R1 a R6 del
+  protocolo §5), que repite los modelos con UT de G2 y G3 con UT a **61 días** (como el IVAE y el IPM: 1 mes de
+  `o+1` en lugar de 2), con su propio `exp_id`. No agrega columnas al MCS principal.
+- Se declara antes de la corrida única (F5-02), con su nota fechada en el protocolo §5. El costo de cómputo
+  de los modelos con UT (el BVAR es el más caro) entra a F5-14, todavía pendiente.
+- Descartadas: sumar una variante sin UT (responde otra pregunta, el valor de UT) y no hacer experimento,
+  que dejaría los resultados de G2 y G3 dependiendo de un supuesto sin acotar.
+
 ## F5-05 — Estrategia multihorizonte y proyección de las predictoras
 
 **DECIDIDO por Harold el 2026-10-05:** opción (a), iterada para los econométricos y directa para
@@ -131,6 +154,186 @@ regularizados y ML.
   forma canónica de cada familia. Descartadas: (b) todo directo, que deja de ser un ARIMAX en sentido
   estricto, y (c) todo iterado, que obliga a proyectar todas las predictoras para árboles que no
   extrapolan.
+
+---
+
+## Nota previa a F5-06 y siguientes (2026-10-05)
+
+Las fichas v4 de F5-06 a F5-10 daban por vigente que UT «va hacia atrás» (1 a 4 trimestres de atraso, regla de
+años cerrados de F4-34). Con F5-04 ese hecho dejó de valer: UT entra como las demás mensuales, con el trimestre
+`o` completo y 2 meses de `o+1`. Lo decidido abajo ya lo incorpora. En cada ficha, la tabla de «especificación
+propuesta» es la base de los YAML y no una decisión cerrada en sus parámetros finos (rejillas, orden máximo,
+número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR de su bloque.
+
+## F5-06 — Univariados (§6.2): ARIMA, ARIMAX y componentes no observados
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas.
+
+- **ARIMAX.** Una por grupo con **todas** las predictoras del grupo (G1: 2; G2: 6, UT incluida; G3: 8), más una
+  sola ARIMAX con el IVAE en G2 como referencia, porque el IVAE es el candidato más obvio. Los `modelo_id`
+  siguen F5-03: `UNI.ARIMAX.G1`, `.G2`, `.G3`; el de la referencia lo fija su YAML.
+- **Componentes no observados.** Entra `UNI.UC_LLT`: tendencia lineal local con `stats::StructTS(type = "trend")`
+  sobre el log-nivel SA, G1 a G3, sin dependencias nuevas (`KFAS` no está fijado).
+- **Base de los YAML (tabla de la ficha v4).** `UNI.ARIMA` con `fable::ARIMA` sobre el log-nivel SA, BIC, `d` por
+  KPSS dentro del origen, sin parte estacional; las ARIMAX suman el Δlog de las predictoras (rezagos 0..1,
+  alineadas según F5-04), con dummies estacionales para las NSA y las predictoras proyectadas por AR(p)-BIC
+  (F5-05).
+- **Piso de F5-03.** Cuenta aproximada con las cifras de las fichas (39 datos en Δlog en el primer origen, 3
+  dummies): en G2 con rezagos 0..1 quedan unos 24 grados de libertad, es decir `p + q ≤ 3` con constante; en G3
+  las 8 predictoras con rezagos 0..1 suman 16 + 3 dummies = 19 parámetros antes de `p`, `q` y la constante, sin
+  margen. Los YAML de G2 y G3 acotan rezagos y grilla de antemano, y la guarda de F5-03 lo verifica en el primer
+  origen de cada grupo.
+- Descartadas: una ARIMAX por predictora, solo las de grupo sin la referencia IVAE, y dejar el UC fuera del núcleo.
+
+## F5-07 — Multivariados (§6.3): VAR, VECM y BVAR
+
+**DECIDIDO por Harold el 2026-10-05:** las opciones recomendadas, más una decisión nueva sobre UT.
+
+- **Modelos por grupo.** G1: `MULT.VAR_DIF.G1`, `MULT.VAR_NIV.G1`, `MULT.VECM.G1` (PIB SA + remesas + FOB) y
+  `MULT.BVAR.G1`. G2: `MULT.VAR_DIF.G2` (PIB SA + IVAE + remesas) y `MULT.BVAR.G2`. G3: `MULT.VAR_DIF.G3` y
+  `MULT.BVAR.G3`. La ficha no decía qué VAR corre en G3: se completó con las mismas tres variables que en G2 al
+  preparar la pregunta, y Harold lo confirmó al elegir la opción.
+- **UT entra al BVAR.** El BVAR usa todas las series trimestrales del grupo, UT incluida (7 series en G2 y 9 en G3,
+  con 39 datos y p = 4; en G1, 3). La ficha la excluía por el atraso de 1 a 4 trimestres, que ya no existe. Así el
+  BVAR ve el mismo conjunto de predictoras que los demás modelos del grupo.
+- **Base de los YAML.** `vars::VAR` con p ∈ 1..4 por BIC y dummies estacionales exógenas para las NSA; VAR en
+  niveles sin imponer raíces unitarias; VECM por Johansen dentro del origen (si r = 0 se estima el VAR en
+  diferencias y se registra); BVAR de Giannone, Lenza y Primiceri (2015) con `BVAR::bvar`: Minnesota jerárquica,
+  *sum-of-coefficients* y *single-unit-root*, log-niveles, p = 4, 10 000 extracciones y 5 000 de quemado.
+- **Costo.** El BVAR con MCMC en cada origen es la pieza más cara; se mide en F5-14, pendiente.
+- Descartadas: VAR solo en G1 con G2 y G3 solo BVAR, y sumar VAR en niveles y VECM en G2.
+
+## F5-08 — Frecuencia mixta (§6.4): U-MIDAS y ecuaciones puente
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- `MIX.UMIDAS.Gk` y `MIX.PUENTE.Gk` por grupo. U-MIDAS **sin restricciones** con `midasr` 0.9 (ya fijado): Δlog
+  trimestral del PIB SA sobre los Δlog mensuales de las predictoras del grupo, 0..5 meses de rezago más los
+  meses conocidos de `o+1`, directo por `h` (F5-05). Sin optimización no lineal, reproducible con pocos datos.
+- Los orígenes siguen siendo trimestrales y el *nowcasting* mensual queda fuera del MCS (protocolo §7). UT aporta 2
+  meses de `o+1`, como el ITCER. El piso de F5-03 acota los rezagos mensuales en cada grupo y se declara en el
+  YAML.
+- Ecuación puente: cada mensual se completa hasta el final del horizonte con un AR(p)-BIC mensual (dummies si es
+  NSA) y se agrega con la regla de T00x; regresión del Δlog trimestral del PIB SA sobre los agregados
+  contemporáneos, más un AR(1) del PIB.
+- Descartadas: MIDAS con polinomio (Almon o beta), que exige optimización no lineal con 39 datos, y tener ambos.
+
+## F5-09 — Regularizados (§6.5)
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas.
+
+- `REG.ENET.Gk`: **un solo** modelo con `glmnet`, α ∈ {0, 0,5, 1} y λ elegidos por validación anidada (F5-11),
+  dummies sin penalizar; y `REG.PCR.Gk` con componentes principales (`prcomp`), k ∈ 1..5 por validación anidada.
+  Predictores en `t`: Δlog del PIB con rezagos 0..3 y Δlog de cada predictora del grupo con rezagos 0..3,
+  alineadas según F5-04, más las dummies; estandarización dentro de la ventana de estimación; directo por `h`
+  (F5-05). El piso de 20 grados de libertad de F5-03 no aplica a los modelos penalizados.
+- **PLS y predictores dirigidos (Bai y Ng, 2008) quedan fuera del núcleo**, declarados como extensión: `pls` no está
+  fijado en `renv.lock` (verificado el 2026-10-05) e incluirlo exigiría una nota de seguimiento de ADR-009.
+- Descartada: ridge, LASSO y elastic net como tres modelos, que triplican las columnas del MCS con modelos casi
+  idénticos.
+
+## F5-10 — Árboles (§6.6)
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- `ML.RF.Gk` con `ranger` 0.18.0 (500 árboles, `mtry` ∈ {⌈p/3⌉, ⌈√p⌉}, `min.node.size` ∈ {3, 5}) y `ML.LGBM.Gk` con
+  `lightgbm` 4.7.0 (`num_leaves` ∈ {4, 8}, `learning_rate` = 0,05, `min_data_in_leaf` = 5, rondas por
+  validación anidada, máximo 500), con los mismos predictores que F5-09 y directos por `h`. Los dos paquetes ya
+  están fijados; `randomForest` y `xgboost` no.
+- Un representante de *bagging* y uno de *boosting*, como pide la senda. Con 39-90 datos LightGBM está en el
+  límite de lo razonable, y el resultado probable (que no le gane al paseo) es informativo.
+- La importancia por permutación (no por impureza, senda §6.6) queda fuera de Fase 5.
+- Descartada: solo RF con LightGBM como extensión.
+
+---
+
+## F5-11 — Validación anidada (esquema común para regularizados y ML)
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- Dentro de cada origen `o` y cada `h`, validación pseudo-fuera-de-muestra interna sobre los últimos **K = 12**
+  orígenes internos de `[inicio, o]`: se estima con datos ≤ `o'` y se evalúa el crecimiento acumulado en
+  `o' + h ≤ o`; se elige el hiperparámetro que minimiza el ECM interno. Aplica a α y λ del elastic net, `k` del
+  PCR, las rejillas de RF y las rondas de LightGBM. G-1 impide usar datos posteriores a `o`, porque `ajustar()`
+  no los recibe.
+- **Reoptimización en cada origen**, simétrica con la selección por BIC de los econométricos. Si el costo
+  medido con datos sintéticos (F5-14) supera el tope, se pasa a reoptimizar solo en los orígenes Q1 y reutilizar
+  la elección en los otros tres; esa variante se declara en el YAML **antes** de la corrida sobre L3.
+- Con 39 datos en el primer origen de G2 y G3, K = 12 deja unos 27 para la primera estimación interna.
+- Descartada: K proporcional ⌊n/4⌋, que cambia el criterio de selección a lo largo de la muestra.
+
+## F5-12 — Densidad de los modelos nuevos
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas. El motor evalúa la gaussiana conjunta del
+sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columnas vacías y se declara.
+
+- **Lineales gaussianos (ARIMA, UC, VAR, VECM):** covarianza analítica con los pesos MA (`cov_desde_pesos()`, ya en
+  `eval_lib.R`). *Plug-in* en los parámetros.
+- **ARIMAX y puente:** el modelo y el AR(p)-BIC de sus predictoras (F5-05) se tratan como un **sistema lineal
+  conjunto** y la covarianza sale de su forma compañera. Sigue siendo *plug-in* en los parámetros, pero no ignora
+  la incertidumbre de las predictoras proyectadas. Descartadas: la covarianza condicional a la proyección, que
+  subestima la varianza, y dejarlos sin densidad.
+- **BVAR:** media y covarianza de la **predictiva posterior**, que sí incluye la incertidumbre de parámetros. Como
+  el contrato exige `media` = sendero, el sendero puntual del BVAR es la **media** posterior y no la mediana; el
+  manifiesto lo declara.
+- **Regularizados y árboles:** gaussiana con la covarianza empírica `h × h` de los errores **fuera de muestra
+  internos** del crecimiento acumulado (los de F5-11, o los OOB en RF). Se declara que la varianza sale de errores
+  internos y no de un modelo de probabilidad. Encaja en el contrato sin cambiar el motor. Con K = 12 pares
+  internos esa covarianza es ruidosa; se reporta como límite. Descartadas: dejarlos fuera de la calibración y los
+  cuantiles (extensión 6 de la senda, que exige un CRPS por muestras en el motor y un bloque nuevo en V13).
+- **Combinaciones:** fuera de la calibración (una mezcla de gaussianas no es gaussiana).
+- Enmienda el protocolo §3, punto 4, que dejaba fuera a los «árboles sin bootstrap».
+
+## F5-13 — Combinaciones (§6.7)
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas.
+
+- **Miembros:** todos los modelos de Fase 5 del grupo, **sin los benchmarks**, fijados en el YAML de cada
+  combinación antes de la corrida única (F5-02). Así la combinación mide lo que aportan los modelos nuevos y los
+  benchmarks siguen siendo la referencia. Descartados: sumar los benchmarks, que contamina la comparación contra
+  ellos, y elegir miembros por desempeño, que es selección con resultados.
+- **Esquemas, cuatro por grupo:** media simple, mediana, media recortada al 10 % y pesos inversos al ECM con
+  descuento δ = 0,9 (Stock y Watson, 2004). En el origen `o` y horizonte `h` solo se usan los errores de pares con
+  `o' + h ≤ o`; hasta acumular **8** errores los pesos son iguales, y se declara. La regla es la misma en los tres
+  grupos.
+- Descartadas: la regresión de combinación restringida (con 18-52 pares por celda; la senda la condiciona a que el
+  número de orígenes lo permita), solo los tres esquemas sin parámetros, y los orígenes de calentamiento antes de
+  2013-Q1, que solo serían viables en G1.
+- Implementación: las combinaciones no caben en `correr_backtest()` como un modelo más; son un paso posterior del
+  orquestador sobre `pronosticos.csv` (B5, al final).
+
+## F5-14 — Batería de robustez y costo de cómputo
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- **Siempre, para todos los modelos de Fase 5:** la principal, R3 y R4 (submuestras de la principal, cómputo
+  cero) y R7 (UT a 61 días, F5-04c; solo los modelos con UT de G2 y G3).
+- **R1, R2, R5 y R6:** para todos los modelos, salvo que el tiempo medido supere un **tope declarado**. Si lo
+  supera, esas cuatro corren solo para los univariados, las combinaciones y **un representante por familia**,
+  decididos antes de ver resultados.
+- **Paso previo:** medir el tiempo por origen de cada familia con datos sintéticos (sin mirar L3). Con esa cifra se
+  fijan el tope y, si hace falta, los representantes, en un commit anterior a la corrida sobre L3 (protocolo §6,
+  nota I1). La misma medición decide la variante de F5-11.
+- Referencia hoy, en la máquina de Harold: los 13 experimentos de benchmarks tardan unos 5 minutos y V1-V13 unos 5
+  a 6. El BVAR y la validación anidada son las piezas que multiplican el tiempo.
+- Descartadas: todos los modelos en todos los experimentos, y solo la principal con R3, R4 y R7.
+
+## F5-15 — Reproducibilidad bit a bit
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- `ranger` con `num.threads = 1`; `lightgbm` con `num_threads = 1`, `deterministic = TRUE` y
+  `force_row_wise = TRUE`; la semilla del motor (`semilla_de()`) pasada explícitamente (`seed =`). Todo fijado en
+  los YAML. `fable::ARIMA` con `stepwise = FALSE` es determinista.
+- **BVAR:** semilla del motor. Sus resultados dependen de la BLAS, así que la paridad Windows/Linux se verifica
+  como en el cierre de Fase 4 y, si no es bit a bit, se declara la tolerancia. Esa tolerancia aplica solo a la
+  comparación entre sistemas operativos: en una misma máquina, `make eval` debe regenerar bit a bit
+  `data/L4_experiments/<exp_id>/` (protocolo §6).
+- **CI:** un bloque nuevo corre dos veces el mismo experimento sintético con los modelos de Fase 5 y compara los
+  hashes, como V10 hace hoy con los seis benchmarks.
+- Costo declarado: un solo hilo hace más lentos RF y LightGBM, y entra a la medición de F5-14.
+- Descartadas: sin el bloque de CI de doble corrida, y multihilo con tolerancia, que rompería el «bit a bit» del
+  protocolo §6.
 
 ---
 
