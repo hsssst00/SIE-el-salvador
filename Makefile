@@ -125,6 +125,11 @@ eval-sintetico:
 # X-13 se ejerce en CI con insumos sintéticos (V12; hallazgo I3 de la auditoría independiente de
 # Fase 4). Escribe data/L4_experiments/<exp_id>/, las filas de catalogos/07_experimentos.csv y
 # doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (F4-30).
+# Fase 5 (F5-16, decisiones C-1 a C-8 de doc/metodologia/decisiones_fase5.md): el motor exige el corte
+# congelado y lee L1/L3 del directorio que armó `make master` con ese corte; sin CONJUNTO= se detiene.
+#   make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+#   make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+# Los exp_id F4_* están cerrados (C-8); por defecto corren los F5_* (hoy, F5_REPRO_*).
 eval: eval-sintetico
 	Rscript src/evaluacion/motor_backtesting.R
 	Rscript src/evaluacion/tabla_resultados_fase4.R

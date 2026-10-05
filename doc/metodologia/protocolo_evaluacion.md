@@ -169,6 +169,13 @@ Esto requiere una nota de enmienda a ADR-001: su criterio primario no es alcanza
 horizonte de Fase 5 y el orden primario/secundario queda invertido **para el ejercicio
 retrospectivo**.
 
+**Nota (2026-10-03, F5-16).** En Fase 5, «vintage vigente» en la pista retrospectiva es el que declara el
+corte congelado `doc/metodologia/corte_fase5.csv` (36 vintages, los de la L3 de la corrida de cierre de
+Fase 4), y no la última fila de `08_vintages.csv`. Las capturas posteriores entran a L0 y al catálogo, pero
+no a la evaluación, hasta el cierre de Fase 5. El motor exige el corte (`make eval CONJUNTO=… SALIDA=…`),
+lee L1/L3 del directorio que arma `make master` con ese corte y registra su sha256 en el manifiesto y en el
+token. Decisiones C-1 a C-8 en `doc/metodologia/decisiones_fase5.md`. El texto de arriba no cambia.
+
 ### 2.5 Muestra común y grupos de comparación [decidido 2026-09-24, F4-05]
 
 Las pruebas de Diebold-Mariano y el Model Confidence Set exigen que los modelos comparados

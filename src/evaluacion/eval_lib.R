@@ -420,8 +420,12 @@ agregar_rmse_relativo <- function(met, benchmark = "BENCH.RW_SIN_DERIVA") {
 # 7. Token de `esquema_validacion` (F4-11)
 # ---------------------------------------------------------------------------------------------
 #
-# Gramática: <ventana>|origen=<v>|grupo=<v>|vintage=<v>|sa=<v>|perdida=<v>
-# Los seis campos son obligatorios, en ese orden, con los valores declarados en TOKEN_DOMINIOS.
+# Gramática: <ventana>|origen=<v>|grupo=<v>|vintage=<v>|sa=<v>|perdida=<v>[|conjunto=<nombre>@<sha8>]
+# Los seis primeros campos son obligatorios, en ese orden, con los valores declarados en TOKEN_DOMINIOS.
+# El séptimo, opcional, identifica el corte de vintages contra el que corrió el experimento (F5-16,
+# decisión C-4): nombre del CSV sin extensión y los 8 primeros hex del sha256 sin CR. Los tokens de
+# Fase 4 (seis campos) siguen siendo válidos.
+TOKEN_PATRON_CONJUNTO <- "^[A-Za-z0-9_.-]+@[0-9a-f]{8}$"
 
 TOKEN_DOMINIOS <- list(
   ventana = c("expansiva", "rodante92", "homogenea2005"),   # homogenea2005: R2, F4-27
@@ -432,8 +436,9 @@ TOKEN_DOMINIOS <- list(
   perdida = c("yoy_pp", "qoq_pp", "log_nivel")
 )
 
-construir_token <- function(ventana, grupo, vintage, sa, perdida, origen = "ultimo_estimado") {
+construir_token <- function(ventana, grupo, vintage, sa, perdida, origen = "ultimo_estimado", conjunto = NULL) {
   tok <- sprintf("%s|origen=%s|grupo=%s|vintage=%s|sa=%s|perdida=%s", ventana, origen, grupo, vintage, sa, perdida)
+  if (!is.null(conjunto)) tok <- paste0(tok, "|conjunto=", conjunto)
   validar_token(tok)
   tok
 }
@@ -443,6 +448,14 @@ validar_token <- function(tok) {
   if (!is.character(tok) || length(tok) != 1L || is.na(tok)) stop("token: debe ser un único string")
   partes <- strsplit(tok, "|", fixed = TRUE)[[1]]
   claves <- names(TOKEN_DOMINIOS)
+  conjunto <- NULL
+  if (length(partes) == length(claves) + 1L) {                                   # campo opcional (C-4)
+    kv <- strsplit(partes[length(partes)], "=", fixed = TRUE)[[1]]
+    if (length(kv) != 2L || kv[1] != "conjunto") stop(sprintf("token: el campo %d solo puede ser `conjunto=...`, vino `%s`", length(partes), partes[length(partes)]))
+    if (!grepl(TOKEN_PATRON_CONJUNTO, kv[2])) stop(sprintf("token: conjunto mal formado: `%s` (se espera <nombre>@<8 hex>)", kv[2]))
+    conjunto <- kv[2]
+    partes <- partes[-length(partes)]
+  }
   if (length(partes) != length(claves)) stop(sprintf("token: %d campos, se esperan %d: %s", length(partes), length(claves), tok))
   valores <- list(ventana = partes[1])
   for (i in 2:length(claves)) {
@@ -455,6 +468,7 @@ validar_token <- function(tok) {
       stop(sprintf("token: valor no declarado para %s: `%s` (válidos: %s)", cl, valores[[cl]], paste(TOKEN_DOMINIOS[[cl]], collapse = ", ")))
     }
   }
+  if (!is.null(conjunto)) valores$conjunto <- conjunto
   valores
 }
 
