@@ -2,8 +2,7 @@
 
 **Fecha:** 2026-10-03, actualizado el 2026-10-05 · **Estado:** F5-16 y F5-17 decididas por Harold el
 2026-09-30; las decisiones de implementación del corte congelado (C-1 a C-8, abajo), el 2026-10-03; F5-01 a
-F5-10 y F5-04c, el 2026-10-05. F5-11 a F5-15 siguen pendientes de respuesta y entran a este documento cuando
-se decidan (Regla 4); hasta entonces sus fichas no son vinculantes.
+F5-15 y F5-04c, el 2026-10-05. Con eso las diecisiete fichas de Fase 5 están decididas.
 
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase4.md` para Fase 5: cada ficha lleva
 la línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran
@@ -26,6 +25,11 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-08 | U-MIDAS sin restricciones y ecuación puente | ninguno aquí |
 | F5-09 | Un solo elastic net con α elegido, más PCR; PLS y predictores dirigidos fuera | ninguno aquí |
 | F5-10 | Random forest (`ranger`) y LightGBM; sin importancia por permutación | ninguno aquí |
+| F5-11 | Validación anidada con K = 12, reoptimizando en cada origen (solo en Q1 si el costo medido no da) | ninguno aquí |
+| F5-12 | Densidad analítica en los lineales (sistema conjunto en ARIMAX y puente); predictiva posterior en el BVAR; covarianza de errores internos en regularizados y árboles; combinaciones fuera | protocolo §3, punto 4 (nota 2026-10-05) |
+| F5-13 | Miembros: todos los modelos de Fase 5 del grupo; media, mediana, recortada al 10 % e inversa al ECM con δ = 0,9 | ninguno aquí |
+| F5-14 | Principal, R3, R4 y R7 para todos; R1, R2, R5 y R6 bajo un tope medido con datos sintéticos | protocolo §5 (nota 2026-10-05) |
+| F5-15 | Un hilo, semilla del motor y doble corrida en CI; tolerancia declarada solo para la paridad Windows/Linux del BVAR | protocolo §6 (nota 2026-10-05) |
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
@@ -240,6 +244,96 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
   límite de lo razonable, y el resultado probable (que no le gane al paseo) es informativo.
 - La importancia por permutación (no por impureza, senda §6.6) queda fuera de Fase 5.
 - Descartada: solo RF con LightGBM como extensión.
+
+---
+
+## F5-11 — Validación anidada (esquema común para regularizados y ML)
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- Dentro de cada origen `o` y cada `h`, validación pseudo-fuera-de-muestra interna sobre los últimos **K = 12**
+  orígenes internos de `[inicio, o]`: se estima con datos ≤ `o'` y se evalúa el crecimiento acumulado en
+  `o' + h ≤ o`; se elige el hiperparámetro que minimiza el ECM interno. Aplica a α y λ del elastic net, `k` del
+  PCR, las rejillas de RF y las rondas de LightGBM. G-1 impide usar datos posteriores a `o`, porque `ajustar()`
+  no los recibe.
+- **Reoptimización en cada origen**, simétrica con la selección por BIC de los econométricos. Si el costo
+  medido con datos sintéticos (F5-14) supera el tope, se pasa a reoptimizar solo en los orígenes Q1 y reutilizar
+  la elección en los otros tres; esa variante se declara en el YAML **antes** de la corrida sobre L3.
+- Con 39 datos en el primer origen de G2 y G3, K = 12 deja unos 27 para la primera estimación interna.
+- Descartada: K proporcional ⌊n/4⌋, que cambia el criterio de selección a lo largo de la muestra.
+
+## F5-12 — Densidad de los modelos nuevos
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas. El motor evalúa la gaussiana conjunta del
+sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columnas vacías y se declara.
+
+- **Lineales gaussianos (ARIMA, UC, VAR, VECM):** covarianza analítica con los pesos MA (`cov_desde_pesos()`, ya en
+  `eval_lib.R`). *Plug-in* en los parámetros.
+- **ARIMAX y puente:** el modelo y el AR(p)-BIC de sus predictoras (F5-05) se tratan como un **sistema lineal
+  conjunto** y la covarianza sale de su forma compañera. Sigue siendo *plug-in* en los parámetros, pero no ignora
+  la incertidumbre de las predictoras proyectadas. Descartadas: la covarianza condicional a la proyección, que
+  subestima la varianza, y dejarlos sin densidad.
+- **BVAR:** media y covarianza de la **predictiva posterior**, que sí incluye la incertidumbre de parámetros. Como
+  el contrato exige `media` = sendero, el sendero puntual del BVAR es la **media** posterior y no la mediana; el
+  manifiesto lo declara.
+- **Regularizados y árboles:** gaussiana con la covarianza empírica `h × h` de los errores **fuera de muestra
+  internos** del crecimiento acumulado (los de F5-11, o los OOB en RF). Se declara que la varianza sale de errores
+  internos y no de un modelo de probabilidad. Encaja en el contrato sin cambiar el motor. Con K = 12 pares
+  internos esa covarianza es ruidosa; se reporta como límite. Descartadas: dejarlos fuera de la calibración y los
+  cuantiles (extensión 6 de la senda, que exige un CRPS por muestras en el motor y un bloque nuevo en V13).
+- **Combinaciones:** fuera de la calibración (una mezcla de gaussianas no es gaussiana).
+- Enmienda el protocolo §3, punto 4, que dejaba fuera a los «árboles sin bootstrap».
+
+## F5-13 — Combinaciones (§6.7)
+
+**DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas.
+
+- **Miembros:** todos los modelos de Fase 5 del grupo, **sin los benchmarks**, fijados en el YAML de cada
+  combinación antes de la corrida única (F5-02). Así la combinación mide lo que aportan los modelos nuevos y los
+  benchmarks siguen siendo la referencia. Descartados: sumar los benchmarks, que contamina la comparación contra
+  ellos, y elegir miembros por desempeño, que es selección con resultados.
+- **Esquemas, cuatro por grupo:** media simple, mediana, media recortada al 10 % y pesos inversos al ECM con
+  descuento δ = 0,9 (Stock y Watson, 2004). En el origen `o` y horizonte `h` solo se usan los errores de pares con
+  `o' + h ≤ o`; hasta acumular **8** errores los pesos son iguales, y se declara. La regla es la misma en los tres
+  grupos.
+- Descartadas: la regresión de combinación restringida (con 18-52 pares por celda; la senda la condiciona a que el
+  número de orígenes lo permita), solo los tres esquemas sin parámetros, y los orígenes de calentamiento antes de
+  2013-Q1, que solo serían viables en G1.
+- Implementación: las combinaciones no caben en `correr_backtest()` como un modelo más; son un paso posterior del
+  orquestador sobre `pronosticos.csv` (B5, al final).
+
+## F5-14 — Batería de robustez y costo de cómputo
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- **Siempre, para todos los modelos de Fase 5:** la principal, R3 y R4 (submuestras de la principal, cómputo
+  cero) y R7 (UT a 61 días, F5-04c; solo los modelos con UT de G2 y G3).
+- **R1, R2, R5 y R6:** para todos los modelos, salvo que el tiempo medido supere un **tope declarado**. Si lo
+  supera, esas cuatro corren solo para los univariados, las combinaciones y **un representante por familia**,
+  decididos antes de ver resultados.
+- **Paso previo:** medir el tiempo por origen de cada familia con datos sintéticos (sin mirar L3). Con esa cifra se
+  fijan el tope y, si hace falta, los representantes, en un commit anterior a la corrida sobre L3 (protocolo §6,
+  nota I1). La misma medición decide la variante de F5-11.
+- Referencia hoy, en la máquina de Harold: los 13 experimentos de benchmarks tardan unos 5 minutos y V1-V13 unos 5
+  a 6. El BVAR y la validación anidada son las piezas que multiplican el tiempo.
+- Descartadas: todos los modelos en todos los experimentos, y solo la principal con R3, R4 y R7.
+
+## F5-15 — Reproducibilidad bit a bit
+
+**DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
+
+- `ranger` con `num.threads = 1`; `lightgbm` con `num_threads = 1`, `deterministic = TRUE` y
+  `force_row_wise = TRUE`; la semilla del motor (`semilla_de()`) pasada explícitamente (`seed =`). Todo fijado en
+  los YAML. `fable::ARIMA` con `stepwise = FALSE` es determinista.
+- **BVAR:** semilla del motor. Sus resultados dependen de la BLAS, así que la paridad Windows/Linux se verifica
+  como en el cierre de Fase 4 y, si no es bit a bit, se declara la tolerancia. Esa tolerancia aplica solo a la
+  comparación entre sistemas operativos: en una misma máquina, `make eval` debe regenerar bit a bit
+  `data/L4_experiments/<exp_id>/` (protocolo §6).
+- **CI:** un bloque nuevo corre dos veces el mismo experimento sintético con los modelos de Fase 5 y compara los
+  hashes, como V10 hace hoy con los seis benchmarks.
+- Costo declarado: un solo hilo hace más lentos RF y LightGBM, y entra a la medición de F5-14.
+- Descartadas: sin el bloque de CI de doble corrida, y multihilo con tolerancia, que rompería el «bit a bit» del
+  protocolo §6.
 
 ---
 
