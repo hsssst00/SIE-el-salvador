@@ -32,8 +32,12 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 - [x] **B2 · F5-06 a F5-10** Especificación de univariados, multivariados, frecuencia mixta, regularizados y
   árboles. Decididas el 2026-10-05 y registradas en `decisiones_fase5.md`; las rejillas finas de cada modelo se
   fijan en su YAML.
-- [ ] **B3 · F5-11 a F5-13** Validación anidada, densidad de los modelos nuevos y combinaciones. Pendientes.
-- [ ] **B4 · F5-14 y F5-15** Robustez y costo, y reproducibilidad. Pendientes.
+- [x] **B3 · F5-11 a F5-13** Validación anidada, densidad de los modelos nuevos y combinaciones. Decididas el
+  2026-10-05 y registradas en `decisiones_fase5.md`.
+- [x] **B4 · F5-14 y F5-15** Robustez y costo, y reproducibilidad. Decididas el 2026-10-05 y registradas en
+  `decisiones_fase5.md`.
+- [ ] **B5 · F5-14** Medición del tiempo por origen de cada familia con datos sintéticos; con esa cifra, tope,
+  representantes por familia y variante de F5-11, fijados en un commit anterior a la corrida sobre L3.
 
 ## C. Infraestructura que piden las decisiones
 
@@ -43,6 +47,12 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   meses que el origen admite existen en la serie). Con B1.
 - [ ] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
   árboles. Con B3.
+- [ ] **C4 · F5-11** Validación anidada con K = 12 y reoptimización por origen, con su prueba de que no usa datos
+  posteriores a `o`.
+- [ ] **C5 · F5-12** Densidad del sistema conjunto en ARIMAX y puente (forma compañera) y de errores internos en
+  regularizados y árboles, cubierta por V13 o un bloque nuevo.
+- [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
+  hashes.
 
 ## D. Bloques de modelos (un PR por bloque, sin apilar; orden de F5-01)
 
@@ -70,7 +80,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 ## F. Cierre
 
 - [ ] **F1** Reproducibilidad con una sola orden y una semilla fijada (criterio de la senda; forma concreta en
-  F5-15, pendiente).
+  F5-15): `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`, y la paridad Windows/Linux del BVAR se
+  verifica o se declara su tolerancia.
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
