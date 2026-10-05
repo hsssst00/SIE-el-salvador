@@ -141,6 +141,15 @@ origen, no por la fecha sintética del vintage. En el origen 2019-Q3, cuyo corte
 coincide con la fecha sintética de `v2019-12`, entra UT hasta 2018. La implementa la rama anual de
 `recortar_a_origen()` y `guarda_recorte()` (`REZAGO_ANUAL_CERRADO`), con canario en V5.
 
+**Nota (2026-10-05, F5-04).** Para Fase 5, UT deja de entrar por años cerrados y pasa a la regla general de
+esta sección, con un rezago **supuesto** de 30 días (no una mediana medida: lo observado son dos cotas
+superiores de 2026, y de 2013-2025 no hay fechas reales de publicación). La fila de la tabla sería:
+`UT.DEMANDA_ELEC.GWH.NSA.M` | 30 (supuesto) | 2 | 30 · `rezagos_predictoras()` ← `evidencia_insumos_fase4.csv`
+(métrica `rezago_dias_supuesto`). El agregado `.Q` entra hasta `o`. Lo escrito arriba sobre UT queda como lo
+decidido en F4-02 y F4-34 y no se reescribe; la rama anual de `recortar_a_origen()` y `guarda_recorte()`
+(`REZAGO_ANUAL_CERRADO`) se conserva como mecanismo, hoy sin series. Decisión y razones en
+`doc/metodologia/decisiones_fase5.md`, F5-04.
+
 ### 2.4 Vintage contra el que se evalúa [decidido 2026-09-24, F4-03]
 
 ADR-001 fija como criterio **primario** "evaluación contra el vintage disponible en cada
