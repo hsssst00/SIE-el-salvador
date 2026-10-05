@@ -918,21 +918,23 @@ calibracion_densidad <- function(error, sd) {
 }
 
 # ---------------------------------------------------------------------------------------------
-# 12. Rezago de publicación de las predictoras (F4-34, borrador; remediación del hallazgo I2b)
+# 12. Rezago de publicación de las predictoras (F4-34; remediación del hallazgo I2b; UT, F5-04)
 # ---------------------------------------------------------------------------------------------
 #
-# Una sola fuente: el bloque `rezago_publicacion` (métrica `rezago_dias_mediano`) de
+# Una sola fuente: el bloque `rezago_publicacion` de
 # doc/metodologia/reportes_fase4/evidencia_insumos_fase4.csv, versionado y regenerable con
-# scripts/evidencia_insumos_fase4.R. Las series trimestrales (agregados T003-T011) heredan el
-# rezago de su fuente mensual.
+# scripts/evidencia_insumos_fase4.R. Dos métricas en días: `rezago_dias_mediano` (medido sobre el
+# calendario de divulgación del BCR) y `rezago_dias_supuesto` (declarado, sin medición). Las series
+# trimestrales (agregados T003-T011) heredan el rezago de su fuente mensual.
 #
-# UT tiene grano de disponibilidad anual y no lleva rezago en días: su marca es REZAGO_ANUAL_CERRADO.
-# Forma operativa de «UT solo años cerrados» (F4-02), decidida por Harold el 2026-09-29 (F4-34,
-# opción C del memo de decisión): el año `a` entra solo en los orígenes posteriores a `a`-Q4, es
-# decir, desde (a+1)-Q1. Se decide por el período de la observación y el origen, no por la fecha de
-# publicación de 08_vintages.csv, que para UT es sintética (31-dic). Caso borde: el corte del origen
-# 2019-Q3 cae el 2019-12-31, justo la fecha sintética de v2019-12; con esta regla 2019 no entra ahí
-# ni en 2019-Q4, y sí desde 2020-Q1.
+# UT (F5-04, decidido por Harold el 2026-10-05) lleva un rezago SUPUESTO de 30 días, como cualquier serie
+# mensual: entra hasta el último mes con fin(m) + 30 <= fin(o) + 92. No hay fechas reales de publicación
+# de UT para 2013-2025, y lo observado en 2026 son cotas superiores (ver el script de evidencia). Esto
+# reemplaza para Fase 5 la regla «UT solo años cerrados» de F4-34.2 (opción C, 2026-09-29).
+#
+# La rama anual (REZAGO_ANUAL_CERRADO, anio_de_periodo(), anio_max_cerrado()) se conserva como mecanismo
+# para series de grano anual: el año `a` entra solo desde el origen (a+1)-Q1, decidido por el período de
+# la observación y el origen y no por una fecha de publicación sintética. Hoy ninguna serie la usa.
 
 REZAGO_ANUAL_CERRADO <- "anual_cerrado"
 
@@ -948,18 +950,24 @@ anio_max_cerrado <- function(o) as.integer(o) %/% 4L - 1L
 
 RUTA_EVIDENCIA_INSUMOS <- c("doc", "metodologia", "reportes_fase4", "evidencia_insumos_fase4.csv")
 
+# Métricas del bloque `rezago_publicacion` que declaran un rezago en días: la medida y la supuesta.
+METRICAS_REZAGO_DIAS <- c("rezago_dias_mediano", "rezago_dias_supuesto")
+
 .clave_rezago <- function(id) gsub("[^A-Za-z0-9]", "_", sub("\\.Q$", ".M", id))
 
-#' Rezago en días de cada serie de `ids` (series_master_id), leído de la evidencia de insumos; para las
-#' de grano anual (UT), REZAGO_ANUAL_CERRADO. Falla si una serie no tiene rezago declarado.
+#' Rezago en días de cada serie de `ids` (series_master_id), leído de la evidencia de insumos (métricas de
+#' METRICAS_REZAGO_DIAS); para las de grano anual, REZAGO_ANUAL_CERRADO. Falla si una serie no tiene
+#' rezago declarado o si lo tiene de las dos maneras a la vez.
 rezagos_predictoras <- function(ids, evidencia = NULL) {
   if (is.null(evidencia)) evidencia <- utils::read.csv(do.call(here::here, as.list(RUTA_EVIDENCIA_INSUMOS)),
                                                        stringsAsFactors = FALSE, na.strings = "")
   r <- evidencia[evidencia$bloque == "rezago_publicacion", , drop = FALSE]
   anual <- r$item[r$metrica == "grano_de_disponibilidad" & r$valor == "anual"]
-  med <- r[r$metrica == "rezago_dias_mediano", , drop = FALSE]
+  med <- r[r$metrica %in% METRICAS_REZAGO_DIAS, , drop = FALSE]
   tabla <- stats::setNames(as.integer(med$valor), .clave_rezago(med$item))
   if (anyNA(tabla) || anyDuplicated(names(tabla))) stop("rezagos_predictoras: la evidencia trae rezagos inválidos o duplicados")
+  ambos <- intersect(.clave_rezago(anual), names(tabla))
+  if (length(ambos)) stop("rezagos_predictoras: ", paste(ambos, collapse = ", "), " declara grano anual y rezago en días a la vez")
   res <- lapply(ids, function(id) {
     k <- .clave_rezago(id)
     if (k %in% .clave_rezago(anual)) return(REZAGO_ANUAL_CERRADO)                                     # F4-34
