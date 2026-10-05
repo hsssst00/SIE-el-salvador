@@ -196,6 +196,7 @@ semilla_de <- function(exp_id, modelo_id, origen) {
   if (length(faltan)) stop("modelo sin campos del contrato: ", paste(faltan, collapse = ", "))
   if (!is.function(m$ajustar) || !is.function(m$predecir)) stop("modelo ", m$modelo_id, ": ajustar/predecir deben ser funciones")
   if (!is.null(m$predecir_densidad) && !is.function(m$predecir_densidad)) stop("modelo ", m$modelo_id, ": predecir_densidad debe ser una función")
+  if (!is.null(m$piso_gl) && !(is.logical(m$piso_gl) && length(m$piso_gl) == 1L && !is.na(m$piso_gl))) stop("modelo ", m$modelo_id, ": piso_gl debe ser TRUE o FALSE")
   invisible(TRUE)
 }
 
@@ -240,6 +241,7 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
     info <- stats::setNames(lapply(names(series), function(nm) {
       r <- recortar_a_origen(series[[nm]], o, rezagos[[nm]])
       guarda_recorte(r, o, rezagos[[nm]], nombre = nm)                          # G-1
+      if (nm != "objetivo") guarda_borde(r, o, rezagos[[nm]], nombre = nm)      # G-7 (F5-04)
       r
     }), names(series))
     n_obj <- nrow(info$objetivo)
@@ -254,6 +256,7 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
 
       set.seed(semilla_de(exp_id, m$modelo_id, o))
       ajuste  <- m$ajustar(info[m$requiere], spec[[m$modelo_id]])
+      if (isTRUE(m$piso_gl)) guarda_gl(ajuste, m$modelo_id, o)                  # G-8 (F5-03)
       sendero <- m$predecir(ajuste, h_max)
 
       if (!is.numeric(sendero) || length(sendero) != h_max || any(!is.finite(sendero))) {                 # G-3
@@ -983,4 +986,101 @@ rezagos_modelo <- function(modelo, evidencia = NULL) {
   pred <- setdiff(modelo$requiere, "objetivo")
   if (!length(pred)) return(list())
   rezagos_predictoras(pred, evidencia)
+}
+
+# ---------------------------------------------------------------------------------------------
+# 13. Predictoras por grupo, alineación con el origen y guardas de Fase 5 (F4-05, F5-03, F5-04)
+# ---------------------------------------------------------------------------------------------
+#
+# Composición de predictoras de cada grupo de comparación (F4-05): la misma que usa
+# scripts/evidencia_insumos_fase4.R para calcular el primer origen de cada grupo, sin el objetivo; una
+# prueba compara las dos. Se declara por familia; la frecuencia (.Q para los modelos trimestrales, .M
+# para MIDAS y puente) la elige cada modelo.
+GRUPOS_PREDICTORAS <- list(
+  G1 = c("BCR.REMESAS.NOM.NSA", "BCR.EXPORT_FOB.NOM.NSA")
+)
+GRUPOS_PREDICTORAS$G2 <- c(GRUPOS_PREDICTORAS$G1, "BCR.ITCER.IDX.NSA", "UT.DEMANDA_ELEC.GWH.NSA", "BCR.IVAE.VOL.SA", "BCR.IPM.IDX.NSA")
+GRUPOS_PREDICTORAS$G3 <- c(GRUPOS_PREDICTORAS$G2, "BCR.IPP.IDX.NSA", "BCR.REMESAS.REAL.NSA")
+
+#' series_master_id de las predictoras de un grupo en la frecuencia pedida ("Q" o "M").
+predictoras_grupo <- function(grupo, frecuencia = c("Q", "M")) {
+  frecuencia <- match.arg(frecuencia)
+  if (length(grupo) != 1L || !grupo %in% names(GRUPOS_PREDICTORAS)) stop("predictoras_grupo: grupo no declarado: ", paste(grupo, collapse = ", "))
+  paste0(GRUPOS_PREDICTORAS[[grupo]], ".", frecuencia)
+}
+
+#' Último período (índice) que el calendario admite en el origen `o` para una serie con `rezago` en días:
+#' el máximo `p` con fin(p) + rezago <= fecha_corte_origen(o). No mira datos: es la regla de §2.3.
+ultimo_admitido <- function(o, rezago, mensual, rezago_pib = REZAGO_PIB_DIAS) {
+  if (!is.numeric(rezago) || length(rezago) != 1L || is.na(rezago)) stop("ultimo_admitido: el rezago debe ser un número de días")
+  corte <- fecha_corte_origen(o, rezago_pib)
+  if (mensual) {
+    ult_mes_o <- as.integer(o) %/% 4L * 12L + (as.integer(o) %% 4L) * 3L + 2L
+    cand <- ult_mes_o + (-36L:12L)
+    ok <- fin_de_mes_ind(cand) + as.integer(rezago) <= corte
+  } else {
+    cand <- as.integer(o) + (-12L:4L)
+    ok <- fin_de_trimestre_ind(cand) + as.integer(rezago) <= corte
+  }
+  if (!any(ok)) stop("ultimo_admitido: ningún período admitido en ", ind_a_q(o), " con rezago ", rezago)
+  max(cand[ok])
+}
+
+#' Alineación de una predictora con el origen en todos los orígenes de un grupo (F5-04, parte 1). Para
+#' una serie trimestral devuelve `desfase` = trimestres entre el origen y el último trimestre admitido
+#' (0 = entra hasta `o`, que es lo que exige F5-04 a los modelos trimestrales); para una mensual,
+#' `desfase` = meses del trimestre `o+1` admitidos (el borde irregular que usan MIDAS y puente). Falla si
+#' el desfase no es el mismo en todos los orígenes del grupo: la regla tiene que ser uniforme.
+rezago_alineacion <- function(serie_id, grupo, evidencia = NULL, rezago_pib = REZAGO_PIB_DIAS) {
+  rez <- rezagos_predictoras(serie_id, evidencia)[[1]]
+  if (identical(rez, REZAGO_ANUAL_CERRADO)) stop("rezago_alineacion: ", serie_id, " es de grano anual; la alineación en días no aplica")
+  mensual <- grepl("\\.M$", serie_id)
+  if (!mensual && !grepl("\\.Q$", serie_id)) stop("rezago_alineacion: ", serie_id, " no termina en .M ni en .Q")
+  des <- vapply(origenes_grupo(grupo), function(o) {
+    u <- ultimo_admitido(o, rez, mensual, rezago_pib)
+    if (mensual) u - (as.integer(o) %/% 4L * 12L + (as.integer(o) %% 4L) * 3L + 2L) else as.integer(o) - u
+  }, integer(1))
+  if (length(unique(des)) != 1L) {
+    stop(sprintf("rezago_alineacion: %s no tiene un desfase uniforme en los orígenes de %s (%s)", serie_id, grupo,
+                 paste(sort(unique(des)), collapse = ", ")))
+  }
+  list(serie_id = serie_id, grupo = grupo, frecuencia = if (mensual) "M" else "Q", rezago_dias = as.integer(rez),
+       desfase = unique(des))
+}
+
+#' G-7 (F5-04): completitud del borde. Después del recorte, una predictora con rezago en días debe llegar
+#' exactamente al último período que el calendario admite en el origen. Si llega antes, el modelo vería
+#' menos información de la que la regla declara (o un hueco), y el motor se detiene. Las series de grano
+#' anual tienen su propia guarda (año completo, rama anual de guarda_recorte()).
+guarda_borde <- function(d, o, rezago, nombre = "serie", rezago_pib = REZAGO_PIB_DIAS) {
+  if (is.null(rezago) || identical(rezago, REZAGO_ANUAL_CERRADO)) return(invisible(TRUE))
+  mensual <- nrow(d) > 0L && grepl("-M", d$periodo[1], fixed = TRUE)
+  if (nrow(d) == 0L) stop(sprintf("G-7 borde incompleto: %s no trae ningún período admitido en el origen %s", nombre, ind_a_q(o)))
+  esperado <- ultimo_admitido(o, rezago, mensual, rezago_pib)
+  ultimo <- if (mensual) m_a_ind(d$periodo[nrow(d)]) else q_a_ind(d$periodo[nrow(d)])
+  if (ultimo != esperado) {
+    fmt <- function(i) if (mensual) sprintf("%d-M%02d", i %/% 12L, i %% 12L + 1L) else ind_a_q(i)
+    stop(sprintf("G-7 borde incompleto: %s llega hasta %s en el origen %s y el calendario admite hasta %s (rezago %d días, F5-04)",
+                 nombre, fmt(ultimo), ind_a_q(o), fmt(esperado), as.integer(rezago)))
+  }
+  invisible(TRUE)
+}
+
+# Piso de la muestra efectiva de F5-03: observaciones efectivas menos parámetros estimados.
+PISO_GL <- 20L
+
+#' G-8 (F5-03): un modelo que declara `piso_gl = TRUE` debe devolver en su ajuste `gl = c(n_obs =, n_par =)`
+#' (observaciones efectivas de la ecuación del objetivo y parámetros estimados, sin contar la varianza), y
+#' n_obs - n_par >= PISO_GL. La grilla del YAML se acota para que esto no se dispare; la guarda lo comprueba.
+guarda_gl <- function(ajuste, modelo_id, o) {
+  gl <- if (is.list(ajuste)) ajuste$gl else NULL
+  if (!is.numeric(gl) || !all(c("n_obs", "n_par") %in% names(gl)) || any(!is.finite(gl[c("n_obs", "n_par")]))) {
+    stop(sprintf("G-8 modelo %s en %s: declara piso_gl y su ajuste no trae gl = c(n_obs, n_par)", modelo_id, ind_a_q(o)))
+  }
+  libres <- gl[["n_obs"]] - gl[["n_par"]]
+  if (libres < PISO_GL) {
+    stop(sprintf("G-8 modelo %s en %s: %d observaciones efectivas y %d parámetros dejan %d grados de libertad; el piso es %d (F5-03)",
+                 modelo_id, ind_a_q(o), as.integer(gl[["n_obs"]]), as.integer(gl[["n_par"]]), as.integer(libres), PISO_GL))
+  }
+  invisible(TRUE)
 }

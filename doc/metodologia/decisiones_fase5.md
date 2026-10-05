@@ -30,6 +30,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-13 | Miembros: todos los modelos de Fase 5 del grupo; media, mediana, recortada al 10 % e inversa al ECM con δ = 0,9 | ninguno aquí |
 | F5-14 | Principal, R3, R4 y R7 para todos; R1, R2, R5 y R6 bajo un tope medido con datos sintéticos | protocolo §5 (nota 2026-10-05) |
 | F5-15 | Un hilo, semilla del motor y doble corrida en CI; tolerancia declarada solo para la paridad Windows/Linux del BVAR | protocolo §6 (nota 2026-10-05) |
+| B1-1 a B1-5 | Implementación de B1: forma y grillas del ARIMAX, experimentos por grupo, B1 en dos PR, densidad del sistema ARIMAX | especificación del motor §3 (nota 2026-10-05) |
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
@@ -334,6 +335,55 @@ sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columna
 - Costo declarado: un solo hilo hace más lentos RF y LightGBM, y entra a la medición de F5-14.
 - Descartadas: sin el bloque de CI de doble corrida, y multihilo con tolerancia, que rompería el «bit a bit» del
   protocolo §6.
+
+---
+
+## Implementación del bloque B1 (decidida por Harold el 2026-10-05)
+
+Al bajar F5-03, F5-04, F5-06 y F5-12 a código aparecieron cinco puntos que las fichas no fijaban. Todos se
+resolvieron en la opción recomendada.
+
+- **B1-1 · Forma del ARIMAX.** `fable::ARIMA(y ~ x)` es una regresión con errores ARIMA y, si elige d = 1, diferencia
+  también los regresores: con la ficha literal el modelo regresaría Δy sobre ΔΔlog x, contra F4-06. **DECIDIDO:**
+  el ARIMAX trabaja en Δy con **d = 1 fijo**: `Δy_t = c + β'x_t + η_t`, con η ARMA(p, q) por BIC, `x` = Δlog de las
+  predictoras (rezagos según B1-2) y dummies estacionales si hay predictoras NSA. El sendero es `y_o` más la suma de
+  los Δy pronosticados. `UNI.ARIMA` sigue con d por KPSS. Descartada: la regresión sobre log-niveles con d por KPSS,
+  que con d = 0 es una regresión en niveles y con d = 2 trabaja en segundas diferencias.
+- **B1-2 · Grillas del ARIMAX, fijas en todos los orígenes del grupo.** Cuentas con L3 en el primer origen de cada
+  grupo (constante y 3 dummies si hay NSA): G1 (2 predictoras, inicio común 1994-Q1) tiene 75 observaciones; G2 (6,
+  inicio común 2005-Q1) con rezagos 0..1 tiene 38 observaciones y 16 parámetros, así que `p + q ≤ 2`; G3 (8, inicio
+  común 2010-Q1) con rezagos 0..1 no cabe ni con p = q = 0. **DECIDIDO:** G1 rezagos 0..1 con p, q ≤ 2; G2 rezagos
+  0..1 con p + q ≤ 2; G3 solo rezago 0 con p, q ≤ 2; ARIMAX-IVAE de G2 (IVAE es SA, sin dummies) rezagos 0..1 con
+  p, q ≤ 2. Descartadas: solo rezago 0 en todos, y candidatos filtrados por origen (no es «acotado de antemano»).
+- **B1-3 · Experimentos.** **DECIDIDO:** un experimento principal por grupo, `F5_G1`, `F5_G2` y `F5_G3`, con los seis
+  benchmarks y todos los modelos de Fase 5 del grupo (registro `modelos_fase5()` en
+  `src/evaluacion/modelos_fase5.R`), con R3 y R4 sobre la principal como en Fase 4; las variantes como `F5_Gk_Rn`.
+  Así hay un solo MCS por grupo y horizonte. Descartado: un experimento por grupo y familia.
+- **B1-4 · Dos PR, uno después del otro y sin apilar.** **DECIDIDO:** B1a, infraestructura (lectura de predictoras del
+  corte con G-6, composición de grupos de F4-05 en código, `rezago_alineacion()`, guarda de completitud del borde,
+  guarda de grados de libertad y experimentos); B1b, cuando B1a esté en `main`, los modelos (ARIMA, ARIMAX,
+  ARIMAX-IVAE y UC), sus YAML, densidades y el canario V14. Es una excepción declarada a «un PR por bloque» de F5-01.
+- **B1-5 · Covarianza de las innovaciones del sistema ARIMAX (F5-12).** **DECIDIDO:** la covarianza muestral
+  contemporánea **completa** de los residuos del ARIMAX y de los AR de sus predictoras, en la misma muestra del
+  origen. Sigue siendo *plug-in*. Descartada: la diagonal (innovaciones independientes).
+
+**Decisiones menores del agente en B1a** (revertibles en un commit; ninguna cambia un resultado de Fase 4):
+
+- Las dos guardas nuevas se llaman **G-7** (borde incompleto, F5-04) y **G-8** (grados de libertad, F5-03), después de
+  G-1 a G-6. G-7 corre en `correr_backtest()` sobre toda predictora con rezago en días; G-8, sobre los modelos que
+  declaran `piso_gl = TRUE` en su contrato y devuelven `gl = c(n_obs, n_par)` en su ajuste. Los benchmarks no
+  declaran `piso_gl` y los modelos penalizados y de árboles lo declararán `FALSE` (F5-09). `PISO_GL = 20` vive en
+  `eval_lib.R`.
+- **Candado del preregistro (F5-02):** `PREREGISTRO_FASE5_CERRADO <- FALSE` en `motor_backtesting.R`. Mientras esté
+  abierto, `make eval` corre solo los `F5_REPRO_*` y pedir un `F5_G*` se detiene con `stop()`; los `F5_G*` se ejercen
+  con datos sintéticos en `tests/`. Lo cierra el commit de congelamiento del preregistro (E1 del checklist).
+- La composición de predictoras de cada grupo (`GRUPOS_PREDICTORAS`, `predictoras_grupo()`) se toma de las listas de
+  `scripts/evidencia_insumos_fase4.R` con las que se calcularon los primeros orígenes de F4-05, y una prueba compara
+  las dos.
+
+**Punto para B1b (no decidido).** Por esa composición, G3 trae a la vez remesas nominales y reales, cuyos Δlog
+trimestrales correlacionan alrededor de 0,99 (evidencia de F4-23). En la ARIMAX de G3, con todas las predictoras del
+grupo (F5-06), eso es casi colinealidad. Se presenta como pregunta antes de escribir el YAML de `UNI.ARIMAX.G3`.
 
 ---
 

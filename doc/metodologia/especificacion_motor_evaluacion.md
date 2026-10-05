@@ -112,6 +112,21 @@ lectura de `motor_backtesting.R` agrega cuatro guardas, todas con `stop()`:
 
 El token de §4 admite un séptimo campo opcional, `|conjunto=<nombre>@<sha8>` (C-4).
 
+**Nota (2026-10-05, F5-03, F5-04, B1-3; bloque B1a).** Para los modelos de Fase 5 con predictoras, la capa de lectura
+y el bucle agregan:
+
+- **Lectura de predictoras.** `leer_predictoras()` lee de `<SALIDA>/L3_master` las series que piden los modelos de la
+  corrida, con **G-6 por fila** (`verificar_vintage_predictora()`): cada fila trae el vintage que el corte declara
+  para su publicación, y UT el de su año. Sus sha256 entran al manifiesto.
+- **G-7 · borde incompleto** (`guarda_borde()`, en `correr_backtest()`): tras el recorte, toda predictora con rezago en
+  días llega exactamente al último período que el calendario admite en el origen (`ultimo_admitido()`).
+- **G-8 · grados de libertad** (`guarda_gl()`): un modelo con `piso_gl = TRUE` devuelve `gl = c(n_obs, n_par)` y debe
+  dejar al menos `PISO_GL = 20`.
+- **Alineación.** `rezago_alineacion(serie, grupo)` da el desfase uniforme de una predictora en los orígenes del grupo:
+  0 trimestres para las `.Q` (entran hasta `o`) y los meses de `o+1` para las `.M`.
+- **Experimentos `F5_G1`, `F5_G2`, `F5_G3`** con los benchmarks y `modelos_fase5(grupo)`, bloqueados sobre L3 por el
+  candado del preregistro (F5-02) hasta el commit de congelamiento.
+
 ## 4. Persistencia
 
 ```
