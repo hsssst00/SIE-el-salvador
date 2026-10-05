@@ -42,9 +42,11 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 ## C. Infraestructura que piden las decisiones
 
 - [ ] **C1 · F5-03** Guarda de ≥ 20 grados de libertad en el motor, con `stop()` y una prueba que verifique que
-  el diseño la cumple en el primer origen de cada grupo. Con B1.
+  el diseño la cumple en el primer origen de cada grupo. Guarda G-8 implementada en B1a
+  (`tests/test-predictoras-fase5.R`); la prueba sobre el primer origen de cada grupo llega con los modelos de B1b.
 - [ ] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
-  meses que el origen admite existen en la serie). Con B1.
+  meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
+  marca con la evidencia de CI al fusionar.
 - [ ] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
   árboles. Con B3.
 - [ ] **C4 · F5-11** Validación anidada con K = 12 y reoptimización por origen, con su prueba de que no usa datos
