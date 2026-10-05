@@ -340,6 +340,15 @@ antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas 
   senda, que son los que Fase 4 implementa y prueba.
 
 
+**Nota (2026-10-05, F5-01 a F5-05).** La tercera línea de arriba sigue vigente en lo que dice, pero Fase 5 ya
+tiene marco decidido: alcance y orden de los bloques (F5-01), preregistro completo antes de la corrida única
+sobre L3 (F5-02), asignación a grupos y piso de muestra efectiva (F5-03), alineación de las predictoras con el
+origen (F5-04) y estrategia multihorizonte (F5-05), todo en `doc/metodologia/decisiones_fase5.md`. Siguen
+fuera de este protocolo la especificación de cada familia (F5-06 a F5-10 y F5-13), la validación anidada
+(F5-11), la densidad de los modelos nuevos (F5-12) y la robustez, el costo y la reproducibilidad (F5-14 y
+F5-15), que se incorporan cuando Harold las decida. Los factoriales dinámicos quedan fuera de Fase 5
+(extensión 4, F5-01).
+
 ---
 
 ## 8. Ajuste estacional del objetivo dentro de cada origen (F4-09 y F4-09b)
