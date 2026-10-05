@@ -316,6 +316,11 @@ los errores de la principal del grupo y escriben sus tablas en el directorio de 
 `estabilidad.csv`. En las submuestras con hueco (`sin_2020`, `sin_2020_2021`), DM/HLN y el MCS tratan como
 contiguos los pares de cada lado del hueco; es una aproximación declarada en el manifiesto.
 
+**Nota (2026-10-05, F5-04c).** Para Fase 5 la batería suma **R7**: los modelos con UT de G2 y G3 repetidos con UT a
+61 días (1 mes de `o+1` en lugar de 2), como contraste del rezago supuesto de 30 días de F5-04. Es un experimento
+propio, con su `exp_id`, y no agrega columnas al MCS principal. Qué parte de R1 a R6 se repite con los modelos de
+Fase 5 se decide en F5-14 (pendiente). Decisión en `doc/metodologia/decisiones_fase5.md`, F5-04c.
+
 ## 6. Registro del experimento y reproducibilidad
 
 Cada corrida escribe filas en `catalogos/07_experimentos.csv` con el esquema ya
@@ -357,6 +362,12 @@ fuera de este protocolo la especificación de cada familia (F5-06 a F5-10 y F5-1
 (F5-11), la densidad de los modelos nuevos (F5-12) y la robustez, el costo y la reproducibilidad (F5-14 y
 F5-15), que se incorporan cuando Harold las decida. Los factoriales dinámicos quedan fuera de Fase 5
 (extensión 4, F5-01).
+
+**Nota (2026-10-05, F5-06 a F5-10).** Actualiza la nota anterior de esta sección: la especificación de los modelos
+univariados (F5-06), multivariados (F5-07), de frecuencia mixta (F5-08), regularizados (F5-09) y de árboles
+(F5-10) está decidida en `doc/metodologia/decisiones_fase5.md`, con la tabla de cada ficha como base de los YAML.
+Siguen fuera de este protocolo hasta que Harold las decida la validación anidada (F5-11), la densidad de los
+modelos nuevos (F5-12), las combinaciones (F5-13), la robustez y el costo (F5-14) y la reproducibilidad (F5-15).
 
 ---
 

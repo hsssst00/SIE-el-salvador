@@ -29,8 +29,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   y estrategia multihorizonte. Decididas el 2026-10-05 y registradas en `decisiones_fase5.md`. La parte 2 de
   F5-04 (UT mes a mes con rezago supuesto de 30 días) se implementa en el mismo PR, en la evidencia de insumos,
   en `rezagos_predictoras()` y en `tests/test-evaluacion.R` §13.
-- [ ] **B2 · F5-06 a F5-10** Especificación de univariados, multivariados, frecuencia mixta, regularizados y
-  árboles. Pendientes de Harold (Regla 4).
+- [x] **B2 · F5-06 a F5-10** Especificación de univariados, multivariados, frecuencia mixta, regularizados y
+  árboles. Decididas el 2026-10-05 y registradas en `decisiones_fase5.md`; las rejillas finas de cada modelo se
+  fijan en su YAML.
 - [ ] **B3 · F5-11 a F5-13** Validación anidada, densidad de los modelos nuevos y combinaciones. Pendientes.
 - [ ] **B4 · F5-14 y F5-15** Robustez y costo, y reproducibilidad. Pendientes.
 
@@ -63,6 +64,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   resultados por horizonte, generadas en la máquina de Harold.
 - [ ] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.
 - [ ] **E4** Análisis de robustez (protocolo §5) sobre los modelos de Fase 5.
+- [ ] **E5 · F5-04c** Experimento de robustez R7 (modelos con UT de G2 y G3 con UT a 61 días), declarado antes de la
+  corrida única y con su propio `exp_id`.
 
 ## F. Cierre
 
