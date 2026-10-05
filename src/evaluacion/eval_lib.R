@@ -197,6 +197,7 @@ semilla_de <- function(exp_id, modelo_id, origen) {
   if (!is.function(m$ajustar) || !is.function(m$predecir)) stop("modelo ", m$modelo_id, ": ajustar/predecir deben ser funciones")
   if (!is.null(m$predecir_densidad) && !is.function(m$predecir_densidad)) stop("modelo ", m$modelo_id, ": predecir_densidad debe ser una función")
   if (!is.null(m$piso_gl) && !(is.logical(m$piso_gl) && length(m$piso_gl) == 1L && !is.na(m$piso_gl))) stop("modelo ", m$modelo_id, ": piso_gl debe ser TRUE o FALSE")
+  if (!is.null(m$diagnosticar) && !is.function(m$diagnosticar)) stop("modelo ", m$modelo_id, ": diagnosticar debe ser una función")
   invisible(TRUE)
 }
 
@@ -213,7 +214,8 @@ semilla_de <- function(exp_id, modelo_id, origen) {
 #' @param densidad si TRUE (F4-33), agrega sd_log_nivel, sd_yoy_pp y sd_qoq_pp: la desviación de la
 #'                 densidad gaussiana de los modelos que implementan predecir_densidad(), NA en los
 #'                 demás. Con FALSE (el default) la salida es la de siempre, columna por columna.
-#' @return data.frame: modelo_id, origen (índice), h, log_nivel_pronosticado[, sd_*].
+#' @return data.frame: modelo_id, origen (índice), h, log_nivel_pronosticado[, sd_*]. Si algún modelo implementa
+#'         diagnosticar() (Fase 5, B1b), lleva el atributo "diagnosticos": data.frame modelo_id, origen, clave, valor.
 correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs = 40L,
                             h_max = DISENO_FASE4$h_max, exp_id = "sin_exp", spec = list(), densidad = FALSE) {
   if (is.null(series$objetivo)) stop("correr_backtest: falta series$objetivo")
@@ -235,6 +237,7 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
 
   huella_maestra <- digest::digest(series)                                      # G-2
   salida <- vector("list", length(origenes) * length(modelos)); k <- 0L
+  diags <- list()
 
   for (o in origenes) {
     # Recorte una sola vez por origen: todos los modelos ven el mismo conjunto de información.
@@ -257,6 +260,14 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
       set.seed(semilla_de(exp_id, m$modelo_id, o))
       ajuste  <- m$ajustar(info[m$requiere], spec[[m$modelo_id]])
       if (isTRUE(m$piso_gl)) guarda_gl(ajuste, m$modelo_id, o)                  # G-8 (F5-03)
+      if (is.function(m$diagnosticar)) {                                        # B1b: diagnósticos por origen
+        dg <- m$diagnosticar(ajuste)
+        if (!is.numeric(dg) || is.null(names(dg)) || any(!nzchar(names(dg))) || anyDuplicated(names(dg))) {
+          stop(sprintf("modelo %s en %s: diagnosticar() debe devolver un vector numérico con nombres únicos", m$modelo_id, ind_a_q(o)))
+        }
+        diags[[length(diags) + 1L]] <- data.frame(modelo_id = m$modelo_id, origen = o, clave = names(dg), valor = unname(dg),
+                                                  stringsAsFactors = FALSE)
+      }
       sendero <- m$predecir(ajuste, h_max)
 
       if (!is.numeric(sendero) || length(sendero) != h_max || any(!is.finite(sendero))) {                 # G-3
@@ -283,6 +294,7 @@ correr_backtest <- function(series, modelos, origenes, rezagos = list(), min_obs
   }
   res <- do.call(rbind, salida[seq_len(k)])
   rownames(res) <- NULL
+  if (length(diags)) attr(res, "diagnosticos") <- do.call(rbind, diags)
   res
 }
 

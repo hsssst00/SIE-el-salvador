@@ -28,7 +28,8 @@
 #
 # Escribe data/L4_experiments/<exp_id>/ (no versionado, senda §7):
 #   pronosticos.csv, metricas.csv, pruebas.csv, mcs.csv, ajuste_estacional.csv (solo con
-#   sa=reestimado_en_origen: orden ARIMA por origen, F4-09b; en R2, del tramo [2005-Q1, o]) y manifiesto.txt con commit, semillas,
+#   sa=reestimado_en_origen: orden ARIMA por origen, F4-09b; en R2, del tramo [2005-Q1, o]), diagnosticos.csv (solo si
+#   algún modelo implementa diagnosticar(), B1b) y manifiesto.txt con commit, semillas,
 #   sha256 de insumos y salidas, y sessionInfo().
 #
 # Con R3/R4 agrega metricas_submuestras.csv, pruebas_submuestras.csv, mcs_submuestras.csv (columna
@@ -373,13 +374,19 @@ correr_experimento <- function(ex, insumos, cache_sa) {
     pr <- correr_backtest(c(list(objetivo = estim), insumos$predictoras[pred]), modelos, o, rezagos = rez,
                           min_obs = MIN_OBS, exp_id = sem, densidad = TRUE)                                 # F4-33
     base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
-    list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1])
+    list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1],
+         diag = attr(pr, "diagnosticos"))                                      # B1b: NULL si ningún modelo los emite
   })
   pron  <- do.call(rbind, lapply(partes, `[[`, "pron"))
   bases <- do.call(rbind, lapply(partes, `[[`, "base"))                  # NULL si ningún origen trae bases
   ajuste <- NULL
   regs <- lapply(partes, `[[`, "reg")
   if (!all(vapply(regs, is.null, logical(1)))) ajuste <- cbind(exp_id = ex$exp_id, do.call(rbind, regs), stringsAsFactors = FALSE)
+  diagnosticos <- do.call(rbind, lapply(partes, `[[`, "diag"))
+  if (!is.null(diagnosticos)) {
+    diagnosticos <- data.frame(exp_id = ex$exp_id, modelo_id = diagnosticos$modelo_id, origen = ind_a_q(diagnosticos$origen),
+                               clave = diagnosticos$clave, valor = diagnosticos$valor, stringsAsFactors = FALSE)
+  }
 
   err <- calcular_errores(pron, obs[, c("periodo", "y")], bases = bases)
   err <- err[order(err$unidad, err$modelo_id, err$h, err$origen), ]
@@ -436,7 +443,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   semillas <- vapply(ids, function(id) semilla_de(sem, id, origenes[1]), numeric(1))
   dens_ids <- vapply(Filter(function(m) is.function(m$predecir_densidad), modelos), `[[`, character(1), "modelo_id")
   list(token = token, pronosticos = pron_out, densidad_ids = dens_ids, predictoras = pred, metricas = tab$metricas, pruebas = tab$pruebas, mcs = tab$mcs,
-       ajuste_estacional = ajuste, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
+       ajuste_estacional = ajuste, diagnosticos = diagnosticos, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
        muestra_inicio = partes[[1]]$inicio, muestra_fin = obs$periodo[nrow(obs)],
        vintages = unique(obs$vintage_id[q_a_ind(obs$periodo) >= q_a_ind(partes[[1]]$inicio)]))
 }
@@ -501,13 +508,14 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   tablas <- list(pronosticos = res$pronosticos, metricas = res$metricas, pruebas = res$pruebas, mcs = res$mcs)
   if (!is.null(res$ajuste_estacional)) tablas$ajuste_estacional <- res$ajuste_estacional
+  if (!is.null(res$diagnosticos)) tablas$diagnosticos <- res$diagnosticos
   if (!is.null(res$sub)) {
     tablas$metricas_submuestras <- res$sub$metricas
     tablas$pruebas_submuestras  <- res$sub$pruebas
     tablas$mcs_submuestras      <- res$sub$mcs
   }
   if (!is.null(res$estabilidad)) tablas$estabilidad <- res$estabilidad
-  opcionales <- c("ajuste_estacional", "metricas_submuestras", "pruebas_submuestras", "mcs_submuestras", "estabilidad")
+  opcionales <- c("ajuste_estacional", "diagnosticos", "metricas_submuestras", "pruebas_submuestras", "mcs_submuestras", "estabilidad")
   for (nm in setdiff(opcionales, names(tablas))) {                               # sin restos de corridas previas
     viejo <- file.path(dir, paste0(nm, ".csv"))
     if (file.exists(viejo)) file.remove(viejo)
@@ -538,6 +546,9 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
     paste0("calibracion: densidad gaussiana plug-in (F4-33) para los modelos con predecir_densidad(): ",
            paste(res$densidad_ids, collapse = ", "),
            "; los demás quedan con cobertura_80, cobertura_95 y crps vacías (protocolo §3.4)"),
+    if (!is.null(res$diagnosticos)) paste0("diagnosticos: diagnosticos.csv, una fila por (modelo, origen, clave) de los modelos con diagnosticar(): ",
+                                           paste(unique(res$diagnosticos$modelo_id), collapse = ", "),
+                                           " (órdenes elegidos; en las ARIMAX, número de condición y correlación máxima de las predictoras, B1b-1)") else NULL,
     "datos: revisados, no en tiempo real (F4-03)",
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_OFICIAL_Q") "limite: serie SA oficial del BCR tal cual; hereda la filtración de su ajuste bilateral (F4-22)" else NULL,
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_PROPIO_Q") "sa: ajuste único de L3 (R6); hereda la filtración del ajuste sobre la muestra completa" else NULL,
