@@ -30,11 +30,16 @@
 #   V13  densidad gaussiana: cobertura al 80/95 % dentro de ±3 ee de MC con el modelo verdadero, CRPS
 #        del verdadero < paseo aleatorio, y CRPS propio contra scoringRules::crps_norm (Suggests)
 #   V5   (extensión F4-34, al final del archivo) canario de predictora anual: UT solo con años cerrados
+# Bloque de los univariados de Fase 5 (B1b; F5-06, F5-12):
+#   V14  ARIMAX sobre un DGP con predictora adelantada: bate al AR(p)-BIC en h = 1, 2 (estricto), su densidad
+#        del sistema conjunto cubre al nominal en h = 1, 2, 4 (±3 ee de MC más 0,03 de sesgo plug-in) y, con
+#        una predictora placebo, no empeora al AR(p)-BIC en más de 10 % en h = 1
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
+source(here::here("src", "evaluacion", "modelos_univariados.R"))   # V14 (B1b)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -433,5 +438,48 @@ r5d <- tryCatch({ guarda_recorte(ut5b, q_a_ind("2019-Q3"), REZAGO_ANUAL_CERRADO,
 if (!grepl("^G-1", r5d)) stop("V5: G-1 no detectó una predictora anual con el año en curso (resultado: ", r5d, ")")
 ok("V5", "canario anual (F4-34, rama retenida): la predictora anual no trae el año del origen y G-3 detiene el motor; G-1 rechaza el año en curso")
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V13 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V13)\n")
+# --- V14 · ARIMAX con predictora adelantada (B1b; F5-06, F5-12) -----------------------------------
+# DGP: x_t = 0,6 x_{t-1} + u_t (Δlog de una predictora SA), Δy_t = 0,004 + β x_{t-1} + e_t, con σ_u = 0,02 y
+# σ_e = 0,006. Con β = 0,4 la predictora adelanta al objetivo: en h = 1 el ARIMAX conoce x_o y su error es e, mientras
+# el AR(p)-BIC sobre Δy solo recupera x_o a medias. La predictora trimestral entra hasta el origen (rezago de 30 días,
+# F5-04) y se proyecta con su AR(p)-BIC (F5-05); la densidad es la del sistema conjunto (F5-12, B1-5). La cobertura
+# se exige con una holgura de 0,03 además de ±3 ee de MC: la densidad es plug-in en los parámetros estimados con
+# unas 90 observaciones, así que algo de subcobertura en h = 4 es esperable y se declara. Con β = 0 (placebo) el
+# ARIMAX no debe empeorar al AR(p)-BIC en más de 10 % en h = 1.
+sim_v14 <- function(beta, n = 145L, phx = 0.6, sx = 0.02, se = 0.006) {
+  x <- numeric(n); dy <- numeric(n); u <- stats::rnorm(n, 0, sx); e <- stats::rnorm(n, 0, se)
+  for (t in 2:n) { x[t] <- phx * x[t - 1] + u[t]; dy[t] <- 0.004 + beta * x[t - 1] + e[t] }
+  list(objetivo = data.frame(periodo = PERIODOS_OBJ, y = 4 + cumsum(dy), stringsAsFactors = FALSE),
+       PRUEBA.X.SA.Q = data.frame(periodo = PERIODOS_OBJ, valor = 100 * exp(cumsum(x)), stringsAsFactors = FALSE))
+}
+mods14 <- list(modelo_arimax("PRUEBA.ARIMAX", "PRUEBA.X.SA.Q", rezagos_x = 0:1, p_max = 1L, q_max = 1L), modelo_arp_bic())
+corrida14 <- function(beta, R, semilla) {
+  set.seed(semilla)
+  do.call(rbind, lapply(seq_len(R), function(r) {
+    s <- sim_v14(beta)
+    p <- correr_backtest(s, mods14, ors, rezagos = list(PRUEBA.X.SA.Q = 30L), exp_id = "V14", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")]
+  }))
+}
+R14 <- 20L
+t14 <- corrida14(0.4, R14, SEMILLA_RAIZ + 14L)
+for (h in c(1L, 2L, 4L)) {
+  ax <- t14[t14$modelo_id == "PRUEBA.ARIMAX" & t14$h == h, ]; ar <- t14[t14$modelo_id == "BENCH.ARP_BIC" & t14$h == h, ]
+  razon <- mean(ax$rmse) / mean(ar$rmse)
+  if (h <= 2L && !(razon < 0.8)) stop(sprintf("V14: en h=%d el ARIMAX no bate al AR(p)-BIC con la predictora adelantada (razón de RMSE %.3f)", h, razon))
+  for (nv in c(80, 95)) {
+    x <- ax[[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(R14)
+    if (abs(mean(x) - nv / 100) > 3 * ee + 0.03)
+      stop(sprintf("V14: cobertura del ARIMAX al %d%% en h=%d fuera de ±(3 ee + 0,03) del nominal (%.3f, ee %.4f)", nv, h, mean(x), ee))
+  }
+  ok("V14", sprintf("h=%d: RMSE ARIMAX / AR(p)-BIC %.3f%s; cobertura 80%% %.3f y 95%% %.3f", h, razon,
+                    if (h <= 2L) " (< 0,8)" else "", mean(ax$cobertura_80), mean(ax$cobertura_95)))
+}
+t14b <- corrida14(0, 10L, SEMILLA_RAIZ + 141L)
+razon_b <- mean(t14b$rmse[t14b$modelo_id == "PRUEBA.ARIMAX" & t14b$h == 1L]) / mean(t14b$rmse[t14b$modelo_id == "BENCH.ARP_BIC" & t14b$h == 1L])
+if (!(razon_b < 1.10)) stop(sprintf("V14: con una predictora placebo el ARIMAX empeora al AR(p)-BIC en h=1 (razón %.3f)", razon_b))
+ok("V14", sprintf("placebo (β = 0): RMSE ARIMAX / AR(p)-BIC en h=1 %.3f (< 1,10)", razon_b))
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V14 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V14)\n")
