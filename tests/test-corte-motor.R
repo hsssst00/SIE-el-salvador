@@ -130,18 +130,19 @@ test_that("C-4: identidad del corte, con el sha256 sin CR", {
 })
 
 test_that("C-6/C-7: F5_REPRO_* repite cada F4_BENCH_* con sus semillas", {
-  expect_identical(nrow(EXPERIMENTOS_FASE5), nrow(EXPERIMENTOS))
+  expect_identical(nrow(EXPERIMENTOS_REPRO), nrow(EXPERIMENTOS))
   expect_identical(nrow(EXPERIMENTOS), 13L)
-  expect_identical(EXPERIMENTOS_FASE5$exp_id, sub("^F4_BENCH_", "F5_REPRO_", EXPERIMENTOS$exp_id))
-  expect_identical(EXPERIMENTOS_FASE5$semilla_exp, EXPERIMENTOS$exp_id)
+  expect_identical(EXPERIMENTOS_REPRO$exp_id, sub("^F4_BENCH_", "F5_REPRO_", EXPERIMENTOS$exp_id))
+  expect_identical(EXPERIMENTOS_REPRO$semilla_exp, EXPERIMENTOS$exp_id)
   expect_identical(EXPERIMENTOS$semilla_exp, EXPERIMENTOS$exp_id)          # en Fase 4, la de siempre
   otras <- setdiff(names(EXPERIMENTOS), c("exp_id", "semilla_exp"))
-  expect_identical(EXPERIMENTOS_FASE5[, otras], EXPERIMENTOS[, otras])
-  expect_error(experimentos_reproduccion(EXPERIMENTOS_FASE5), "C-6")
+  expect_identical(EXPERIMENTOS_REPRO[, otras], EXPERIMENTOS[, otras])
+  expect_error(experimentos_reproduccion(EXPERIMENTOS_REPRO), "C-6")
 })
 
 test_that("C-8: los exp_id F4_* se rechazan; por defecto corren los de Fase 5", {
-  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_FASE5$exp_id)
+  # con el preregistro abierto (F5-02), el default son los F5_REPRO_*; los F5_G* se agregan al cerrarlo
+  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_REPRO$exp_id)
   expect_identical(seleccionar_experimentos(c("F5_REPRO_G3_R6", "F5_REPRO_G1"))$exp_id, c("F5_REPRO_G1", "F5_REPRO_G3_R6"))
   expect_error(seleccionar_experimentos("F4_BENCH_G1"), "C-8: F4_BENCH_G1 es de Fase 4")
   expect_error(seleccionar_experimentos("F4_BENCH_G1"), "F5_REPRO_G1", fixed = TRUE)
