@@ -1,0 +1,9 @@
+modelo_id: "UNI.UC_LLT"
+familia: "univariado"
+especificacion:
+  variables: ["PIB.SA.PROPIO.Q"]
+  ordenes: {componentes: "nivel y pendiente estocásticos más irregular", estacional: false}
+  hiperparametros: {funcion: "stats::StructTS(type = \"trend\")", estimacion: "máxima verosimilitud de las tres varianzas (optim L-BFGS-B de StructTS)", convergencia: "optim code = 0 o el motor se detiene", piso_gl: "n_obs = n, n_par = 3"}
+  transformaciones_ref: ["T001_CONCAT_PIB_NSA", "T002_AJUSTE_ESTACIONAL_PROPIO"]
+justificacion: "Modelo de componentes no observados con tendencia lineal local (nivel y pendiente aleatorios más un irregular) sobre y = log-nivel SA, stats::StructTS(type = \"trend\"), sin dependencias nuevas (F5-06; KFAS no está fijado). El sendero es el pronóstico de Kalman desde el estado final del ajuste (stats::KalmanForecast). Densidad: la covarianza conjunta del sendero sale de la recursión del estado, Cov(y_o+k, y_o+j) = Z T^(k-j) P_j Z' + h 1(j = k), cuya diagonal es la varianza de KalmanForecast. Diagnósticos por origen: las tres varianzas. Se reestima en cada origen o con la información de [inicio, o] y ventana expansiva (ADR-002); con sa=reestimado_en_origen el objetivo es el ajuste X-13 reestimado en ese origen (F4-09, F4-09b). Devuelve el sendero h = 1..8 en log-nivel (contrato de modelo, especificación del motor §2) y su densidad gaussiana plug-in (F5-12). Implementación: src/evaluacion/modelos_univariados.R, modelo_uc_llt() y cov_estado_uc(). Declarado el 2026-10-05, antes de cualquier corrida sobre L3 (preregistro F5-02; checklist de Fase 5, C8)."
+referencia_bibliografica: "Harvey, A. C. (1989). Forecasting, Structural Time Series Models and the Kalman Filter. Cambridge University Press; Durbin, J. y Koopman, S. J. (2012). Time Series Analysis by State Space Methods, 2.ª ed. Oxford University Press"
