@@ -31,6 +31,9 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-14 | Principal, R3, R4 y R7 para todos; R1, R2, R5 y R6 bajo un tope medido con datos sintéticos | protocolo §5 (nota 2026-10-05) |
 | F5-15 | Un hilo, semilla del motor y doble corrida en CI; tolerancia declarada solo para la paridad Windows/Linux del BVAR | protocolo §6 (nota 2026-10-05) |
 | B1-1 a B1-5 | Implementación de B1: forma y grillas del ARIMAX, experimentos por grupo, B1 en dos PR, densidad del sistema ARIMAX | especificación del motor §3 (nota 2026-10-05) |
+| B1b-1 | Remesas nominales y reales juntas en la ARIMAX de G3: se mantienen, con guarda numérica (decisión delegada al agente) | `UNI.ARIMAX.G3.yaml`; especificación del motor §2 y §4 (nota 2026-10-05, B1b) |
+| B1b-1 (reabierta) | Por parsimonia, la ARIMAX de G3 lleva solo las remesas nominales (decisión de Harold; reemplaza a la fila anterior) | `UNI.ARIMAX.G3.yaml`; nota fechada en «Implementación del bloque B1b» |
+| B1b-2 | En G3, todos los modelos sin penalización llevan una sola remesa (la nominal); BVAR, regularizados y árboles, las ocho | `predictoras_no_penalizadas()` en `eval_lib.R`; F5-06 y F5-07 (notas 2026-10-05) |
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
@@ -185,6 +188,9 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
   margen. Los YAML de G2 y G3 acotan rezagos y grilla de antemano, y la guarda de F5-03 lo verifica en el primer
   origen de cada grupo.
 - Descartadas: una ARIMAX por predictora, solo las de grupo sin la referencia IVAE, y dejar el UC fuera del núcleo.
+- **Nota (2026-10-05, B1b-1 y B1b-2).** En G3, «todas las predictoras del grupo» se lee como las de
+  `predictoras_no_penalizadas("G3")`: la ARIMAX de G3 lleva 7, sin las remesas reales (ver «Implementación del bloque
+  B1b»).
 
 ## F5-07 — Multivariados (§6.3): VAR, VECM y BVAR
 
@@ -203,6 +209,8 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
   *sum-of-coefficients* y *single-unit-root*, log-niveles, p = 4, 10 000 extracciones y 5 000 de quemado.
 - **Costo.** El BVAR con MCMC en cada origen es la pieza más cara; se mide en F5-14, pendiente.
 - Descartadas: VAR solo en G1 con G2 y G3 solo BVAR, y sumar VAR en niveles y VECM en G2.
+- **Nota (2026-10-05, B1b-2).** En G3 el VAR (y el VECM, si aplica) lleva la remesa nominal, no la real
+  (`predictoras_no_penalizadas()`); el BVAR, con su penalización, conserva las 9 series de G3.
 
 ## F5-08 — Frecuencia mixta (§6.4): U-MIDAS y ecuaciones puente
 
@@ -384,6 +392,79 @@ resolvieron en la opción recomendada.
 **Punto para B1b (no decidido).** Por esa composición, G3 trae a la vez remesas nominales y reales, cuyos Δlog
 trimestrales correlacionan alrededor de 0,99 (evidencia de F4-23). En la ARIMAX de G3, con todas las predictoras del
 grupo (F5-06), eso es casi colinealidad. Se presenta como pregunta antes de escribir el YAML de `UNI.ARIMAX.G3`.
+
+## Implementación del bloque B1b (2026-10-05)
+
+- **B1b-1 · Remesas nominales y reales en la ARIMAX de G3.** Se presentó como pregunta con tres opciones (mantener las
+  dos con una guarda numérica, quitar las reales de la ARIMAX de G3, o sustituirlas por el deflactor implícito). Harold
+  **delegó la decisión al agente** («use your best judgment», 2026-10-05), que tomó la opción recomendada:
+  **se mantienen las dos**, como dice F5-06. Razón: Δlog real = Δlog nominal − Δlog deflactor (IPC, T004), así que en
+  una regresión lineal tener las dos equivale a tener la nominal más la inflación del deflactor; los valores ajustados y
+  el pronóstico puntual no dependen de cómo se reparte el efecto entre las dos, y la colinealidad solo infla la varianza
+  de los coeficientes individuales y cuesta un grado de libertad (G3 tiene holgura con rezago 0). Se agrega una
+  **guarda numérica** (Regla 7): la ARIMAX se detiene si la matriz de regresores con la constante pierde rango o si el
+  número de condición de los regresores estandarizados supera 1e4, y `diagnosticos.csv` reporta en cada origen el
+  número de condición y la correlación máxima entre predictoras. Descartadas: quitar las reales (contradice F5-06; la
+  ARIMAX de G3 sería la de G2 más el IPP) y sustituirlas por el deflactor (crea una serie derivada que no está en el
+  catálogo, del lado de transformación). Revertible en un commit si Harold prefiere otra opción.
+
+**Decisiones menores del agente en B1b** (revertibles en un commit; ninguna cambia un resultado de Fase 4):
+
+- **d por KPSS sin `feasts`.** `fable::ARIMA` calcula `d` con `feasts`, que no está en `renv.lock`. `diferencias_kpss()`
+  aplica la misma regla con `urca::ur.kpss` (ya en Imports): KPSS en nivel con rezagos «short», se diferencia mientras
+  rechaza al 5 %, hasta `d = 2`; rechazar con p < 0,05 equivale a superar el valor crítico del 5 % de la tabla que
+  `feasts` interpola. El `d` elegido se pasa fijo a `fable::ARIMA`. Sin dependencias nuevas.
+- **Constante del ARIMA solo con d ≤ 1** (regla de `forecast::auto.arima`): con `d = 2` sería una tendencia cuadrática
+  en el log-nivel, que `fable` admite con una advertencia. Con `d ≤ 1` la elige `fable` por BIC.
+- **Estimación de las ARIMAX con `stats::arima(method = "ML")`** sobre Δy con los regresores (forma de B1-1). Un
+  candidato que no converge (error u `optim` con código distinto de 0) se descarta y se cuenta en `diagnosticos.csv`;
+  si no converge ninguno, el motor se detiene.
+- **G-8 con el mayor candidato de la grilla:** los modelos reportan `n_par` = constante + regresores + max(p + q) (en
+  el ARIMA, p_max + q_max + 1), así que la guarda verifica en cada origen que toda la grilla cabe en el piso, que es lo
+  que pide «acotado de antemano» (B1-2). En el primer origen de G2 quedan exactamente 20 grados de libertad.
+- **AR(p)-BIC de las predictoras** (`seleccionar_ar_bic_x()`, F5-05): p en 0..4 sobre la muestra común de p = 4 y
+  reestimado con la muestra máxima, con la historia de cada predictora hasta el origen (no la muestra común de la
+  ARIMAX). La covarianza Σ de B1-5 se calcula con `stats::cov` (denominador n − 1) en los períodos donde existen todos
+  los residuos.
+- **Canal de diagnósticos.** Campo opcional `diagnosticar(ajuste)` en el contrato; `correr_backtest()` lo recoge por
+  origen y el motor escribe `diagnosticos.csv` solo si algún modelo lo implementa. Los benchmarks no lo implementan, así
+  que los `F5_REPRO_*` no cambian (prueba en `tests/test-modelos-univariados.R`).
+- **`modelo_id` de la ARIMAX de referencia: `UNI.ARIMAX_IVAE.G2`** (F5-06 dejó el nombre al YAML).
+- **UC:** si `StructTS` no converge (`optim` con código distinto de 0), el motor se detiene (Regla 7).
+- **V14** (canario de B1b en la verificación sintética): DGP con predictora adelantada; la ARIMAX debe batir al
+  AR(p)-BIC en h = 1, 2 con razón de RMSE < 0,8, cubrir al nominal en h = 1, 2, 4 dentro de ±3 ee de MC más una
+  holgura de 0,03 (densidad *plug-in* con unas 90 observaciones), y no empeorar al AR(p)-BIC en más de 10 % en h = 1
+  con una predictora placebo. 20 y 10 réplicas.
+- **Costo observado (dato para B5 y F5-14, en el sandbox):** `UNI.ARIMA` con búsqueda exhaustiva tarda unos 3 a 4 s por
+  origen (50 ajustes de `fable`); las ARIMAX, menos de 1 s. Del orden de 10 minutos para los tres experimentos
+  principales; la medición formal es la de B5.
+
+**Nota (2026-10-05, posterior; B1b-1 reabierta y B1b-2, decididas por Harold).** Al revisar el PR #32, Harold preguntó
+por la interpretación de tener las dos remesas y luego, por parsimonia, si no convenía tener solo una. El agente
+precisó lo dicho en B1b-1: la invariancia vale para los valores ajustados dentro de la muestra, pero no del todo
+fuera de ella. Las dos remesas se proyectan con AR separados, y el modelo trae de forma implícita la inflación del IPC
+con un coeficiente impreciso (β_r = −coeficiente de π), que se multiplica por una inflación grande si la relación
+cambia fuera de la muestra, como en 2021-2022, dentro de la ventana de evaluación de G3. Los coeficientes individuales
+no son interpretables; solo lo es la suma β_n + β_r. Se reabrió B1b-1 como pregunta (Regla 4), antes de cualquier
+corrida sobre L3 y sin el PR fusionado.
+
+- **B1b-1 (reabierta). DECIDIDO:** la ARIMAX de G3 lleva **solo las remesas nominales**: 7 predictoras, las 6 de G2 más
+  el IPP. Razón: parsimonia con 39 observaciones en el primer origen; G1 ⊂ G2 ⊂ G3 queda encadenado, así que la
+  diferencia con la ARIMAX de G2 mide solo el aporte del IPP; la nominal es el dato primario (las reales se derivan con
+  T004) y su AR tiene historia desde 1991; la información de precios entra por el IPP y el IPM. Descartadas: solo las
+  reales (la comparación con G2 mezclaría dos cambios y su AR solo tiene historia desde 2010) y mantener las dos (lo
+  delegado, que esta nota reemplaza). La guarda de rango y número de condición sigue activa para todas las ARIMAX.
+  Con 7 predictoras y rezago 0 quedan 24 grados de libertad en el primer origen de G3; las grillas de B1-2 no cambian
+  (con rezagos 0..1 cabría solo p = q = 0: 38 observaciones y 18 parámetros).
+- **B1b-2 · Alcance. DECIDIDO:** la regla es general para G3: **todos los modelos sin penalización** (ARIMAX, VAR, VECM,
+  ecuación puente y U-MIDAS) llevan una sola remesa, la nominal; BVAR, regularizados (ENET, PCR) y árboles reciben las
+  ocho predictoras del grupo, porque su penalización o su estructura manejan la redundancia. Vive en
+  `predictoras_no_penalizadas(grupo)` y `PREDICTORAS_EXCLUIDAS_NO_PENALIZADOS` de `eval_lib.R`, que usan los bloques
+  B2 y B3b. Descartado: decidirlo bloque por bloque.
+- **Interpretación de G3 (para el informe):** con esta regla, lo que G3 agrega sobre G2 en los modelos sin
+  penalización es el IPP; en los penalizados y los árboles, además, las remesas reales, que equivalen a la inflación del
+  IPC (y, por la dolarización, a precios relativos con EE. UU.). Cuando un modelo trae las dos remesas, sus coeficientes
+  individuales no se interpretan.
 
 ---
 

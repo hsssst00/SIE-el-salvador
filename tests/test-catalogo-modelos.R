@@ -9,13 +9,17 @@
 #   3. especificacion.variables resuelve contra 05_series_master.csv y transformaciones_ref contra
 #      04_transformaciones.csv (aristas nuevas del grafo de integridad referencial);
 #   4. los BENCH.* declarados son exactamente los que implementa src/evaluacion/modelos_referencia.R,
-#      y las grillas declaradas del AR(1) y del AR(p)-BIC coinciden con las del código.
+#      y las grillas declaradas del AR(1) y del AR(p)-BIC coinciden con las del código;
+#   5. (Fase 5, B1b) los modelos no benchmark declarados son exactamente los del registro modelos_fase5() de
+#      los tres grupos, sus variables son las que piden al motor y las grillas del ARIMA y de las ARIMAX
+#      coinciden con las del código (preregistro F5-02).
 #
 # No lee datos del proyecto: corre en CI. Lee YAML con `yaml`, en Imports desde Fase 4 (F4-12).
 
 library(testthat)
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
+source(here::here("src", "evaluacion", "modelos_fase5.R"))
 
 .dir_modelos <- here::here("catalogos", "06_modelos")
 .leer_modelo <- function(archivo) yaml::read_yaml(file.path(.dir_modelos, archivo))
@@ -77,4 +81,31 @@ test_that("06_modelos: las grillas declaradas del AR(1) y del AR(p)-BIC son las 
   expect_identical(as.integer(arp$ordenes$p_min), 0L)
   expect_identical(as.integer(arp$ordenes$p_max), as.integer(formals(modelo_arp_bic)$p_max))
   expect_identical(arp$hiperparametros$criterio, "BIC")
+})
+
+test_that("06_modelos: los modelos de Fase 5 declarados son los de modelos_fase5() y piden las mismas series", {
+  reg <- do.call(c, lapply(c("G1", "G2", "G3"), modelos_fase5))
+  reg <- reg[!duplicated(vapply(reg, `[[`, character(1), "modelo_id"))]
+  ids <- vapply(reg, `[[`, character(1), "modelo_id")
+  declarados <- vapply(.archivos_modelo(), function(a) .leer_modelo(a)$modelo_id, character(1), USE.NAMES = FALSE)
+  no_bench <- declarados[vapply(.archivos_modelo(), function(a) !identical(.leer_modelo(a)$familia, "benchmark"), logical(1))]
+  expect_setequal(no_bench, ids)
+  for (m in reg) {
+    v <- unlist(.leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$variables)
+    expect_identical(v, c("PIB.SA.PROPIO.Q", setdiff(m$requiere, "objetivo")), info = m$modelo_id)
+  }
+})
+
+test_that("06_modelos: las grillas declaradas del ARIMA y de las ARIMAX son las del código (B1-2)", {
+  a <- .leer_modelo("UNI.ARIMA.yaml")$especificacion$ordenes
+  expect_identical(as.integer(c(a$p_max, a$q_max, a$d_max)), unname(unlist(ORDENES_UNI_ARIMA[c("p_max", "q_max", "d_max")])))
+  for (m in list(modelo_arimax_grupo("G1"), modelo_arimax_grupo("G2"), modelo_arimax_grupo("G3"), modelo_arimax_ivae())) {
+    o <- .leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$ordenes
+    pq <- if (is.null(o$pq_max)) as.integer(o$p_max) + as.integer(o$q_max) else as.integer(o$pq_max)
+    expect_identical(as.integer(unlist(o$rezagos_predictoras)), as.integer(m$rezagos_x), info = m$modelo_id)
+    g <- grilla_arma(as.integer(o$p_max), as.integer(o$q_max), pq)
+    expect_identical(unname(as.matrix(g)), unname(as.matrix(m$grilla)), info = m$modelo_id)
+    expect_identical(as.integer(o$p_max_ar_predictoras), P_MAX_PREDICTORAS, info = m$modelo_id)
+    expect_identical(as.integer(o$diferencias_objetivo), 1L, info = m$modelo_id)
+  }
 })

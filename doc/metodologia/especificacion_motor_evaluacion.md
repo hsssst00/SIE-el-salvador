@@ -67,6 +67,13 @@ Reglas del contrato:
 4. Selección de órdenes e hiperparámetros ocurre **dentro** de `ajustar()`. El motor no
    selecciona nada; solo reestima.
 
+**Nota (2026-10-05, Fase 5, B1a y B1b).** Campos opcionales del contrato, además de `predecir_densidad` (F4-33):
+`piso_gl = TRUE` (el ajuste devuelve `gl = c(n_obs, n_par)` y G-8 exige al menos `PISO_GL` grados de libertad) y
+`diagnosticar = function(ajuste)`, que devuelve un vector numérico con nombres únicos (órdenes elegidos, número de
+condición, ...). `correr_backtest()` lo recoge por origen en el atributo `"diagnosticos"` y el motor lo escribe en
+`diagnosticos.csv` (§4). Un modelo sin `diagnosticar` no cambia la salida, así que los benchmarks y los `F5_REPRO_*`
+quedan como estaban. Los modelos de B1b viven en `src/evaluacion/modelos_univariados.R`.
+
 ## 3. Bucle de orígenes
 
 ```
@@ -142,6 +149,8 @@ data/L4_experiments/<exp_id>/
 │                          alpha, replicas, bloque, semilla, marca_tamano
 ├── ajuste_estacional.csv  exp_id, origen, n_obs, arima, transform, regresores, ao_declarados
 │                          (solo con sa=reestimado_en_origen; F4-09b)
+├── diagnosticos.csv       exp_id, modelo_id, origen, clave, valor
+│                          (solo si algún modelo implementa diagnosticar(); Fase 5, B1b)
 ├── metricas_submuestras.csv  muestra_eval + columnas de metricas.csv    (R3/R4, solo en la principal)
 ├── pruebas_submuestras.csv   muestra_eval + columnas de pruebas.csv     (R3/R4)
 ├── mcs_submuestras.csv       muestra_eval + columnas de mcs.csv         (R3/R4)
