@@ -10,10 +10,11 @@
 #                       exhaustiva (fable::ARIMA, stepwise = FALSE, sin aproximación); constante elegida por fable
 #                       por BIC si d <= 1 y excluida si d = 2 (regla de forecast::auto.arima).
 #   UNI.UC_LLT          tendencia lineal local, stats::StructTS(type = "trend") sobre y (máxima verosimilitud).
-#   UNI.ARIMAX.G1..G3   Δy_t = c + β'x_t + δ'D_t + η_t, η ARMA(p, q) por BIC (B1-1: d = 1 fijo); x = Δlog de todas las
-#                       predictoras trimestrales del grupo con los rezagos de B1-2, D = dummies estacionales si alguna
-#                       predictora es NSA. Grillas de B1-2. Las predictoras se proyectan dentro del origen con un
-#                       AR(p)-BIC en Δlog, con dummies si son NSA (F5-05).
+#   UNI.ARIMAX.G1..G3   Δy_t = c + β'x_t + δ'D_t + η_t, η ARMA(p, q) por BIC (B1-1: d = 1 fijo); x = Δlog de las
+#                       predictoras trimestrales del grupo para modelos sin penalización (predictoras_no_penalizadas():
+#                       todas en G1 y G2; en G3, sin las remesas reales, B1b-1 y B1b-2) con los rezagos de B1-2, D =
+#                       dummies estacionales si alguna predictora es NSA. Grillas de B1-2. Las predictoras se proyectan
+#                       dentro del origen con un AR(p)-BIC en Δlog, con dummies si son NSA (F5-05).
 #   UNI.ARIMAX_IVAE.G2  la misma forma con el IVAE (SA, sin dummies) como única predictora (referencia de F5-06).
 #
 # Densidad (F5-12): gaussiana plug-in del sendero en log-nivel, list(media = sendero, cov).
@@ -297,12 +298,13 @@ modelo_arimax <- function(modelo_id, predictoras, rezagos_x, p_max, q_max, pq_ma
   )
 }
 
-#' Las ARIMAX de B1-2: una por grupo con todas sus predictoras, y la de referencia con el IVAE en G2.
+#' Las ARIMAX de B1-2: una por grupo con las predictoras para modelos sin penalización (B1b-2), y la de referencia
+#' con el IVAE en G2.
 modelo_arimax_grupo <- function(grupo) {
   switch(grupo,
-    G1 = modelo_arimax("UNI.ARIMAX.G1", predictoras_grupo("G1"), rezagos_x = 0:1, p_max = 2L, q_max = 2L),
-    G2 = modelo_arimax("UNI.ARIMAX.G2", predictoras_grupo("G2"), rezagos_x = 0:1, p_max = 2L, q_max = 2L, pq_max = 2L),
-    G3 = modelo_arimax("UNI.ARIMAX.G3", predictoras_grupo("G3"), rezagos_x = 0L, p_max = 2L, q_max = 2L),
+    G1 = modelo_arimax("UNI.ARIMAX.G1", predictoras_no_penalizadas("G1"), rezagos_x = 0:1, p_max = 2L, q_max = 2L),
+    G2 = modelo_arimax("UNI.ARIMAX.G2", predictoras_no_penalizadas("G2"), rezagos_x = 0:1, p_max = 2L, q_max = 2L, pq_max = 2L),
+    G3 = modelo_arimax("UNI.ARIMAX.G3", predictoras_no_penalizadas("G3"), rezagos_x = 0L, p_max = 2L, q_max = 2L),
     stop("modelo_arimax_grupo: grupo no declarado: ", grupo))
 }
 modelo_arimax_ivae <- function() modelo_arimax("UNI.ARIMAX_IVAE.G2", "BCR.IVAE.VOL.SA.Q", rezagos_x = 0:1, p_max = 2L, q_max = 2L)

@@ -44,8 +44,17 @@ test_that("F5-06, B1-3: modelos_fase5 devuelve los univariados de cada grupo baj
       expect_true(is.function(m$predecir_densidad) && is.function(m$diagnosticar), info = m$modelo_id)
     }
     ax <- ms[[3]]
-    expect_identical(ax$requiere, c("objetivo", predictoras_grupo(g)))             # todas las predictoras (F5-06)
+    expect_identical(ax$requiere, c("objetivo", predictoras_no_penalizadas(g)))     # F5-06 con B1b-2
   }
+  # B1b-1 y B1b-2: en G3 los modelos sin penalización llevan solo las remesas nominales; G1 y G2 sin cambios
+  expect_identical(predictoras_no_penalizadas("G1"), predictoras_grupo("G1"))
+  expect_identical(predictoras_no_penalizadas("G2"), predictoras_grupo("G2"))
+  expect_identical(predictoras_no_penalizadas("G3"), setdiff(predictoras_grupo("G3"), "BCR.REMESAS.REAL.NSA.Q"))
+  expect_identical(predictoras_no_penalizadas("G3", "M"), setdiff(predictoras_grupo("G3", "M"), "BCR.REMESAS.REAL.NSA.M"))
+  expect_length(predictoras_no_penalizadas("G3"), 7L)
+  expect_true("BCR.REMESAS.NOM.NSA.Q" %in% predictoras_no_penalizadas("G3"))
+  expect_false("BCR.REMESAS.REAL.NSA.Q" %in% modelo_arimax_grupo("G3")$requiere)
+  expect_true(all(predictoras_no_penalizadas("G2") %in% predictoras_no_penalizadas("G3")))   # G2 ⊂ G3 encadenado
   expect_identical(modelo_arimax_ivae()$requiere, c("objetivo", "BCR.IVAE.VOL.SA.Q"))
   # grillas de B1-2
   expect_identical(modelo_arimax_grupo("G1")$rezagos_x, 0:1); expect_identical(nrow(modelo_arimax_grupo("G1")$grilla), 9L)
@@ -211,6 +220,8 @@ test_that("C1, F5-03: G-8 pasa en el primer origen de cada grupo con las fechas 
     r <- correr_backtest(c(list(objetivo = obj), pred[predictoras_grupo(g)]), ms, o1, rezagos = rez[predictoras_grupo(g)], densidad = TRUE)
     d <- attr(r, "diagnosticos")
     expect_identical(as.integer(d$valor[d$modelo_id == ms[[1]]$modelo_id & d$clave == "n_obs"]), esperado[[g]], info = g)
+    gl <- ms[[1]]$ajustar(c(list(objetivo = .hasta(obj, o1)), lapply(pred[predictoras_no_penalizadas(g)], .hasta, o = o1)), NULL)$gl
+    expect_identical(unname(gl[["n_obs"]] - gl[["n_par"]]), c(G1 = 63L, G2 = 20L, G3 = 24L)[[g]], info = g)   # holgura sobre el piso
     expect_true(all(is.finite(r$sd_log_nivel)), info = g)
   }
   # G2 está justo en el piso: abrir la grilla a p + q <= 3 lo rompe en el primer origen
@@ -218,10 +229,11 @@ test_that("C1, F5-03: G-8 pasa en el primer origen de cada grupo con las fechas 
   expect_error(correr_backtest(c(list(objetivo = obj), pred[predictoras_grupo("G2")]), list(ancho), origenes_grupo("G2")[1],
                                rezagos = rez[predictoras_grupo("G2")]),
                "^G-8 modelo UNI.ARIMAX.G2 en 2014-Q4: 38 observaciones efectivas y 19 parámetros dejan 19 grados de libertad")
-  # G3 con rezagos 0..1 no cabe (B1-2)
-  g3_01 <- modelo_arimax("UNI.ARIMAX.G3", predictoras_grupo("G3"), rezagos_x = 0:1, p_max = 0L, q_max = 0L)
+  # G3 (7 predictoras, B1b-2) con rezagos 0..1 y p + q = 2 no cabe: 1 + 14 + 3 + 2 = 20 parámetros con 38 observaciones
+  g3_01 <- modelo_arimax("UNI.ARIMAX.G3", predictoras_no_penalizadas("G3"), rezagos_x = 0:1, p_max = 1L, q_max = 1L)
   expect_error(correr_backtest(c(list(objetivo = obj), pred[predictoras_grupo("G3")]), list(g3_01), origenes_grupo("G3")[1],
-                               rezagos = rez[predictoras_grupo("G3")]), "^G-8 modelo UNI.ARIMAX.G3 en 2019-Q4")
+                               rezagos = rez[predictoras_grupo("G3")]),
+               "^G-8 modelo UNI.ARIMAX.G3 en 2019-Q4: 38 observaciones efectivas y 20 parámetros dejan 18 grados de libertad")
 })
 
 test_that("diagnosticar: el motor recoge los diagnósticos por origen y valida su forma", {

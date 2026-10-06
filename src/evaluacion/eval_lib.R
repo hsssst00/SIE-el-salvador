@@ -1021,6 +1021,18 @@ predictoras_grupo <- function(grupo, frecuencia = c("Q", "M")) {
   paste0(GRUPOS_PREDICTORAS[[grupo]], ".", frecuencia)
 }
 
+# B1b-2 (decisión de Harold, 2026-10-05): en G3 los modelos SIN penalización (ARIMAX, VAR, VECM, puente, U-MIDAS)
+# llevan una sola remesa, la nominal (B1b-1, por parsimonia: las reales solo agregan la inflación del IPC con un
+# coeficiente impreciso). BVAR, regularizados y árboles reciben todas las predictoras del grupo.
+PREDICTORAS_EXCLUIDAS_NO_PENALIZADOS <- list(G1 = character(0), G2 = character(0), G3 = "BCR.REMESAS.REAL.NSA")
+
+#' series_master_id de las predictoras de un grupo para los modelos sin penalización (B1b-2).
+predictoras_no_penalizadas <- function(grupo, frecuencia = c("Q", "M")) {
+  frecuencia <- match.arg(frecuencia)
+  todas <- predictoras_grupo(grupo, frecuencia)
+  todas[!sub("\\.[QM]$", "", todas) %in% PREDICTORAS_EXCLUIDAS_NO_PENALIZADOS[[grupo]]]
+}
+
 #' Último período (índice) que el calendario admite en el origen `o` para una serie con `rezago` en días:
 #' el máximo `p` con fin(p) + rezago <= fecha_corte_origen(o). No mira datos: es la regla de §2.3.
 ultimo_admitido <- function(o, rezago, mensual, rezago_pib = REZAGO_PIB_DIAS) {
