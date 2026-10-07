@@ -9,7 +9,9 @@
 # B5 combinaciones) agrega aquí sus modelos, con su YAML en catalogos/06_modelos/ (C8) y su canario
 # sintético (F5-02). B1a construyó la infraestructura (lectura de predictoras del corte, alineación, guardas
 # G-7 y G-8, experimentos); B1b agrega los univariados de modelos_univariados.R (F5-06): UNI.ARIMA y UNI.UC_LLT
-# en los tres grupos, la ARIMAX del grupo y, en G2, la ARIMAX de referencia con el IVAE.
+# en los tres grupos, la ARIMAX del grupo y, en G2, la ARIMAX de referencia con el IVAE. B2a agrega los VAR y el
+# VECM de modelos_multivariados.R (F5-07, B2-1 a B2-4): MULT.VAR_DIF del grupo y, en G1, MULT.VAR_NIV.G1 y
+# MULT.VECM.G1. El BVAR (B2b) va en un PR propio (B2-8).
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
 #   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8)
@@ -18,11 +20,13 @@
 #                    el motor lo escribe por origen en diagnosticos.csv del experimento
 # Sin I/O y sin estado global, como los benchmarks.
 
-source(here::here("src", "evaluacion", "modelos_univariados.R"))   # B1: ARIMA, UC, ARIMAX
+source(here::here("src", "evaluacion", "modelos_univariados.R"))     # B1: ARIMA, UC, ARIMAX
+source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2a: VAR y VECM
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
   if (length(grupo) != 1L || !grupo %in% names(GRUPOS_FASE4)) stop("modelos_fase5: grupo no declarado: ", paste(grupo, collapse = ", "))
   c(list(modelo_arima_fase5(), modelo_uc_llt(), modelo_arimax_grupo(grupo)),          # B1 (F5-06)
-    if (grupo == "G2") list(modelo_arimax_ivae()))
+    if (grupo == "G2") list(modelo_arimax_ivae()),
+    modelos_multivariados_grupo(grupo))                                                 # B2a (F5-07)
 }
