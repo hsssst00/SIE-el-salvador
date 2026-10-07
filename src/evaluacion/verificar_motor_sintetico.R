@@ -39,6 +39,9 @@
 #        cointegrado: la traza elige r = 1, bate al VAR_DIF en h = 2, 4 y cubre; sin cointegración elige r = 0
 #   V16  (B2b) BVAR sobre el DGP VAR de V15 más una NSA placebo: bate al AR(p)-BIC en h = 1, 2, su predictiva
 #        posterior (B2-10) cubre al nominal en h = 1, 2, 4 y reejecutar reproduce bit a bit (F5-15)
+# Bloque de la paridad Windows/Linux del BVAR (checklist F1; F5-15, decisiones F1-1 y F1-2):
+#   V17  un BVAR fijo con la configuración de producción (primer origen de G1 y G3) reproduce byte a byte la media y
+#        la covarianza de su predictiva y sus diagnósticos contra la referencia generada en Windows
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -46,6 +49,7 @@ source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_univariados.R"))   # V14 (B1b)
 source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a) y V16 (B2b)
+source(here::here("src", "evaluacion", "paridad_bvar.R"))          # V17 (F1)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -607,5 +611,27 @@ attr(p16a, "diagnosticos") <- NULL; attr(p16b, "diagnosticos") <- NULL   # se co
 if (!identical(p16a, p16b)) stop("V16: reejecutar el BVAR con la misma semilla del motor no reproduce bit a bit sus pronósticos (F5-15)")
 ok("V16", "reejecutar dos orígenes reproduce bit a bit sendero y densidad del BVAR (semilla del motor, F5-15)")
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V16 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V16)\n")
+# --- V17 · Paridad Windows/Linux del BVAR (checklist F1; F5-15, decisiones F1-1 y F1-2) ---------------------------
+# Un BVAR fijo (src/evaluacion/paridad_bvar.R): configuración de producción (p = 4, 10 000/5 000; B2-7) en el primer
+# origen de G1 (3 series) y G3 (9 series), con los datos sintéticos de la prueba de producción y la siembra del motor.
+# Los bytes de la media y la covarianza de su predictiva en h = 1..8 y de sus diagnósticos deben ser idénticos a los
+# de src/evaluacion/referencias/paridad_bvar.csv, generada en Windows, la máquina de la corrida única. El CI (Ubuntu)
+# lo corre en cada push: así se verifica la paridad entre sistemas (F5-15) y, en una misma máquina, que el BVAR no
+# cambió sin regenerar la referencia (F1-1). La línea OK no lleva datos de la plataforma, para que la salida de la
+# verificación siga siendo comparable byte a byte entre máquinas; el mensaje de stop() sí los trae.
+c17 <- comparar_paridad_bvar(momentos_paridad_bvar(), leer_referencia_paridad_bvar())
+if (c17$n_distintos > 0L) {
+  stop(sprintf(paste0("V17: el BVAR fijo no reproduce byte a byte la referencia de Windows: %d de %d valores distintos; ",
+                      "entradas %s; máx |dif| de la media %.3g (log-nivel); máx dif relativa de la covarianza %.3g; ",
+                      "máx |dif| de la aceptación %.3g; sha256 %s; %s; %s; BLAS %s; LAPACK %s %s. Si es otra máquina, la ",
+                      "tolerancia entre sistemas la declara Harold (F5-15); si es la misma, cambió el BVAR sin regenerar la ",
+                      "referencia (F1-1)"),
+               c17$n_distintos, c17$n, if (c17$entradas_iguales) "idénticas" else "DISTINTAS", c17$dif_media, c17$dif_rel_cov,
+               c17$dif_aceptacion, c17$sha256, R.version.string, utils::sessionInfo()$running,
+               basename(extSoftVersion()[["BLAS"]]), basename(La_library()), La_version()))
+}
+ok("V17", sprintf("paridad del BVAR (G1 y G3, producción, primer origen): %d valores idénticos byte a byte a la referencia de Windows (sha256 %s…)",
+                  c17$n - 1L, substr(c17$sha256, 1, 12)))
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V17 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V17)\n")

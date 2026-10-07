@@ -677,6 +677,27 @@ comparación bit a bit.
   E2; con más extracciones, una divergencia del MH tiene más pasos para aparecer).
 - **Si Linux no iguala byte a byte,** la tolerancia se le pregunta a Harold con la magnitud medida (Regla 4).
 
+**Implementación de F1 (2026-10-07; decisiones menores del agente, revertibles en un commit):**
+
+- **Código:** `src/evaluacion/paridad_bvar.R` (`datos_paridad_bvar()`, `momentos_paridad_bvar()`,
+  `comparar_paridad_bvar()`, lectura y escritura de la referencia), con sus pruebas en `tests/test-paridad-bvar.R`.
+  La referencia es `src/evaluacion/referencias/paridad_bvar.csv`, con 159 filas: el sha256 de las entradas y 79 valores
+  por grupo (8 de media, 64 de covarianza y 7 diagnósticos). Se regenera con `scripts/referencia_paridad_bvar.R`, que se
+  detiene fuera de Windows.
+- **Qué se compara, además de lo decidido:** los demás diagnósticos del ajuste (medias posteriores de λ, SOC y SUR, ψ
+  del PIB y los tamaños) y el sha256 de los datos de entrada. No cuestan nada y separan una diferencia de los datos de
+  una del BVAR.
+- **Bytes y no texto:** se comparan los 8 bytes IEEE 754 de cada valor (16 caracteres hexadecimales, little-endian),
+  porque el texto decimal depende de la rutina de impresión de cada sistema. La columna `valor` (`%.17g`) es solo para
+  leer el archivo.
+- **Siembra:** la del motor (`semilla_de()`, como en `correr_backtest()`), con `exp_id = "V17"`.
+- **Salida:** la línea OK de V17 no lleva datos de la plataforma, para que la salida de la verificación siga siendo
+  comparable byte a byte entre máquinas. El mensaje de `stop()` sí trae la versión de R, el sistema, la BLAS y la
+  LAPACK.
+- **Referencia:** generada con el código de este commit en el sandbox Windows de la máquina de Harold (R 4.6.1 ucrt,
+  Windows 11 x64, build 26200). sha256 de los momentos `27ec46c0219321e226d6200692d38154994bf0f4129bfa974dc43857367563ce`.
+  Un proceso nuevo la reproduce byte a byte (0 de 159 valores distintos). Costo de V17: unos 42 s en el sandbox.
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5
