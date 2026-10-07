@@ -39,6 +39,17 @@ library(jsonlite)
 
 .BCR_EXPORT_ARG <- "xlsx"
 
+# Timeout de la espera de carga en la navegacion inicial (`b$go_to(url, timeout_ = )`). El
+# default de chromote (`default_timeout` = 10 s) es menor que la latencia del portal:
+# 2026-10-07, PANORAMA_BANCO_CENTRAL devolvio ~2.1 MB con TTFB de ~28 s (curl) y la carga
+# completa en headless tomo ~53 s. Es latencia del servidor del BCR, no de la logica de
+# captura. `timeout_` gobierna la espera de `Page$loadEventFired`; el comando `Page.navigate`
+# en si conserva su default de 10 s y su rechazo se imprime como "Unhandled promise error:
+# ... Page.navigate" -ruido inocuo, la captura continua-. Solo se sube la navegacion: el
+# resto de los comandos CDP conserva su default (y el disparo del exportador su propio
+# `timeout_s`). Ver doc/bitacora_fuentes_fragiles.md, entrada 2026-10-07.
+.BCR_NAV_TIMEOUT_S <- 300
+
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
 .bcr_eval <- function(b, expr, await = FALSE, timeout_s = NULL) {
@@ -202,7 +213,7 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
   b$Browser$setDownloadBehavior(behavior = "allow", downloadPath = normalizePath(dir_descarga))
 
   msg("navegando: ", url)
-  b$go_to(url)   # <- no Page$navigate() (carrera documentada, ADR-009)
+  b$go_to(url, timeout_ = .BCR_NAV_TIMEOUT_S)   # <- no Page$navigate() (carrera documentada, ADR-009)
 
   # 1. montar el componente
   .bcr_wait(b, .BCR_BOOT, timeout_s = 60, que = "montaje de vista-serie")
@@ -310,7 +321,7 @@ bcr_capturar_xlsx <- function(url, formula = "0", timeout_s = 240,
 bcr_sondear_ultimo_periodo <- function(url, timeout_s = 60) {
   b <- ChromoteSession$new()
   on.exit(try(b$close(), silent = TRUE), add = TRUE)
-  b$go_to(url)
+  b$go_to(url, timeout_ = .BCR_NAV_TIMEOUT_S)
   .bcr_wait(b, .BCR_BOOT, timeout_s = timeout_s, que = "montaje de vista-serie")
   id_pub <- .bcr_eval(b, sprintf("%s.data.idPublic", .BCR_CMP))
   rangos <- fromJSON(.bcr_eval(

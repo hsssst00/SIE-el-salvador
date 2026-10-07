@@ -18,6 +18,10 @@ modos. El recordatorio que cuenta es este calendario; la verificación, `make ra
 
 - **Mensual:** días 1 a 3 de cada mes, `make raw` completo.
 - **Trimestral (UT, además de la mensual):** enero, abril, julio y octubre.
+- **Fuera de ventana (ADR-007 D3, 2026-10-07):** una publicación BCR puede capturarse después de
+  publicada si `make raw-rapido` la marca `NUEVO_PERIODO`, el calendario ya la anuncia y es el
+  primer vintage de ese período. Procedimiento en `doc/backlog_captura_vintages.md`. La ventana
+  mensual sigue siendo la que cierra el mes con `make raw` completo.
 - Cada corrida se anota en `doc/bitacora_verificaciones.md` si usa el verificador de celda
   (regla 8), y los `CAMBIO` se registran en `doc/backlog_captura_vintages.md`.
 

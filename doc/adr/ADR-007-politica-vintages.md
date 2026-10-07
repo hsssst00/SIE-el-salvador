@@ -497,3 +497,53 @@ como `MANUAL_PENDIENTE` y la L3 se detiene si un año anterior al máximo no tra
 
 **Lo que esta nota no cambia.** Ninguna decisión de D1 ni de D2. El límite declarado sigue igual: una
 revisión de un año ya cerrado en L0 no se detecta. El `Estado` del ADR sigue siendo Cerrado.
+
+## Nota de seguimiento — captura posterior a la publicación, además de la ventana mensual (2026-10-07)
+
+**Disparador.** El 2026-10-07 `make raw-rapido` marcó `NUEVO_PERIODO` en `BCR.PANORAMA_BANCO_CENTRAL`
+(período 2026-M09) y se capturó ese mismo día, fuera de la ventana del 1 al 3 que fija D1. D1 no
+decía nada sobre ese caso: descartó la captura por evento como cadencia, no como complemento, y
+`raw-rapido` no existía cuando se escribió (llegó el 2026-10-02). Decisión de Harold, 2026-10-07: el
+SIE tiene que permanecer actualizado, así que el caso se regula en vez de tratarse como excepción
+única.
+
+**D3 — Captura posterior a la publicación, para el BCR.** Además de la ventana mensual de D1, una
+publicación BCR de la familia `vista-serie` puede capturarse fuera de la ventana cuando se cumplen
+las tres condiciones:
+
+1. `make raw-rapido` la reporta como `NUEVO_PERIODO`: el sondeo de nivel 2 vio en el portal un
+   período posterior al `periodo_referencia_max` del último vintage en L0.
+2. El calendario del BCR (`doc/calendario_divulgacion_bcr.csv`) ya anuncia esa publicación para una
+   fecha igual o anterior a hoy. El calendario da la fecha del evento; `raw-rapido` lo detecta.
+3. Es la primera captura de ese período: un vintage por publicación y `periodo_referencia_max`.
+   Si el `vintage_id` ya existe, `registrar_descarga()` se detiene y no se fuerza.
+
+Se captura con el `descargar_*()` de la publicación, con `fecha_publicacion` = `AAAA-MM-01` del mes
+de publicación según el calendario (misma convención que la ventana). Sigue valiendo la regla 9 de
+`CLAUDE.md`: a mano, una publicación a la vez, nunca en bucle ni programado, y sin captura
+exhaustiva. Lo que aporta D3 es el motivo de fondo de ADR-007 llevado al caso intra-mes: el portal
+sirve solo el vintage vigente, y un vintage que se revisa entre el día de publicación y la
+siguiente ventana se pierde.
+
+**Por qué ya no aplica el motivo del descarte en D1.** D1 rechazó la captura por evento porque «no
+tiene fecha y depende de que alguien actúe sobre cada `CAMBIO`». Aquí el evento tiene fecha (el
+calendario) y detector (`raw-rapido`, que no ve revisiones de valores viejos pero sí períodos
+nuevos), y la captura sigue siendo un acto deliberado.
+
+**Lo que D3 no cambia.**
+
+- La ventana mensual del 1 al 3 y su `make raw` completo siguen siendo lo que cierra cada mes: es el
+  único que detecta revisiones de valores de períodos ya publicados, que `raw-rapido` no ve. Una
+  publicación capturada por D3 sale `PASS` en esa ventana y no se duplica.
+- UT (D2) sigue siendo manual y trimestral; las fuentes de API (FRED, FMI, Banco Mundial) y el
+  portal de Hacienda quedan fuera de D3.
+- Límite declarado, el mismo de `raw-rapido`: una revisión de valores de un período ya capturado,
+  ocurrida entre ventanas, no se detecta ni se captura.
+- No se fija una frecuencia máxima para correr `raw-rapido`; rige la regla 9. Si hiciera falta un
+  tope, es una decisión pendiente de Harold.
+
+**Primer uso (2026-10-07).** `BCR.PANORAMA_BANCO_CENTRAL.v2026-10`: `NUEVO_PERIODO` de
+`raw-rapido`, calendario «Octubre», día 7 → 2026-09; período M08 → M09, sin vintage intermedio
+perdido. Los dos intentos previos fallaron en la navegación por la latencia del portal y no
+escribieron nada (`doc/bitacora_fuentes_fragiles.md`, entrada 2026-10-07). El `Estado` del ADR sigue
+siendo Cerrado. Procedimiento operativo: `doc/backlog_captura_vintages.md`.

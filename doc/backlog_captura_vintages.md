@@ -143,6 +143,22 @@ Días 1 a 3 de cada mes. Una sola pasada: no se repite dentro de la ventana (reg
 6. `make master` y `make test` si algo capturado alimenta L3. Commitear `manifiesto.csv` y
    `08_vintages.csv`; los archivos de L0 no se versionan (ADR-008).
 
+### Captura posterior a la publicación, fuera de la ventana (ADR-007 D3)
+
+Complementa a la ventana mensual; no la reemplaza. Solo publicaciones BCR `vista-serie`, a mano y
+una a la vez (regla 9).
+
+1. `make raw-rapido`. Interesa solo lo que salga `NUEVO_PERIODO`.
+2. Confirmar las tres condiciones de D3: (a) el `NUEVO_PERIODO` de ese paso; (b) el calendario
+   (`doc/calendario_divulgacion_bcr.csv`) anuncia la publicación para hoy o antes; (c) es el primer
+   vintage de ese `periodo_referencia_max`. Si falta una, no se captura: espera a la ventana.
+3. Capturar con el `descargar_*()` de la publicación, `fecha_publicacion` = `AAAA-MM-01` del mes de
+   publicación según el calendario. Si el `vintage_id` ya existe, `registrar_descarga()` se detiene.
+4. Comparar el `periodo_referencia_max` nuevo con el previo (vintages intermedios) y
+   `verificar_l0_fisico.R`.
+5. Anotar la captura acá (nota fechada) y commitear `manifiesto.csv` y `08_vintages.csv`. La ventana
+   siguiente la verá como `PASS`.
+
 ### Ventana trimestral de UT (enero, abril, julio y octubre)
 
 Captura manual: el robots.txt de ut.com.sv prohíbe el scraping y la regla 9 impide evadirlo.
@@ -250,3 +266,18 @@ sirve solo el vigente. Entre las seis, `BCR.IVAE.VIGENTE`, `BCR.BALANZA_COMERCIA
 portal del BCR (calendario + sondeo del último período). No ve revisiones de valores de períodos
 ya publicados, así que no sustituye al `make raw` del paso 1 ni al `PASS` del paso 4. Calendario de
 ventanas: `doc/calendario_make_raw.md`.
+
+## Nota del 2026-10-07 — captura posterior a la publicación (ADR-007 D3): Panorama del Banco Central M09
+
+Primer uso de D3 (nota de seguimiento del 2026-10-07 en `doc/adr/ADR-007-politica-vintages.md`,
+decisión de Harold: el SIE tiene que permanecer actualizado). `make raw-rapido` (2026-10-07) marcó
+`NUEVO_PERIODO` en `BCR.PANORAMA_BANCO_CENTRAL`; las otras 17
+publicaciones salieron `NO_TOCA` o `SIN_NUEVO`. Coincide con `doc/calendario_divulgacion_bcr.csv`
+(Panorama del Banco Central, fila «Octubre», día 7 → período 2026-09). Capturada ese mismo día como
+`BCR.PANORAMA_BANCO_CENTRAL.v2026-10` (`periodo_referencia_max` 2026-M09, `fecha_publicacion`
+2026-10-01 por convención, archivo `BCR_panorama_banco_central_2026-10-07.xlsx`). Avanzó un solo
+período (M08 → M09): no se perdió ningún vintage intermedio. `verificar_l0_fisico` 75/75.
+
+Los dos primeros intentos de captura fallaron en la navegación y no escribieron nada (latencia del
+portal frente al timeout por defecto de `chromote`; ver `doc/bitacora_fuentes_fragiles.md`, entrada
+2026-10-07). No cuentan como pasada de la regla 9: la captura efectiva fue una sola.
