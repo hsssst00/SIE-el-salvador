@@ -108,6 +108,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   (prueba en `tests/test-modelo-bvar.R` y V16). Falta comparar Windows y Linux.
   Nota 2026-10-07: la forma de la comparación está decidida (F1-1 y F1-2 en `decisiones_fase5.md`): el bloque V17
   compara byte a byte un BVAR fijo contra una referencia generada en Windows y corre en CI (Ubuntu) en cada push.
+  Nota 2026-10-07: entre Windows y Ubuntu no es bit a bit (media 9,7e-8 en log-nivel; covarianza 8,7e-7 relativo;
+  misma aceptación). La tolerancia quedó declarada en F1-3. Falta la parte de `make eval` bit a bit sobre L4, que se
+  comprueba con la corrida única (E2).
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.

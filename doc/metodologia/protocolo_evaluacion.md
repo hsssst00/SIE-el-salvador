@@ -362,6 +362,14 @@ opciones deterministas, la semilla del motor pasada explícitamente y un bloque 
 experimento sintético y compara hashes. El BVAR depende de la BLAS: su paridad entre Windows y Linux se verifica y, si
 no es bit a bit, se declara la tolerancia; en una misma máquina el criterio de arriba sigue siendo bit a bit.
 
+**Nota (2026-10-07, F1-3).** La paridad entre Windows y Linux se verificó con V17 de la verificación sintética: un BVAR
+fijo con la configuración de producción contra una referencia generada en Windows. No es bit a bit: en Ubuntu, la
+media difiere hasta en 9,7e-8 en log-nivel y la covarianza hasta en 8,7e-7 relativo, con las mismas entradas y la
+misma aceptación del MH. La tolerancia declarada entre sistemas es la siguiente. Entradas, tamaños y aceptación deben
+ser exactos. La media de la predictiva admite |dif| ≤ 1e-6 en log-nivel. La covarianza y los hiperparámetros admiten
+una diferencia relativa ≤ 1e-5. Aplica solo a la comparación entre sistemas operativos: en Windows, V17 exige bit a
+bit y `make eval` debe regenerar bit a bit `data/L4_experiments/<exp_id>/`. Detalle en `decisiones_fase5.md`.
+
 **[2026-09-29, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
 antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
 (precedente: C8, `a78d2c6`).

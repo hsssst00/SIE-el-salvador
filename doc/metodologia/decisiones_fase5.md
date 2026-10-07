@@ -38,6 +38,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
 | F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
+| F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
 
 ---
 
@@ -650,6 +651,8 @@ de L3: los hallazgos salen del código del paquete y de datos sintéticos.
   R5 y R6 en B5.
 - **Paridad Windows/Linux (F1 del checklist, F5-15):** pendiente. En una misma máquina el resultado es bit a bit
   (`tests/test-modelo-bvar.R` y V16).
+  Nota 2026-10-07: medida en F1. Entre Windows y Ubuntu no es bit a bit, y la tolerancia quedó declarada en F1-3
+  (sección «Paridad Windows/Linux del BVAR», más abajo).
 
 ---
 
@@ -697,6 +700,30 @@ comparación bit a bit.
 - **Referencia:** generada con el código de este commit en el sandbox Windows de la máquina de Harold (R 4.6.1 ucrt,
   Windows 11 x64, build 26200). sha256 de los momentos `27ec46c0219321e226d6200692d38154994bf0f4129bfa974dc43857367563ce`.
   Un proceso nuevo la reproduce byte a byte (0 de 159 valores distintos). Costo de V17: unos 42 s en el sandbox.
+
+**Resultado en Linux (2026-10-07).** El CI del push de `200496b` (run 37695426578; Ubuntu 24.04.5, R 4.6.1, BLAS
+`libblas.so.3`, LAPACK de OpenBLAS 0.3.26, versión 3.12.0) no iguala la referencia byte a byte: difieren 152 de los 159
+valores. Las entradas son idénticas, igual que los tamaños y la aceptación del MH en los dos grupos: las cadenas toman
+las mismas decisiones, así que la diferencia es de redondeo y no una divergencia del MCMC. La diferencia máxima de la
+media es 9,71e-8 en log-nivel, unos 1e-5 pp de la tasa interanual. La diferencia relativa máxima de la covarianza es
+8,67e-7. sha256 de los momentos en Linux: `ec953e8a99641d3ba9c590686cc72640a50f61dc11070d66bf0c9db3de08a102`. En
+Windows, R 4.6.1 usa su BLAS de referencia y LAPACK 3.12.1. Para dar escala, el error de Monte Carlo del mismo ajuste
+en Windows (medias por lotes, 50 lotes de 100 extracciones) es de 8,9e-5 a 1,4e-3 en la media (log-nivel) y de 0,5 %
+a 2,6 % en la varianza. Lo de Linux es entre 1 000 y 6 000 veces menor.
+
+- **F1-3 · Tolerancia entre sistemas. DECIDIDO por Harold el 2026-10-07 (opción recomendada):** un margen de unas 10
+  veces lo medido. En Windows sigue exigiéndose bit a bit (F5-15). En otro sistema, las entradas, los tamaños
+  (`n_obs`, `n_series`) y la aceptación deben ser idénticos, porque si la aceptación difiere las cadenas divergieron y
+  la diferencia ya no es de redondeo. La media admite |dif| ≤ 1e-6 en log-nivel (1e-4 pp). La covarianza y los
+  hiperparámetros (λ, SOC, SUR y ψ del PIB) admiten una diferencia relativa ≤ 1e-5. V17 informa la diferencia máxima
+  por campo. Ese margen queda al menos unas 90 veces por debajo del error de Monte Carlo y aguanta un cambio de OpenBLAS
+  en `ubuntu-latest` sin falsas alarmas. La diferencia de λ, SOC, SUR y ψ no se había medido campo por campo: si pasa
+  de 1e-5, se le vuelve a preguntar a Harold con el dato. Descartadas: una tolerancia de 2 veces lo medido (una
+  actualización de la imagen del CI podría ponerlo en rojo sin cambios del proyecto) y una tolerancia ligada al error
+  de Monte Carlo (más código, deja pasar cadenas que divergieron y admite más diferencia en la media).
+- **Implementación (decisión menor del agente, revertible):** fuera de Windows, la línea OK de V17 informa el número de
+  valores distintos, los máximos por campo y la plataforma, así que la salida de la verificación difiere entre sistemas
+  solo en esa línea. En Windows la línea no cambia.
 
 ---
 
