@@ -4,8 +4,8 @@
 # con datos SINTÉTICOS: no se lee data/. Comprueba el registro por grupo, el sendero contra una implementación
 # independiente (MCO con dummies de calendario y recursión propia), la densidad contra predict() de vars y contra
 # una simulación de las recursiones del VAR, la elección del rango de Johansen y sus casos límite (B2-4), el piso de
-# grados de libertad en el primer origen de cada grupo con las fechas de inicio reales de L3 (checklist C1) y las
-# guardas.
+# grados de libertad en el primer origen de cada grupo con las fechas de inicio reales de L3 (checklist C1), las
+# guardas y, de punta a punta, la deduplicación de pérdidas idénticas en el MCS (B2-9).
 
 library(testthat)
 source(here::here("src", "evaluacion", "motor_backtesting.R"))   # eval_lib, modelos_referencia, modelos_fase5
@@ -212,4 +212,48 @@ test_that("guardas de los multivariados: predictora que no llega al origen, valo
   hueco <- .datos_mv(obj, pred, ids, o); hueco[[3]] <- hueco[[3]][-10, ]
   expect_error(m$ajustar(hueco, NULL), "faltantes o desordenados")
   expect_error(modelo_vecm("MULT.VECM.G1", ids)$ajustar(corto, NULL), "no llega al origen")
+})
+
+test_that("B2-9: en un experimento de Fase 5 un modelo duplicado comparte el MCS de su representante; fuera de Fase 5 detiene", {
+  # El objetivo sintético de V12 y de test-modelos-univariados.R.
+  set.seed(20260924L + 12L)
+  per <- ind_a_q(q_a_ind("1990-Q1") + 0:144)
+  dy <- numeric(length(per)); e <- stats::rnorm(length(per), 0, 0.008)
+  for (t_ in 2:length(per)) dy[t_] <- 0.003 + 0.5 * dy[t_ - 1] + e[t_]
+  y <- 4.6 + cumsum(dy)
+  i20 <- match(c("2020-Q2", "2020-Q3"), per); y[i20] <- y[i20] + c(-0.20, -0.08)
+  obj <- data.frame(periodo = per, y = y, vintage_id = "SINT.v1", stringsAsFactors = FALSE)
+  pred <- .predictoras_mv(91, ids = predictoras_grupo("G1"))
+  ex <- EXPERIMENTOS_PRINCIPALES_FASE5[EXPERIMENTOS_PRINCIPALES_FASE5$exp_id == "F5_G1", ]
+  ex$sa <- "l3_unico"; ex$r3 <- FALSE; ex$r4 <- TRUE
+  insumos <- list(objetivos = list(PIB_SA_PROPIO_Q = obj), predictoras = pred, conjunto = list(etiqueta = "corte_sint@0123abcd"))
+  copia <- modelo_ar1(); copia$modelo_id <- "PRUEBA.AR1_COPIA"                      # pronostica lo mismo que BENCH.AR1
+  orig <- modelos_fase5
+  assign("modelos_fase5", function(grupo) list(copia), envir = globalenv())
+  on.exit(assign("modelos_fase5", orig, envir = globalenv()), add = TRUE)
+  r <- correr_experimento(ex, insumos, new.env())
+  for (tab in list(r$mcs, r$sub$mcs)) {
+    expect_true("identico_a" %in% names(tab))
+    expect_true(all(tab$identico_a[tab$modelo_id == "PRUEBA.AR1_COPIA"] == "BENCH.AR1"))
+    expect_true(all(tab$identico_a[tab$modelo_id != "PRUEBA.AR1_COPIA"] == ""))
+    a <- tab[tab$modelo_id == "BENCH.AR1", ]; b <- tab[tab$modelo_id == "PRUEBA.AR1_COPIA", ]
+    expect_identical(b$p_mcs, a$p_mcs); expect_identical(b$en_mcs, a$en_mcs); expect_identical(b$orden_eliminacion, a$orden_eliminacion)
+  }
+  # el MCS de los demás modelos es el de una corrida sin la copia
+  assign("modelos_fase5", function(grupo) list(), envir = globalenv())
+  r0 <- correr_experimento(ex, insumos, new.env())
+  k <- r$mcs$modelo_id != "PRUEBA.AR1_COPIA"
+  expect_identical(r$mcs$p_mcs[k], r0$mcs$p_mcs); expect_identical(r$mcs$en_mcs[k], r0$mcs$en_mcs)
+  expect_identical(r0$mcs$identico_a, rep("", nrow(r0$mcs)))
+  # fuera de Fase 5 (Fase 4 y F5_REPRO_*) el MCS es mcs_tmax() tal cual: misma tabla, sin columna nueva, y con
+  # los idénticos al final de la eliminación sigue deteniéndose (Regla 7)
+  err <- calcular_errores(correr_backtest(list(objetivo = obj), list(modelo_rw_sin_deriva(), modelo_ar1(), copia), origenes_grupo("G1")), obj)
+  ids <- c("BENCH.RW_SIN_DERIVA", "BENCH.AR1", "PRUEBA.AR1_COPIA")
+  sin_dedup <- tryCatch(evaluar_errores(err, ids, "F5_REPRO_G1", "G1", "yoy_pp", semilla_mcs = function(h) h, B = 200L), error = function(e) e)
+  if (inherits(sin_dedup, "error")) expect_match(conditionMessage(sin_dedup), "varianza bootstrap nula") else expect_false("identico_a" %in% names(sin_dedup$mcs))
+  con_dedup <- evaluar_errores(err, ids, "F5_G1", "G1", "yoy_pp", semilla_mcs = function(h) h, B = 200L, marcar_identicos = TRUE)
+  expect_true(all(con_dedup$mcs$identico_a[con_dedup$mcs$modelo_id == "PRUEBA.AR1_COPIA"] == "BENCH.AR1"))
+  sin <- evaluar_errores(err[err$modelo_id != "PRUEBA.AR1_COPIA", ], ids[1:2], "F5_REPRO_G1", "G1", "yoy_pp", semilla_mcs = function(h) h, B = 200L)
+  expect_identical(names(sin$mcs), c("exp_id", "grupo", "h", "unidad", "modelo_id", "p_mcs", "en_mcs", "orden_eliminacion", "alpha",
+                                     "replicas", "bloque", "semilla", "marca_tamano"))
 })
