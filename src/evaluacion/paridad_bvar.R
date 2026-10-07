@@ -1,6 +1,6 @@
 # src/evaluacion/paridad_bvar.R
 #
-# Paridad Windows/Linux del BVAR (checklist F1; F5-15; decisiones F1-1 y F1-2 en
+# Paridad Windows/Linux del BVAR (checklist F1; F5-15; decisiones F1-1, F1-2 y F1-3 reabierta en
 # doc/metodologia/decisiones_fase5.md). Un ajuste fijo del BVAR con la configuración de producción (p = 4,
 # 10 000 extracciones y 5 000 de quemado; B2-7) en el primer origen de G1 (3 series) y de G3 (9 series), sobre
 # datos sintéticos con las fechas de inicio de L3: el mismo generador y las mismas semillas (141 y 142) que la
@@ -15,10 +15,11 @@
 #
 # V17 (verificar_motor_sintetico.R) compara esos bytes con la referencia versionada en
 # src/evaluacion/referencias/paridad_bvar.csv, generada en Windows (la máquina de la corrida única) con
-# scripts/referencia_paridad_bvar.R. En Windows exige que sean idénticos (F5-15); en otro sistema, que las entradas,
-# los tamaños y la aceptación sean idénticos y el resto quede dentro de la tolerancia de F1-3. Se detiene con stop()
-# si no (Regla 7). Si cambia el código o la configuración del BVAR, la referencia se regenera en ese mismo PR, con una
-# nota fechada (F1-1).
+# scripts/referencia_paridad_bvar.R. En Windows exige que sean idénticos y se detiene con stop() si no (F5-15, Regla 7).
+# En otro sistema solo informa (F1-3, reabierta): con OpenBLAS, un redondeo distinto puede cambiar decisiones del MH y
+# las cadenas se separan hasta la escala del error de Monte Carlo. Por eso la referencia trae también el MCSE de cada
+# momento y de las medias de los hiperparámetros, y V17 informa las diferencias en esas unidades. Si cambia el código
+# o la configuración del BVAR, la referencia se regenera en ese mismo PR, con una nota fechada (F1-1).
 #
 # Requiere eval_lib.R y modelos_multivariados.R cargados.
 
@@ -31,12 +32,9 @@ EXP_PARIDAD_BVAR <- "V17"
 RUTA_REFERENCIA_PARIDAD_BVAR <- c("src", "evaluacion", "referencias", "paridad_bvar.csv")
 COLUMNAS_PARIDAD_BVAR <- c("grupo", "origen", "campo", "i", "j", "bytes", "valor")
 CAMPO_ENTRADAS_PARIDAD_BVAR <- "sha256_entradas"
-# F1-3 (decisión de Harold, 2026-10-07): tolerancia entre sistemas operativos, unas 10 veces la diferencia medida
-# entre Windows y Ubuntu (media 9,7e-8; covarianza 8,7e-7 relativa). Entradas, tamaños y aceptación del MH, exactos:
-# si la aceptación difiere, las cadenas tomaron otras decisiones y la diferencia ya no es de redondeo.
-CAMPOS_EXACTOS_PARIDAD_BVAR <- c(CAMPO_ENTRADAS_PARIDAD_BVAR, "n_obs", "n_series", "aceptacion")
-TOL_MEDIA_PARIDAD_BVAR <- 1e-6      # |dif| de la media de la predictiva, en log-nivel (1e-4 pp)
-TOL_REL_PARIDAD_BVAR <- 1e-5        # dif relativa de la covarianza y de los hiperparámetros (lambda, SOC, SUR, ψ)
+COLUMNAS_REFERENCIA_PARIDAD_BVAR <- c(COLUMNAS_PARIDAD_BVAR, "mcse")
+LOTES_MCSE_PARIDAD_BVAR <- 50L      # medias por lotes: 50 lotes de 100 de las 5 000 extracciones retenidas
+CAMPOS_MCSE_PARIDAD_BVAR <- c("media", "cov", "lambda", "soc", "sur")
 
 #' Datos sintéticos de la prueba de producción del BVAR (tests/test-modelo-bvar.R, semillas 141 y 142): el objetivo
 #' en log-nivel de 1990-Q1 a 2026-Q1 y las 8 predictoras trimestrales desde su inicio en L3 hasta 2026-Q2, con
@@ -103,34 +101,101 @@ momentos_paridad_bvar <- function(series = datos_paridad_bvar(), grupos = GRUPOS
   r[, COLUMNAS_PARIDAD_BVAR]
 }
 
+#' Error de Monte Carlo por medias por lotes de una serie de extracciones (lotes contiguos de igual tamaño).
+mcse_lotes <- function(x, lotes = LOTES_MCSE_PARIDAD_BVAR) {
+  if (length(x) %% lotes != 0L) stop("mcse_lotes: ", length(x), " extracciones no se dividen en ", lotes, " lotes")
+  stats::sd(colMeans(matrix(x, ncol = lotes))) / sqrt(lotes)
+}
+
+#' MCSE de cada valor de momentos_paridad_bvar() (NA en las entradas, los tamaños, la aceptación y ψ, que no son
+#' promedios de extracciones). Repite el ajuste de ajustar_bvar() con la misma siembra para tener las extracciones, y
+#' se detiene si la media o la covarianza no son idénticas a las de `actual`, es decir, si la réplica dejó de ser el
+#' ajuste de producción. Media: MCSE absoluto; covarianza: MCSE de cada elemento como media de su contribución por
+#' extracción (C_j + desvíos de μ_j); hiperparámetros: MCSE de su media posterior. Solo se usa al regenerar la
+#' referencia (Windows); el costo es el de otro ajuste por grupo.
+mcse_paridad_bvar <- function(actual, series = datos_paridad_bvar()) {
+  mcse <- rep(NA_real_, nrow(actual))
+  for (g in setdiff(unique(actual$grupo), "-")) {
+    m <- modelo_bvar_grupo(g); pr <- setdiff(m$requiere, "objetivo"); o <- origenes_grupo(g)[1]
+    rz <- rezagos_predictoras(pr)
+    info <- stats::setNames(lapply(m$requiere, function(nm) recortar_a_origen(series[[nm]], o, rz[[nm]])), m$requiere)
+    set.seed(semilla_de(EXP_PARIDAD_BVAR, m$modelo_id, o))
+    pn <- panel_bvar(info, pr, m$modelo_id); Y <- pn$Y; lags <- m$lags; H <- DISENO_FASE4$h_max
+    psi <- psi_bvar(Y, lags, m$modelo_id, pn$o)
+    fit <- BVAR::bvar(Y, lags = lags, n_draw = m$n_draw, n_burn = m$n_burn, n_thin = 1L, priors = priors_bvar(psi),
+                      mh = mh_bvar(), fcast = NULL, irf = NULL, verbose = FALSE)
+    mom <- momentos_predictiva_bvar(fit$beta, fit$sigma, Y, lags, H)
+    fila <- actual$grupo == g
+    if (!identical(bytes_hex(c(mom$media, as.vector(mom$cov))), actual$bytes[fila & actual$campo %in% c("media", "cov")])) {
+      stop("mcse_paridad_bvar: la réplica del ajuste de ", g, " no reproduce los momentos de ajustar_bvar()")
+    }
+    # Por extracción, como en momentos_predictiva_bvar(): μ_j por recursión y C_j con los pesos MA.
+    beta <- fit$beta; sigma <- fit$sigma; S <- dim(beta)[1]; M <- dim(beta)[3]; N <- nrow(Y)
+    idx <- function(l, k) 1L + (l - 1L) * M + k
+    estado <- matrix(rep(as.vector(t(Y[N:(N - lags + 1L), , drop = FALSE])), each = S), nrow = S)
+    mu <- matrix(NA_real_, S, H)
+    for (h in seq_len(H)) {
+      yn <- matrix(vapply(seq_len(M), function(i) beta[, 1L, i] + rowSums(beta[, -1L, i, drop = FALSE][, , 1L] * estado), numeric(S)), nrow = S)
+      mu[, h] <- yn[, 1L]
+      estado <- if (lags > 1L) cbind(yn, estado[, seq_len(M * (lags - 1L)), drop = FALSE]) else yn
+    }
+    r <- vector("list", H); r[[1L]] <- matrix(rep(c(1, numeric(M - 1L)), each = S), nrow = S)
+    if (H > 1L) for (k0 in 1:(H - 1L)) {
+      rm_ <- matrix(0, S, M)
+      for (l in seq_len(min(lags, k0))) for (k in seq_len(M)) rm_[, k] <- rm_[, k] + rowSums(r[[k0 - l + 1L]] * beta[, idx(l, k), , drop = FALSE][, 1L, ])
+      r[[k0 + 1L]] <- rm_
+    }
+    rS <- lapply(r, function(rr) matrix(vapply(seq_len(M), function(k) rowSums(rr * sigma[, , k]), numeric(S)), nrow = S))
+    q <- function(a, b) rowSums(rS[[a]] * r[[b]])                             # q_j[a, b], S valores
+    dmu <- sweep(mu, 2L, colMeans(mu))
+    mc_cov <- matrix(NA_real_, H, H)
+    for (a in seq_len(H)) for (b in seq_len(a)) {
+      x <- Reduce(`+`, lapply(seq_len(b), function(k) q(a - k + 1L, b - k + 1L))) + dmu[, a] * dmu[, b]
+      mc_cov[a, b] <- mc_cov[b, a] <- mcse_lotes(x)
+    }
+    hyp <- vapply(c("lambda", "soc", "sur"), function(nm) mcse_lotes(fit$hyper[, nm]), numeric(1))
+    mcse[fila & actual$campo == "media"] <- apply(mu, 2L, mcse_lotes)
+    mcse[fila & actual$campo == "cov"] <- as.vector(mc_cov)
+    for (nm in names(hyp)) mcse[fila & actual$campo == nm] <- hyp[[nm]]
+  }
+  mcse
+}
+
 .ruta_paridad_bvar <- function() do.call(here::here, as.list(RUTA_REFERENCIA_PARIDAD_BVAR))
 
 #' Lee la referencia versionada; se detiene si falta o si sus columnas no son las esperadas.
 leer_referencia_paridad_bvar <- function(ruta = .ruta_paridad_bvar()) {
   if (!file.exists(ruta)) stop("paridad del BVAR: no existe la referencia ", ruta, " (se genera en Windows con scripts/referencia_paridad_bvar.R)")
   r <- utils::read.csv(ruta, colClasses = "character", na.strings = character(0), stringsAsFactors = FALSE)
-  if (!identical(names(r), COLUMNAS_PARIDAD_BVAR)) stop("paridad del BVAR: la referencia debe traer las columnas ", paste(COLUMNAS_PARIDAD_BVAR, collapse = ","))
+  if (!identical(names(r), COLUMNAS_REFERENCIA_PARIDAD_BVAR)) {
+    stop("paridad del BVAR: la referencia debe traer las columnas ", paste(COLUMNAS_REFERENCIA_PARIDAD_BVAR, collapse = ","))
+  }
   r$i <- as.integer(r$i); r$j <- as.integer(r$j)
   r$valor <- suppressWarnings(as.numeric(r$valor))                            # solo para leerla; manda `bytes`
+  r$mcse <- suppressWarnings(as.numeric(r$mcse))
   r
 }
 
-#' Escribe la referencia con LF. `valor` va en texto decimal (%.17g) solo para leerla; la comparación usa `bytes`.
-escribir_referencia_paridad_bvar <- function(actual, ruta = .ruta_paridad_bvar()) {
+#' Escribe la referencia con LF. `valor` (%.17g) es solo para leerla; la comparación usa `bytes`. `mcse` (%.6g) es la
+#' escala con la que V17 informa las diferencias fuera de Windows.
+escribir_referencia_paridad_bvar <- function(actual, mcse, ruta = .ruta_paridad_bvar()) {
   if (!identical(names(actual), COLUMNAS_PARIDAD_BVAR)) stop("paridad del BVAR: columnas inesperadas")
+  if (length(mcse) != nrow(actual)) stop("paridad del BVAR: `mcse` debe tener una entrada por fila")
   dir.create(dirname(ruta), showWarnings = FALSE, recursive = TRUE)
   salida <- actual
   salida$valor <- ifelse(is.na(actual$valor), "", sprintf("%.17g", actual$valor))
+  salida$mcse <- ifelse(is.na(mcse), "", sprintf("%.6g", mcse))
   con <- file(ruta, open = "wb"); on.exit(close(con))
   utils::write.csv(salida, con, row.names = FALSE, eol = "\n")
   invisible(ruta)
 }
 
 #' Compara el ajuste actual con la referencia, valor por valor en sus bytes. Se detiene si las filas no son las
-#' mismas (cambió la configuración sin regenerar la referencia). Devuelve el número de valores distintos; las
-#' diferencias máximas (absoluta en la media, en log-nivel; relativa en la covarianza; absoluta en la aceptación) y,
-#' por campo con tolerancia, la máxima en la medida de F1-3 (`maximos`: absoluta en la media, relativa en los demás);
-#' cuántos campos exactos difieren, cuántos valores exceden la tolerancia y si todo queda dentro de F1-3.
+#' mismas (cambió la configuración sin regenerar la referencia). Devuelve: el número de valores distintos; si las
+#' entradas son idénticas; los máximos por campo (`maximos`: |dif| en la media, en log-nivel, y diferencia relativa en
+#' los demás); los máximos de |dif| / MCSE por campo (`en_mcse`); el número de decisiones del MH distintas por grupo
+#' (|Δ aceptación| · extracciones retenidas); las diferencias máximas de la media, la covarianza y la aceptación, y el
+#' sha256 de los momentos actuales.
 comparar_paridad_bvar <- function(actual, referencia) {
   clave <- function(d) paste(d$grupo, d$origen, d$campo, d$i, d$j, sep = "|")
   if (!identical(clave(actual), clave(referencia))) {
@@ -142,18 +207,16 @@ comparar_paridad_bvar <- function(actual, referencia) {
   dif <- abs(actual$valor - ref)
   rel <- ifelse(dif == 0, 0, dif / abs(ref))                                  # Inf si la referencia es 0 y el valor no
   maximo <- function(x) if (length(x)) max(x) else 0
-  distintos <- actual$bytes != referencia$bytes
-  exactos <- actual$campo %in% CAMPOS_EXACTOS_PARIDAD_BVAR
   medida <- ifelse(actual$campo == "media", dif, rel)
-  tol <- ifelse(actual$campo == "media", TOL_MEDIA_PARIDAD_BVAR, TOL_REL_PARIDAD_BVAR)
-  campos_tol <- unique(actual$campo[!exactos])
-  n_exactos <- sum(distintos & exactos); n_fuera <- sum(!exactos & !(medida <= tol))
-  list(n = nrow(actual), n_distintos = sum(distintos),
+  campos <- setdiff(unique(actual$campo[num]), c("n_obs", "n_series", "aceptacion"))
+  con_mcse <- intersect(CAMPOS_MCSE_PARIDAD_BVAR, unique(actual$campo))
+  S <- N_DRAW_BVAR - N_BURN_BVAR
+  ac <- actual$campo == "aceptacion"
+  list(n = nrow(actual), n_distintos = sum(actual$bytes != referencia$bytes),
        entradas_iguales = identical(actual$bytes[!num], referencia$bytes[!num]),
-       dif_media = maximo(dif[actual$campo == "media"]),
-       dif_rel_cov = maximo(rel[actual$campo == "cov"]),
-       dif_aceptacion = maximo(dif[actual$campo == "aceptacion"]),
-       maximos = vapply(campos_tol, function(cp) maximo(medida[actual$campo == cp]), numeric(1)),
-       n_exactos_distintos = n_exactos, n_fuera_tolerancia = n_fuera, dentro_tolerancia = n_exactos == 0L && n_fuera == 0L,
-       sha256 = sha256_doubles(actual$valor[num]))
+       maximos = vapply(campos, function(cp) maximo(medida[actual$campo == cp]), numeric(1)),
+       en_mcse = vapply(con_mcse, function(cp) maximo((dif / referencia$mcse)[actual$campo == cp & dif > 0]), numeric(1)),
+       decisiones_distintas = stats::setNames(as.integer(round(dif[ac] * S)), actual$grupo[ac]),
+       dif_media = maximo(dif[actual$campo == "media"]), dif_rel_cov = maximo(rel[actual$campo == "cov"]),
+       dif_aceptacion = maximo(dif[ac]), sha256 = sha256_doubles(actual$valor[num]))
 }
