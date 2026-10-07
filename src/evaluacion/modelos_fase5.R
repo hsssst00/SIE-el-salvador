@@ -11,22 +11,25 @@
 # G-7 y G-8, experimentos); B1b agrega los univariados de modelos_univariados.R (F5-06): UNI.ARIMA y UNI.UC_LLT
 # en los tres grupos, la ARIMAX del grupo y, en G2, la ARIMAX de referencia con el IVAE. B2a agrega los VAR y el
 # VECM de modelos_multivariados.R (F5-07, B2-1 a B2-4): MULT.VAR_DIF del grupo y, en G1, MULT.VAR_NIV.G1 y
-# MULT.VECM.G1. El BVAR (B2b) va en un PR propio (B2-8).
+# MULT.VECM.G1. B2b agrega el BVAR del grupo (F5-07, B2-5, B2-7, B2-10 a B2-14): MULT.BVAR.G1/.G2/.G3, con todas
+# las series trimestrales del grupo (en G3, también las remesas reales; B1b-2) y sin piso de grados de libertad.
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
-#   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8)
+#   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8);
+#                    FALSE en el BVAR (B2-7), cuyo prior hace estimable el modelo
 #   requiere         series_master_id de las predictoras (predictoras_grupo()), además de "objetivo"
 #   diagnosticar     función(ajuste) -> vector numérico nombrado (órdenes elegidos, número de condición, ...);
 #                    el motor lo escribe por origen en diagnosticos.csv del experimento
 # Sin I/O y sin estado global, como los benchmarks.
 
 source(here::here("src", "evaluacion", "modelos_univariados.R"))     # B1: ARIMA, UC, ARIMAX
-source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2a: VAR y VECM
+source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2: VAR, VECM y BVAR
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
   if (length(grupo) != 1L || !grupo %in% names(GRUPOS_FASE4)) stop("modelos_fase5: grupo no declarado: ", paste(grupo, collapse = ", "))
   c(list(modelo_arima_fase5(), modelo_uc_llt(), modelo_arimax_grupo(grupo)),          # B1 (F5-06)
     if (grupo == "G2") list(modelo_arimax_ivae()),
-    modelos_multivariados_grupo(grupo))                                                 # B2a (F5-07)
+    modelos_multivariados_grupo(grupo),                                                 # B2a (F5-07)
+    list(modelo_bvar_grupo(grupo)))                                                     # B2b (F5-07)
 }

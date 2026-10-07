@@ -12,7 +12,8 @@
 #      y las grillas declaradas del AR(1) y del AR(p)-BIC coinciden con las del código;
 #   5. (Fase 5, B1b) los modelos no benchmark declarados son exactamente los del registro modelos_fase5() de
 #      los tres grupos, sus variables son las que piden al motor y las grillas del ARIMA y de las ARIMAX
-#      coinciden con las del código (preregistro F5-02); (B2a) también las rejillas de los VAR y del VECM.
+#      coinciden con las del código (preregistro F5-02); (B2a) también las rejillas de los VAR y del VECM;
+#      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado).
 #
 # No lee datos del proyecto: corre en CI. Lee YAML con `yaml`, en Imports desde Fase 4 (F4-12).
 
@@ -119,5 +120,13 @@ test_that("06_modelos: las rejillas declaradas de los VAR y del VECM son las del
       expect_identical(as.integer(c(o$p_min, o$p_max)), c(1L, m$p_max), info = m$modelo_id)
       expect_identical(as.integer(o$diferencias), if (m$forma == "dif") 1L else 0L, info = m$modelo_id)
     }
+  }
+})
+
+test_that("06_modelos: los órdenes declarados del BVAR son los del código (B2-7)", {
+  for (g in c("G1", "G2", "G3")) {
+    m <- modelo_bvar_grupo(g)
+    o <- .leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$ordenes
+    expect_identical(as.integer(c(o$lags, o$n_draw, o$n_burn, o$n_thin)), c(m$lags, m$n_draw, m$n_burn, 1L), info = m$modelo_id)
   }
 })

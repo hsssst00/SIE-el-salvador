@@ -39,7 +39,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 - [ ] **B5 · F5-14** Medición del tiempo por origen de cada familia con datos sintéticos; con esa cifra, tope,
   representantes por familia y variante de F5-11, fijados en un commit anterior a la corrida sobre L3.
   Estado 2026-10-07: medidos B1 (UNI.ARIMA 3-4 s por origen; ARIMAX < 1 s) y B2a (VAR y VECM < 0,1 s por origen);
-  faltan BVAR (B2b), B3, B3b y B4.
+  faltan BVAR (B2b), B3, B3b y B4. Estado 2026-10-07 (B2b): BVAR medido: 16-19 s por origen en G1, 18 s en G2 y 21-26 s en G3,
+  unos 38 minutos para los orígenes de los tres principales y unos 23 más para R7; faltan B3, B3b y B4.
 
 ## C. Infraestructura que piden las decisiones
 
@@ -50,7 +51,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   origen con las fechas de inicio de L3: 75, 38 y 39 observaciones; abrir la grilla de G2 o los rezagos de G3 dispara
   G-8); se marca con la evidencia de CI al fusionar el PR de B1b. Estado 2026-10-07: B2a extiende la prueba a los VAR
   y al VECM en `tests/test-modelos-multivariados.R` (56, 57, 57, 23 y 43 grados de libertad libres; p = 4 en G2
-  dispara G-8).
+  dispara G-8). Estado 2026-10-07: el BVAR no tiene piso (B2-7); `tests/test-modelo-bvar.R` lo corre con la
+  configuración de producción en el primer origen de cada grupo con las fechas de inicio de L3 (77, 40 y 40
+  observaciones).
 - [ ] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
   meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
   marca con la evidencia de CI al fusionar. Estado 2026-10-05: B1a fusionado (PR #31, `8d72e83`) con CI verde en push y
@@ -63,7 +66,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   regularizados y árboles, cubierta por V13 o un bloque nuevo. Estado 2026-10-05: la parte de ARIMAX llega con B1b
   (`cov_sistema_arimax()`, prueba contra la simulación de sus recursiones y cobertura en V14); faltan puente (B3b),
   regularizados y árboles. Estado 2026-10-07: VAR y VECM (pesos MA, B2-1) con prueba contra `predict()` y contra la
-  simulación de las recursiones, y cobertura en V15 (B2a).
+  simulación de las recursiones, y cobertura en V15 (B2a). Estado 2026-10-07: BVAR con los momentos exactos de la
+  predictiva posterior con choques (B2-10), con prueba contra la recursión y los pesos MA de cada extracción y contra
+  una simulación de senderos, y cobertura en V16 (B2b).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes.
 
@@ -77,7 +82,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [ ] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
   `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar. B2-9 (deduplicación de pérdidas
   idénticas en el MCS) decidida; va en un PR del motor antes de E1. Estado 2026-10-07: B2a fusionado (PR #33,
-  `821eaac`); B2-9 en su PR (`mcs_tmax_dedup()`, solo en `F5_G*`; los `F5_REPRO_*` no cambian).
+  `821eaac`); B2-9 en su PR (`mcs_tmax_dedup()`, solo en `F5_G*`; los `F5_REPRO_*` no cambian). Estado 2026-10-07:
+  B2-9 fusionado (PR #34, `a91b791`); B2-10 a B2-16 decididas; B2b en su PR (`MULT.BVAR.G1/.G2/.G3`, sus YAML y V16).
 - [ ] **D3 · B3** Regularizados.
 - [ ] **D4 · B3b** MIDAS y puente.
 - [ ] **D5 · B4** Árboles.
@@ -98,7 +104,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 
 - [ ] **F1** Reproducibilidad con una sola orden y una semilla fijada (criterio de la senda; forma concreta en
   F5-15): `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`, y la paridad Windows/Linux del BVAR se
-  verifica o se declara su tolerancia.
+  verifica o se declara su tolerancia. Estado 2026-10-07: el BVAR ya existe (B2b); en una misma máquina es bit a bit
+  (prueba en `tests/test-modelo-bvar.R` y V16). Falta comparar Windows y Linux.
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
