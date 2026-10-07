@@ -766,6 +766,18 @@ redondeo y otros datos, alguna decisión del MH puede cambiar.
   - Se quitan las constantes de la tolerancia anterior (`TOL_MEDIA_PARIDAD_BVAR`, `TOL_REL_PARIDAD_BVAR`,
     `CAMPOS_EXACTOS_PARIDAD_BVAR`).
 
+**Evidencia sobre `328122f` (2026-10-07).**
+
+- **Windows** (sandbox de la máquina de Harold, R 4.6.1 ucrt):
+  - verificación V1-V17 OK; V17 da 158 valores idénticos byte a byte a la referencia (sha256 `27ec46c0…`);
+  - testthat 1898 PASS / 0 FAIL / 0 ERROR / 1 SKIP (31 archivos, 343 bloques).
+- **CI** (runs 37700318583, push, y 37700323754, pull_request; los dos en verde):
+  - testthat 1900 PASS / 0 SKIP;
+  - en los dos runners salió L2 (sha256 `bbcd84a1…`): 4 decisiones del MH distintas en G3 y ninguna en G1;
+  - máx |dif| / MCSE: media 1,5; covarianza 1,7; λ 1,2; SOC 1,4; SUR 0,096.
+
+  Con eso, la diferencia de L2 frente a Windows queda en uno o dos errores de Monte Carlo.
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5
