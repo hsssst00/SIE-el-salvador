@@ -41,7 +41,7 @@ test_that("F5-07, B2-2, B2-6: registro de los multivariados por grupo bajo el co
   esperados <- list(G1 = c("MULT.VAR_DIF.G1", "MULT.VAR_NIV.G1", "MULT.VECM.G1"), G2 = "MULT.VAR_DIF.G2", G3 = "MULT.VAR_DIF.G3")
   for (g in names(esperados)) {
     ids <- vapply(modelos_fase5(g), `[[`, character(1), "modelo_id")
-    expect_identical(ids[startsWith(ids, "MULT.")], esperados[[g]], info = g)
+    expect_identical(ids[startsWith(ids, "MULT.") & !startsWith(ids, "MULT.BVAR.")], esperados[[g]], info = g)   # el BVAR (B2b): test-modelo-bvar.R
     for (m in modelos_multivariados_grupo(g)) {
       expect_silent(.validar_modelo(m))
       expect_true(isTRUE(m$piso_gl), info = m$modelo_id)

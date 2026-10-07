@@ -37,13 +37,15 @@
 # Bloque de los multivariados de Fase 5 (B2a; F5-07, F5-12):
 #   V15  VAR_DIF sobre un DGP VAR: bate al AR(p)-BIC en h = 1, 2 y su densidad cubre al nominal; VECM sobre un DGP
 #        cointegrado: la traza elige r = 1, bate al VAR_DIF en h = 2, 4 y cubre; sin cointegración elige r = 0
+#   V16  (B2b) BVAR sobre el DGP VAR de V15 más una NSA placebo: bate al AR(p)-BIC en h = 1, 2, su predictiva
+#        posterior (B2-10) cubre al nominal en h = 1, 2, 4 y reejecutar reproduce bit a bit (F5-15)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_univariados.R"))   # V14 (B1b)
-source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a)
+source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a) y V16 (B2b)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -557,5 +559,53 @@ fr0 <- mean(t15i$r == 0)
 if (!(fr0 >= 0.8)) stop(sprintf("V15: con dos paseos independientes la traza elige r = 0 solo en %.0f%% de los orígenes", 100 * fr0))
 ok("V15", sprintf("DGP sin cointegración: r = 0 (VECM anidado en diferencias, B2-4) en %.0f%% de los orígenes", 100 * fr0))
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V15 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V15)\n")
+# --- V16 · BVAR (B2b; F5-07, F5-12, B2-5, B2-10 a B2-16) -------------------------------------------
+# DGP "var" de V15 (PIB y una predictora SA: un VAR(1) en diferencias) más una tercera serie NSA sin relación con el
+# PIB: un paseo con deriva de 0,01 por trimestre y un estacional determinista de amplitud 0,04, que el BVAR recibe
+# desestacionalizada dentro del origen (B2-5, B2-14). El BVAR (p = 4; priors, ψ y MH de producción: B2-7, B2-11, B2-12,
+# B2-15, B2-16) corre con 2 000 extracciones y 1 000 de quemado para acotar el costo del canario (la configuración de
+# producción se prueba en tests/test-modelo-bvar.R), en uno de cada cuatro orígenes del diseño y con 6 réplicas (unos
+# 4 minutos). Se exige: razón de RMSE contra el AR(p)-BIC < 0,85 en h = 1, 2; cobertura de la predictiva posterior
+# (B2-10) en h = 1, 2, 4 dentro de ±3 ee de MC más 0,03, como V14 y V15 (con ψ = σ en lugar de σ², B2-16, la cobertura
+# al 80 % en h = 1 sale cerca de 0,99 y el bloque falla); y que reejecutar dos orígenes reproduzca bit a bit sendero
+# y densidad (F5-15).
+sim_v16 <- function() {
+  s <- sim_v15("var"); n <- length(PERIODOS_OBJ)
+  z <- 3 + cumsum(0.01 + stats::rnorm(n, 0, 0.015)) + c(0.04, -0.01, -0.04, 0.01)[q_a_ind(PERIODOS_OBJ) %% 4L + 1L]
+  s$PRUEBA.Z.NSA.Q <- data.frame(periodo = PERIODOS_OBJ, valor = 100 * exp(z), stringsAsFactors = FALSE)
+  s
+}
+ors16 <- ors[seq(1L, length(ors), by = 4L)]
+mods16 <- list(modelo_bvar("PRUEBA.BVAR", c("PRUEBA.X.SA.Q", "PRUEBA.Z.NSA.Q"), n_draw = 2000L, n_burn = 1000L), modelo_arp_bic())
+corrida16 <- function(R, semilla) {
+  set.seed(semilla)
+  res <- lapply(seq_len(R), function(r) {
+    s <- sim_v16()
+    p <- correr_backtest(s, mods16, ors16, rezagos = list(PRUEBA.X.SA.Q = 30L, PRUEBA.Z.NSA.Q = 30L), exp_id = "V16", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
+  })
+  list(m = do.call(rbind, lapply(res, `[[`, "m")), p = lapply(res, `[[`, "p"), s = lapply(res, `[[`, "s"))
+}
+t16 <- corrida16(6L, SEMILLA_RAIZ + 16L)
+for (h in c(1L, 2L)) {
+  rz <- razon15(t16$m, "PRUEBA.BVAR", "BENCH.ARP_BIC", h)
+  if (!(rz < 0.85)) stop(sprintf("V16: en h=%d el BVAR no bate al AR(p)-BIC en un DGP VAR (razón de RMSE %.3f)", h, rz))
+  ok("V16", sprintf("DGP VAR + NSA placebo, h=%d: RMSE BVAR / AR(p)-BIC %.3f (< 0,85)", h, rz))
+}
+for (h in c(1L, 2L, 4L)) for (nv in c(80, 95)) {
+  x <- t16$m[t16$m$modelo_id == "PRUEBA.BVAR" & t16$m$h == h, ][[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(length(x))
+  if (abs(mean(x) - nv / 100) > 3 * ee + 0.03)
+    stop(sprintf("V16: cobertura del BVAR al %d%% en h=%d fuera de ±(3 ee + 0,03) del nominal (%.3f, ee %.4f)", nv, h, mean(x), ee))
+}
+ok("V16", sprintf("cobertura de la predictiva posterior del BVAR 80%% %s y 95%% %s en h = 1, 2, 4",
+                  paste(sprintf("%.3f", sapply(c(1L, 2L, 4L), function(h) mean(t16$m$cobertura_80[t16$m$modelo_id == "PRUEBA.BVAR" & t16$m$h == h]))), collapse = "/"),
+                  paste(sprintf("%.3f", sapply(c(1L, 2L, 4L), function(h) mean(t16$m$cobertura_95[t16$m$modelo_id == "PRUEBA.BVAR" & t16$m$h == h]))), collapse = "/")))
+p16b <- correr_backtest(t16$s[[1]], mods16[1], ors16[1:2], rezagos = list(PRUEBA.X.SA.Q = 30L, PRUEBA.Z.NSA.Q = 30L), exp_id = "V16", densidad = TRUE)
+p16a <- t16$p[[1]]; p16a <- p16a[p16a$modelo_id == "PRUEBA.BVAR" & p16a$origen %in% ors16[1:2], ]; rownames(p16a) <- NULL
+attr(p16a, "diagnosticos") <- NULL; attr(p16b, "diagnosticos") <- NULL   # se comparan los pronósticos
+if (!identical(p16a, p16b)) stop("V16: reejecutar el BVAR con la misma semilla del motor no reproduce bit a bit sus pronósticos (F5-15)")
+ok("V16", "reejecutar dos orígenes reproduce bit a bit sendero y densidad del BVAR (semilla del motor, F5-15)")
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V16 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V16)\n")
