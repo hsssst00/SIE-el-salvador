@@ -106,6 +106,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   F5-15): `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`, y la paridad Windows/Linux del BVAR se
   verifica o se declara su tolerancia. Estado 2026-10-07: el BVAR ya existe (B2b); en una misma máquina es bit a bit
   (prueba en `tests/test-modelo-bvar.R` y V16). Falta comparar Windows y Linux.
+  Nota 2026-10-07: la forma de la comparación está decidida (F1-1 y F1-2 en `decisiones_fase5.md`): el bloque V17
+  compara byte a byte un BVAR fijo contra una referencia generada en Windows y corre en CI (Ubuntu) en cada push.
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.

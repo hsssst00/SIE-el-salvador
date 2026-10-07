@@ -37,6 +37,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
+| F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
 
 ---
 
@@ -649,6 +650,32 @@ de L3: los hallazgos salen del código del paquete y de datos sintéticos.
   R5 y R6 en B5.
 - **Paridad Windows/Linux (F1 del checklist, F5-15):** pendiente. En una misma máquina el resultado es bit a bit
   (`tests/test-modelo-bvar.R` y V16).
+
+---
+
+## Paridad Windows/Linux del BVAR (F1 del checklist; decidida por Harold el 2026-10-07)
+
+F5-15 pide verificar la paridad del BVAR entre Windows y Linux «como en el cierre de Fase 4» y, si no es bit a bit,
+declarar la tolerancia. La corrida única (E2) es en Windows; el CI corre en Ubuntu 24.04 con R 4.6.1, la versión de
+`renv.lock`. En el push de `5f9f383` (PR #37), el V16 del CI imprimió los mismos valores que el sandbox Windows (RMSE
+0,643 y 0,768; cobertura 0,744 / 0,705 / 0,731 y 0,949 / 0,949 / 0,885). Es un indicio a tres decimales, no una
+comparación bit a bit.
+
+- **F1-1 · Forma de la comparación. DECIDIDO (opción recomendada):** un bloque nuevo, V17, en
+  `verificar_motor_sintetico.R`. Ajusta un BVAR fijo y compara los bytes de sus momentos con una referencia generada en
+  Windows y versionada en el repo. Se detiene con `stop()` si algún valor difiere e imprime el sha256 de los momentos.
+  El CI lo corre en cada push sin cambiar el workflow, y en una misma máquina detecta además un cambio no intencional
+  del BVAR. Si cambia el código o la configuración del BVAR, la referencia se regenera en ese mismo PR con una nota
+  fechada. Descartadas: la misma comparación en testthat (el hash no queda en la salida de la verificación, que es lo
+  que se comparó en el cierre de Fase 4) y un script con un paso temporal del workflow (compara una sola vez y no
+  protege contra regresiones).
+- **F1-2 · Ajuste fijo. DECIDIDO (opción recomendada):** el primer origen de G1 (3 series, 2013-Q1) y de G3 (9 series,
+  2019-Q4), con la configuración de producción (p = 4, 10 000 extracciones y 5 000 de quemado; B2-7), sobre los datos
+  sintéticos de la prueba de producción de `tests/test-modelo-bvar.R` (fechas de inicio de L3, semilla fija). Se
+  comparan la media y la covarianza de la predictiva en h = 1..8 (B2-10) y la aceptación del MH. Descartadas: los tres
+  grupos (G2, con 7 series, no agrega un caso distinto de G3) y el ajuste corto de 1 500/500 (no es la configuración de
+  E2; con más extracciones, una divergencia del MH tiene más pasos para aparecer).
+- **Si Linux no iguala byte a byte,** la tolerancia se le pregunta a Harold con la magnitud medida (Regla 4).
 
 ---
 
