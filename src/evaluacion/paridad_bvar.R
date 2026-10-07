@@ -15,8 +15,10 @@
 #
 # V17 (verificar_motor_sintetico.R) compara esos bytes con la referencia versionada en
 # src/evaluacion/referencias/paridad_bvar.csv, generada en Windows (la máquina de la corrida única) con
-# scripts/referencia_paridad_bvar.R, y se detiene con stop() si alguno difiere (Regla 7). Si cambia el código o la
-# configuración del BVAR, la referencia se regenera en ese mismo PR, con una nota fechada (F1-1).
+# scripts/referencia_paridad_bvar.R. En Windows exige que sean idénticos (F5-15); en otro sistema, que las entradas,
+# los tamaños y la aceptación sean idénticos y el resto quede dentro de la tolerancia de F1-3. Se detiene con stop()
+# si no (Regla 7). Si cambia el código o la configuración del BVAR, la referencia se regenera en ese mismo PR, con una
+# nota fechada (F1-1).
 #
 # Requiere eval_lib.R y modelos_multivariados.R cargados.
 
@@ -29,6 +31,12 @@ EXP_PARIDAD_BVAR <- "V17"
 RUTA_REFERENCIA_PARIDAD_BVAR <- c("src", "evaluacion", "referencias", "paridad_bvar.csv")
 COLUMNAS_PARIDAD_BVAR <- c("grupo", "origen", "campo", "i", "j", "bytes", "valor")
 CAMPO_ENTRADAS_PARIDAD_BVAR <- "sha256_entradas"
+# F1-3 (decisión de Harold, 2026-10-07): tolerancia entre sistemas operativos, unas 10 veces la diferencia medida
+# entre Windows y Ubuntu (media 9,7e-8; covarianza 8,7e-7 relativa). Entradas, tamaños y aceptación del MH, exactos:
+# si la aceptación difiere, las cadenas tomaron otras decisiones y la diferencia ya no es de redondeo.
+CAMPOS_EXACTOS_PARIDAD_BVAR <- c(CAMPO_ENTRADAS_PARIDAD_BVAR, "n_obs", "n_series", "aceptacion")
+TOL_MEDIA_PARIDAD_BVAR <- 1e-6      # |dif| de la media de la predictiva, en log-nivel (1e-4 pp)
+TOL_REL_PARIDAD_BVAR <- 1e-5        # dif relativa de la covarianza y de los hiperparámetros (lambda, SOC, SUR, ψ)
 
 #' Datos sintéticos de la prueba de producción del BVAR (tests/test-modelo-bvar.R, semillas 141 y 142): el objetivo
 #' en log-nivel de 1990-Q1 a 2026-Q1 y las 8 predictoras trimestrales desde su inicio en L3 hasta 2026-Q2, con
@@ -119,9 +127,10 @@ escribir_referencia_paridad_bvar <- function(actual, ruta = .ruta_paridad_bvar()
 }
 
 #' Compara el ajuste actual con la referencia, valor por valor en sus bytes. Se detiene si las filas no son las
-#' mismas (cambió la configuración sin regenerar la referencia). Devuelve el número de valores distintos y, para
-#' leer la magnitud, las diferencias máximas: absoluta en la media (log-nivel), relativa en la covarianza y absoluta
-#' en la aceptación.
+#' mismas (cambió la configuración sin regenerar la referencia). Devuelve el número de valores distintos; las
+#' diferencias máximas (absoluta en la media, en log-nivel; relativa en la covarianza; absoluta en la aceptación) y,
+#' por campo con tolerancia, la máxima en la medida de F1-3 (`maximos`: absoluta en la media, relativa en los demás);
+#' cuántos campos exactos difieren, cuántos valores exceden la tolerancia y si todo queda dentro de F1-3.
 comparar_paridad_bvar <- function(actual, referencia) {
   clave <- function(d) paste(d$grupo, d$origen, d$campo, d$i, d$j, sep = "|")
   if (!identical(clave(actual), clave(referencia))) {
@@ -131,11 +140,20 @@ comparar_paridad_bvar <- function(actual, referencia) {
   num <- actual$campo != CAMPO_ENTRADAS_PARIDAD_BVAR
   ref <- rep(NA_real_, nrow(referencia)); ref[num] <- double_de_hex(referencia$bytes[num])
   dif <- abs(actual$valor - ref)
+  rel <- ifelse(dif == 0, 0, dif / abs(ref))                                  # Inf si la referencia es 0 y el valor no
   maximo <- function(x) if (length(x)) max(x) else 0
-  list(n = nrow(actual), n_distintos = sum(actual$bytes != referencia$bytes),
+  distintos <- actual$bytes != referencia$bytes
+  exactos <- actual$campo %in% CAMPOS_EXACTOS_PARIDAD_BVAR
+  medida <- ifelse(actual$campo == "media", dif, rel)
+  tol <- ifelse(actual$campo == "media", TOL_MEDIA_PARIDAD_BVAR, TOL_REL_PARIDAD_BVAR)
+  campos_tol <- unique(actual$campo[!exactos])
+  n_exactos <- sum(distintos & exactos); n_fuera <- sum(!exactos & !(medida <= tol))
+  list(n = nrow(actual), n_distintos = sum(distintos),
        entradas_iguales = identical(actual$bytes[!num], referencia$bytes[!num]),
        dif_media = maximo(dif[actual$campo == "media"]),
-       dif_rel_cov = maximo(dif[actual$campo == "cov"] / abs(ref[actual$campo == "cov"])),
+       dif_rel_cov = maximo(rel[actual$campo == "cov"]),
        dif_aceptacion = maximo(dif[actual$campo == "aceptacion"]),
+       maximos = vapply(campos_tol, function(cp) maximo(medida[actual$campo == cp]), numeric(1)),
+       n_exactos_distintos = n_exactos, n_fuera_tolerancia = n_fuera, dentro_tolerancia = n_exactos == 0L && n_fuera == 0L,
        sha256 = sha256_doubles(actual$valor[num]))
 }

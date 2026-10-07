@@ -1,4 +1,4 @@
-# Pruebas de src/evaluacion/paridad_bvar.R (V17; checklist F1, decisiones F1-1 y F1-2). No ajustan el BVAR: el
+# Pruebas de src/evaluacion/paridad_bvar.R (V17; checklist F1, decisiones F1-1 a F1-3). No ajustan el BVAR: el
 # ajuste de producción corre en V17 de la verificación sintética.
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_multivariados.R"))
@@ -44,8 +44,30 @@ test_that("F1-1: comparar_paridad_bvar detecta una diferencia de un ulp y mide s
   expect_identical(cmp$n_distintos, 2L); expect_true(cmp$entradas_iguales)
   expect_true(cmp$dif_media > 0 && cmp$dif_media < 1e-14)
   expect_equal(cmp$dif_rel_cov, 0.5)
+  expect_identical(names(cmp$maximos), c("media", "cov")); expect_equal(unname(cmp$maximos[["cov"]]), 0.5)
+  expect_identical(c(cmp$n_exactos_distintos, cmp$n_fuera_tolerancia), c(0L, 1L)); expect_false(cmp$dentro_tolerancia)
   r$bytes[1] <- strrep("cd", 32)
   expect_false(comparar_paridad_bvar(a, r)$entradas_iguales)
+})
+
+test_that("F1-3: tolerancia entre sistemas: media absoluta 1e-6, demás relativos 1e-5, entradas, tamaños y aceptación exactos", {
+  expect_identical(c(TOL_MEDIA_PARIDAD_BVAR, TOL_REL_PARIDAD_BVAR), c(1e-6, 1e-5))
+  expect_identical(CAMPOS_EXACTOS_PARIDAD_BVAR, c("sha256_entradas", "n_obs", "n_series", "aceptacion"))
+  r <- .actual_falso()
+  con <- function(k, v) { a <- r; a$valor[k] <- v; a$bytes[k] <- bytes_hex(v); comparar_paridad_bvar(a, r) }
+  expect_true(con(2L, r$valor[2] + 5e-7)$dentro_tolerancia)                  # media, absoluta
+  expect_false(con(2L, r$valor[2] + 2e-6)$dentro_tolerancia)
+  expect_true(con(5L, r$valor[5] * (1 + 5e-6))$dentro_tolerancia)            # covarianza, relativa
+  c2 <- con(5L, r$valor[5] * (1 + 2e-5))
+  expect_false(c2$dentro_tolerancia); expect_identical(c2$n_fuera_tolerancia, 1L)
+  c3 <- con(7L, r$valor[7] + 1e-12)                                          # aceptación: exacta
+  expect_false(c3$dentro_tolerancia); expect_identical(c3$n_exactos_distintos, 1L); expect_identical(c3$n_fuera_tolerancia, 0L)
+  a <- r; a$bytes[1] <- strrep("cd", 32)                                     # entradas: exactas
+  expect_false(comparar_paridad_bvar(a, r)$dentro_tolerancia)
+  r0 <- r; r0$bytes[6] <- bytes_hex(0)                                       # referencia 0 y valor distinto de 0
+  expect_false(comparar_paridad_bvar(r, r0)$dentro_tolerancia)
+  a0 <- r0; a0$valor[6] <- 0
+  expect_true(comparar_paridad_bvar(a0, r0)$dentro_tolerancia)
 })
 
 test_that("F1-1: filas distintas o columnas inesperadas detienen la comparación (Regla 7)", {
