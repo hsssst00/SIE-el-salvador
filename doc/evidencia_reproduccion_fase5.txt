@@ -90,3 +90,34 @@ Salida de consola (make master y make eval)
 La salida de consola no se transcribió; la corrida queda probada por los manifiestos de
 data/L4_experiments/F5_REPRO_* y por las comprobaciones de arriba (precedente: A3d en
 doc/evidencia_cierre_fase4.txt).
+
+----------------------------------------------------------------
+Nota (2026-10-07): comprobación sobre a91b791 (B2a y B2-9 en main)
+----------------------------------------------------------------
+
+Harold corrió make eval con el corte sobre main = a91b791a737a3739a93fd6c44fd6c09494e3e717 (merge del PR #34;
+incluye B2a, PR #33, y la deduplicación de pérdidas idénticas en el MCS de los F5_G*, B2-9). fecha_corrida de
+los manifiestos F5_REPRO_*: 2026-10-07, 12:08:50 a 12:11:34 -0600. Verificación sintética V1-V15 OK en la misma
+corrida.
+
+Árbol: los 13 manifiestos dicen «con cambios sin commitear (1 entradas en git status)». La entrada es
+.gitignore, con dos líneas «.Rproj.user» repetidas que agrega RStudio; no toca código ni datos. Por eso esta
+corrida no reemplaza a la de e5a51dc como evidencia de C-6 y C-7.
+
+Comprobación, hecha leyendo los archivos de la máquina de Harold con una verificación independiente en Python:
+
+- Insumos del motor: los cuatro sha256 de la sección 1 coinciden en los 13 manifiestos, y el corte declarado
+  es corte_fase5@901b0f79.
+- F5_REPRO_* frente a F4_BENCH_*: 13 directorios y 71 archivos .csv, con los mismos archivos, columnas y
+  dimensiones. Sin contar exp_id ni cobertura_80, cobertura_95 y crps hay 0 celdas distintas, y en esas tres
+  columnas hay 4140 celdas con valor, como en la sección 2. Ningún mcs.csv ni mcs_submuestras.csv trae la
+  columna identico_a: B2-9 solo actúa en los F5_G*.
+- catalogos/07_experimentos.csv: en las 78 filas F5_REPRO_* cambian solo commit_hash (e5a51dc… -> a91b791…) y
+  fecha_corrida (2026-10-03 -> 2026-10-07). No se versiona: las filas citadas siguen siendo las de e5a51dc, y
+  en la copia de Harold se restauró 07 desde HEAD, igual que .gitignore.
+- tabla_resultados_fase4.csv: sha256 sin CR 8c1581e4bde943e78f36a34a25957371bb90e5608f4ecfe2f1ae34a747325151,
+  idéntico al versionado.
+
+Conclusión: sobre L3, B2a y B2-9 no cambian ningún resultado de los F5_REPRO_*, como afirmaba el PR #34 con
+insumos sintéticos. La salida de consola no se transcribe; los valores de arriba salen de los manifiestos,
+de 07 y de git.
