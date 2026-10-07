@@ -1,0 +1,7 @@
+# .gitattributes
+#
+# .gitignore se escribe siempre con LF, también en Windows con core.autocrlf=true. Causa probable (inferida, no
+# probada con RStudio) de las líneas «.Rproj.user» duplicadas: en una copia CRLF, RStudio no reconoce la línea
+# «.Rproj.user\r» y vuelve a agregar «.Rproj.user» al abrir el proyecto, con lo que el árbol queda sucio y los
+# manifiestos de L4 dicen «con cambios sin commitear» (checklist de Fase 5, E2: árbol limpio).
+.gitignore text eol=lf
