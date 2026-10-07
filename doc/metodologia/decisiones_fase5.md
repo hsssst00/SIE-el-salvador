@@ -539,6 +539,17 @@ fechas de inicio de L3 (PIB 1990-Q1, remesas 1991-Q1, FOB 1994-Q1, IVAE 2005-Q1)
   horizonte, `mcs_tmax()` se detiene por varianza bootstrap nula (Regla 7). Se presenta como pregunta antes de cerrar
   el preregistro.
 
+**Nota (2026-10-07, B2-9, decidida por Harold).** El riesgo anterior se presentó como pregunta con tres opciones:
+deduplicar en el MCS, mantener el `stop()` y quitar `MULT.VAR_DIF.G1`.
+
+- **B2-9 · Pérdidas idénticas en el MCS. DECIDIDO:** si dos o más modelos tienen pérdidas idénticas en una celda (grupo ×
+  horizonte × muestra), el MCS corre con uno de ellos y todos comparten su p-valor y su pertenencia al conjunto;
+  `mcs.csv` lo marca con una columna nueva. Se implementa en un PR pequeño del motor, cuando B2a esté en `main` y antes
+  de cerrar el preregistro (E1), con su prueba y con la verificación de que V11 y los `F5_REPRO_*` no cambian. Cubre
+  también duplicados futuros (combinaciones, variantes). Descartadas: mantener el `stop()` (la decisión llegaría
+  después de ver resultados de L3, contra F5-02) y quitar `MULT.VAR_DIF.G1` (reabría F5-07 y perdía el VAR en
+  diferencias de referencia en los orígenes con r > 0).
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5

@@ -75,7 +75,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [ ] **D1 · B1** ARIMA/ARIMAX y componentes no observados. Estado 2026-10-05: B1a fusionado (PR #31); B1b en su PR
   (`UNI.ARIMA`, `UNI.UC_LLT`, `UNI.ARIMAX.G1/.G2/.G3`, `UNI.ARIMAX_IVAE.G2`, sus YAML y V14).
 - [ ] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
-  `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar.
+  `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar. B2-9 (deduplicación de pérdidas
+  idénticas en el MCS) decidida; va en un PR del motor antes de E1.
 - [ ] **D3 · B3** Regularizados.
 - [ ] **D4 · B3b** MIDAS y puente.
 - [ ] **D5 · B4** Árboles.
