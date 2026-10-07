@@ -34,12 +34,16 @@
 #   V14  ARIMAX sobre un DGP con predictora adelantada: bate al AR(p)-BIC en h = 1, 2 (estricto), su densidad
 #        del sistema conjunto cubre al nominal en h = 1, 2, 4 (±3 ee de MC más 0,03 de sesgo plug-in) y, con
 #        una predictora placebo, no empeora al AR(p)-BIC en más de 10 % en h = 1
+# Bloque de los multivariados de Fase 5 (B2a; F5-07, F5-12):
+#   V15  VAR_DIF sobre un DGP VAR: bate al AR(p)-BIC en h = 1, 2 y su densidad cubre al nominal; VECM sobre un DGP
+#        cointegrado: la traza elige r = 1, bate al VAR_DIF en h = 2, 4 y cubre; sin cointegración elige r = 0
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_univariados.R"))   # V14 (B1b)
+source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -481,5 +485,77 @@ razon_b <- mean(t14b$rmse[t14b$modelo_id == "PRUEBA.ARIMAX" & t14b$h == 1L]) / m
 if (!(razon_b < 1.10)) stop(sprintf("V14: con una predictora placebo el ARIMAX empeora al AR(p)-BIC en h=1 (razón %.3f)", razon_b))
 ok("V14", sprintf("placebo (β = 0): RMSE ARIMAX / AR(p)-BIC en h=1 %.3f (< 1,10)", razon_b))
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V14 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V14)\n")
+# --- V15 · VAR y VECM (B2a; F5-07, F5-12) ---------------------------------------------------------
+# Tres DGP de dos series (PIB y una predictora SA, sin dummies):
+#   "var"    el de V14 (x_t = 0,6 x_{t-1} + u_t, Δy_t = 0,004 + 0,4 x_{t-1} + e_t): un VAR(1) en diferencias. El
+#            VAR_DIF debe batir al AR(p)-BIC en h = 1, 2 (razón de RMSE < 0,8) y su densidad (pesos MA, F5-12) cubrir
+#            al nominal en h = 1, 2, 4 dentro de ±3 ee de MC más 0,03 de holgura plug-in, como V14.
+#   "coint"  x paseo con deriva y Δy_t = 0,004 − 0,25 (y_{t-1} − x_{t-1} − 0,5) + e_t: una relación de cointegración
+#            con corrección en el PIB. La traza de Johansen al 5 % (B2-3) debe encontrar r = 1 en al menos el 80 % de
+#            los orígenes, el VECM debe batir al VAR_DIF en h = 2, 4 (razón de RMSE < 0,9) y su densidad cubrir como
+#            arriba. En h = 8 la pérdida interanual compara o+8 con o+4, dos puntos que la corrección ya alcanzó, y
+#            la ventaja casi desaparece (razón ≈ 0,97 en la calibración): no se exige.
+#   "indep"  dos paseos independientes: r = 0, y el VECM es el VAR en diferencias anidado (B2-4), en al menos el 80 %
+#            de los orígenes.
+sim_v15 <- function(tipo, n = 145L, sx = 0.01, se = 0.006) {
+  x <- numeric(n); y <- numeric(n); u <- stats::rnorm(n, 0, sx); e <- stats::rnorm(n, 0, se)
+  if (tipo == "var") {
+    dx <- numeric(n); dy <- numeric(n); u <- 2 * u
+    for (t in 2:n) { dx[t] <- 0.6 * dx[t - 1] + u[t]; dy[t] <- 0.004 + 0.4 * dx[t - 1] + e[t] }
+    x <- cumsum(dx); y <- 4 + cumsum(dy)
+  } else {
+    x[1] <- 3.5; y[1] <- 4
+    for (t in 2:n) {
+      x[t] <- x[t - 1] + 0.004 + u[t]
+      y[t] <- y[t - 1] + 0.004 + (if (tipo == "coint") -0.25 * (y[t - 1] - x[t - 1] - 0.5) else 0) + e[t]
+    }
+  }
+  list(objetivo = data.frame(periodo = PERIODOS_OBJ, y = y, stringsAsFactors = FALSE),
+       PRUEBA.X.SA.Q = data.frame(periodo = PERIODOS_OBJ, valor = 100 * exp(x), stringsAsFactors = FALSE))
+}
+mods15 <- list(modelo_var("PRUEBA.VAR_DIF", "PRUEBA.X.SA.Q", 2L, "dif"), modelo_vecm("PRUEBA.VECM", "PRUEBA.X.SA.Q"), modelo_arp_bic())
+corrida15 <- function(tipo, R, semilla) {
+  set.seed(semilla)
+  res <- lapply(seq_len(R), function(r) {
+    s <- sim_v15(tipo)
+    p <- correr_backtest(s, mods15, ors, rezagos = list(PRUEBA.X.SA.Q = 30L), exp_id = "V15", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    d <- attr(p, "diagnosticos")
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")],
+         r = d$valor[d$modelo_id == "PRUEBA.VECM" & d$clave == "r"])
+  })
+  list(m = do.call(rbind, lapply(res, `[[`, "m")), r = unlist(lapply(res, `[[`, "r")))
+}
+cobertura15 <- function(tab, id, etiqueta) for (h in c(1L, 2L, 4L)) for (nv in c(80, 95)) {
+  x <- tab[tab$modelo_id == id & tab$h == h, ][[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(length(x))
+  if (abs(mean(x) - nv / 100) > 3 * ee + 0.03)
+    stop(sprintf("V15: cobertura de %s al %d%% en h=%d fuera de ±(3 ee + 0,03) del nominal (%.3f, ee %.4f; DGP %s)", id, nv, h, mean(x), ee, etiqueta))
+}
+razon15 <- function(tab, a, b, h) mean(tab$rmse[tab$modelo_id == a & tab$h == h]) / mean(tab$rmse[tab$modelo_id == b & tab$h == h])
+t15 <- corrida15("var", 20L, SEMILLA_RAIZ + 15L)
+for (h in c(1L, 2L)) {
+  rz <- razon15(t15$m, "PRUEBA.VAR_DIF", "BENCH.ARP_BIC", h)
+  if (!(rz < 0.8)) stop(sprintf("V15: en h=%d el VAR_DIF no bate al AR(p)-BIC en un DGP VAR (razón de RMSE %.3f)", h, rz))
+  ok("V15", sprintf("DGP VAR, h=%d: RMSE VAR_DIF / AR(p)-BIC %.3f (< 0,8)", h, rz))
+}
+cobertura15(t15$m, "PRUEBA.VAR_DIF", "VAR")
+ok("V15", sprintf("DGP VAR: cobertura del VAR_DIF 80%% %s y 95%% %s en h = 1, 2, 4",
+                  paste(sprintf("%.3f", sapply(c(1L, 2L, 4L), function(h) mean(t15$m$cobertura_80[t15$m$modelo_id == "PRUEBA.VAR_DIF" & t15$m$h == h]))), collapse = "/"),
+                  paste(sprintf("%.3f", sapply(c(1L, 2L, 4L), function(h) mean(t15$m$cobertura_95[t15$m$modelo_id == "PRUEBA.VAR_DIF" & t15$m$h == h]))), collapse = "/")))
+t15c <- corrida15("coint", 10L, SEMILLA_RAIZ + 151L)
+fr1 <- mean(t15c$r == 1)
+if (!(fr1 >= 0.8)) stop(sprintf("V15: con una relación de cointegración la traza elige r = 1 solo en %.0f%% de los orígenes", 100 * fr1))
+for (h in c(2L, 4L)) {
+  rz <- razon15(t15c$m, "PRUEBA.VECM", "PRUEBA.VAR_DIF", h)
+  if (!(rz < 0.9)) stop(sprintf("V15: en h=%d el VECM no bate al VAR_DIF en un DGP cointegrado (razón de RMSE %.3f)", h, rz))
+}
+cobertura15(t15c$m, "PRUEBA.VECM", "cointegrado")
+ok("V15", sprintf("DGP cointegrado: r = 1 en %.0f%% de los orígenes; RMSE VECM / VAR_DIF %.3f (h=2) y %.3f (h=4) (< 0,9); cobertura del VECM en h = 1, 2, 4 dentro de tolerancia",
+                  100 * fr1, razon15(t15c$m, "PRUEBA.VECM", "PRUEBA.VAR_DIF", 2L), razon15(t15c$m, "PRUEBA.VECM", "PRUEBA.VAR_DIF", 4L)))
+t15i <- corrida15("indep", 10L, SEMILLA_RAIZ + 152L)
+fr0 <- mean(t15i$r == 0)
+if (!(fr0 >= 0.8)) stop(sprintf("V15: con dos paseos independientes la traza elige r = 0 solo en %.0f%% de los orígenes", 100 * fr0))
+ok("V15", sprintf("DGP sin cointegración: r = 0 (VECM anidado en diferencias, B2-4) en %.0f%% de los orígenes", 100 * fr0))
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V15 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V15)\n")

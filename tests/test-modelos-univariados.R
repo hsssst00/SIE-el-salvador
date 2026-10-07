@@ -37,7 +37,8 @@ test_that("F5-06, B1-3: modelos_fase5 devuelve los univariados de cada grupo baj
                     G3 = c("UNI.ARIMA", "UNI.UC_LLT", "UNI.ARIMAX.G3"))
   for (g in names(esperados)) {
     ms <- modelos_fase5(g)
-    expect_identical(vapply(ms, `[[`, character(1), "modelo_id"), esperados[[g]], info = g)
+    ids <- vapply(ms, `[[`, character(1), "modelo_id")
+    expect_identical(ids[startsWith(ids, "UNI.")], esperados[[g]], info = g)       # B2a agrega los MULT.* después
     for (m in ms) {
       expect_silent(.validar_modelo(m))
       expect_true(isTRUE(m$piso_gl), info = m$modelo_id)

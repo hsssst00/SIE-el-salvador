@@ -466,6 +466,90 @@ corrida sobre L3 y sin el PR fusionado.
   IPC (y, por la dolarización, a precios relativos con EE. UU.). Cuando un modelo trae las dos remesas, sus coeficientes
   individuales no se interpretan.
 
+## Implementación del bloque B2 (decidida por Harold el 2026-10-06)
+
+Al bajar F5-07 y F5-12 a código aparecieron ocho puntos que la ficha no fijaba. Se presentaron como preguntas antes de
+escribir código (Regla 4) y todos se resolvieron en la opción recomendada. Las cuentas de grados de libertad usan las
+fechas de inicio de L3 (PIB 1990-Q1, remesas 1991-Q1, FOB 1994-Q1, IVAE 2005-Q1); no se miró ningún valor.
+
+- **B2-1 · Forma de los VAR y densidad.** **DECIDIDO:** `MULT.VAR_DIF` en Δ de los log-niveles y `MULT.VAR_NIV.G1` en
+  log-niveles, los dos con constante y dummies estacionales centradas (`vars`, `season = 4`) cuando alguna serie es
+  NSA. Densidad con los pesos MA de la forma VAR (`vars::Phi`) y Σ *plug-in*; en el VAR en diferencias los pesos se
+  acumulan hasta el log-nivel. Descartada: VAR en niveles con tendencia lineal (con raíz unitaria implica una tendencia
+  cuadrática en el pronóstico).
+- **B2-2 · Rejilla de p.** **DECIDIDO:** G1 p ∈ 1..4; G2 y G3 p ∈ 1..3, fija en todos los orígenes del grupo, por BIC
+  (SC de `vars::VARselect`, misma muestra para todos los candidatos). En el primer origen de G2 y de G3 el VAR en
+  diferencias con p = 4 deja 19 grados de libertad por ecuación (35 observaciones, 16 parámetros), bajo el piso de
+  F5-03; con p = 3 quedan 23 en G2. Descartadas: p ∈ 1..2 en todos, y 1..4 filtrado por origen (no es «acotado de
+  antemano», como en B1-2).
+- **B2-3 · Johansen.** **DECIDIDO:** traza al 5 % (`urca::ca.jo`, `type = "trace"`), `ecdet = "none"` (constante no
+  restringida, caso 3: deriva en niveles y relaciones sin tendencia), K = max(2, p del BIC del VAR en niveles con p en
+  1..4) y dummies centradas. Con unas 77 observaciones la traza asintótica tiende a sobrerrechazar; se declara como
+  límite. Descartadas: traza con la corrección de Reinsel y Ahn, y máximo autovalor.
+- **B2-4 · Casos límite del rango.** **DECIDIDO:** con r = 0 se estima el VECM anidado, un VAR en Δ con K − 1 rezagos
+  (sin una selección nueva); con r = 3 (rango completo), un VAR en niveles con K rezagos. El `modelo_id` sigue siendo
+  `MULT.VECM.G1`, y r y la forma usada van a `diagnosticos.csv`. Descartado: reusar la especificación de
+  `MULT.VAR_DIF.G1` con r = 0 (copiaría a otro miembro del MCS).
+- **B2-5 · Estacionalidad del BVAR.** **DECIDIDO:** `BVAR::bvar` (1.0.5) no admite regresores exógenos (su firma es
+  `data, lags, n_draw, n_burn, n_thin, priors, mh, fcast, irf, verbose`). Cada serie NSA se ajusta dentro del origen:
+  se regresa su log-nivel sobre dummies trimestrales centradas con la historia hasta o y se usa el residuo más la
+  media. El PIB y el IVAE ya son SA, y solo se pronostica el PIB. Descartadas: X-13 por origen para cada NSA (costo y
+  puntos de falla) y dejar que los rezagos absorban la estacionalidad (el prior Minnesota encoge el rezago 4). Se
+  implementa en B2b.
+- **B2-6 · VAR de G3.** **DECIDIDO:** `MULT.VAR_DIF.G3` queda como lo fijó F5-07: con B1b-2 tiene las mismas tres series
+  que el de G2 (PIB, IVAE, remesas nominales), su muestra empieza en 2005-Q1 y en los orígenes comunes sus pronósticos
+  coinciden con los de `MULT.VAR_DIF.G2`; el YAML lo declara. Sirve de VAR pequeño de referencia en el MCS de G3.
+  Descartadas: recortarlo a 2010-Q1 y agregar el IPP (reabría F5-07).
+- **B2-7 · BVAR.** **DECIDIDO:** `hyper = "auto"` (λ de la Minnesota y los hiperparámetros de *sum-of-coefficients* y
+  *single-unit-root* jerárquicos; ψ fijo en las varianzas de residuos AR, el valor por defecto del paquete), MH con
+  ajuste de la tasa de aceptación solo en el quemado, sin adelgazar (5 000 extracciones retenidas). Densidad: media y
+  covarianza de las extracciones de la predictiva posterior, con choques, del log-PIB en h = 1..8 (F5-12). Sin piso de
+  grados de libertad (`piso_gl = FALSE`). Descartado: `hyper = "full"` (ψ jerárquico). Se implementa en B2b, donde se
+  verifica que `predict.bvar` incluya los choques.
+- **B2-8 · Dos PR, uno después del otro y sin apilar.** **DECIDIDO:** B2a, VAR y VECM (YAML, registro, densidad contra
+  un oráculo, G-8 con los inicios de L3, canario V15 y medición del tiempo); B2b, cuando B2a esté en `main`, el BVAR con
+  su canario y su medición. Es otra excepción declarada a «un PR por bloque» de F5-01, como B1-4.
+
+**Decisiones menores del agente en B2a** (revertibles en un commit; ninguna cambia un resultado de Fase 4):
+
+- **Σ de las innovaciones, la de `vars` en cada clase:** `crossprod(resid) / (obs − regresores por ecuación)` en un VAR
+  (la de `vars:::.fecov`) y `crossprod(resid) / obs` en un `vec2var` (la de `vars:::.fecovvec2var`). Así la diagonal de
+  la covarianza del sendero reproduce la varianza de `predict()` en niveles (prueba en
+  `tests/test-modelos-multivariados.R`).
+- **G-8 con el mayor candidato:** en los VAR, `n_obs` = observaciones de la ecuación con p_max y `n_par` = k · p_max + 1
+  + 3 (constante y dummies); en el VECM, el mayor caso es el VAR en niveles con K = 4 (16 parámetros por ecuación).
+  Grados de libertad libres en el primer origen: `MULT.VAR_DIF.G1` 56, `MULT.VAR_NIV.G1` 57, `MULT.VECM.G1` 57,
+  `MULT.VAR_DIF.G2` 23 y `MULT.VAR_DIF.G3` 43.
+- **Muestra:** cada modelo empieza donde empiezan todas sus series (como las ARIMAX), no en el inicio común del grupo.
+- **Guardas (Regla 7):** una predictora que no llega al origen, valores no positivos, trimestres faltantes o una Σ que no
+  es definida positiva detienen el motor. No hay guarda de estabilidad: el módulo máximo de las raíces de la forma
+  compañera va a `diagnosticos.csv` (cerca de 1 en el VAR en niveles si hay raíz unitaria).
+- **Diagnósticos por origen:** VAR, p elegido, observaciones y módulo máximo de las raíces; VECM, K, r, forma usada
+  (0 = diferencias, 1 = VECM, 2 = niveles), observaciones, módulo máximo de las raíces y los estadísticos de traza.
+- **V15** (canario de B2a): VAR_DIF sobre un DGP VAR(1) en diferencias, con razón de RMSE contra el AR(p)-BIC < 0,8 en
+  h = 1, 2 y cobertura en h = 1, 2, 4 dentro de ±3 ee de MC más 0,03; VECM sobre un DGP cointegrado con corrección en
+  el PIB, con r = 1 en al menos el 80 % de los orígenes, razón de RMSE contra el VAR_DIF < 0,9 en h = 2, 4 y la misma
+  cobertura; sin cointegración, r = 0 en al menos el 80 %. 20, 10 y 10 réplicas. En h = 8 la ventaja del VECM casi
+  desaparece en la pérdida interanual (razón ≈ 0,97 en la calibración) y no se exige.
+- **Costo observado (dato para B5 y F5-14, sandbox, datos sintéticos):** menos de 0,1 s por origen en los cinco modelos
+  (VAR_DIF.G1 0,10 s; VAR_NIV.G1 0,08 s; VECM.G1 0,08 s; VAR_DIF.G2 y .G3 0,07 s). Unos 18 s para todos los orígenes de
+  los tres grupos.
+- **Riesgo declarado para el MCS:** si en todos los orígenes de G1 la traza da r = 0 y K − 1 coincide con el p de
+  `MULT.VAR_DIF.G1`, los dos modelos tienen pérdidas idénticas, y si quedan como los dos últimos del MCS en algún
+  horizonte, `mcs_tmax()` se detiene por varianza bootstrap nula (Regla 7). Se presenta como pregunta antes de cerrar
+  el preregistro.
+
+**Nota (2026-10-07, B2-9, decidida por Harold).** El riesgo anterior se presentó como pregunta con tres opciones:
+deduplicar en el MCS, mantener el `stop()` y quitar `MULT.VAR_DIF.G1`.
+
+- **B2-9 · Pérdidas idénticas en el MCS. DECIDIDO:** si dos o más modelos tienen pérdidas idénticas en una celda (grupo ×
+  horizonte × muestra), el MCS corre con uno de ellos y todos comparten su p-valor y su pertenencia al conjunto;
+  `mcs.csv` lo marca con una columna nueva. Se implementa en un PR pequeño del motor, cuando B2a esté en `main` y antes
+  de cerrar el preregistro (E1), con su prueba y con la verificación de que V11 y los `F5_REPRO_*` no cambian. Cubre
+  también duplicados futuros (combinaciones, variantes). Descartadas: mantener el `stop()` (la decisión llegaría
+  después de ver resultados de L3, contra F5-02) y quitar `MULT.VAR_DIF.G1` (reabría F5-07 y perdía el VAR en
+  diferencias de referencia en los orígenes con r > 0).
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5
