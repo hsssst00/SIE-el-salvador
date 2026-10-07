@@ -92,3 +92,30 @@ test_that("MCS: misma semilla, mismo resultado, y no altera el RNG del llamador"
   expect_identical(.Random.seed, antes)
   expect_identical(r1, mcs_tmax(L, 2L, B = 300L, semilla = 7L))
 })
+
+test_that("B2-9: mcs_tmax_dedup sin duplicados reproduce a mcs_tmax y con duplicados comparte el resultado", {
+  set.seed(15); n <- 40
+  L <- cbind(A = rnorm(n, 1, 0.3)^2, B = rnorm(n, 1.1, 0.3)^2, C = rnorm(n, 1.6, 0.3)^2)
+  base <- mcs_tmax(L, 2L, B = 400L, semilla = 3L)
+  r <- mcs_tmax_dedup(L, 2L, B = 400L, semilla = 3L)
+  for (nm in names(base)) expect_identical(unname(r[[nm]]), unname(base[[nm]]), info = nm)
+  for (a in c("alpha", "B", "bloque")) expect_identical(attr(r, a), attr(base, a))
+  expect_identical(r$identico_a, c("", "", ""))
+  # D y E copian a B (un VECM con r = 0 que repite al VAR en diferencias): corre sin ellos y comparten el de B
+  L2 <- cbind(L[, 1:2], D = L[, "B"], C = L[, 3], E = L[, "B"])
+  expect_identical(unname(modelos_identicos(L2)), c(NA, NA, "B", NA, "B"))
+  r2 <- mcs_tmax_dedup(L2, 2L, B = 400L, semilla = 3L)
+  expect_identical(r2$modelo_id, colnames(L2)); expect_identical(r2$identico_a, c("", "", "B", "", "B"))
+  ref <- base[match(c("A", "B", "B", "C", "B"), base$modelo_id), ]
+  expect_identical(r2$p_mcs, ref$p_mcs); expect_identical(r2$en_mcs, ref$en_mcs); expect_identical(r2$orden_eliminacion, ref$orden_eliminacion)
+  # mcs_tmax solo sigue deteniéndose si los idénticos quedan al final (Regla 7); la deduplicación vive en el contenedor
+  expect_error(mcs_tmax(cbind(A = L[, 1], B = L[, 1]), 1L, B = 100L, semilla = 1L), "varianza bootstrap nula")
+  # todos idénticos: conjunto trivial
+  r3 <- mcs_tmax_dedup(cbind(A = L[, 1], B = L[, 1]), 1L, B = 100L, semilla = 1L)
+  expect_identical(r3$p_mcs, c(1, 1)); expect_true(all(r3$en_mcs)); expect_identical(r3$identico_a, c("", "A"))
+  expect_identical(attr(r3, "bloque"), bloque_mcs(n, 1L))
+  # una diferencia mínima no es un duplicado
+  L4 <- L; L4[1, 2] <- L4[1, 1] + 1e-12; L4[-1, 2] <- L4[-1, 1]
+  expect_identical(unname(modelos_identicos(L4)), c(NA_character_, NA_character_, NA_character_))
+  expect_error(mcs_tmax_dedup(L[, 1, drop = FALSE], 1L, semilla = 1L), "al menos 2 modelos")
+})

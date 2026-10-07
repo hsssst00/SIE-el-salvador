@@ -550,6 +550,23 @@ deduplicar en el MCS, mantener el `stop()` y quitar `MULT.VAR_DIF.G1`.
   después de ver resultados de L3, contra F5-02) y quitar `MULT.VAR_DIF.G1` (reabría F5-07 y perdía el VAR en
   diferencias de referencia en los orígenes con r > 0).
 
+**Implementación de B2-9 (2026-10-07; decisiones menores del agente, revertibles en un commit):**
+
+- `mcs_tmax_dedup()` en `eval_lib.R` agrupa las columnas de pérdidas exactamente iguales (`identical`, sin
+  tolerancia), corre `mcs_tmax()` sobre el primer modelo de cada grupo (en el orden de los modelos del experimento:
+  benchmarks y luego el registro de Fase 5) y copia a los demás su `p_mcs`, `en_mcs` y `orden_eliminacion`.
+  `identico_a` lleva el `modelo_id` del representante, o queda vacío. Sin duplicados devuelve lo mismo que `mcs_tmax()`,
+  bit a bit. Si todos los modelos de la celda son idénticos, todos quedan con p_mcs = 1.
+- **Solo en los experimentos de Fase 5 (`F5_G*`, `PATRON_EXP_PREREGISTRO`)**, en la muestra completa y en las
+  submuestras de R3 y R4. Ahí `mcs.csv` y `mcs_submuestras.csv` llevan siempre la columna `identico_a`, y el manifiesto
+  lo declara. En Fase 4 y en los `F5_REPRO_*` el MCS sigue siendo `mcs_tmax()` tal cual. Razón, hallada al verificar:
+  con un objetivo sintético AR(1), `BENCH.ARP_BIC` elige p = 1 en todos los orígenes y repite a `BENCH.AR1`. El
+  `mcs_tmax()` de siempre no se detiene mientras esa pareja no quede al final, así que deduplicar también ahí cambiaría
+  sus tablas. Con el código anterior y el nuevo, los 13 `F5_REPRO_*` dan tablas idénticas sobre insumos sintéticos
+  (digest de pronósticos, métricas, pruebas, MCS, submuestras y estabilidad).
+- **Consecuencia para Fase 5:** si en un grupo el AR(p)-BIC repite al AR(1), o el VECM con r = 0 repite al VAR en
+  diferencias, el MCS de los `F5_G*` los cuenta una vez. Así la corrida única no se detiene por esa causa.
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5
