@@ -753,14 +753,56 @@ prueba_cambio_diferencial <- function(e1, e2, post, h) {
        p_valor = 2 * stats::pt(-abs(est), df = n - 2L), n_pre = n0, n_post = n1)
 }
 
+#' B2-9 (decisión de Harold, 2026-10-07): modelos con pérdidas idénticas en una celda. Devuelve, por columna, el
+#' modelo_id del primer modelo (en el orden de las columnas) con exactamente las mismas pérdidas, o NA si la columna
+#' es su propio representante. La igualdad es exacta (identical sobre los valores, sin nombres): dos modelos que
+#' pronostican lo mismo por el mismo camino de cálculo, como MULT.VECM.G1 con r = 0 y MULT.VAR_DIF.G1, coinciden bit a
+#' bit.
+modelos_identicos <- function(perdidas) {
+  nm <- colnames(perdidas); m <- ncol(perdidas)
+  rep_ <- stats::setNames(rep(NA_character_, m), nm)
+  for (j in seq_len(m)) if (is.na(rep_[j]) && j < m) for (k in (j + 1L):m) {
+    if (is.na(rep_[k]) && identical(unname(perdidas[, j]), unname(perdidas[, k]))) rep_[k] <- nm[j]
+  }
+  rep_
+}
+
+#' MCS T_max con deduplicación de pérdidas idénticas (B2-9): corre mcs_tmax() sobre un representante de cada grupo
+#' de modelos idénticos y todos los del grupo comparten su p-valor, su pertenencia y su orden de eliminación. Agrega
+#' la columna `identico_a` (modelo_id del representante; "" si no tiene duplicados). Sin duplicados, las columnas
+#' de mcs_tmax() son las mismas, bit a bit. Si todos los modelos son idénticos entre sí, el conjunto es trivial: todos
+#' quedan con p_mcs = 1.
+mcs_tmax_dedup <- function(perdidas, h, alpha = 0.10, B = 5000L, semilla, bloque = NULL, indices = NULL) {
+  if (!is.matrix(perdidas) || is.null(colnames(perdidas))) stop("MCS: `perdidas` debe ser matriz con nombres de columna")
+  if (ncol(perdidas) < 2L) stop("MCS: se necesitan al menos 2 modelos")
+  ide <- modelos_identicos(perdidas); unicos <- is.na(ide)
+  if (sum(unicos) < 2L) {
+    res_u <- data.frame(modelo_id = colnames(perdidas)[unicos], p_mcs = 1, en_mcs = TRUE, orden_eliminacion = NA_integer_,
+                        stringsAsFactors = FALSE)
+    attr(res_u, "alpha") <- alpha; attr(res_u, "B") <- B
+    attr(res_u, "bloque") <- if (is.null(bloque)) bloque_mcs(nrow(perdidas), h) else bloque
+  } else {
+    res_u <- mcs_tmax(perdidas[, unicos, drop = FALSE], h, alpha = alpha, B = B, semilla = semilla, bloque = bloque, indices = indices)
+  }
+  i <- match(ifelse(unicos, colnames(perdidas), ide), res_u$modelo_id)
+  res <- data.frame(modelo_id = colnames(perdidas), p_mcs = res_u$p_mcs[i], en_mcs = res_u$en_mcs[i],
+                    orden_eliminacion = res_u$orden_eliminacion[i], identico_a = ifelse(unicos, "", unname(ide)),
+                    stringsAsFactors = FALSE)
+  for (a in c("alpha", "B", "bloque")) attr(res, a) <- attr(res_u, a)
+  res
+}
+
 #' Métricas, pruebas por pares contra el benchmark y MCS de un experimento sobre un conjunto de
 #' errores (muestra completa o submuestra de targets). `err` es la salida de calcular_errores(),
 #' posiblemente filtrada por target. Devuelve list(metricas, pruebas, mcs).
 #' @param gw         si TRUE agrega Giacomini-White por par (R1, F4-17 y F4-26).
 #' @param semilla_mcs función h -> semilla entera del MCS.
+#' @param marcar_identicos si TRUE (experimentos F5_G*, B2-9) el MCS deduplica pérdidas idénticas y mcs lleva la
+#'                   columna `identico_a`; si FALSE (Fase 4 y F5_REPRO_*) se usa mcs_tmax() tal cual, para que esas
+#'                   tablas no cambien ni un bit (con pérdidas idénticas al final de la eliminación sigue deteniéndose).
 evaluar_errores <- function(err, ids, exp_id, grupo, perdida, semilla_mcs, benchmark = "BENCH.RW_SIN_DERIVA",
                             horizontes = DISENO_FASE4$horizontes, gw = FALSE, alpha = 0.10, B = 5000L,
-                            marca_h_largo = "distorsion_tamano_documentada") {
+                            marca_h_largo = "distorsion_tamano_documentada", marcar_identicos = FALSE) {
   err <- err[order(err$unidad, err$modelo_id, err$h, err$origen), ]
   met <- agregar_rmse_relativo(metricas_por_horizonte(err), benchmark)
   met <- data.frame(exp_id = exp_id, modelo_id = met$modelo_id, grupo = grupo, h = met$h, unidad = met$unidad,
@@ -796,11 +838,14 @@ evaluar_errores <- function(err, ids, exp_id, grupo, perdida, semilla_mcs, bench
       }
     }
     semilla <- semilla_mcs(h)
-    res <- mcs_tmax(E^2, h, alpha = alpha, B = B, semilla = semilla)
-    mcs[[length(mcs) + 1L]] <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
+    res <- if (isTRUE(marcar_identicos)) mcs_tmax_dedup(E^2, h, alpha = alpha, B = B, semilla = semilla)   # B2-9
+           else mcs_tmax(E^2, h, alpha = alpha, B = B, semilla = semilla)                                   # Fase 4 y F5_REPRO_*, sin cambios
+    fila <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
       modelo_id = res$modelo_id, p_mcs = res$p_mcs, en_mcs = res$en_mcs, orden_eliminacion = res$orden_eliminacion,
       alpha = attr(res, "alpha"), replicas = attr(res, "B"), bloque = attr(res, "bloque"), semilla = semilla,
       marca_tamano = marca, stringsAsFactors = FALSE)
+    if (isTRUE(marcar_identicos)) fila$identico_a <- res$identico_a
+    mcs[[length(mcs) + 1L]] <- fila
   }
   list(metricas = met, pruebas = do.call(rbind, pruebas), mcs = do.call(rbind, mcs))
 }

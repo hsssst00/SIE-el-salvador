@@ -394,7 +394,8 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   # Tablas de la muestra completa, con el conteo de pares del grupo como guarda (F4-01, F4-05).
   tab <- evaluar_errores(err, ids, ex$exp_id, ex$grupo, ex$perdida,
                          semilla_mcs = function(h) semilla_de(sem, "MCS", h), benchmark = BENCHMARK,
-                         gw = ex$ventana == "rodante92", alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
+                         gw = ex$ventana == "rodante92", alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO,
+                         marcar_identicos = grepl(PATRON_EXP_PREREGISTRO, ex$exp_id))                  # B2-9
   esperado <- conteo_por_horizonte(pares_evaluables(origenes, DISENO_FASE4$horizontes, obs$periodo[nrow(obs)]))
   n_obs_h <- tapply(tab$metricas$n_pares, tab$metricas$h, unique)
   if (!identical(as.integer(unlist(n_obs_h)), unname(esperado))) stop("motor: pares por horizonte distintos del diseño del grupo ", ex$grupo)
@@ -407,7 +408,8 @@ correr_experimento <- function(ex, insumos, cache_sa) {
       keep <- SUBMUESTRAS_FASE4[[nm]](err$origen + err$h)
       t_ <- evaluar_errores(err[keep, ], ids, ex$exp_id, ex$grupo, ex$perdida,
                             semilla_mcs = function(h) semilla_de(sem, paste0("MCS|", nm), h), benchmark = BENCHMARK,
-                            alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO)
+                            alpha = ALPHA_MCS, B = B_MCS, marca_h_largo = MARCA_TAMANO,
+                            marcar_identicos = grepl(PATRON_EXP_PREREGISTRO, ex$exp_id))               # B2-9
       lapply(t_, function(x) cbind(muestra_eval = nm, x, stringsAsFactors = FALSE))
     })
     sub <- list(metricas = do.call(rbind, lapply(tabs, `[[`, "metricas")),
@@ -543,6 +545,8 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
     if (!is.null(ex$semilla_exp) && ex$semilla_exp != ex$exp_id) paste0("semilla_exp: ", ex$semilla_exp,
       " (C-7: las semillas se derivan de este exp_id, el del experimento de Fase 4 que se reproduce)") else NULL,
     paste0("mcs: T_max, alpha = ", ALPHA_MCS, ", B = ", B_MCS, ", bootstrap estacionario circular, bloque max(h, ceiling(n^(1/3))) (F4-15)"),
+    if ("identico_a" %in% names(res$mcs)) paste0("mcs: modelos con pérdidas idénticas en una celda se evalúan una vez y comparten p_mcs, en_mcs y orden_eliminacion ",
+                                                 "con su representante, el primero en el orden de los modelos; columna identico_a (B2-9)") else NULL,
     paste0("calibracion: densidad gaussiana plug-in (F4-33) para los modelos con predecir_densidad(): ",
            paste(res$densidad_ids, collapse = ", "),
            "; los demás quedan con cobertura_80, cobertura_95 y crps vacías (protocolo §3.4)"),
