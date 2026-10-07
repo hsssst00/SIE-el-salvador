@@ -38,6 +38,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   `decisiones_fase5.md`.
 - [ ] **B5 · F5-14** Medición del tiempo por origen de cada familia con datos sintéticos; con esa cifra, tope,
   representantes por familia y variante de F5-11, fijados en un commit anterior a la corrida sobre L3.
+  Estado 2026-10-07: medidos B1 (UNI.ARIMA 3-4 s por origen; ARIMAX < 1 s) y B2a (VAR y VECM < 0,1 s por origen);
+  faltan BVAR (B2b), B3, B3b y B4.
 
 ## C. Infraestructura que piden las decisiones
 
@@ -46,7 +48,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   (`tests/test-predictoras-fase5.R`); la prueba sobre el primer origen de cada grupo llega con los modelos de B1b.
   Estado 2026-10-05: la prueba está en `tests/test-modelos-univariados.R` (ARIMAX de G1, G2, G3 e IVAE en el primer
   origen con las fechas de inicio de L3: 75, 38 y 39 observaciones; abrir la grilla de G2 o los rezagos de G3 dispara
-  G-8); se marca con la evidencia de CI al fusionar el PR de B1b.
+  G-8); se marca con la evidencia de CI al fusionar el PR de B1b. Estado 2026-10-07: B2a extiende la prueba a los VAR
+  y al VECM en `tests/test-modelos-multivariados.R` (56, 57, 57, 23 y 43 grados de libertad libres; p = 4 en G2
+  dispara G-8).
 - [ ] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
   meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
   marca con la evidencia de CI al fusionar. Estado 2026-10-05: B1a fusionado (PR #31, `8d72e83`) con CI verde en push y
@@ -58,7 +62,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 - [ ] **C5 · F5-12** Densidad del sistema conjunto en ARIMAX y puente (forma compañera) y de errores internos en
   regularizados y árboles, cubierta por V13 o un bloque nuevo. Estado 2026-10-05: la parte de ARIMAX llega con B1b
   (`cov_sistema_arimax()`, prueba contra la simulación de sus recursiones y cobertura en V14); faltan puente (B3b),
-  regularizados y árboles.
+  regularizados y árboles. Estado 2026-10-07: VAR y VECM (pesos MA, B2-1) con prueba contra `predict()` y contra la
+  simulación de las recursiones, y cobertura en V15 (B2a).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes.
 
@@ -69,7 +74,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 
 - [ ] **D1 · B1** ARIMA/ARIMAX y componentes no observados. Estado 2026-10-05: B1a fusionado (PR #31); B1b en su PR
   (`UNI.ARIMA`, `UNI.UC_LLT`, `UNI.ARIMAX.G1/.G2/.G3`, `UNI.ARIMAX_IVAE.G2`, sus YAML y V14).
-- [ ] **D2 · B2** VAR, VECM y BVAR.
+- [ ] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
+  `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar.
 - [ ] **D3 · B3** Regularizados.
 - [ ] **D4 · B3b** MIDAS y puente.
 - [ ] **D5 · B4** Árboles.
