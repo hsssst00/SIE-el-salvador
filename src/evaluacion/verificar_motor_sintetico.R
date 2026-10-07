@@ -26,7 +26,7 @@
 #        insumos sintéticos en memoria: G2 principal con R3/R4, y R1, R2, R5 y R6 de G3; más dos
 #        canarios (outlier LS no contemplado y NSA más allá del origen con el recorte saboteado)
 # Bloque de la compuerta de Fase 5 (remediación de la auditoría independiente de Fase 4, hallazgo I2a;
-# F4-33, borrador):
+# F4-33, decidida el 2026-09-29):
 #   V13  densidad gaussiana: cobertura al 80/95 % dentro de ±3 ee de MC con el modelo verdadero, CRPS
 #        del verdadero < paseo aleatorio, y CRPS propio contra scoringRules::crps_norm (Suggests)
 #   V5   (extensión F4-34, al final del archivo) canario de predictora anual: UT solo con años cerrados
