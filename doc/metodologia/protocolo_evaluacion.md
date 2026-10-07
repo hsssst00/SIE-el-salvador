@@ -121,6 +121,14 @@ reimplementación independiente la confirma.
 
 Los agregados trimestrales de cada familia (`*.Q`, T003-T011) usan el rezago de su fuente mensual.
 
+**Nota (2026-10-07, lectura de la tabla).** La tabla no se reescribe; dos aclaraciones para quien la lea sola:
+
+- La cabecera dice «F4-34, borrador» porque se escribió antes de la decisión. F4-34 la decidió Harold el
+  2026-09-29 (más abajo en esta sección y `doc/metodologia/decisiones_fase4.md`).
+- La fila de UT (años cerrados, `REZAGO_ANUAL_CERRADO`) es la regla de Fase 4 y **no rige en Fase 5**. Ahí UT entra
+  por la regla general con un rezago **supuesto** de 30 días (nota del 2026-10-05, F5-04, al final de esta sección), y
+  el experimento R7 la repite a 61 días (§5).
+
 **Regla decidida (2026-09-24).** El conjunto de información del origen `o` es el de la fecha de
 publicación del PIB de `o` (cierre de `o` + 92 días): cada serie mensual entra hasta el
 último mes `m` tal que `fin(m) + rezago(serie) ≤ fecha_publicacion(PIB de o)`. Los
