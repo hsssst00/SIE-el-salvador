@@ -370,6 +370,15 @@ ser exactos. La media de la predictiva admite |dif| ≤ 1e-6 en log-nivel. La co
 una diferencia relativa ≤ 1e-5. Aplica solo a la comparación entre sistemas operativos: en Windows, V17 exige bit a
 bit y `make eval` debe regenerar bit a bit `data/L4_experiments/<exp_id>/`. Detalle en `decisiones_fase5.md`.
 
+**Nota (2026-10-07, F1-3 reabierta; reemplaza la tolerancia de la nota anterior).** En cuatro corridas del CI en
+Ubuntu, con el mismo código, V17 dio dos resultados. En uno, las diferencias son de redondeo, como dice la nota
+anterior. En el otro, 4 de las 5 000 decisiones del MH cambian, las cadenas se separan y la media difiere en 1,7e-3 en
+log-nivel (unos 0,17 pp interanuales), del orden del error de Monte Carlo. Causa probable: kernels de OpenBLAS que
+dependen de la CPU. Con esa evidencia, la paridad del BVAR entre sistemas operativos se declara solo hasta el error de
+Monte Carlo de sus momentos, y no hay tolerancia numérica fija. La reproducibilidad bit a bit rige en Windows, la
+máquina de la corrida única: ahí V17 exige bit a bit con `stop()`. En otro sistema, V17 informa las diferencias en
+unidades del error de Monte Carlo sin detenerse. Detalle en `decisiones_fase5.md`.
+
 **[2026-09-29, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
 antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
 (precedente: C8, `a78d2c6`).

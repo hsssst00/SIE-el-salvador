@@ -39,6 +39,7 @@ como notas fechadas; no se reescribe lo registrado.
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
 | F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
 | F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
+| F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
 
 ---
 
@@ -724,6 +725,46 @@ a 2,6 % en la varianza. Lo de Linux es entre 1 000 y 6 000 veces menor.
 - **Implementación (decisión menor del agente, revertible):** fuera de Windows, la línea OK de V17 informa el número de
   valores distintos, los máximos por campo y la plataforma, así que la salida de la verificación difiere entre sistemas
   solo en esa línea. En Windows la línea no cambia.
+
+**Nota 2026-10-07 (más tarde): F1-3 reabierta.** Con el código de `7c11a5d`, el CI corrió V17 en cuatro runners de
+Ubuntu (las corridas push y pull_request de `200496b` y de `7c11a5d`; misma imagen base, R 4.6.1 y OpenBLAS 0.3.26).
+Salieron dos resultados distintos, y cada uno se repitió exacto en dos corridas:
+
+- **L1** (push de `200496b`, run 37695426578; pull_request de `7c11a5d`, run 37698253588). sha256
+  `ec953e8a…`. Misma aceptación que Windows. Máximos: media 9,7e-8 en log-nivel; covarianza 8,7e-7 relativo; λ 2,1e-6;
+  SOC 7,4e-6; SUR 1,8e-6; ψ 5,9e-14. Queda dentro de la tolerancia anterior.
+- **L2** (pull_request de `200496b`, run 37695968661; push de `7c11a5d`, run 37698247458). sha256 `bbcd84a1…`. La
+  aceptación difiere en 0,0008, es decir, en 4 de las 5 000 decisiones del MH, y desde ahí las cadenas se separan.
+  Máximos: media 1,7e-3 en log-nivel (unos 0,17 pp de la tasa interanual); covarianza 3,3 % relativo; λ 1,2 %; SOC
+  9,5 %; SUR 0,15 %; ψ 8,7e-14. Es la escala del error de Monte Carlo y queda fuera de la tolerancia anterior.
+
+Causa probable, no verificada: OpenBLAS elige kernels distintos según la CPU del runner, y un redondeo distinto basta
+para cambiar una decisión de aceptación del MH cuando cae cerca del umbral. Con esa evidencia, la tolerancia anterior
+dejaba el CI en rojo o en verde según el runner. Esto no depende del margen elegido: con cualquier diferencia de
+redondeo y otros datos, alguna decisión del MH puede cambiar.
+
+- **F1-3 (reabierta) · DECIDIDO por Harold el 2026-10-07 (opción recomendada; reemplaza a la F1-3 de arriba):**
+  - En Windows, V17 sigue exigiendo bit a bit con `stop()` (F5-15). Es la guarda en la máquina de la corrida única:
+    `make eval` corre antes la verificación sintética.
+  - Fuera de Windows, V17 informa sin detenerse: los valores distintos, las decisiones del MH distintas por grupo y,
+    por campo, el máximo de |dif| / MCSE y el máximo de la diferencia.
+  - La paridad del BVAR entre sistemas queda declarada hasta el error de Monte Carlo. La corrida única (E2) se
+    reproduce bit a bit solo en la máquina de Harold. En otro sistema, los resultados del BVAR pueden diferir hasta el
+    orden de su error de Monte Carlo.
+  - Fuera de Windows, el CI deja de vigilar el BVAR con V17. Lo siguen vigilando V16 y `tests/test-modelo-bvar.R`.
+  - Descartadas: una tolerancia de Monte Carlo con `stop()` (4 MCSE, o más de 0,005 de diferencia en la aceptación).
+    Es más código, el umbral es un juicio y podría fallar de vez en cuando. También se descartó fijar OpenBLAS en el
+    workflow: el CI sería determinista, pero no cambia la paridad real y requiere un cambio de CI.
+- **Implementación (decisiones menores del agente, revertibles en un commit):**
+  - La referencia agrega la columna `mcse`. Es el error de Monte Carlo de cada momento y de las medias posteriores de
+    λ, SOC y SUR, por medias por lotes (50 lotes de 100 extracciones).
+  - Lo calcula `mcse_paridad_bvar()` al regenerar la referencia. La función repite el ajuste de producción con la
+    misma siembra y se detiene si sus momentos no son idénticos a los de `ajustar_bvar()`.
+  - Los bytes de la referencia no cambian: el sha256 de los momentos sigue siendo `27ec46c0…`.
+  - MCSE en Windows: media de 1,42e-4 (h = 1) a 1,40e-3 (h = 8) en G1 y de 8,9e-5 a 1,16e-3 en G3. En h = 8 eso es
+    unos 0,14 pp de la tasa interanual.
+  - Se quitan las constantes de la tolerancia anterior (`TOL_MEDIA_PARIDAD_BVAR`, `TOL_REL_PARIDAD_BVAR`,
+    `CAMPOS_EXACTOS_PARIDAD_BVAR`).
 
 ---
 
