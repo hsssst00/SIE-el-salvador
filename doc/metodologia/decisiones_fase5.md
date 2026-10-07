@@ -37,6 +37,9 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
+| F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
+| F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
+| F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
 
 ---
 
@@ -649,6 +652,131 @@ de L3: los hallazgos salen del código del paquete y de datos sintéticos.
   R5 y R6 en B5.
 - **Paridad Windows/Linux (F1 del checklist, F5-15):** pendiente. En una misma máquina el resultado es bit a bit
   (`tests/test-modelo-bvar.R` y V16).
+  Nota 2026-10-07: medida en F1. Entre Windows y Ubuntu no es bit a bit, y la tolerancia quedó declarada en F1-3
+  (sección «Paridad Windows/Linux del BVAR», más abajo).
+
+---
+
+## Paridad Windows/Linux del BVAR (F1 del checklist; decidida por Harold el 2026-10-07)
+
+F5-15 pide verificar la paridad del BVAR entre Windows y Linux «como en el cierre de Fase 4» y, si no es bit a bit,
+declarar la tolerancia. La corrida única (E2) es en Windows; el CI corre en Ubuntu 24.04 con R 4.6.1, la versión de
+`renv.lock`. En el push de `5f9f383` (PR #37), el V16 del CI imprimió los mismos valores que el sandbox Windows (RMSE
+0,643 y 0,768; cobertura 0,744 / 0,705 / 0,731 y 0,949 / 0,949 / 0,885). Es un indicio a tres decimales, no una
+comparación bit a bit.
+
+- **F1-1 · Forma de la comparación. DECIDIDO (opción recomendada):** un bloque nuevo, V17, en
+  `verificar_motor_sintetico.R`. Ajusta un BVAR fijo y compara los bytes de sus momentos con una referencia generada en
+  Windows y versionada en el repo. Se detiene con `stop()` si algún valor difiere e imprime el sha256 de los momentos.
+  El CI lo corre en cada push sin cambiar el workflow, y en una misma máquina detecta además un cambio no intencional
+  del BVAR. Si cambia el código o la configuración del BVAR, la referencia se regenera en ese mismo PR con una nota
+  fechada. Descartadas: la misma comparación en testthat (el hash no queda en la salida de la verificación, que es lo
+  que se comparó en el cierre de Fase 4) y un script con un paso temporal del workflow (compara una sola vez y no
+  protege contra regresiones).
+- **F1-2 · Ajuste fijo. DECIDIDO (opción recomendada):** el primer origen de G1 (3 series, 2013-Q1) y de G3 (9 series,
+  2019-Q4), con la configuración de producción (p = 4, 10 000 extracciones y 5 000 de quemado; B2-7), sobre los datos
+  sintéticos de la prueba de producción de `tests/test-modelo-bvar.R` (fechas de inicio de L3, semilla fija). Se
+  comparan la media y la covarianza de la predictiva en h = 1..8 (B2-10) y la aceptación del MH. Descartadas: los tres
+  grupos (G2, con 7 series, no agrega un caso distinto de G3) y el ajuste corto de 1 500/500 (no es la configuración de
+  E2; con más extracciones, una divergencia del MH tiene más pasos para aparecer).
+- **Si Linux no iguala byte a byte,** la tolerancia se le pregunta a Harold con la magnitud medida (Regla 4).
+
+**Implementación de F1 (2026-10-07; decisiones menores del agente, revertibles en un commit):**
+
+- **Código:** `src/evaluacion/paridad_bvar.R` (`datos_paridad_bvar()`, `momentos_paridad_bvar()`,
+  `comparar_paridad_bvar()`, lectura y escritura de la referencia), con sus pruebas en `tests/test-paridad-bvar.R`.
+  La referencia es `src/evaluacion/referencias/paridad_bvar.csv`, con 159 filas: el sha256 de las entradas y 79 valores
+  por grupo (8 de media, 64 de covarianza y 7 diagnósticos). Se regenera con `scripts/referencia_paridad_bvar.R`, que se
+  detiene fuera de Windows.
+- **Qué se compara, además de lo decidido:** los demás diagnósticos del ajuste (medias posteriores de λ, SOC y SUR, ψ
+  del PIB y los tamaños) y el sha256 de los datos de entrada. No cuestan nada y separan una diferencia de los datos de
+  una del BVAR.
+- **Bytes y no texto:** se comparan los 8 bytes IEEE 754 de cada valor (16 caracteres hexadecimales, little-endian),
+  porque el texto decimal depende de la rutina de impresión de cada sistema. La columna `valor` (`%.17g`) es solo para
+  leer el archivo.
+- **Siembra:** la del motor (`semilla_de()`, como en `correr_backtest()`), con `exp_id = "V17"`.
+- **Salida:** la línea OK de V17 no lleva datos de la plataforma, para que la salida de la verificación siga siendo
+  comparable byte a byte entre máquinas. El mensaje de `stop()` sí trae la versión de R, el sistema, la BLAS y la
+  LAPACK.
+- **Referencia:** generada con el código de este commit en el sandbox Windows de la máquina de Harold (R 4.6.1 ucrt,
+  Windows 11 x64, build 26200). sha256 de los momentos `27ec46c0219321e226d6200692d38154994bf0f4129bfa974dc43857367563ce`.
+  Un proceso nuevo la reproduce byte a byte (0 de 159 valores distintos). Costo de V17: unos 42 s en el sandbox.
+
+**Resultado en Linux (2026-10-07).** El CI del push de `200496b` (run 37695426578; Ubuntu 24.04.5, R 4.6.1, BLAS
+`libblas.so.3`, LAPACK de OpenBLAS 0.3.26, versión 3.12.0) no iguala la referencia byte a byte: difieren 152 de los 159
+valores. Las entradas son idénticas, igual que los tamaños y la aceptación del MH en los dos grupos: las cadenas toman
+las mismas decisiones, así que la diferencia es de redondeo y no una divergencia del MCMC. La diferencia máxima de la
+media es 9,71e-8 en log-nivel, unos 1e-5 pp de la tasa interanual. La diferencia relativa máxima de la covarianza es
+8,67e-7. sha256 de los momentos en Linux: `ec953e8a99641d3ba9c590686cc72640a50f61dc11070d66bf0c9db3de08a102`. En
+Windows, R 4.6.1 usa su BLAS de referencia y LAPACK 3.12.1. Para dar escala, el error de Monte Carlo del mismo ajuste
+en Windows (medias por lotes, 50 lotes de 100 extracciones) es de 8,9e-5 a 1,4e-3 en la media (log-nivel) y de 0,5 %
+a 2,6 % en la varianza. Lo de Linux es entre 1 000 y 6 000 veces menor.
+
+- **F1-3 · Tolerancia entre sistemas. DECIDIDO por Harold el 2026-10-07 (opción recomendada):** un margen de unas 10
+  veces lo medido. En Windows sigue exigiéndose bit a bit (F5-15). En otro sistema, las entradas, los tamaños
+  (`n_obs`, `n_series`) y la aceptación deben ser idénticos, porque si la aceptación difiere las cadenas divergieron y
+  la diferencia ya no es de redondeo. La media admite |dif| ≤ 1e-6 en log-nivel (1e-4 pp). La covarianza y los
+  hiperparámetros (λ, SOC, SUR y ψ del PIB) admiten una diferencia relativa ≤ 1e-5. V17 informa la diferencia máxima
+  por campo. Ese margen queda al menos unas 90 veces por debajo del error de Monte Carlo y aguanta un cambio de OpenBLAS
+  en `ubuntu-latest` sin falsas alarmas. La diferencia de λ, SOC, SUR y ψ no se había medido campo por campo: si pasa
+  de 1e-5, se le vuelve a preguntar a Harold con el dato. Descartadas: una tolerancia de 2 veces lo medido (una
+  actualización de la imagen del CI podría ponerlo en rojo sin cambios del proyecto) y una tolerancia ligada al error
+  de Monte Carlo (más código, deja pasar cadenas que divergieron y admite más diferencia en la media).
+- **Implementación (decisión menor del agente, revertible):** fuera de Windows, la línea OK de V17 informa el número de
+  valores distintos, los máximos por campo y la plataforma, así que la salida de la verificación difiere entre sistemas
+  solo en esa línea. En Windows la línea no cambia.
+
+**Nota 2026-10-07 (más tarde): F1-3 reabierta.** Con el código de `7c11a5d`, el CI corrió V17 en cuatro runners de
+Ubuntu (las corridas push y pull_request de `200496b` y de `7c11a5d`; misma imagen base, R 4.6.1 y OpenBLAS 0.3.26).
+Salieron dos resultados distintos, y cada uno se repitió exacto en dos corridas:
+
+- **L1** (push de `200496b`, run 37695426578; pull_request de `7c11a5d`, run 37698253588). sha256
+  `ec953e8a…`. Misma aceptación que Windows. Máximos: media 9,7e-8 en log-nivel; covarianza 8,7e-7 relativo; λ 2,1e-6;
+  SOC 7,4e-6; SUR 1,8e-6; ψ 5,9e-14. Queda dentro de la tolerancia anterior.
+- **L2** (pull_request de `200496b`, run 37695968661; push de `7c11a5d`, run 37698247458). sha256 `bbcd84a1…`. La
+  aceptación difiere en 0,0008, es decir, en 4 de las 5 000 decisiones del MH, y desde ahí las cadenas se separan.
+  Máximos: media 1,7e-3 en log-nivel (unos 0,17 pp de la tasa interanual); covarianza 3,3 % relativo; λ 1,2 %; SOC
+  9,5 %; SUR 0,15 %; ψ 8,7e-14. Es la escala del error de Monte Carlo y queda fuera de la tolerancia anterior.
+
+Causa probable, no verificada: OpenBLAS elige kernels distintos según la CPU del runner, y un redondeo distinto basta
+para cambiar una decisión de aceptación del MH cuando cae cerca del umbral. Con esa evidencia, la tolerancia anterior
+dejaba el CI en rojo o en verde según el runner. Esto no depende del margen elegido: con cualquier diferencia de
+redondeo y otros datos, alguna decisión del MH puede cambiar.
+
+- **F1-3 (reabierta) · DECIDIDO por Harold el 2026-10-07 (opción recomendada; reemplaza a la F1-3 de arriba):**
+  - En Windows, V17 sigue exigiendo bit a bit con `stop()` (F5-15). Es la guarda en la máquina de la corrida única:
+    `make eval` corre antes la verificación sintética.
+  - Fuera de Windows, V17 informa sin detenerse: los valores distintos, las decisiones del MH distintas por grupo y,
+    por campo, el máximo de |dif| / MCSE y el máximo de la diferencia.
+  - La paridad del BVAR entre sistemas queda declarada hasta el error de Monte Carlo. La corrida única (E2) se
+    reproduce bit a bit solo en la máquina de Harold. En otro sistema, los resultados del BVAR pueden diferir hasta el
+    orden de su error de Monte Carlo.
+  - Fuera de Windows, el CI deja de vigilar el BVAR con V17. Lo siguen vigilando V16 y `tests/test-modelo-bvar.R`.
+  - Descartadas: una tolerancia de Monte Carlo con `stop()` (4 MCSE, o más de 0,005 de diferencia en la aceptación).
+    Es más código, el umbral es un juicio y podría fallar de vez en cuando. También se descartó fijar OpenBLAS en el
+    workflow: el CI sería determinista, pero no cambia la paridad real y requiere un cambio de CI.
+- **Implementación (decisiones menores del agente, revertibles en un commit):**
+  - La referencia agrega la columna `mcse`. Es el error de Monte Carlo de cada momento y de las medias posteriores de
+    λ, SOC y SUR, por medias por lotes (50 lotes de 100 extracciones).
+  - Lo calcula `mcse_paridad_bvar()` al regenerar la referencia. La función repite el ajuste de producción con la
+    misma siembra y se detiene si sus momentos no son idénticos a los de `ajustar_bvar()`.
+  - Los bytes de la referencia no cambian: el sha256 de los momentos sigue siendo `27ec46c0…`.
+  - MCSE en Windows: media de 1,42e-4 (h = 1) a 1,40e-3 (h = 8) en G1 y de 8,9e-5 a 1,16e-3 en G3. En h = 8 eso es
+    unos 0,14 pp de la tasa interanual.
+  - Se quitan las constantes de la tolerancia anterior (`TOL_MEDIA_PARIDAD_BVAR`, `TOL_REL_PARIDAD_BVAR`,
+    `CAMPOS_EXACTOS_PARIDAD_BVAR`).
+
+**Evidencia sobre `328122f` (2026-10-07).**
+
+- **Windows** (sandbox de la máquina de Harold, R 4.6.1 ucrt):
+  - verificación V1-V17 OK; V17 da 158 valores idénticos byte a byte a la referencia (sha256 `27ec46c0…`);
+  - testthat 1898 PASS / 0 FAIL / 0 ERROR / 1 SKIP (31 archivos, 343 bloques).
+- **CI** (runs 37700318583, push, y 37700323754, pull_request; los dos en verde):
+  - testthat 1900 PASS / 0 SKIP;
+  - en los dos runners salió L2 (sha256 `bbcd84a1…`): 4 decisiones del MH distintas en G3 y ninguna en G1;
+  - máx |dif| / MCSE: media 1,5; covarianza 1,7; λ 1,2; SOC 1,4; SUR 0,096.
+
+  Con eso, la diferencia de L2 frente a Windows queda en uno o dos errores de Monte Carlo.
 
 ---
 
