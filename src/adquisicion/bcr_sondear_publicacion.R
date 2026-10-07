@@ -10,7 +10,7 @@ bcr_sondear_publicacion <- function(url, timeout_s = 60) {
   b <- ChromoteSession$new()
   on.exit(try(b$close(), silent = TRUE), add = TRUE)
 
-  b$go_to(url)
+  b$go_to(url, timeout_ = .BCR_NAV_TIMEOUT_S)
 
   es_vista_serie <- tryCatch({
     .bcr_wait(b, .BCR_BOOT, timeout_s = timeout_s, que = "montaje de vista-serie")

@@ -280,6 +280,27 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   comportamiento (ya completaban por debajo del default). Confirmado con `make raw`
   (`scripts/verificar_l0.R`) en 3/3 PASS tras el ajuste.
 
+- **2026-10-07** (Claude Code, captura de `BCR.PANORAMA_BANCO_CENTRAL` M09): la captura falló
+  en la navegación inicial, en la máquina de Harold y en la de la sesión de Claude Code, con
+  `Chromote: timed out waiting for response to command Page.navigate` (y luego `Page.disable`
+  al cerrar). No se escribió nada en L0 ni en los catálogos. Diagnóstico: `curl` a
+  `/serie/panorama-del-banco-central` dio HTTP 200, 2.1 MB, **TTFB 27.7 s** (DNS/TLS < 0.4 s);
+  una carga headless con `default_timeout` subido completó `go_to()` en 53.4 s y montó
+  `vista-serie` (`idPublic = 46`). Causa raíz: `ChromoteSession$default_timeout` es 10 s y
+  `go_to()` lo usa como espera de `Page$loadEventFired` y como timeout del comando
+  `Page.navigate`; la latencia del portal lo supera. No hay cambio de estructura de la fuente ni bloqueo de bots (la página responde y el
+  componente monta). El nivel 2 de `make raw-rapido` (mismo `go_to()`) había pasado horas
+  antes: la latencia del portal es variable, no constante. Remedio: `go_to(url, timeout_ =
+  .BCR_NAV_TIMEOUT_S)` con 300 s en `bcr_capturar_xlsx()`, `bcr_sondear_ultimo_periodo()` y
+  `bcr_sondear_publicacion()`; solo la navegación, el resto de los comandos CDP conserva su
+  default. Con el remedio la captura completó (`v2026-10`, `ult = 2026-M09`, 239674 bytes),
+  pero el mensaje «Unhandled promise error: … Page.navigate» **sigue apareciendo**: `timeout_`
+  solo cubre la espera de `loadEventFired`; el comando `Page.navigate` conserva su default de
+  10 s y su rechazo, no esperado por nadie (`wait_ = FALSE` dentro de `go_to()`), se imprime
+  sin abortar. Es ruido, no fallo; si molesta, la vía es subir `default_timeout` de la
+  sesión (afecta todos los comandos CDP, por eso no se hizo). Los dos intentos fallidos no capturaron ni descargaron nada (la navegación murió
+  antes de cargar), así que no cuentan como pasada de captura para la regla 9.
+
 ## BCR — Reservas Internacionales y Liquidez en Moneda Extranjera: mecanismo distinto de `vista-serie`
 
 - **2026-08-26** (Claude Code, sondeo en vivo, handoff Fase 1 Bloque 4): la publicación
