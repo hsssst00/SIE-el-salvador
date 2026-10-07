@@ -567,6 +567,89 @@ deduplicar en el MCS, mantener el `stop()` y quitar `MULT.VAR_DIF.G1`.
 - **Consecuencia para Fase 5:** si en un grupo el AR(p)-BIC repite al AR(1), o el VECM con r = 0 repite al VAR en
   diferencias, el MCS de los `F5_G*` los cuenta una vez. Así la corrida única no se detiene por esa causa.
 
+**Nota (2026-10-07, B2b, decidida por Harold salvo B2-16).** Al bajar B2-5 y B2-7 a código aparecieron siete puntos
+que no fijaban. Se presentaron como preguntas antes de cerrar el código del modelo (Regla 4). No se miró ningún valor
+de L3: los hallazgos salen del código del paquete y de datos sintéticos.
+
+- **B2-10 · Densidad del BVAR. DECIDIDO:** los momentos exactos de la predictiva posterior con choques. Para cada
+  extracción retenida (β_j, Σ_j), μ_j sale de la recursión del VAR y C_j de los pesos MA de la fila del PIB. La media es
+  el promedio de los μ_j y la covarianza es el promedio de los C_j más cov(μ_j), por la ley de varianza total. Hallazgo
+  que la motivó: en BVAR 1.0.5, `predict.bvar` no da la predictiva posterior con choques. Suma un solo choque por
+  horizonte, `t(crossprod(sigma[j, , ], z))`, sin propagarlo por la dinámica, y `object$sigma` es la covarianza Σ_j y
+  no su Cholesky, así que la varianza del choque es Σ²_j. Prueba empírica con un VAR(1) bivariado: la varianza de
+  `predict` en h = 1 fue 16,33 / 4,495, con E[Σ] = 3,825 / 1,848 y E[Σ²] = 15,654 / 4,323, y no creció con h. En
+  log-niveles Σ² es despreciable y la densidad sale angosta. La prueba de `tests/test-modelo-bvar.R` vigila las dos
+  cosas. Descartadas: una simulación propia de senderos (agrega error de Monte Carlo, ≈ 2 % en las varianzas, y más
+  dependencia del RNG en la paridad entre sistemas) y `predict.bvar` tal cual (no cumple F5-12). Cambia la letra de
+  B2-7 («de las extracciones»): son los momentos exactos de la misma distribución.
+- **B2-11 · Metropolis-Hastings. DECIDIDO:** `bv_mh(scale_hess = 0.01, adjust_acc = TRUE, adjust_burn = 0.75,
+  acc_lower = 0.25, acc_upper = 0.45, acc_change = 0.01)`, los valores por defecto con el ajuste activado (el paquete
+  trae `adjust_acc = FALSE`). La aceptación de cada origen va a `diagnosticos.csv`, sin guarda. Descartadas: ajustar
+  durante todo el quemado (`adjust_burn = 1`) y un `stop()` por aceptación fuera de un rango, que podría detener la
+  corrida única.
+- **B2-12 · Priors. DECIDIDO:** los valores por defecto del paquete (los de GLP 2015), escritos explícitamente en
+  `priors_bvar()`: λ con moda 0,2 y de 0,4 en [1e-4, 5]; α = 2 fijo; b = 1; var de la constante 1e7; SOC y SUR con moda 1
+  y de 1 en [1e-4, 50]. ψ se reabrió en B2-15 y B2-16.
+- **B2-13 · Muestra del ajuste estacional. DECIDIDO:** las dummies de B2-5 se estiman en la muestra del modelo (las
+  filas de `panel_var()`, como las dummies de los VAR de B2a), no con la historia propia de cada serie.
+- **B2-14 · Tendencia en la regresión auxiliar (reabre la letra de B2-5). DECIDIDO:** log-nivel ~ constante +
+  tendencia lineal + dummies, y se resta solo el componente estacional. Con solo dummies, la deriva se cuela en los
+  factores: cada trimestre tiene un tiempo medio distinto en la muestra, y el sesgo va de ±d a ±1,5·d según el trimestre
+  en que termina la muestra, así que cambia con el origen. En una simulación (paseo con deriva d = 0,01, 77
+  observaciones, 2 000 réplicas), el sesgo fue de −0,010 y +0,010 en Q2 y Q4, con RMSE de 0,0105; con la tendencia, el
+  sesgo es 0,000 y el RMSE 0,003. Descartadas: estimar los efectos sobre Δlog e integrarlos (más complejo, resultado
+  casi igual) y B2-5 literal.
+- **B2-15 · ψ sin `auto_psi`. DECIDIDO (no es la opción recomendada):** ψ por MCO, con un AR(4) con constante en cada
+  serie de la muestra del modelo y sin optimización numérica. Hallazgo: cuando `arima(4,0,0)` sobre el log-nivel emite
+  un aviso, `auto_psi` lo vuelve a correr fuera de su `tryCatch`, y en una réplica sintética de V16 ese segundo intento
+  falló con «non-finite finite-difference value». En la corrida única eso detendría el motor (Regla 7). La opción
+  recomendada era reimplementar `auto_psi` con toda la cadena dentro de `tryCatch`, que conservaba el valor por
+  defecto. Descartada también: dejar `auto_psi`.
+- **B2-16 · Unidades de ψ. DECIDIDO por el agente (decisión delegada por Harold; se puede reabrir):** ψ es la varianza
+  residual σ² (denominador n − 5), con límites ψ/100 y 100·ψ. El paquete documenta ψ por defecto como σ, pero `bvar` lo
+  usa en unidades de varianza: como escala de la inversa Wishart, diag(ψ), y en λ² / (l^α ψ_j) en la Minnesota, como en
+  GLP, donde ψ es la varianza residual del AR. En log-niveles σ ≈ 0,01-0,02 frente a σ² ≈ 1e-4, así que con σ el prior
+  infla Σ. Calibración de V16 (13 orígenes): con ψ = σ (10 réplicas), cobertura al 80 % de 0,985 / 0,962 / 0,869 en
+  h = 1 / 2 / 4 y al 95 % de 1,000; con ψ = σ² (6 réplicas), 0,744 / 0,705 / 0,731 y 0,949 / 0,949 / 0,885. La razón
+  de RMSE contra el AR(p)-BIC en h = 1 fue 0,651 frente a 0,643. Descartadas: σ (densidad demasiado ancha, por una
+  cuestión de unidades) y σ con los datos en 100·log (la discrepancia cambia de tamaño pero no desaparece).
+
+**Implementación de B2b (2026-10-07; decisiones menores del agente, revertibles en un commit):**
+
+- **Código:** `modelo_bvar()`, `ajustar_bvar()`, `panel_bvar()`, `factores_estacionales()`, `psi_bvar()`,
+  `priors_bvar()`, `mh_bvar()` y `momentos_predictiva_bvar()` en `modelos_multivariados.R`; `modelo_bvar_grupo()` va
+  al final de `modelos_fase5(grupo)`. Las series son las de `predictoras_grupo(grupo)`, en ese orden: 3 en G1, 7 en G2
+  y 9 en G3.
+- **Momentos una vez por origen:** `ajustar()` los calcula para h = 1..8 (`H_BVAR = DISENO_FASE4$h_max`) y
+  `predecir()`/`predecir_densidad()` recortan; pedir h > 8 detiene. cov(μ_j) lleva denominador S: son los momentos de la
+  mezcla empírica de las S extracciones. `bvar()` corre con `fcast = NULL` e `irf = NULL`, así que no se usa el RNG
+  después del MCMC.
+- **Factores estacionales** centrados sobre los cuatro trimestres (suman cero en el año, como las dummies centradas
+  de `vars`), no sobre la muestra.
+- **Escala:** log-niveles sin reescalar, como B2a.
+- **Guardas (Regla 7):** las de `panel_var()`; extracciones no finitas o mal dimensionadas; ψ no finito o degenerado;
+  covarianza de la predictiva no definida positiva; h > 8. No hay guarda sobre la aceptación (B2-11).
+- **Diagnósticos por origen:** `n_obs` (filas − 4), `n_series`, `aceptacion`, las medias posteriores de `lambda`, `soc`
+  y `sur`, y `psi_pib`.
+- **Muestras con las fechas de inicio de L3:** en el primer origen hay 77 observaciones en G1 (desde 1994-Q1), 40 en
+  G2 (desde 2005-Q1) y 40 en G3 (desde 2010-Q1). Son 73, 36 y 36 efectivas, frente a 13, 29 y 37 parámetros por
+  ecuación. F5-07 decía «39 datos» para G3; son 40.
+- **V16** corre con 2 000 extracciones y 1 000 de quemado, en uno de cada cuatro orígenes y con 6 réplicas, por el
+  costo del canario. La configuración de producción se prueba en `tests/test-modelo-bvar.R`, en el primer origen de
+  cada grupo.
+- **Costo observado (dato para B5 y F5-14; sandbox Windows, datos sintéticos con las fechas de inicio de L3,
+  configuración de producción, medido en el primer y el último origen de cada grupo):**
+  - `MULT.BVAR.G1`: 15,6-18,7 s por origen (52 orígenes);
+  - `MULT.BVAR.G2`: 17,9 s (45 orígenes);
+  - `MULT.BVAR.G3`: 21,4-25,9 s (25 orígenes).
+
+  Son unos 38 minutos para los tres experimentos principales, y R7 repite G2 y G3 (unos 23 minutos más). El cálculo
+  de los momentos tarda menos de 1 s por origen; el resto es el MCMC. La aceptación del MH fue de 0,16 a 0,38, más
+  baja con 7 y 9 series y en los orígenes tardíos. Con este costo, el BVAR es la familia que decide el tope de R1, R2,
+  R5 y R6 en B5.
+- **Paridad Windows/Linux (F1 del checklist, F5-15):** pendiente. En una misma máquina el resultado es bit a bit
+  (`tests/test-modelo-bvar.R` y V16).
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5
