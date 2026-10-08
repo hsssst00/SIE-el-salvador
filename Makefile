@@ -133,6 +133,7 @@ eval-sintetico:
 eval: eval-sintetico
 	Rscript src/evaluacion/motor_backtesting.R
 	Rscript src/evaluacion/tabla_resultados_fase4.R
+	Rscript src/evaluacion/tabla_resultados_fase5.R
 
 # Fase 7 — sitio de documentación.
 report:

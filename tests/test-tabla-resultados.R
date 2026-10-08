@@ -5,7 +5,7 @@
 # guardas. No lee datos del proyecto: corre en CI.
 
 library(testthat)
-source(here::here("src", "evaluacion", "tabla_resultados_fase4.R"))
+source(here::here("src", "evaluacion", "tabla_resultados_fase5.R"))   # carga también la de Fase 4
 
 .l4_sintetico <- function(raiz, exp_id, grupo, submuestras = FALSE, quitar_mcs = FALSE, n_pares = 10L) {
   d <- file.path(raiz, exp_id); dir.create(d, recursive = TRUE)
@@ -73,4 +73,29 @@ test_that("marca_n: n_bajo_calibracion bajo el piso de V9 (F4-35), vacía en el 
   r <- utils::read.csv(f, stringsAsFactors = FALSE, na.strings = "NA")
   expect_identical(names(r)[ncol(r)], "marca_n")
   expect_identical(sum(r$marca_n == "n_bajo_calibracion", na.rm = TRUE), 4L)
+})
+
+test_that("Fase 5: variantes por el sufijo del exp_id, columnas de densidad e identico_a, y la de Fase 4 sin cambios", {
+  ex5 <- experimentos_tabla_fase5()
+  v <- vapply(seq_len(nrow(ex5)), function(k) variante_f5(ex5[k, ]), character(1))
+  expect_identical(as.vector(table(factor(v, VARIANTES_ORDEN_F5))), c(3L, 3L, 2L, 0L, 0L, 2L, 3L, 2L))
+  expect_error(variante_f5(EXPERIMENTOS_REPRO[1, ]), "no es un experimento de modelos de Fase 5")
+  raiz <- tempfile("l4_"); on.exit(unlink(raiz, recursive = TRUE))
+  for (id in c("F5_G1", "F5_G1_R7")) {
+    d <- .l4_sintetico(raiz, id, "G1", submuestras = id == "F5_G1")
+    for (f in c("mcs.csv", if (id == "F5_G1") "mcs_submuestras.csv")) {
+      m <- utils::read.csv(file.path(d, f), stringsAsFactors = FALSE); m$identico_a <- NA
+      utils::write.csv(m, file.path(d, f), row.names = FALSE, na = "")
+    }
+  }
+  exps <- rbind(.exp("F5_G1", "G1", r3 = TRUE, r4 = TRUE), .exp("F5_G1_R7", "G1"))
+  t <- armar_tabla_fase5(raiz, exps)
+  expect_identical(unique(t$variante), c("principal", "R3", "R4", "R7"))
+  expect_identical(names(t)[16:19], c("cobertura_80", "cobertura_95", "crps", "identico_a"))
+  t4 <- armar_tabla_resultados(raiz, exps[1, ])                                 # sin argumentos nuevos: columnas de Fase 4
+  expect_identical(ncol(t4), 15L)
+  file.remove(file.path(raiz, "F5_G1_R7", "mcs.csv"))
+  m <- utils::read.csv(file.path(raiz, "F5_G1", "metricas.csv")); m$crps <- NULL
+  utils::write.csv(m, file.path(raiz, "F5_G1", "metricas.csv"), row.names = FALSE, na = "")
+  expect_error(armar_tabla_fase5(raiz, exps[1, ]), "faltan columnas en F5_G1: crps")
 })
