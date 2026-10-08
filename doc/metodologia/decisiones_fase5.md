@@ -41,6 +41,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
 | F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
 | F5-14a a F5-14f | Tope de 8 h por pasada de `make eval`, secuencial; familias = bloques de F5-01, con `MULT.VAR_DIF` como representante de B2; representantes antes que la variante Q1 de F5-11; combinaciones con los miembros presentes; el BVAR sigue con 10 000 / 5 000 | protocolo §5 (nota 2026-10-08); checklist de Fase 5, B5 |
+| B3-1 a B3-8 | Implementación de B3: rejilla de λ desde el λ_max del origen; estacionalidad quitada en la ventana antes de estandarizar; rezagos del PIB dentro del PCA; K = 12 en todos los h; Σ = D · R · D con momentos sin centrar; guardas duras y bordes de rejilla a `diagnosticos.csv`; dos PR | F5-09, F5-11 y F5-12 (notas 2026-10-08); especificación del motor §2 (nota 2026-10-08) |
 
 ---
 
@@ -245,6 +246,14 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
 - Descartada: ridge, LASSO y elastic net como tres modelos, que triplican las columnas del MCS con modelos casi
   idénticos.
 
+**Nota (2026-10-08, B3-2 y B3-3).** Al implementar B3 se precisaron dos puntos de esta ficha (ver «Implementación del
+bloque B3», más abajo):
+
+- La estandarización dentro de la ventana es la de B3-2. En la ventana, cada columna y g_h se residualizan sobre
+  constante y dummies, y cada columna se divide por la desviación que queda. Por Frisch-Waugh-Lovell, esto equivale a
+  las dummies sin penalizar.
+- En el PCR, los rezagos del PIB entran al PCA junto con las predictoras (B3-3).
+
 ## F5-10 — Árboles (§6.6)
 
 **DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
@@ -279,6 +288,12 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
 orígenes Q1 se aplica después de los representantes de F5-14, y solo si con ellos la cuenta todavía no cabe. Ver
 «Tope de costo y representantes», más abajo.
 
+**Nota (2026-10-08, B3-4).** La cifra de «unos 27 para la primera estimación interna» se contó para h = 1 y sin rezagos.
+Con los rezagos 0..3 de F5-09 y la forma directa de F5-05, la estimación interna más chica tiene n_L − 15 − 2h filas,
+donde n_L son los trimestres en niveles hasta el origen. En el primer origen de G2 y G3, n_L = 40, que corresponde a los
+39 datos en diferencias de esta ficha. Eso da 23, 21, 17 y 9 filas en h = 1, 2, 4 y 8. Harold decidió mantener K = 12
+en todos los h (B3-4, en «Implementación del bloque B3»).
+
 ## F5-12 — Densidad de los modelos nuevos
 
 **DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas. El motor evalúa la gaussiana conjunta del
@@ -300,6 +315,14 @@ sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columna
   cuantiles (extensión 6 de la senda, que exige un CRPS por muestras en el motor y un bloque nuevo en V13).
 - **Combinaciones:** fuera de la calibración (una mezcla de gaussianas no es gaussiana).
 - Enmienda el protocolo §3, punto 4, que dejaba fuera a los «árboles sin bootstrap».
+
+**Nota (2026-10-08, B3-5 y B3-6).** En los regularizados, la covarianza empírica de los errores internos es
+Σ = D · R · D, con momentos sin centrar:
+
+- la varianza de cada h es el ECM interno del candidato elegido en sus 12 orígenes propios;
+- las correlaciones salen de los 12 orígenes internos comunes a h = 1..8.
+
+Ver «Implementación del bloque B3». B4 decide si los árboles usan la misma o los OOB de RF.
 
 ## F5-13 — Combinaciones (§6.7)
 
@@ -863,6 +886,107 @@ Las seis decisiones (F5-14a a F5-14f) se tomaron en la opción recomendada.
 - Hasta entonces, los YAML de B3 y B4 declaran la reoptimización en cada origen. Si la cuenta final activa la variante
   Q1, ese commit los modifica antes de E1.
 - Cada PR de B3, B3b y B4 registra su costo por origen, como lo hicieron B1, B2a y B2b.
+
+---
+
+## Implementación del bloque B3 (decidida por Harold el 2026-10-08)
+
+Al llevar F5-05, F5-09, F5-11 y F5-12 a código aparecieron ocho puntos que las fichas no fijaban. Uno de ellos (B3-4)
+viene de un dato nuevo sobre F5-11. Se le presentaron a Harold como preguntas antes de escribir código (Regla 4), y los
+ocho se decidieron en la opción recomendada.
+
+- **B3-1 · Rejilla de λ del elastic net. DECIDIDO:** en cada origen, `h` y α, 100 valores log-espaciados desde el
+  λ_max de la ventana final (las filas con t + h ≤ o) hasta λ_max · 10⁻³. La misma rejilla sirve para las 12
+  estimaciones internas y para la final, como en `cv.glmnet`. La rejilla usa datos ≤ o y nunca posteriores (G-1).
+  Descartadas: una rejilla relativa al λ_max de cada ventana interna, en la que un mismo cociente significa
+  penalizaciones distintas en ventanas distintas, y el defecto de `glmnet` (`lambda.min.ratio` de 10⁻⁴ o de 10⁻²
+  según sea n ≥ p o n < p), que cambia con el grupo y con la ventana.
+- **B3-2 · Estacionalidad de las predictoras NSA. DECIDIDO:** en cada ventana de estimación, la final y cada interna,
+  se residualizan por MCO, dentro de la ventana, cada columna Δlog con sus rezagos y g_h sobre constante + 3 dummies
+  trimestrales. Después, cada columna se estandariza con la desviación que queda. El ENET (`glmnet` con
+  `standardize = FALSE`) y el PCR trabajan sobre esas columnas, y la fila de pronóstico se transforma con los
+  coeficientes y las escalas de la ventana. Por Frisch-Waugh-Lovell equivale a las dummies sin penalizar de F5-09, con
+  la escala no estacional de cada columna. Precisa la «estandarización dentro de la ventana de estimación» de F5-09
+  (nota fechada en la ficha). Descartada: la letra de F5-09, con la estandarización de `glmnet` sobre las columnas
+  crudas. Con ella, la estacionalidad domina la desviación de una NSA, así que su señal no estacional queda más
+  penalizada que la de una SA, y los primeros componentes del PCR recogen estacionalidad.
+- **B3-3 · Rezagos del PIB en el PCR. DECIDIDO:** entran al PCA junto con las predictoras. Es la letra de F5-09 y da
+  el mismo conjunto de información que el ENET. El PCR es el MCO de g_h sobre constante + dummies + k componentes.
+  Descartada: la forma DI-AR de Stock y Watson (2002), con los 4 rezagos del PIB fuera del PCA (8 + k parámetros), que
+  no cabe en la estimación interna más chica de G2 y G3 a h = 8, de 9 filas.
+- **B3-4 · K = 12 en horizontes largos (dato nuevo sobre F5-11). DECIDIDO:** se mantiene K = 12 en todos los h, con
+  las rejillas completas. La estimación interna más chica tiene n_L − 15 − 2h filas, donde n_L son los trimestres en
+  niveles hasta el origen. En el primer origen de G2 y G3 (n_L = 40) son 23, 21, 17 y 9 filas en h = 1, 2, 4 y 8, y en
+  el de G1 (n_L = 77), 60, 58, 54 y 46. La estimación final tiene n_L − 4 − h filas: 35, 34, 32 y 28 en G2 y G3. Se
+  declara como límite que la selección es ruidosa en h = 8 en los primeros orígenes de G2 y G3, donde de todos modos
+  no se interpretan exclusiones del MCS. `diagnosticos.csv` reporta, para cada h, las filas de la ventana interna más
+  chica y las de la final. Descartado: un piso de 20 filas por origen interno. Haría variar K con el origen y con h,
+  lo que F5-11 descartó, y en el primer origen de G2 y G3 a h = 8 dejaría un solo origen interno.
+- **B3-5 · Orígenes internos de la covarianza h × h. DECIDIDO:** Σ = D · R · D. La varianza de cada h sale de sus 12
+  errores internos propios (o − h − 11..o − h), los mismos con que se eligió su hiperparámetro. Las correlaciones entre
+  horizontes salen de los 12 orígenes internos comunes a h = 1..8 (o − 19..o − 8). En los orígenes comunes que no son
+  propios de un h, su candidato elegido se estima también, con a lo sumo 7 estimaciones más por h. La matriz es
+  semidefinida positiva por construcción. Descartadas: armar toda la matriz con los orígenes comunes, porque la
+  varianza de h = 1 saldría de errores de 8 a 19 trimestres atrás, y estimar cada elemento con sus propios orígenes
+  comunes y proyectar después a la matriz semidefinida positiva más cercana.
+- **B3-6 · Segundo momento. DECIDIDO:** sin centrar, 1/K Σ e e'. La diagonal es el ECM interno del candidato
+  elegido, y R son las correlaciones de los momentos sin centrar. Así se incluye el sesgo de los errores internos, lo
+  que es coherente con un pronóstico puntual que no corrige el sesgo y con el criterio de selección. Descartada: la
+  covarianza centrada (`stats::cov`, n − 1), que ignora el sesgo.
+- **B3-7 · Guardas (Regla 7) y bordes de la rejilla. DECIDIDO:** `stop()` ante cualquiera de estos casos:
+  - NA o valores no finitos;
+  - una columna sin variación no estacional en una ventana;
+  - una senda de `glmnet` incompleta o coeficientes no finitos;
+  - un MCO del PCR que pierde rango o tiene menos filas que parámetros;
+  - una covarianza que no es definida positiva.
+
+  Un λ elegido en un extremo de la rejilla, o k = 5, se anota en `diagnosticos.csv` y no detiene el motor. `piso_gl =
+  FALSE` (F5-09), y no se aplica la guarda de número de condición de las ARIMAX (B1b-2). Descartado: `stop()` también
+  en el borde, que en la corrida única detendría toda la pasada por una sola celda.
+- **B3-8 · Dos PR, uno después del otro y sin apilar. DECIDIDO:** el primero lleva la infraestructura, que B4 puede
+  reutilizar: C3 (forma directa), C4 (validación anidada, con su prueba de que no usa datos posteriores al origen) y
+  la covarianza de errores internos. El segundo, cuando el primero esté en `main`, lleva `REG.ENET.Gk` y `REG.PCR.Gk`
+  con sus YAML, el canario V18 y el costo por origen. Es otra excepción declarada a «un PR por bloque» de F5-01, como
+  B1-4 y B2-8.
+
+**Decisiones menores del agente en el PR 1 de B3.** Son revertibles en un commit. Ninguna cambia un resultado de
+Fase 4 ni de los `F5_REPRO_*`: el motor no cambia y el registro de Fase 5 tampoco.
+
+- **Ubicación del código:** `src/evaluacion/forma_directa.R`, que se carga desde `modelos_fase5.R`. Por tema:
+  - matriz y objetivo: `matriz_directa()` y `crecimiento_acumulado()`;
+  - ventana de B3-2: `ventana_directa()` y `aplicar_ventana()`;
+  - validación anidada (C4): `origenes_internos()`, `origenes_comunes()`, `pronosticos_internos()` y
+    `seleccionar_candidato()`;
+  - covarianza (B3-5 y B3-6): `cov_errores_internos()`;
+  - ajuste y fábrica: `ajustar_directo()` y `modelo_directo()`.
+
+  Un modelo directo declara una especificación con tres elementos: `candidatos()` (la rejilla del origen y de h,
+  calculada sobre la ventana final), `estimar_predecir()` y `transformar` (TRUE para aplicar la ventana de B3-2). B4
+  decide si los árboles la usan.
+- **Muestra:** como en B1 y B2, cada modelo empieza donde empiezan todas sus series. La primera fila es la primera con
+  Δy y todos los Δlog con sus rezagos.
+- **Los ocho horizontes:** se estima un modelo directo para cada h = 1..8, aunque solo se evalúan 1, 2, 4 y 8. El
+  contrato pide el sendero completo (G-3), y la tasa interanual en h > 4 y la trimestral necesitan la covarianza 8 × 8.
+- **Escala de la estandarización:** la raíz del promedio de los residuos al cuadrado (denominador n, la convención de
+  `glmnet`). Un factor común a todas las columnas no cambia los componentes ni la rejilla de B3-1, que es relativa a
+  λ_max.
+- **Empates en el ECM interno:** gana el primer candidato de la rejilla. Los modelos la ordenan de más a menos
+  penalizado.
+- **Errores del elegido en los orígenes comunes:** donde esos orígenes no son propios de un h, el candidato elegido
+  se estima con la misma rejilla. Así, el error coincide con el que habría dado la pasada de selección (prueba en
+  `tests/test-forma-directa.R`).
+- **Guardas de la ventana (B3-7):** `stop()` también en tres casos más:
+  - la ventana tiene tantas filas como regresores deterministas, o menos;
+  - las dummies pierden rango;
+  - un origen interno queda antes de la primera fila con todos los rezagos.
+- **Diagnósticos por origen:** las filas y columnas de la matriz y, para cada h, el candidato elegido, su ECM interno
+  y las filas de la ventana interna más chica y de la final. Cada modelo agrega los suyos (α, λ, borde de la rejilla,
+  k).
+- **Dato para el PR 2 (verificado el 2026-10-08 con `glmnet` 5.0 en el sandbox):** con `standardize = FALSE` e
+  `intercept = FALSE`, λ_max = max |Z'g| / (n · max(α, 10⁻³)) coincide con el que calcula `glmnet`. En una prueba con
+  9 filas y 31 columnas (p > n), la senda que genera `glmnet` con su propia rejilla se corta antes de los 100 valores:
+  61 en α = 1 y 63 en α = 0,5. Con la rejilla pasada de forma explícita devuelve los 100. El PR 2 pasa la rejilla
+  explícita y no toca `glmnet.control()`, que es estado global.
 
 ---
 
