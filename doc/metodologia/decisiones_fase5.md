@@ -47,6 +47,7 @@ como notas fechadas; no se reescribe lo registrado.
 | B4-1 a B4-6 | Implementación de B4: ventana de B3-2; densidad de errores internos y no OOB; rejilla del RF con mtry deduplicado en G1 y semilla del generador de R que siembra el motor; rondas de LightGBM en 10..500 por `num_iteration`; representante `ML.RF`; canario V20 (decisiones delegadas al agente; se pueden reabrir) | F5-10, F5-12 y «Tope de costo y representantes» (notas 2026-10-08) |
 | B5-1 a B5-5 | Implementación de B5 (delegadas al agente): errores de los pesos inversos al ECM contra el objetivo visto en el origen; variantes `F5_Gk_Rn` (R1 y R6 en los tres grupos, R2 y R5 en G2 y G3, R7 en G2 y G3); predictoras recortadas al inicio de la ventana en R1 y R2; R7 con los modelos con UT y sin combinaciones; combinaciones como paso del orquestador, con los miembros en su YAML | F5-13, F5-14 y F5-04c (esta sección); «Implementación del bloque B5» |
 | F5-14b (respuesta) y CF-1 a CF-3 | Cuenta final: no se paraleliza; representantes en R1, R2, R5 y R6 y variante Q1 de F5-11 en ENET, PCR, RF y LightGBM (decisión de Harold); reutilizar la elección del Q1 con errores internos recalculados, reoptimizar sin Q1 previo y canarios (delegadas al agente). Proyección ≈ 6 h 48 min | protocolo §5 y F5-11 (notas 2026-10-08); YAML de `REG.*`, `ML.*` y `COMB.*` |
+| E2-1 | `UNI.UC_LLT`: si `StructTS` no converge desde su arranque por defecto, el mejor de cinco arranques fijos; si ninguno converge, `stop()` (delegada al agente; después del congelamiento, declarada) | F5-06 (nota 2026-10-08); protocolo §6; `UNI.UC_LLT.yaml` |
 
 ---
 
@@ -287,6 +288,20 @@ del bloque B4», más abajo; decisiones delegadas al agente):
 - en G1, p = 12 columnas y ⌈p/3⌉ = ⌈√p⌉ = 4: la rejilla de mtry se deduplica y el RF tiene 2 candidatos (B4-3);
 - las rondas de LightGBM se eligen en {10, 20, ..., 500}, con un entrenamiento por num_leaves y el pronóstico en cada
   número de rondas (B4-4).
+
+**Nota (2026-10-08, E2-1; después del congelamiento E1, `f8fe345`).** En la corrida única, `UNI.UC_LLT` se detuvo en
+2013-Q2 de `F5_G1`: `StructTS` terminó con `optim` code 52 («ABNORMAL_TERMINATION_IN_LNSRCH»), y la guarda de la ficha
+(«code = 0 o el motor se detiene») paró el motor. Ningún resultado de un `F5_G*` se había escrito ni mirado. **E2-1
+(decisión delegada al agente, se puede reabrir):** si `StructTS` no converge desde su arranque por defecto, se reestima
+desde cinco arranques fijos proporcionales a v = var(Δy) (`ARRANQUES_UC`) y se toma el ajuste convergido de mayor
+log-verosimilitud. Si ninguno converge, el motor se detiene (Regla 7). Donde el arranque por defecto converge, el
+resultado no cambia. Razón: cerca del óptimo la superficie es plana. En 2013-Q2, el arranque por defecto quedó en una
+log-verosimilitud de 274,83; cuatro de los cinco alternativos convergen a 275,19-275,21. Con datos sintéticos parecidos
+al PIB, el arranque por defecto falla en 19 de 400 series y el alternativo las resuelve todas. Sobre L3, un barrido de
+todos los orígenes de los 15 `F5_G*` muestra que el alternativo se usa en 9 pares experimento-origen y que ninguno
+falla. `diagnosticos.csv` registra el arranque (0 = por defecto). Descartadas: aceptar el ajuste con code 52, que no es
+un óptimo, y reescalar la serie, que no corrigió 2013-Q2. Cambia `UNI.UC_LLT.yaml` (campo `convergencia`) y se declara
+en el protocolo §6.
 
 ---
 
