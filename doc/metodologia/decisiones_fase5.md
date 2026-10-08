@@ -45,6 +45,7 @@ como notas fechadas; no se reescribe lo registrado.
 | B3-9 | Representante de B3 para R1, R2, R5 y R6: `REG.ENET` (decisión delegada al agente; se puede reabrir) | «Tope de costo y representantes» (nota 2026-10-08) |
 | B3b-1 a B3b-7 | Implementación de B3b (delegadas al agente): meses del U-MIDAS acotados por el piso (G1 con la letra de F5-08; G2 y G3 con el último mes admitido); guardas de las ARIMAX; densidad del U-MIDAS de errores internos; AR mensual p ≤ 12; agregación linealizada en la densidad del puente; covarianza completa del puente con las innovaciones mensuales del trimestre; representante `MIX.PUENTE` | F5-08 y F5-12 (notas 2026-10-08); «Tope de costo y representantes» (nota 2026-10-08) |
 | B4-1 a B4-6 | Implementación de B4: ventana de B3-2; densidad de errores internos y no OOB; rejilla del RF con mtry deduplicado en G1 y semilla del generador de R que siembra el motor; rondas de LightGBM en 10..500 por `num_iteration`; representante `ML.RF`; canario V20 (decisiones delegadas al agente; se pueden reabrir) | F5-10, F5-12 y «Tope de costo y representantes» (notas 2026-10-08) |
+| B5-1 a B5-5 | Implementación de B5 (delegadas al agente): errores de los pesos inversos al ECM contra el objetivo visto en el origen; variantes `F5_Gk_Rn` (R1 y R6 en los tres grupos, R2 y R5 en G2 y G3, R7 en G2 y G3); predictoras recortadas al inicio de la ventana en R1 y R2; R7 con los modelos con UT y sin combinaciones; combinaciones como paso del orquestador, con los miembros en su YAML | F5-13, F5-14 y F5-04c (esta sección); «Implementación del bloque B5» |
 
 ---
 
@@ -366,6 +367,9 @@ el tiempo (decisión delegada al agente; ver «Implementación del bloque B4»).
 miembros de cada combinación son los modelos de Fase 5 presentes en la variante: univariados y representantes. Se
 declaran en el YAML y el manifiesto dice que no es la misma combinación que la principal. Ver «Tope de costo y
 representantes», más abajo.
+
+**Nota (2026-10-08, B5).** Implementadas en `src/evaluacion/combinaciones.R`, con los 12 YAML `COMB.*.Gk` y las decisiones
+B5-1 y B5-5 (delegadas al agente), en «Implementación del bloque B5».
 
 ## F5-14 — Batería de robustez y costo de cómputo
 
@@ -1311,6 +1315,66 @@ el error binomial con los pares de las dos réplicas, que todavía lo subestima 
 La holgura de V18 (0,10) no cambia. La misma corrida mostró que el RF no es idéntico entre sistemas: la razón de RMSE en
 h = 1 fue 0,638 en Ubuntu y 0,626 en el sandbox de Windows, con el mismo DGP y las mismas semillas. Como con el BVAR
 (F5-15, F1-3), el bit a bit se exige en una misma máquina; E2 corre en la de Harold.
+
+---
+
+## Implementación del bloque B5 (2026-10-08; decisiones delegadas al agente)
+
+Harold autorizó el 2026-10-08 que el agente avance sin supervisión. Al llevar a código F5-13 (combinaciones), las
+variantes de F5-14 y R7 (F5-04c) aparecieron cinco puntos que las fichas no fijaban. Los cinco son **decisiones
+delegadas al agente** y se pueden reabrir. Ninguna cambia un resultado de Fase 4 ni de los `F5_REPRO_*`: las
+combinaciones y las variantes solo existen en los experimentos `F5_G*`, que siguen bajo el candado de F5-02.
+
+- **B5-1 · Errores de los pesos inversos al ECM. DECIDIDO (delegada):** en el origen o y el horizonte h, el error de
+  cada miembro en cada par (o', h) con o' + h ≤ o se mide en la pérdida del experimento (yoy_pp, F4-04) contra el
+  objetivo **como se ve en o**. En la principal es el ajuste X-13 reestimado en o (F4-09b). Con h ≤ 4 la base de la
+  tasa es observada; con h > 4 sale del mismo sendero, como en `derivar_unidades()`. La combinación de o no usa nada
+  posterior a o (G-1). El descuento es δ^((o − h) − o'): el par más reciente pesa 1. Descartadas: los errores contra el
+  vintage de evaluación, que usa datos posteriores a o, y contra el objetivo visto en cada o', que mezcla vistas del
+  objetivo.
+- **B5-2 · Variantes de Fase 5. DECIDIDO (delegada):** se declaran como experimentos `F5_Gk_Rn` en
+  `EXPERIMENTOS_VARIANTES_FASE5` (`motor_backtesting.R`), con el `exp_id` como sufijo de la variante y sin columnas
+  nuevas en la tabla de experimentos, así que las salidas de los `F5_REPRO_*` no cambian. Son R1 (ventana rodante de
+  92 trimestres) y R6 (ajuste estacional único de L3) en los tres grupos; R2 (muestra homogénea desde 2005) y R5
+  (objetivo oficial con su ajuste) solo en G2 y G3, como en la proyección de F5-14; y R7 en G2 y G3. R3 y R4 siguen
+  como submuestras dentro de la principal. Hasta la cuenta final de F5-14, R1, R2, R5 y R6 corren todos los modelos de
+  Fase 5; si la cuenta aplica los representantes (F5-14c), ese commit cambia `modelos_experimento()` y los YAML de las
+  combinaciones (F5-14e).
+- **B5-3 · Predictoras en las ventanas de R1 y R2. DECIDIDO (delegada):** el motor se detenía con predictoras y una
+  ventana distinta de la expansiva. Ahora, en cada origen, cada predictora se recorta al inicio de la ventana del
+  objetivo (`recortar_inicio_predictora()`): las trimestrales desde ese trimestre y las mensuales desde su primer mes.
+  La forma directa, los VAR y el puente pierden las primeras filas que piden sus rezagos, igual que el objetivo.
+  Descartada: dejarles a las predictoras su historia completa. En R1 los modelos verían así más que la ventana rodante,
+  y en R2 la muestra dejaría de ser homogénea.
+- **B5-4 · Alcance de R7. DECIDIDO (delegada):** R7 corre los benchmarks y los modelos de Fase 5 que piden UT, trimestral
+  o mensual. En G2 son `UNI.ARIMAX.G2`, `MULT.BVAR.G2`, `REG.ENET.G2`, `REG.PCR.G2`, `MIX.UMIDAS.G2`,
+  `MIX.PUENTE.G2`, `ML.RF.G2` y `ML.LGBM.G2`; en G3, los mismos con `.G3`. El rezago de UT pasa de 30 a 61 días
+  (`REZAGO_UT_R7`), el de IVAE e IPM: 1 mes de o+1 en lugar de 2. R7 no lleva combinaciones: mide la sensibilidad de
+  los modelos con UT al supuesto de F5-04, y una combinación sin los modelos que no usan UT no sería comparable con la
+  de la principal. Descartada: correr en R7 todos los modelos, que repite los que no cambian.
+- **B5-5 · Implementación de las combinaciones. DECIDIDO (delegada):** son un paso de `correr_experimento()`, después de
+  `correr_backtest()` y antes de las unidades y las métricas (`src/evaluacion/combinaciones.R`, F5-13). Así entran a
+  RMSE, DM/GW, MCS y R3/R4 como un modelo más, y quedan fuera de la calibración, porque no tienen densidad (F5-12).
+  - Combinan el log-nivel de cada h, que equivale a combinar el crecimiento acumulado porque y_o es común.
+  - La recortada usa `mean(trim = 0,1)`: con 11, 12 y 13 miembros quita uno de cada lado.
+  - Los pesos y el número de errores de `COMB.ECM_INV` van a `diagnosticos.csv`.
+  - Los miembros se declaran en el YAML de cada combinación (`hiperparametros.miembros`). `main()` comprueba que son los
+    modelos de Fase 5 del experimento (`verificar_miembros_combinaciones()`, C8) y hashea esos YAML en el manifiesto.
+  - Con menos de dos miembros, el experimento no combina; con el registro, eso solo pasa en las pruebas.
+
+**C6 (F5-15): V21.** La verificación sintética corre dos veces el registro de Fase 5 de G2 con la configuración de
+producción (12 modelos), los seis benchmarks y las cuatro combinaciones, sobre insumos sintéticos con los inicios de L3,
+en el primer origen de G2. Las dos corridas usan el mismo `exp_id` y distinta semilla global, y dan un sha256 idéntico
+en pronósticos, densidades y diagnósticos. Con otro `exp_id` cambian el BVAR y el RF, que usan el generador. El bloque
+corre en un solo origen para acotar el costo: unos 5 minutos en el sandbox, porque LightGBM cuesta 75 s por origen en
+G2. En la cuenta de F5-14 entra con la verificación.
+
+**Pruebas:** `tests/test-combinaciones.R` comprueba los cuatro esquemas contra cálculos independientes, los pesos de
+`COMB.ECM_INV` con δ = 0,9 y los pares con o' + h ≤ o, la ausencia de mirada adelante (alterar el objetivo visto después
+de o no cambia la combinación de o), las guardas, las variantes declaradas y el candado de F5-02. De punta a punta en
+`correr_experimento()`, comprueba la principal con combinaciones, R7 con UT a 61 días y sin combinaciones, y R1 con las
+predictoras recortadas. `tests/test-catalogo-modelos.R` comprueba los 12 YAML de las combinaciones contra el registro y
+las constantes del código.
 
 ---
 

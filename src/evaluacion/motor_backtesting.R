@@ -146,6 +146,18 @@ modelos_experimento <- function(ex) {
 #' Combinaciones que escribe un experimento (F5-13): ninguna fuera de los F5_G* y de R7.
 combinaciones_experimento <- function(ex) if (combina(ex)) ids_combinaciones(ex$grupo) else character(0)
 
+#' Los miembros que declara el YAML de cada combinación del experimento son sus modelos de Fase 5 (F5-13, F5-14e).
+verificar_miembros_combinaciones <- function(ex) {
+  esperados <- setdiff(vapply(modelos_experimento(ex), `[[`, character(1), "modelo_id"), vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
+  for (id in combinaciones_experimento(ex)) {
+    y <- yaml::read_yaml(here::here("catalogos", "06_modelos", paste0(id, ".yaml")))
+    if (!identical(as.character(unlist(y$especificacion$hiperparametros$miembros)), esperados)) {
+      stop("C8: los miembros que declara ", id, ".yaml no son los modelos de Fase 5 de ", ex$exp_id, " (F5-13, F5-14e)")
+    }
+  }
+  invisible(TRUE)
+}
+
 #' Recorta una predictora al inicio de la ventana del objetivo (R1 y R2 con predictoras, B5-3): las trimestrales desde el
 #' trimestre `inicio`, las mensuales desde su primer mes.
 recortar_inicio_predictora <- function(d, inicio) {
@@ -667,6 +679,7 @@ main <- function(exp_ids = character(0)) {
   modelos_corrida <- modelos_corrida[!duplicated(vapply(modelos_corrida, `[[`, character(1), "modelo_id"))]
   combs <- unique(unlist(lapply(seq_len(nrow(sel)), function(k) combinaciones_experimento(sel[k, ]))))
   verificar_registro_modelos(c(modelos_corrida, lapply(combs, function(id) list(modelo_id = id))))   # C8 (y B5)
+  for (k in seq_len(nrow(sel))) verificar_miembros_combinaciones(sel[k, ])                      # F5-13, F5-14e
   commit <- leer_commit()
   vintages <- leer_vintages()
   pol <- unique(sel$vintage)

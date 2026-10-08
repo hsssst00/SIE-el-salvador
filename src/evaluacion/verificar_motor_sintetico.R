@@ -56,6 +56,10 @@
 #   V20  random forest sobre un DGP no lineal (el PIB responde al valor absoluto de una predictora adelantada): bate al
 #        AR(p)-BIC en h = 1; la densidad de errores internos cubre dentro de la holgura declarada de V18; con un placebo
 #        no empeora al AR(p)-BIC en más de 10 % en h = 1; reejecutar reproduce bit a bit el RF y el LightGBM (F5-15)
+# Bloque de la doble corrida de Fase 5 (C6; F5-15, F5-13):
+#   V21  el registro de Fase 5 de G2 con la configuración de producción, los benchmarks y las cuatro combinaciones sobre
+#        insumos sintéticos con los inicios de L3: dos corridas con el mismo exp_id dan sha256 idéntico; otro exp_id cambia
+#        la semilla del BVAR y del RF
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -890,5 +894,60 @@ l20b <- sin_attr20(correr_backtest(t20$s, lg20, ors20[1], rezagos = rezagos20, e
 if (!identical(l20a, l20b) || !all(is.finite(l20a$p$sd_log_nivel))) stop("V20: reejecutar el LightGBM no reproduce bit a bit sus pronósticos y diagnósticos (F5-15)")
 ok("V20", "reejecutar reproduce bit a bit sendero, densidad y diagnósticos del RF (dos orígenes) y del LightGBM (uno) (F5-15)")
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V20 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V20)\n")
+# --- V21 · doble corrida con los modelos de Fase 5 y sus combinaciones (C6; F5-15) ----------------
+# Insumos sintéticos de G2 con los inicios de L3 (mensuales y trimestrales), el registro real de G2 (los 12 modelos de
+# Fase 5, con la configuración de producción) más los benchmarks en el primer origen de G2 (2014-Q4), y las cuatro
+# combinaciones (F5-13). Dos corridas con el mismo exp_id y distinta semilla global dan sha256 idéntico en pronósticos,
+# densidades y diagnósticos; con otro exp_id, el BVAR y el RF (los que usan el generador) cambian. Un solo origen acota
+# el costo (unos 5 minutos: el LightGBM de producción cuesta 75 s por origen en G2).
+INICIO_M21 <- c(BCR.REMESAS.NOM.NSA = "1991-M01", BCR.EXPORT_FOB.NOM.NSA = "1994-M01", BCR.ITCER.IDX.NSA = "2000-M01",
+                UT.DEMANDA_ELEC.GWH.NSA = "2002-M01", BCR.IVAE.VOL.SA = "2005-M01", BCR.IPM.IDX.NSA = "2005-M01")
+set.seed(SEMILLA_RAIZ + 21L)
+obj21 <- simular_objetivo(145L, 0.3, 0.01)
+pred21_todas <- list()
+for (b in names(INICIO_M21)) {
+  im <- m_a_ind(INICIO_M21[[b]]):m_a_ind("2026-M06")
+  est <- if (grepl(".NSA", b, fixed = TRUE)) 0.03 * sin(pi * (im %% 12L) / 6) else 0
+  x <- 100 * exp(cumsum(0.0015 + stats::rnorm(length(im), 0, 0.01)) + est)
+  pred21_todas[[paste0(b, ".M")]] <- data.frame(periodo = sprintf("%d-M%02d", im %/% 12L, im %% 12L + 1L), valor = x, stringsAsFactors = FALSE)
+  iq <- im %/% 3L; qs <- as.integer(names(which(table(iq) == 3L)))
+  pred21_todas[[paste0(b, ".Q")]] <- data.frame(periodo = ind_a_q(qs), valor = as.numeric(tapply(x, iq, mean)[as.character(qs)]), stringsAsFactors = FALSE)
+}
+mods21 <- modelos_fase5("G2")
+ids21  <- vapply(mods21, `[[`, character(1), "modelo_id")
+pred21 <- setdiff(unique(unlist(lapply(mods21, `[[`, "requiere"))), "objetivo")
+if (length(setdiff(pred21, names(pred21_todas)))) stop("V21: faltan predictoras sintéticas: ", paste(setdiff(pred21, names(pred21_todas)), collapse = ", "))
+rez21 <- rezagos_predictoras(pred21)
+ors21 <- q_a_ind("2014-Q4")
+y21 <- stats::setNames(lapply(ors21, function(o) { s <- obj21[q_a_ind(obj21$periodo) <= o, ]; stats::setNames(s$y, q_a_ind(s$periodo)) }), ors21)
+corrida21 <- function(exp_id, semilla_global, modelos = c(modelos_referencia(), mods21)) {
+  set.seed(semilla_global)   # la semilla global previa no debe importar: el motor la fija por (exp, modelo, origen)
+  p <- correr_backtest(c(list(objetivo = obj21), pred21_todas[pred21]), modelos, ors21,
+                       rezagos = rez21, exp_id = exp_id, densidad = TRUE)
+  cmb <- if (length(modelos) > length(modelos_referencia())) combinar_pronosticos(p, ids21, "G2", y21) else NULL
+  list(p = p, cmb = cmb, sha = digest::digest(list(p, cmb), algo = "sha256"))
+}
+c21a <- corrida21("V21", 1L); c21b <- corrida21("V21", 2L)
+sin_attr21 <- function(cr) {
+  d <- rbind(attr(cr$p, "diagnosticos"), attr(cr$cmb, "diagnosticos")); rownames(d) <- NULL
+  p <- rbind(cr$p, cr$cmb); attr(p, "diagnosticos") <- NULL; rownames(p) <- NULL
+  list(p = p, d = d)
+}
+if (!identical(c21a$sha, c21b$sha)) {
+  a <- sin_attr21(c21a); b <- sin_attr21(c21b)
+  dif <- unique(c(a$p$modelo_id[!vapply(seq_len(nrow(a$p)), function(i) identical(unlist(a$p[i, ]), unlist(b$p[i, ])), logical(1))],
+                  if (!identical(a$d, b$d)) "diagnósticos"))
+  stop("V21: dos corridas con el mismo exp_id no son idénticas (F5-15); difieren: ", paste(dif, collapse = ", "))
+}
+estoc21 <- Filter(function(m) startsWith(m$modelo_id, "MULT.BVAR.") || startsWith(m$modelo_id, "ML.RF."), mods21)
+c21c <- corrida21("V21_otro", 1L, estoc21)
+for (m in estoc21) {
+  a <- c21a$p[c21a$p$modelo_id == m$modelo_id, ]; b <- c21c$p[c21c$p$modelo_id == m$modelo_id, ]
+  attr(a, "diagnosticos") <- NULL; attr(b, "diagnosticos") <- NULL; rownames(a) <- NULL; rownames(b) <- NULL
+  if (identical(a, b)) stop("V21: cambiar exp_id no cambió la semilla de ", m$modelo_id)
+}
+ok("V21", sprintf("dos corridas de los %d modelos de Fase 5 de G2 + 6 benchmarks + 4 combinaciones: sha256 idéntico (%s…); otro exp_id cambia %s",
+                  length(ids21), substr(c21a$sha, 1, 12), paste(vapply(estoc21, `[[`, character(1), "modelo_id"), collapse = " y ")))
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V21 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V21)\n")

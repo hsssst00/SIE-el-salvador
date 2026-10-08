@@ -88,6 +88,8 @@ test_that("B5-2 a B5-4: variantes declaradas, R7 con los modelos con UT y sin co
   expect_identical(combinaciones_experimento(EXPERIMENTOS_PRINCIPALES_FASE5[1, ]), ids_combinaciones("G1"))
   expect_identical(combinaciones_experimento(v[v$exp_id == "F5_G3_R6", ]), ids_combinaciones("G3"))
   expect_identical(combinaciones_experimento(EXPERIMENTOS_REPRO[1, ]), character(0))
+  for (k in seq_len(nrow(EXPERIMENTOS_PRINCIPALES_FASE5))) expect_true(verificar_miembros_combinaciones(EXPERIMENTOS_PRINCIPALES_FASE5[k, ]))
+  for (k in seq_len(nrow(v))) expect_true(verificar_miembros_combinaciones(v[k, ]), info = v$exp_id[k])   # sin representantes, los mismos
   d <- data.frame(periodo = ind_a_q(q_a_ind("2000-Q1") + 0:20), valor = 1)
   expect_identical(recortar_inicio_predictora(d, "2003-Q2")$periodo[1], "2003-Q2")
   dm <- data.frame(periodo = sprintf("2003-M%02d", 1:12), valor = 1)

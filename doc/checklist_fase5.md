@@ -96,7 +96,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   Estado 2026-10-08 (B4): los árboles usan la misma densidad de errores internos (B4-2); cobertura del RF en V20 con
   la holgura de V18 (con 2 réplicas, una comprobación débil; límite en `decisiones_fase5.md`).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
-  hashes.
+  hashes. Estado 2026-10-08: V21 en el PR de B5 (registro de G2 con la configuración de producción, benchmarks y
+  combinaciones, en el primer origen de G2; sha256 idéntico en dos corridas).
 
 ## D. Bloques de modelos (un PR por bloque, sin apilar; orden de F5-01)
 
@@ -110,17 +111,20 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   idénticas en el MCS) decidida; va en un PR del motor antes de E1. Estado 2026-10-07: B2a fusionado (PR #33,
   `821eaac`); B2-9 en su PR (`mcs_tmax_dedup()`, solo en `F5_G*`; los `F5_REPRO_*` no cambian). Estado 2026-10-07:
   B2-9 fusionado (PR #34, `a91b791`); B2-10 a B2-16 decididas; B2b en su PR (`MULT.BVAR.G1/.G2/.G3`, sus YAML y V16).
-- [ ] **D3 · B3** Regularizados. Estado 2026-10-08: B3-1 a B3-8 decididas. B3 va en dos PR, uno después del otro
+- [x] **D3 · B3** Regularizados. Estado 2026-10-08: B3-1 a B3-8 decididas. B3 va en dos PR, uno después del otro
   (B3-8). El PR 1 es la infraestructura: forma directa, validación anidada y covarianza de errores internos. El PR 2
   trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen. Estado 2026-10-08: PR 1 fusionado (#41,
   `13eba72`); el PR 2 en su rama (`REG.ENET.G1/.G2/.G3`, `REG.PCR.G1/.G2/.G3`, sus YAML, V18, costo y representante,
-  B3-9).
-- [ ] **D4 · B3b** MIDAS y puente. Estado 2026-10-08: B3b-1 a B3b-7 decididas (delegadas al agente); en su PR
-  (`MIX.UMIDAS.G1/.G2/.G3`, `MIX.PUENTE.G1/.G2/.G3`, sus YAML, V19, costo y representante `MIX.PUENTE`).
+  B3-9). PR 2 fusionado (#42, `3623032`).
+- [x] **D4 · B3b** MIDAS y puente. Estado 2026-10-08: B3b-1 a B3b-7 decididas (delegadas al agente); en su PR
+  (`MIX.UMIDAS.G1/.G2/.G3`, `MIX.PUENTE.G1/.G2/.G3`, sus YAML, V19, costo y representante `MIX.PUENTE`). Fusionado
+  (#43, `f6028fd`).
 - [ ] **D5 · B4** Árboles. Estado 2026-10-08: B4-1 a B4-6 decididas por el agente (decisiones delegadas; se pueden
   reabrir). B4 en su rama: `ML.RF.G1/.G2/.G3` y `ML.LGBM.G1/.G2/.G3` en `src/evaluacion/modelos_arboles.R`, sus YAML,
-  V20, costo por origen y representante `ML.RF` (B4-5).
-- [ ] **D6 · B5** Combinaciones (al final).
+  V20, costo por origen y representante `ML.RF` (B4-5). PR #44.
+- [ ] **D6 · B5** Combinaciones (al final). Estado 2026-10-08: B5-1 a B5-5 decididas por el agente (delegadas; se pueden
+  reabrir). En su PR: `src/evaluacion/combinaciones.R`, los 12 YAML `COMB.MEDIA/MEDIANA/RECORTADA/ECM_INV.Gk`, las
+  variantes `F5_Gk_Rn` (R1, R2, R5, R6 y R7) y V21 (C6).
 
 ## E. Preregistro y corrida única
 
@@ -131,7 +135,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [ ] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.
 - [ ] **E4** Análisis de robustez (protocolo §5) sobre los modelos de Fase 5.
 - [ ] **E5 · F5-04c** Experimento de robustez R7 (modelos con UT de G2 y G3 con UT a 61 días), declarado antes de la
-  corrida única y con su propio `exp_id`.
+  corrida única y con su propio `exp_id`. Estado 2026-10-08: declarado como `F5_G2_R7` y `F5_G3_R7` en el PR de B5
+  (B5-4); falta correrlo en E2.
 
 ## F. Cierre
 

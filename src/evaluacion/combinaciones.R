@@ -1,6 +1,6 @@
 # src/evaluacion/combinaciones.R
 #
-# Combinaciones de pronósticos de Fase 5, bloque B5 (F5-13, F5-14e, F5-12 y B5-1 a B5-n de doc/metodologia/decisiones_fase5.md).
+# Combinaciones de pronósticos de Fase 5, bloque B5 (F5-13, F5-14e, F5-12 y B5-1 a B5-5 de doc/metodologia/decisiones_fase5.md).
 # No son modelos del contrato: son un paso posterior del orquestador (motor_backtesting.R, correr_experimento()) sobre los
 # senderos que correr_backtest() ya produjo (F5-13). Sin I/O y sin estado global.
 #
