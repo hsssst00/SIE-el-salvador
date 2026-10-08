@@ -41,6 +41,10 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   Estado 2026-10-07: medidos B1 (UNI.ARIMA 3-4 s por origen; ARIMAX < 1 s) y B2a (VAR y VECM < 0,1 s por origen);
   faltan BVAR (B2b), B3, B3b y B4. Estado 2026-10-07 (B2b): BVAR medido: 16-19 s por origen en G1, 18 s en G2 y 21-26 s en G3,
   unos 38 minutos para los orígenes de los tres principales y unos 23 más para R7; faltan B3, B3b y B4.
+  Estado 2026-10-08: tope y reglas decididos (F5-14a a F5-14f en `decisiones_fase5.md`, «Tope de costo y
+  representantes»): 8 horas por pasada de `make eval`, secuencial; con B1 y B2 la proyección es de unas 4 h 15 min.
+  Representante de B2: `MULT.VAR_DIF`. Faltan el costo y el representante de B3, B3b y B4, y la cuenta final antes de
+  E1.
 
 ## C. Infraestructura que piden las decisiones
 
