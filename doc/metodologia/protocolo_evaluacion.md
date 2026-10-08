@@ -338,6 +338,13 @@ Fase 5 se decide en F5-14 (pendiente). Decisión en `doc/metodologia/decisiones_
 corren para todos salvo que el tiempo medido con datos sintéticos supere un tope declarado, y en ese caso solo para
 los univariados, las combinaciones y un representante por familia, fijados antes de ver resultados.
 
+**Nota (2026-10-08, F5-14a a F5-14f).** El tope es de 8 horas de reloj para una pasada completa de `make eval` en la
+máquina de Harold, proyectadas con el costo por origen medido en datos sintéticos; con B1 y B2 la proyección es de
+unas 4 h 15 min. La cuenta final se hace al cerrar B4, antes de E1. Si supera el tope, primero se vuelve a preguntar
+si se paraleliza; después, R1, R2, R5 y R6 corren con un representante por bloque de F5-01 (en B2, `MULT.VAR_DIF`) y
+con combinaciones de los miembros presentes; la variante Q1 de F5-11 se aplica solo si con eso todavía no cabe.
+Detalle en `doc/metodologia/decisiones_fase5.md`, «Tope de costo y representantes».
+
 ## 6. Registro del experimento y reproducibilidad
 
 Cada corrida escribe filas en `catalogos/07_experimentos.csv` con el esquema ya

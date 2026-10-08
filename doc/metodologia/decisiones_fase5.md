@@ -40,6 +40,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
 | F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
 | F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
+| F5-14a a F5-14f | Tope de 8 h por pasada de `make eval`, secuencial; familias = bloques de F5-01, con `MULT.VAR_DIF` como representante de B2; representantes antes que la variante Q1 de F5-11; combinaciones con los miembros presentes; el BVAR sigue con 10 000 / 5 000 | protocolo §5 (nota 2026-10-08); checklist de Fase 5, B5 |
 
 ---
 
@@ -274,6 +275,10 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
 - Con 39 datos en el primer origen de G2 y G3, K = 12 deja unos 27 para la primera estimación interna.
 - Descartada: K proporcional ⌊n/4⌋, que cambia el criterio de selección a lo largo de la muestra.
 
+**Nota (2026-10-08, F5-14d).** Si la cuenta final de F5-14 supera el tope, la variante que reoptimiza solo en los
+orígenes Q1 se aplica después de los representantes de F5-14, y solo si con ellos la cuenta todavía no cabe. Ver
+«Tope de costo y representantes», más abajo.
+
 ## F5-12 — Densidad de los modelos nuevos
 
 **DECIDIDO por Harold el 2026-10-05:** las dos opciones recomendadas. El motor evalúa la gaussiana conjunta del
@@ -314,6 +319,11 @@ sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columna
 - Implementación: las combinaciones no caben en `correr_backtest()` como un modelo más; son un paso posterior del
   orquestador sobre `pronosticos.csv` (B5, al final).
 
+**Nota (2026-10-08, F5-14e).** En las variantes R1, R2, R5 y R6 que corran con representantes (F5-14), los
+miembros de cada combinación son los modelos de Fase 5 presentes en la variante: univariados y representantes. Se
+declaran en el YAML y el manifiesto dice que no es la misma combinación que la principal. Ver «Tope de costo y
+representantes», más abajo.
+
 ## F5-14 — Batería de robustez y costo de cómputo
 
 **DECIDIDO por Harold el 2026-10-05:** la opción recomendada.
@@ -329,6 +339,10 @@ sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columna
 - Referencia hoy, en la máquina de Harold: los 13 experimentos de benchmarks tardan unos 5 minutos y V1-V13 unos 5
   a 6. El BVAR y la validación anidada son las piezas que multiplican el tiempo.
 - Descartadas: todos los modelos en todos los experimentos, y solo la principal con R3, R4 y R7.
+
+**Nota (2026-10-08, F5-14a a F5-14f).** El tope es de 8 horas de reloj por pasada completa de `make eval`. Las
+familias, el representante de B2, el orden de las palancas y la cuenta final están en «Tope de costo y
+representantes», más abajo.
 
 ## F5-15 — Reproducibilidad bit a bit
 
@@ -777,6 +791,78 @@ redondeo y otros datos, alguna decisión del MH puede cambiar.
   - máx |dif| / MCSE: media 1,5; covarianza 1,7; λ 1,2; SOC 1,4; SUR 0,096.
 
   Con eso, la diferencia de L2 frente a Windows queda en uno o dos errores de Monte Carlo.
+
+---
+
+## Tope de costo y representantes (F5-14, ítem B5 del checklist; decidida por Harold el 2026-10-08)
+
+F5-14 deja para un commit anterior a la corrida sobre L3 el tope de costo, los representantes por familia de R1, R2,
+R5 y R6 y, con F5-11, la variante de la validación anidada. El tope se fija ahora, antes de B3, porque los YAML de B3 y
+B4 declaran la variante de F5-11. B3, B3b y B4 todavía no están medidos, así que la cuenta que decide si el tope se
+supera se rehace al cerrar B4 (abajo, «Cuenta final»).
+
+**Costo proyectado con lo medido hasta hoy.** Sandbox Windows de la máquina de Harold y datos sintéticos; las cifras
+por origen son las registradas en B1b, B2a y B2b. Los grupos tienen 52, 45 y 25 orígenes, y R2 y R5 corren solo en G2
+y G3.
+
+| Pieza de una pasada de `make eval` | Minutos |
+|---|---|
+| Verificación V1-V17 (sandbox) | 17,0 |
+| 13 `F5_REPRO_*` (benchmarks; ≈ 287 s en la máquina de Harold) | 4,8 |
+| Principal (`F5_G1` a `F5_G3`) | 49,6 |
+| R7 (modelos con UT de G2 y G3) | 24,9 |
+| R1 / R2 / R5 / R6 | 49,6 / 29,8 / 29,8 / 49,6 |
+| **Total con B1 y B2** | **≈ 255 (4 h 15 min)** |
+
+- Supuestos de la proyección:
+  - benchmarks, X-13 y MCS: 287 s entre 506 pares origen-experimento, ≈ 0,57 s por origen;
+  - B1 completo: ≈ 4,9 s por origen (unos 10 minutos en los tres principales);
+  - VAR y VECM: 0,07 a 0,10 s por origen;
+  - BVAR: el punto medio de lo medido, 17,2 s en G1, 17,9 s en G2 y 23,7 s en G3;
+  - ARIMAX con UT en R7: 0,8 s, la cota de «menos de 1 s».
+- El BVAR pone 123 de los 159 minutos de R1, R2, R5 y R6 (77 %). Sin él en esas cuatro variantes, la pasada baja a
+  ≈ 132 minutos (2 h 12 min).
+
+Las seis decisiones (F5-14a a F5-14f) se tomaron en la opción recomendada.
+
+- **F5-14a · Tope. DECIDIDO:** 8 horas de reloj para **una** pasada completa de `make eval` en la máquina de Harold
+  (verificación, `F5_REPRO_*` y todos los `F5_*`). Se proyecta con el costo por origen medido en datos sintéticos por
+  los orígenes de cada experimento. Una pasada cabe en una noche. La repetición que comprueba el bit a bit de E2 (F1)
+  es una segunda pasada y no entra al tope. Descartadas: 4 horas, que ya se superan con B1 y B2, y 12 horas.
+- **F5-14b · Ejecución. DECIDIDO:** `make eval` sigue siendo secuencial; no se paraleliza por experimento. Si la cuenta
+  final supera el tope, se le vuelve a preguntar a Harold, con la cifra, si se paraleliza antes de aplicar los
+  representantes. Descartada por ahora: paralelizar por experimento con procesos PSOCK y escribir el registro al
+  final. Las semillas por (exp_id, modelo, origen) lo permitirían sin cambiar resultados, pero agrega código al motor
+  antes de E1.
+- **F5-14c · Familias y representantes. DECIDIDO:** una familia es un bloque de F5-01: B2 (multivariados), B3
+  (regularizados), B3b (frecuencia mixta) y B4 (árboles). Los univariados de B1 (ARIMA, UC y las ARIMAX) corren
+  siempre. El representante de B2 es `MULT.VAR_DIF` (`.G1`, `.G2` y `.G3`), que está en los tres grupos y cuesta menos
+  de 0,1 s por origen. Los representantes de B3, B3b y B4 se fijan en el PR de cada bloque, con su costo medido y antes
+  de E1. Si el tope se supera, la robustez del BVAR queda solo en R3, R4 y R7, y se declara. Descartadas: el BVAR como
+  representante de B2, que casi no ahorra, y nombrar ya los cuatro representantes sin el costo de B3, B3b y B4.
+- **F5-14d · Orden de las palancas. DECIDIDO:** si la cuenta final supera el tope, primero se aplican los
+  representantes en R1, R2, R5 y R6. La variante de F5-11 que reoptimiza solo en los orígenes Q1 se aplica solo si,
+  con representantes, la cuenta todavía supera el tope. Así la principal conserva la reoptimización en cada origen,
+  simétrica con la selección por BIC. Descartadas: la variante Q1 primero y las dos a la vez.
+- **F5-14e · Combinaciones en las variantes con representantes. DECIDIDO:** si R1, R2, R5 y R6 corren con
+  representantes, sus combinaciones (F5-13) llevan los miembros presentes en la variante: univariados y
+  representantes. Los miembros se declaran en el YAML y el manifiesto dice que no es la misma combinación que la
+  principal. Descartada: quitar las combinaciones de esas variantes, que reabriría F5-14.
+- **F5-14f · Extracciones del BVAR. DECIDIDO:** no se reabre B2-7; el BVAR sigue con 10 000 extracciones y 5 000 de
+  calentamiento. El error de Monte Carlo de la media (F1-3: de 0,01 pp en h = 1 a unos 0,14 pp de la tasa interanual en
+  h = 8) es más de un orden de magnitud menor que la desviación estándar de esa tasa sin 2020 (3,68 pp, protocolo §5).
+  Descartada: 5 000 / 2 500, que reduce a la mitad el costo del BVAR y multiplica el error de Monte Carlo por √2.
+
+**Cuenta final (al cerrar B4, antes de E1).**
+
+- Se mide con datos sintéticos el costo por origen de cada modelo de Fase 5 en el primer y el último origen de su
+  grupo, como se hizo con el BVAR, y se proyecta una pasada con los experimentos declarados.
+- La cifra y lo que dispara entran en un commit anterior al de congelamiento del preregistro (E1), que se cita
+  (protocolo §6, nota I1). Si la cuenta supera el tope, se sigue el orden de F5-14b, F5-14c y F5-14d. Si ni con las tres
+  palancas cabe, se le vuelve a preguntar a Harold.
+- Hasta entonces, los YAML de B3 y B4 declaran la reoptimización en cada origen. Si la cuenta final activa la variante
+  Q1, ese commit los modifica antes de E1.
+- Cada PR de B3, B3b y B4 registra su costo por origen, como lo hicieron B1, B2a y B2b.
 
 ---
 
