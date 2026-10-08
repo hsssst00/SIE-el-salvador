@@ -39,7 +39,7 @@ detecta `make raw` completo, que sigue siendo lo que cierra cada ventana. Una pa
 
 | Ventana | Fechas | Alcance |
 |---|---|---|
-| 2026-10 | 1–3 oct | **Parcial.** Hecho el 2026-10-01: 9 series BCR. Falta la captura trimestral de UT (octubre), lo que `make raw-rapido` marque como `NUEVO_PERIODO` (hoy el nivel 1 señala `BALANZA_PAGOS_TRIMESTRAL`, `IPI.VIGENTE` e `ITCER`, además de PIB-T NSA/NOMINAL sin calendario) y la pasada completa de `make raw` |
+| 2026-10 | 1–3 oct | **Cumplida.** 2026-10-01: 9 series BCR. 2026-10-02: pasada completa de `make raw` (incluidas `BALANZA_PAGOS_TRIMESTRAL` e `IPI.VIGENTE`) y captura trimestral de UT. Pendientes de captura solo 8 publicaciones de FRED y FMI (recuperables a demanda; ver el backlog). Fuera de ventana, 2026-10-07: Panorama del Banco Central M09 (D3) |
 | 2026-11 | 1–3 nov | `make raw` completo |
 | 2026-12 | 1–3 dic | `make raw` completo |
 | 2027-01 | 1–3 ene | `make raw` completo + captura trimestral UT |
@@ -53,5 +53,6 @@ detecta `make raw` completo, que sigue siendo lo que cierra cada ventana. Una pa
 | 2027-09 | 1–3 sep | `make raw` completo |
 | 2027-10 | 1–3 oct | `make raw` completo + captura trimestral UT |
 
-Última ventana cumplida: 2026-10-01 (captura de 9 series BCR, commit `1c08c66`).
+Última ventana cumplida: 2026-10-02 (`make raw` completo y UT; antes, el 2026-10-01, 9 series BCR,
+commit `1c08c66`; BCR del 10-02, commit `7c460bc`).
 Al cerrar cada ventana, mover esta línea a la fecha real de la corrida.
