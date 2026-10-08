@@ -345,6 +345,13 @@ si se paraleliza; después, R1, R2, R5 y R6 corren con un representante por bloq
 con combinaciones de los miembros presentes; la variante Q1 de F5-11 se aplica solo si con eso todavía no cabe.
 Detalle en `doc/metodologia/decisiones_fase5.md`, «Tope de costo y representantes».
 
+**Nota (2026-10-08, cuenta final de F5-14).** Con todos los bloques medidos, la pasada completa proyectaba unas 24 h.
+Harold decidió no paralelizar (F5-14b) y aplicar las dos palancas en su orden. R1, R2, R5 y R6 corren con los
+univariados de B1 y un representante por familia (`MULT.VAR_DIF`, `REG.ENET`, `MIX.PUENTE` y `ML.RF`), con
+combinaciones de esos miembros (F5-14c, F5-14e). El elastic net, el PCR, el random forest y LightGBM reoptimizan
+solo en los orígenes Q1 (variante de F5-11, F5-14d). La proyección queda en unas 6 h 48 min por pasada. Detalle en
+`doc/metodologia/decisiones_fase5.md`, «Tope de costo y representantes», «Cuenta final».
+
 ## 6. Registro del experimento y reproducibilidad
 
 Cada corrida escribe filas en `catalogos/07_experimentos.csv` con el esquema ya

@@ -112,8 +112,8 @@ especificacion_pcr <- function() list(
 # Registro por grupo
 # ---------------------------------------------------------------------------------------------
 
-modelo_enet_grupo <- function(grupo) modelo_directo(paste0("REG.ENET.", grupo), predictoras_grupo(grupo), especificacion_enet())
-modelo_pcr_grupo  <- function(grupo) modelo_directo(paste0("REG.PCR.", grupo), predictoras_grupo(grupo), especificacion_pcr())
+modelo_enet_grupo <- function(grupo) modelo_directo(paste0("REG.ENET.", grupo), predictoras_grupo(grupo), especificacion_enet(), reoptimizacion = REOPTIMIZACION_F5_11)
+modelo_pcr_grupo  <- function(grupo) modelo_directo(paste0("REG.PCR.", grupo), predictoras_grupo(grupo), especificacion_pcr(), reoptimizacion = REOPTIMIZACION_F5_11)
 
 #' Los regularizados de un grupo (F5-09), con todas sus predictoras (B1b-2), en el orden en que se reportan.
 modelos_regularizados_grupo <- function(grupo) {

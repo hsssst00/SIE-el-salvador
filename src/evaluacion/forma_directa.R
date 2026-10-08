@@ -248,9 +248,10 @@ cov_errores_internos <- function(e_propios, E_comunes, modelo_id = "?") {
 #' Ajuste de un modelo directo en un origen (C3, C4): para cada h, rejilla sobre la ventana final, validación anidada
 #' en los K orígenes propios, elección por ECM interno, errores del elegido en los orígenes comunes, y estimación final
 #' con las filas t + h <= o y pronóstico en t = o.
-ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_ANIDADA) {
+ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_ANIDADA, memo = NULL) {
   .validar_especificacion_directa(esp, md$modelo_id)
   o <- md$o; nw <- which(md$t == o)
+  previa <- eleccion_previa_q1(memo, o)                          # F5-11, variante Q1 (F5-14d): NULL si se reoptimiza
   comunes <- origenes_comunes(o, h_max, K)
   gl <- if (isTRUE(esp$piso_gl)) c(n_obs = sum(md$t + h_max <= o), n_par = ncol(md$X) + if (md$con_dummies) 4L else 1L)
   if (!is.null(gl)) guarda_gl(list(gl = gl), md$modelo_id, o)    # G-8 antes de la validación anidada (B3b): con menos
@@ -266,15 +267,26 @@ ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_A
       rejilla <- esp$candidatos(md$X[tr, , drop = FALSE], unname(g[tr]), h)
     }
     if (!is.data.frame(rejilla) || !nrow(rejilla)) stop(md$modelo_id, ": candidatos() debe devolver un data.frame con al menos una fila")
-    todos <- seq_len(nrow(rejilla))
     propios <- origenes_internos(o, h, K)
-    ip <- pronosticos_internos(md, h, propios, esp, rejilla, todos)
-    E <- ip$obs - ip$pred                                   # K x candidatos
-    ecm <- colMeans(E^2)
-    j <- seleccionar_candidato(ecm)
+    if (is.null(previa)) {
+      ip <- pronosticos_internos(md, h, propios, esp, rejilla, seq_len(nrow(rejilla)))
+      E <- ip$obs - ip$pred                                 # K x candidatos
+      ecm <- colMeans(E^2)
+      j <- seleccionar_candidato(ecm)
+      e_j <- E[, j]
+    } else {                                                # F5-11 (Q1): la elección del último Q1; errores internos del
+      j <- previa$eleccion[h]                               # elegido con los datos de o (la densidad no se reutiliza)
+      if (nrow(rejilla) != previa$n_candidatos[h]) {
+        stop(sprintf("%s en %s: la rejilla a h = %d tiene %d candidatos y la del origen Q1 %s tenía %d (F5-11)", md$modelo_id,
+                     ind_a_q(o), h, nrow(rejilla), ind_a_q(previa$origen), previa$n_candidatos[h]))
+      }
+      ip <- pronosticos_internos(md, h, propios, esp, rejilla, j)
+      e_j <- ip$obs - ip$pred[, 1]
+      ecm <- rep(NA_real_, nrow(rejilla)); ecm[j] <- mean(e_j^2)
+    }
     e_com <- stats::setNames(rep(NA_real_, length(comunes)), comunes)
     en_propios <- comunes[comunes %in% propios]
-    e_com[as.character(en_propios)] <- E[match(en_propios, propios), j]
+    e_com[as.character(en_propios)] <- e_j[match(en_propios, propios)]
     extra <- setdiff(comunes, propios)
     if (length(extra)) {
       ie <- pronosticos_internos(md, h, extra, esp, rejilla, j)
@@ -282,7 +294,7 @@ ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_A
     }
     g_hat <- .pronostico_ventana(md$X[tr, , drop = FALSE], unname(g[tr]), md$t[tr], md$X[nw, , drop = FALSE], o,
                                  md$con_dummies, esp, rejilla, j, md$modelo_id)
-    list(h = h, rejilla = rejilla, eleccion = j, ecm = ecm, e_propios = E[, j], e_comunes = unname(e_com), g_hat = g_hat,
+    list(h = h, rejilla = rejilla, eleccion = j, ecm = ecm, e_propios = e_j, e_comunes = unname(e_com), g_hat = g_hat,
          n_filas_min = min(ip$n_filas), n_filas_final = length(tr))
   })
   g_hat <- vapply(por_h, `[[`, numeric(1), "g_hat")
@@ -290,7 +302,46 @@ ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_A
   aj <- list(modelo_id = md$modelo_id, o = o, y_o = md$y_o, g_hat = g_hat, sendero = md$y_o + g_hat, Sigma = Sigma, por_h = por_h,
              n_filas = length(md$t), n_columnas = ncol(md$X))
   if (!is.null(gl)) aj$gl <- gl                                  # G-8 (F5-03) con la estimación final más chica (h = 8)
+  if (!is.null(memo)) aj$origen_eleccion <- if (is.null(previa)) o else previa$origen   # diagnóstico de la variante Q1
+  registrar_eleccion_q1(memo, o, por_h, reoptimizado = is.null(previa))
   aj
+}
+
+# ---------------------------------------------------------------------------------------------
+# Variante Q1 de F5-11 (F5-14d; decidida por Harold el 2026-10-08)
+# ---------------------------------------------------------------------------------------------
+#
+# Con reoptimizacion = "q1", el modelo reoptimiza (validación anidada sobre toda la rejilla) solo en los orígenes Q1 y
+# en los otros tres reutiliza, para cada h, el candidato que eligió en el último Q1, con la información de ese origen.
+# Los errores internos que dan la densidad (F5-12) se recalculan en cada origen con los datos de o, solo para el
+# candidato elegido. Un origen que no es Q1 reoptimiza si su Q1 no pasó por esta instancia del modelo: el primer origen
+# de G2 (2014-Q4) y de G3 (2019-Q4), o un conjunto de orígenes que no empieza en Q1. La memoria vive en la instancia
+# (modelo_directo() crea una por modelo y correr_experimento() una por experimento) y se vacía si los orígenes no llegan
+# en orden consecutivo, así que dos corridas del mismo experimento dan lo mismo (F5-15). Nada posterior a o entra: la
+# elección es de un origen anterior o igual (G-1).
+
+REOPTIMIZACION_F5_11 <- "q1"     # F5-14d: la cuenta final de F5-14 supera el tope con representantes (2026-10-08)
+
+#' Elección del último Q1 que puede reutilizar el origen `o` (NULL: reoptimizar).
+eleccion_previa_q1 <- function(memo, o) {
+  if (is.null(memo)) return(NULL)
+  if (is.null(memo$ultimo) || o != memo$ultimo + 1L) { memo$ultimo <- NULL; memo$q1 <- NULL }   # orden consecutivo o nada
+  if (o %% 4L == 0L || is.null(memo$q1)) return(NULL)                                           # Q1, o sin Q1 previo
+  if (memo$q1$origen != o - o %% 4L) stop("forma directa: la memoria de la variante Q1 no corresponde al año del origen (F5-11)")
+  memo$q1
+}
+
+#' Guarda la elección de un origen Q1 y el último origen visto (variante Q1 de F5-11).
+registrar_eleccion_q1 <- function(memo, o, por_h, reoptimizado) {
+  if (is.null(memo)) return(invisible(NULL))
+  memo$ultimo <- o
+  if (o %% 4L == 0L) {
+    memo$q1 <- list(origen = o, eleccion = vapply(por_h, `[[`, integer(1), "eleccion"),
+                    n_candidatos = vapply(por_h, function(ph) nrow(ph$rejilla), integer(1)))
+  } else if (reoptimizado) {
+    memo$q1 <- NULL                                                                             # sin Q1 en el año
+  }
+  invisible(NULL)
 }
 
 sendero_directo <- function(aj, h) {
@@ -301,7 +352,8 @@ sendero_directo <- function(aj, h) {
 #' Diagnósticos por origen de un modelo directo: por h, candidato elegido, ECM interno, filas de la ventana interna
 #' más chica y de la final, más los del modelo (esp$diagnosticar).
 diagnosticos_directo <- function(aj, esp) {
-  out <- c(n_filas = aj$n_filas, n_columnas = aj$n_columnas)
+  out <- c(n_filas = aj$n_filas, n_columnas = aj$n_columnas,
+           if (!is.null(aj$origen_eleccion)) c(reoptimizado = as.numeric(aj$origen_eleccion == aj$o)))
   for (ph in aj$por_h) {
     d <- c(candidato = ph$eleccion, ecm_interno = ph$ecm[ph$eleccion], n_filas_min = ph$n_filas_min, n_filas_final = ph$n_filas_final,
            if (is.function(esp$diagnosticar)) esp$diagnosticar(ph$rejilla, ph$eleccion))
@@ -311,13 +363,18 @@ diagnosticos_directo <- function(aj, esp) {
 }
 
 #' Fábrica de un modelo directo bajo el contrato del motor (C3). Sin piso de grados de libertad (F5-09), salvo que la
-#' especificación lo pida (B3b). `construir` reemplaza a matriz_directa() (B3b: U-MIDAS).
-modelo_directo <- function(modelo_id, predictoras, esp, rezagos = REZAGOS_FORMA_DIRECTA, construir = NULL) {
+#' especificación lo pida (B3b). `construir` reemplaza a matriz_directa() (B3b: U-MIDAS). `reoptimizacion = "q1"` es la
+#' variante de F5-11 (abajo).
+modelo_directo <- function(modelo_id, predictoras, esp, rezagos = REZAGOS_FORMA_DIRECTA, construir = NULL,
+                           reoptimizacion = c("cada_origen", "q1")) {
   .validar_especificacion_directa(esp, modelo_id)
+  reoptimizacion <- match.arg(reoptimizacion)
   if (is.null(construir)) construir <- function(datos) matriz_directa(datos, predictoras, modelo_id, rezagos)
+  memo <- if (reoptimizacion == "q1") new.env(parent = emptyenv()) else NULL                   # F5-11, variante Q1
   list(
     modelo_id = modelo_id, requiere = c("objetivo", predictoras), piso_gl = isTRUE(esp$piso_gl), esp = esp,
-    ajustar = function(datos, spec) ajustar_directo(construir(datos), esp),
+    reoptimizacion = reoptimizacion,
+    ajustar = function(datos, spec) ajustar_directo(construir(datos), esp, memo = memo),
     predecir = function(aj, h) sendero_directo(aj, h),
     predecir_densidad = function(aj, h) list(media = sendero_directo(aj, h), cov = aj$Sigma[seq_len(h), seq_len(h), drop = FALSE]),
     diagnosticar = function(aj) diagnosticos_directo(aj, esp)

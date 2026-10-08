@@ -22,6 +22,7 @@ library(testthat)
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_fase5.R"))
+source(here::here("src", "evaluacion", "combinaciones.R"))         # B5
 
 .dir_modelos <- here::here("catalogos", "06_modelos")
 .leer_modelo <- function(archivo) yaml::read_yaml(file.path(.dir_modelos, archivo))
@@ -90,7 +91,7 @@ test_that("06_modelos: los modelos de Fase 5 declarados son los de modelos_fase5
   reg <- reg[!duplicated(vapply(reg, `[[`, character(1), "modelo_id"))]
   ids <- vapply(reg, `[[`, character(1), "modelo_id")
   declarados <- vapply(.archivos_modelo(), function(a) .leer_modelo(a)$modelo_id, character(1), USE.NAMES = FALSE)
-  no_bench <- declarados[vapply(.archivos_modelo(), function(a) !identical(.leer_modelo(a)$familia, "benchmark"), logical(1))]
+  no_bench <- declarados[vapply(.archivos_modelo(), function(a) !.leer_modelo(a)$familia %in% c("benchmark", "combinacion"), logical(1))]
   expect_setequal(no_bench, ids)
   for (m in reg) {
     v <- unlist(.leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$variables)
@@ -180,5 +181,42 @@ test_that("06_modelos: las rejillas declaradas de los árboles son las del códi
     rl <- l$esp$candidatos(matrix(0, 2L, p), numeric(2), 1L)
     expect_identical(unique(rl$num_leaves), as.integer(unlist(o$num_leaves)), info = g)
     expect_identical(unique(rl$rondas), seq.int(as.integer(o$rondas_min), as.integer(o$rondas_max), by = as.integer(o$paso_rondas)), info = g)
+  }
+})
+
+test_that("06_modelos: las combinaciones declaradas son las de B5, con los miembros del registro y los parámetros del código (F5-13)", {
+  declarados <- vapply(.archivos_modelo(), function(a) .leer_modelo(a)$modelo_id, character(1), USE.NAMES = FALSE)
+  comb <- declarados[vapply(.archivos_modelo(), function(a) identical(.leer_modelo(a)$familia, "combinacion"), logical(1))]
+  expect_setequal(comb, unlist(lapply(c("G1", "G2", "G3"), ids_combinaciones)))
+  for (g in c("G1", "G2", "G3")) for (id in ids_combinaciones(g)) {
+    e <- .leer_modelo(paste0(id, ".yaml"))$especificacion
+    expect_identical(as.character(unlist(e$variables)), "PIB.SA.PROPIO.Q", info = id)
+    expect_identical(as.character(unlist(e$hiperparametros$miembros)), miembros_combinacion(g), info = id)   # F5-13: sin benchmarks
+    expect_false(any(startsWith(unlist(e$hiperparametros$miembros), "BENCH.")), info = id)
+  }
+  for (g in c("G1", "G2", "G3")) {
+    expect_identical(as.numeric(.leer_modelo(paste0("COMB.RECORTADA.", g, ".yaml"))$especificacion$hiperparametros$recorte), RECORTE_COMBINACION)
+    h <- .leer_modelo(paste0("COMB.ECM_INV.", g, ".yaml"))$especificacion$hiperparametros
+    expect_identical(c(as.numeric(h$delta), as.numeric(h$min_errores)), c(DELTA_ECM_INV, as.numeric(MIN_ERRORES_ECM_INV)))
+  }
+})
+
+test_that("06_modelos: los YAML declaran la variante de reoptimización de F5-11 que usa el código (F5-14d)", {
+  for (g in c("G1", "G2", "G3")) for (m in modelos_fase5(g)) {
+    if (is.null(m$reoptimizacion)) next
+    h <- .leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$hiperparametros
+    esperada <- if (m$reoptimizacion == "q1") "q1" else NULL
+    expect_identical(h$reoptimizacion, esperada, info = m$modelo_id)
+  }
+  ids_q1 <- unlist(lapply(c("G1", "G2", "G3"), function(g) Filter(Negate(is.null), lapply(modelos_fase5(g), function(m) if (identical(m$reoptimizacion, "q1")) m$modelo_id))))
+  expect_setequal(ids_q1, paste0(rep(c("REG.ENET.", "REG.PCR.", "ML.RF.", "ML.LGBM."), 3), rep(c("G1", "G2", "G3"), each = 4)))
+})
+
+test_that("06_modelos: los miembros con representantes de las combinaciones son los de F5-14c (F5-14e)", {
+  for (g in c("G1", "G2", "G3")) {
+    esperados <- Filter(function(id) any(startsWith(id, c("UNI.", "MULT.VAR_DIF.", "REG.ENET.", "MIX.PUENTE.", "ML.RF."))), miembros_combinacion(g))
+    for (id in ids_combinaciones(g)) {
+      expect_identical(as.character(unlist(.leer_modelo(paste0(id, ".yaml"))$especificacion$hiperparametros$miembros_representantes)), esperados, info = id)
+    }
   }
 })

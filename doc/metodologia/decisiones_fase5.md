@@ -45,6 +45,8 @@ como notas fechadas; no se reescribe lo registrado.
 | B3-9 | Representante de B3 para R1, R2, R5 y R6: `REG.ENET` (decisión delegada al agente; se puede reabrir) | «Tope de costo y representantes» (nota 2026-10-08) |
 | B3b-1 a B3b-7 | Implementación de B3b (delegadas al agente): meses del U-MIDAS acotados por el piso (G1 con la letra de F5-08; G2 y G3 con el último mes admitido); guardas de las ARIMAX; densidad del U-MIDAS de errores internos; AR mensual p ≤ 12; agregación linealizada en la densidad del puente; covarianza completa del puente con las innovaciones mensuales del trimestre; representante `MIX.PUENTE` | F5-08 y F5-12 (notas 2026-10-08); «Tope de costo y representantes» (nota 2026-10-08) |
 | B4-1 a B4-6 | Implementación de B4: ventana de B3-2; densidad de errores internos y no OOB; rejilla del RF con mtry deduplicado en G1 y semilla del generador de R que siembra el motor; rondas de LightGBM en 10..500 por `num_iteration`; representante `ML.RF`; canario V20 (decisiones delegadas al agente; se pueden reabrir) | F5-10, F5-12 y «Tope de costo y representantes» (notas 2026-10-08) |
+| B5-1 a B5-5 | Implementación de B5 (delegadas al agente): errores de los pesos inversos al ECM contra el objetivo visto en el origen; variantes `F5_Gk_Rn` (R1 y R6 en los tres grupos, R2 y R5 en G2 y G3, R7 en G2 y G3); predictoras recortadas al inicio de la ventana en R1 y R2; R7 con los modelos con UT y sin combinaciones; combinaciones como paso del orquestador, con los miembros en su YAML | F5-13, F5-14 y F5-04c (esta sección); «Implementación del bloque B5» |
+| F5-14b (respuesta) y CF-1 a CF-3 | Cuenta final: no se paraleliza; representantes en R1, R2, R5 y R6 y variante Q1 de F5-11 en ENET, PCR, RF y LightGBM (decisión de Harold); reutilizar la elección del Q1 con errores internos recalculados, reoptimizar sin Q1 previo y canarios (delegadas al agente). Proyección ≈ 6 h 48 min | protocolo §5 y F5-11 (notas 2026-10-08); YAML de `REG.*`, `ML.*` y `COMB.*` |
 
 ---
 
@@ -304,6 +306,10 @@ del bloque B4», más abajo; decisiones delegadas al agente):
 orígenes Q1 se aplica después de los representantes de F5-14, y solo si con ellos la cuenta todavía no cabe. Ver
 «Tope de costo y representantes», más abajo.
 
+**Nota (2026-10-08, cuenta final de F5-14).** La cuenta final superó el tope aun con representantes, y Harold decidió
+aplicar la variante Q1 (F5-14b, F5-14d): `REG.ENET`, `REG.PCR`, `ML.RF` y `ML.LGBM` reoptimizan solo en los orígenes Q1,
+declarado en sus YAML antes de E1. Detalle (CF-1 a CF-3) en «Tope de costo y representantes», «Cuenta final».
+
 **Nota (2026-10-08, B3-4).** La cifra de «unos 27 para la primera estimación interna» se contó para h = 1 y sin rezagos.
 Con los rezagos 0..3 de F5-09 y la forma directa de F5-05, la estimación interna más chica tiene n_L − 15 − 2h filas,
 donde n_L son los trimestres en niveles hasta el origen. En el primer origen de G2 y G3, n_L = 40, que corresponde a los
@@ -366,6 +372,9 @@ el tiempo (decisión delegada al agente; ver «Implementación del bloque B4»).
 miembros de cada combinación son los modelos de Fase 5 presentes en la variante: univariados y representantes. Se
 declaran en el YAML y el manifiesto dice que no es la misma combinación que la principal. Ver «Tope de costo y
 representantes», más abajo.
+
+**Nota (2026-10-08, B5).** Implementadas en `src/evaluacion/combinaciones.R`, con los 12 YAML `COMB.*.Gk` y las decisiones
+B5-1 y B5-5 (delegadas al agente), en «Implementación del bloque B5».
 
 ## F5-14 — Batería de robustez y costo de cómputo
 
@@ -920,6 +929,50 @@ origen y LightGBM de 73 a 109 s. B4 suma unos 1142 minutos por pasada, y la proy
 (23 h 43 min), sobre el tope de 8 h. El representante de B4 es `ML.RF` (B4-5, decisión delegada al
 agente). Las cifras son provisionales (se midieron con otro proceso R en paralelo); la cuenta final (F5-14b a F5-14d) se hace con todos los bloques.
 
+**Cuenta final (2026-10-08; F5-14b respondida por Harold).** Con B4 medido, la pasada completa proyectaba unos 1423
+minutos (cerca de 24 h), y con representantes en R1, R2, R5 y R6 unos 700 (11 h 40 min), los dos sobre el tope.
+Harold respondió F5-14b el 2026-10-08: **no se paraleliza; se aplican los representantes (F5-14c) y la variante Q1
+de F5-11 (F5-14d)**. Las dos palancas quedan en el código y en los YAML antes de E1:
+
+- **Representantes (F5-14c):** R1, R2, R5 y R6 corren los benchmarks, los univariados de B1 y `MULT.VAR_DIF`,
+  `REG.ENET`, `MIX.PUENTE` y `ML.RF` del grupo (`PREFIJOS_REPRESENTANTES` y `modelos_experimento()` en
+  `motor_backtesting.R`). La robustez del BVAR, del PCR, del U-MIDAS y de LightGBM queda solo en R3, R4 y R7, y se
+  declara en el manifiesto. Las combinaciones de esas variantes llevan los 7 u 8 miembros presentes
+  (`miembros_representantes` en el YAML; F5-14e), y con ellos la media recortada al 10 % coincide con la media.
+- **Variante Q1 de F5-11 (F5-14d):** `REG.ENET`, `REG.PCR`, `ML.RF` y `ML.LGBM` reoptimizan solo en los orígenes Q1
+  (`reoptimizacion: "q1"` en sus YAML; `REOPTIMIZACION_F5_11` en `forma_directa.R`). Al implementarla aparecieron
+  tres puntos, decididos por el agente (delegadas; se pueden reabrir):
+  - **CF-1 · Qué se reutiliza.** Para cada h se reutiliza el candidato que se eligió en el último Q1, con la
+    información de ese origen. Los errores internos que dan la densidad (F5-12) se recalculan en cada origen con los
+    datos de o, solo para ese candidato. La letra de F5-11 dice que se reutiliza «la elección», no la densidad.
+    Descartada: reutilizar también Σ del Q1, que ahorra más tiempo pero deja la densidad de tres de cada cuatro
+    orígenes sin los datos más recientes.
+  - **CF-2 · Orígenes sin un Q1 previo.** El primer origen de G2 (2014-Q4) y el de G3 (2019-Q4) reoptimizan, igual
+    que cualquier origen cuyo Q1 no haya pasado por la misma instancia del modelo. La memoria vive en la instancia (una
+    por modelo y experimento) y se vacía si los orígenes no llegan en orden consecutivo, así que dos corridas del mismo
+    experimento dan lo mismo (F5-15). La elección viene siempre de un origen anterior o igual a o (G-1).
+  - **CF-3 · Canarios.** V18 y V20 siguen probando los estimadores con reoptimización en cada origen, como se
+    calibraron. V21 corre el registro de producción de G2, con la variante Q1, en 2015-Q1 y 2015-Q2, y exige que el
+    segundo reutilice la elección. `tests/test-forma-directa.R` prueba el mecanismo: la elección del Q1, los errores
+    recalculados, la reoptimización sin Q1 previo y la repetición idéntica. El U-MIDAS, que tiene una sola
+    especificación, no cambia.
+- **Costo medido de la variante Q1** (sandbox Windows, datos sintéticos con los inicios de L3, el primer año y 2025 de
+  cada grupo; segundos por origen, punto medio; Q1 / otro trimestre):
+
+| Grupo | `REG.ENET` | `REG.PCR` | `ML.RF` | `ML.LGBM` |
+|---|---|---|---|---|
+| G1 | 3,2 / 0,8 | 0,4 / 0,3 | 20,7 / 12,2 | 105,0 / 6,6 |
+| G2 | 2,1 / 1,0 | 0,4 / 0,3 | 27,9 / 9,8 | 98,3 / 10,1 |
+| G3 | 3,0 / 1,2 | 0,5 / 0,3 | 23,5 / 7,9 | 97,1 / 15,3 |
+
+- **Proyección de una pasada** (13 de 52 orígenes con reoptimización en G1; 12 de 45 en G2 y 7 de 25 en G3, contando
+  el primer origen): principal 150,5 min; R7 84,5; R1 y R6 42,9 cada una; R2 y R5
+  24,4 cada una; verificación V1-V21 unos 33,6 min (V21 unos 8); `F5_REPRO_*` 4,8. **Total ≈ 408
+  minutos (6 h 48 min)**, bajo el tope de 8 h (F5-14a), con unos 72 minutos de margen. LightGBM
+  pone unos 109 minutos (principal y R7) y el RF unos 134 (todos los experimentos). Las cifras de B1 a B3b son las registradas en sus bloques;
+  las de la variante Q1 se midieron con el resto de la máquina en uso, así que la proyección es conservadora.
+- La segunda pasada que comprueba el bit a bit de E2 (F1) no entra al tope (F5-14a).
+
 ---
 
 ## Implementación del bloque B3 (decidida por Harold el 2026-10-08)
@@ -1311,6 +1364,66 @@ el error binomial con los pares de las dos réplicas, que todavía lo subestima 
 La holgura de V18 (0,10) no cambia. La misma corrida mostró que el RF no es idéntico entre sistemas: la razón de RMSE en
 h = 1 fue 0,638 en Ubuntu y 0,626 en el sandbox de Windows, con el mismo DGP y las mismas semillas. Como con el BVAR
 (F5-15, F1-3), el bit a bit se exige en una misma máquina; E2 corre en la de Harold.
+
+---
+
+## Implementación del bloque B5 (2026-10-08; decisiones delegadas al agente)
+
+Harold autorizó el 2026-10-08 que el agente avance sin supervisión. Al llevar a código F5-13 (combinaciones), las
+variantes de F5-14 y R7 (F5-04c) aparecieron cinco puntos que las fichas no fijaban. Los cinco son **decisiones
+delegadas al agente** y se pueden reabrir. Ninguna cambia un resultado de Fase 4 ni de los `F5_REPRO_*`: las
+combinaciones y las variantes solo existen en los experimentos `F5_G*`, que siguen bajo el candado de F5-02.
+
+- **B5-1 · Errores de los pesos inversos al ECM. DECIDIDO (delegada):** en el origen o y el horizonte h, el error de
+  cada miembro en cada par (o', h) con o' + h ≤ o se mide en la pérdida del experimento (yoy_pp, F4-04) contra el
+  objetivo **como se ve en o**. En la principal es el ajuste X-13 reestimado en o (F4-09b). Con h ≤ 4 la base de la
+  tasa es observada; con h > 4 sale del mismo sendero, como en `derivar_unidades()`. La combinación de o no usa nada
+  posterior a o (G-1). El descuento es δ^((o − h) − o'): el par más reciente pesa 1. Descartadas: los errores contra el
+  vintage de evaluación, que usa datos posteriores a o, y contra el objetivo visto en cada o', que mezcla vistas del
+  objetivo.
+- **B5-2 · Variantes de Fase 5. DECIDIDO (delegada):** se declaran como experimentos `F5_Gk_Rn` en
+  `EXPERIMENTOS_VARIANTES_FASE5` (`motor_backtesting.R`), con el `exp_id` como sufijo de la variante y sin columnas
+  nuevas en la tabla de experimentos, así que las salidas de los `F5_REPRO_*` no cambian. Son R1 (ventana rodante de
+  92 trimestres) y R6 (ajuste estacional único de L3) en los tres grupos; R2 (muestra homogénea desde 2005) y R5
+  (objetivo oficial con su ajuste) solo en G2 y G3, como en la proyección de F5-14; y R7 en G2 y G3. R3 y R4 siguen
+  como submuestras dentro de la principal. Hasta la cuenta final de F5-14, R1, R2, R5 y R6 corren todos los modelos de
+  Fase 5; si la cuenta aplica los representantes (F5-14c), ese commit cambia `modelos_experimento()` y los YAML de las
+  combinaciones (F5-14e).
+- **B5-3 · Predictoras en las ventanas de R1 y R2. DECIDIDO (delegada):** el motor se detenía con predictoras y una
+  ventana distinta de la expansiva. Ahora, en cada origen, cada predictora se recorta al inicio de la ventana del
+  objetivo (`recortar_inicio_predictora()`): las trimestrales desde ese trimestre y las mensuales desde su primer mes.
+  La forma directa, los VAR y el puente pierden las primeras filas que piden sus rezagos, igual que el objetivo.
+  Descartada: dejarles a las predictoras su historia completa. En R1 los modelos verían así más que la ventana rodante,
+  y en R2 la muestra dejaría de ser homogénea.
+- **B5-4 · Alcance de R7. DECIDIDO (delegada):** R7 corre los benchmarks y los modelos de Fase 5 que piden UT, trimestral
+  o mensual. En G2 son `UNI.ARIMAX.G2`, `MULT.BVAR.G2`, `REG.ENET.G2`, `REG.PCR.G2`, `MIX.UMIDAS.G2`,
+  `MIX.PUENTE.G2`, `ML.RF.G2` y `ML.LGBM.G2`; en G3, los mismos con `.G3`. El rezago de UT pasa de 30 a 61 días
+  (`REZAGO_UT_R7`), el de IVAE e IPM: 1 mes de o+1 en lugar de 2. R7 no lleva combinaciones: mide la sensibilidad de
+  los modelos con UT al supuesto de F5-04, y una combinación sin los modelos que no usan UT no sería comparable con la
+  de la principal. Descartada: correr en R7 todos los modelos, que repite los que no cambian.
+- **B5-5 · Implementación de las combinaciones. DECIDIDO (delegada):** son un paso de `correr_experimento()`, después de
+  `correr_backtest()` y antes de las unidades y las métricas (`src/evaluacion/combinaciones.R`, F5-13). Así entran a
+  RMSE, DM/GW, MCS y R3/R4 como un modelo más, y quedan fuera de la calibración, porque no tienen densidad (F5-12).
+  - Combinan el log-nivel de cada h, que equivale a combinar el crecimiento acumulado porque y_o es común.
+  - La recortada usa `mean(trim = 0,1)`: con 11, 12 y 13 miembros quita uno de cada lado.
+  - Los pesos y el número de errores de `COMB.ECM_INV` van a `diagnosticos.csv`.
+  - Los miembros se declaran en el YAML de cada combinación (`hiperparametros.miembros`). `main()` comprueba que son los
+    modelos de Fase 5 del experimento (`verificar_miembros_combinaciones()`, C8) y hashea esos YAML en el manifiesto.
+  - Con menos de dos miembros, el experimento no combina; con el registro, eso solo pasa en las pruebas.
+
+**C6 (F5-15): V21.** La verificación sintética corre dos veces el registro de Fase 5 de G2 con la configuración de
+producción (12 modelos), los seis benchmarks y las cuatro combinaciones, sobre insumos sintéticos con los inicios de L3,
+en el primer origen de G2. Las dos corridas usan el mismo `exp_id` y distinta semilla global, y dan un sha256 idéntico
+en pronósticos, densidades y diagnósticos. Con otro `exp_id` cambian el BVAR y el RF, que usan el generador. El bloque
+corre en un solo origen para acotar el costo: unos 5 minutos en el sandbox, porque LightGBM cuesta 75 s por origen en
+G2. En la cuenta de F5-14 entra con la verificación.
+
+**Pruebas:** `tests/test-combinaciones.R` comprueba los cuatro esquemas contra cálculos independientes, los pesos de
+`COMB.ECM_INV` con δ = 0,9 y los pares con o' + h ≤ o, la ausencia de mirada adelante (alterar el objetivo visto después
+de o no cambia la combinación de o), las guardas, las variantes declaradas y el candado de F5-02. De punta a punta en
+`correr_experimento()`, comprueba la principal con combinaciones, R7 con UT a 61 días y sin combinaciones, y R1 con las
+predictoras recortadas. `tests/test-catalogo-modelos.R` comprueba los 12 YAML de las combinaciones contra el registro y
+las constantes del código.
 
 ---
 

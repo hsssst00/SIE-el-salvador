@@ -46,6 +46,7 @@
 source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_fase5.R"))         # registro de Fase 5 por grupo (B1-3)
+source(here::here("src", "evaluacion", "combinaciones.R"))         # B5: combinaciones (F5-13), paso del orquestador
 source(here::here("src", "transformacion", "l3_pib_objetivo_reglas.R"))   # concatenar_pib_nsa(), T001
 source(here::here("src", "transformacion", "vintage_lib.R"))
 source(here::here("src", "transformacion", "conjunto_lib.R"))   # conjunto_activo(), ruta_capa() (F5-16)
@@ -103,13 +104,34 @@ EXPERIMENTOS_REPRO <- experimentos_reproduccion(EXPERIMENTOS)
 
 # Experimentos principales de Fase 5 (decisión B1-3): uno por grupo, con los seis benchmarks más los modelos
 # de Fase 5 del grupo (modelos_fase5()), y las submuestras R3/R4 sobre la principal como en Fase 4 (F5-14).
-# Las variantes R1, R2, R5, R6 y R7 (F5_Gk_Rn) se declaran cuando F5-14 fije el tope de costo.
+# Las variantes R1, R2, R5, R6 y R7 (F5_Gk_Rn) se declaran abajo (B5-2).
 EXPERIMENTOS_PRINCIPALES_FASE5 <- rbind(
   .exp("F5_G1", "G1", r3 = TRUE, r4 = TRUE),
   .exp("F5_G2", "G2", r3 = TRUE, r4 = TRUE),
   .exp("F5_G3", "G3", r4 = TRUE)
 )
-EXPERIMENTOS_FASE5 <- rbind(EXPERIMENTOS_REPRO, EXPERIMENTOS_PRINCIPALES_FASE5)
+# Variantes de robustez de Fase 5 (F5-14, F5-04c; protocolo §5; B5-2): R1, R2, R5 y R6 como en Fase 4, con todos los
+# modelos de Fase 5 (los representantes de F5-14c solo si la cuenta final lo dispara) y sus combinaciones (F5-14e); en R1
+# y R2 las predictoras se recortan al inicio de la ventana del objetivo (B5-3). R7 (F5-04c): los modelos con UT de G2 y
+# G3 y los benchmarks, con UT a 61 días en lugar de 30, sin combinaciones (B5-4).
+EXPERIMENTOS_VARIANTES_FASE5 <- rbind(
+  .exp("F5_G1_R1", "G1", ventana = "rodante92"), .exp("F5_G2_R1", "G2", ventana = "rodante92"), .exp("F5_G3_R1", "G3", ventana = "rodante92"),
+  .exp("F5_G2_R2", "G2", ventana = "homogenea2005"), .exp("F5_G3_R2", "G3", ventana = "homogenea2005"),
+  .exp("F5_G2_R5", "G2", objetivo = "PIB_SA_OFICIAL_Q", sa = "l3_unico"), .exp("F5_G3_R5", "G3", objetivo = "PIB_SA_OFICIAL_Q", sa = "l3_unico"),
+  .exp("F5_G1_R6", "G1", sa = "l3_unico"), .exp("F5_G2_R6", "G2", sa = "l3_unico"), .exp("F5_G3_R6", "G3", sa = "l3_unico"),
+  .exp("F5_G2_R7", "G2"), .exp("F5_G3_R7", "G3")
+)
+EXPERIMENTOS_FASE5 <- rbind(EXPERIMENTOS_REPRO, EXPERIMENTOS_PRINCIPALES_FASE5, EXPERIMENTOS_VARIANTES_FASE5)
+PATRON_EXP_R7  <- "^F5_G[123]_R7$"
+REZAGO_UT_R7   <- 61L                                               # F5-04c: 1 mes de o+1, como el IVAE y el IPM
+PREDICTORAS_UT <- c("UT.DEMANDA_ELEC.GWH.NSA.Q", "UT.DEMANDA_ELEC.GWH.NSA.M")
+PATRON_EXP_REPRESENTANTES <- "^F5_G[123]_R[1256]$"
+# F5-14c (cuenta final, decidida por Harold el 2026-10-08): en R1, R2, R5 y R6 corren los univariados de B1 y un
+# representante por familia: MULT.VAR_DIF (B2), REG.ENET (B3-9), MIX.PUENTE (B3b-7) y ML.RF (B4-5).
+PREFIJOS_REPRESENTANTES <- c("UNI.", "MULT.VAR_DIF.", "REG.ENET.", "MIX.PUENTE.", "ML.RF.")
+es_r7    <- function(ex) grepl(PATRON_EXP_R7, ex$exp_id)
+con_representantes <- function(ex) grepl(PATRON_EXP_REPRESENTANTES, ex$exp_id)
+combina  <- function(ex) grepl(PATRON_EXP_PREREGISTRO, ex$exp_id) && !es_r7(ex)   # F5-13, F5-14e; R7 sin combinaciones (B5-4)
 
 # Candado del preregistro (F5-02): los experimentos de modelos de Fase 5 no corren sobre L3 hasta que todos
 # sus YAML estén declarados y versionados. Mientras el candado esté abierto (FALSE), `make eval` corre solo
@@ -120,7 +142,35 @@ PREREGISTRO_FASE5_CERRADO <- FALSE
 
 #' Modelos de un experimento: los benchmarks y, en los experimentos de modelos de Fase 5, los del grupo.
 modelos_experimento <- function(ex) {
-  if (grepl(PATRON_EXP_PREREGISTRO, ex$exp_id)) c(modelos_referencia(), modelos_fase5(ex$grupo)) else modelos_referencia()
+  if (!grepl(PATRON_EXP_PREREGISTRO, ex$exp_id)) return(modelos_referencia())
+  f5 <- modelos_fase5(ex$grupo)
+  if (es_r7(ex)) f5 <- Filter(function(m) any(m$requiere %in% PREDICTORAS_UT), f5)            # F5-04c: los modelos con UT
+  if (con_representantes(ex)) f5 <- Filter(function(m) any(startsWith(m$modelo_id, PREFIJOS_REPRESENTANTES)), f5)   # F5-14c
+  c(modelos_referencia(), f5)
+}
+
+#' Combinaciones que escribe un experimento (F5-13): ninguna fuera de los F5_G* y de R7.
+combinaciones_experimento <- function(ex) if (combina(ex)) ids_combinaciones(ex$grupo) else character(0)
+
+#' Los miembros que declara el YAML de cada combinación del experimento son sus modelos de Fase 5 (F5-13, F5-14e).
+verificar_miembros_combinaciones <- function(ex) {
+  esperados <- setdiff(vapply(modelos_experimento(ex), `[[`, character(1), "modelo_id"), vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
+  for (id in combinaciones_experimento(ex)) {
+    y <- yaml::read_yaml(here::here("catalogos", "06_modelos", paste0(id, ".yaml")))
+    declarados <- y$especificacion$hiperparametros[[if (con_representantes(ex)) "miembros_representantes" else "miembros"]]   # F5-14e
+    if (!identical(as.character(unlist(declarados)), esperados)) {
+      stop("C8: los miembros que declara ", id, ".yaml no son los modelos de Fase 5 de ", ex$exp_id, " (F5-13, F5-14e)")
+    }
+  }
+  invisible(TRUE)
+}
+
+#' Recorta una predictora al inicio de la ventana del objetivo (R1 y R2 con predictoras, B5-3): las trimestrales desde el
+#' trimestre `inicio`, las mensuales desde su primer mes.
+recortar_inicio_predictora <- function(d, inicio) {
+  q0 <- q_a_ind(inicio)
+  if (nrow(d) && grepl("-M", d$periodo[1], fixed = TRUE)) d[m_a_ind(d$periodo) >= q0 %/% 4L * 12L + (q0 %% 4L) * 3L, , drop = FALSE]
+  else d[q_a_ind(d$periodo) >= q0, , drop = FALSE]
 }
 
 #' Experimentos de una corrida: sin argumentos, todos los de Fase 5 que el candado del preregistro deja correr;
@@ -365,17 +415,20 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   pred <- predictoras_requeridas(modelos)
   faltan <- setdiff(pred, names(insumos$predictoras))
   if (length(faltan)) stop("motor: ", ex$exp_id, " requiere predictoras que no se leyeron: ", paste(faltan, collapse = ", "))
-  if (length(pred) && ex$ventana != "expansiva") stop("motor: ", ex$exp_id, ": la ventana ", ex$ventana, " con predictoras no está implementada (F5-14)")
   rez <- if (length(pred)) rezagos_predictoras(pred) else list()                  # F4-34, F5-04
+  if (es_r7(ex)) for (id in intersect(names(rez), PREDICTORAS_UT)) rez[[id]] <- REZAGO_UT_R7   # F5-04c
 
   partes <- lapply(origenes, function(o) {
     so <- serie_en_origen(ex, o, insumos, cache_sa)
     estim <- if (ex$ventana == "rodante92") recortar_ventana_rodante(so$sa, VENTANA_RODANTE) else so$sa   # F4-26
-    pr <- correr_backtest(c(list(objetivo = estim), insumos$predictoras[pred]), modelos, o, rezagos = rez,
+    preds <- insumos$predictoras[pred]
+    if (length(pred) && ex$ventana != "expansiva") preds <- lapply(preds, recortar_inicio_predictora, inicio = estim$periodo[1])   # B5-3
+    pr <- correr_backtest(c(list(objetivo = estim), preds), modelos, o, rezagos = rez,
                           min_obs = MIN_OBS, exp_id = sem, densidad = TRUE)                                 # F4-33
     base <- if (so$bases) data.frame(origen = o, periodo = so$sa$periodo, y = so$sa$y, stringsAsFactors = FALSE) else NULL
     list(pron = pr, base = base, reg = so$registro, n_estim = nrow(estim), inicio = estim$periodo[1],
-         diag = attr(pr, "diagnosticos"))                                      # B1b: NULL si ningún modelo los emite
+         diag = attr(pr, "diagnosticos"),                                      # B1b: NULL si ningún modelo los emite
+         y = stats::setNames(so$sa$y, q_a_ind(so$sa$periodo)))                  # B5-1: el objetivo visto en o
   })
   pron  <- do.call(rbind, lapply(partes, `[[`, "pron"))
   bases <- do.call(rbind, lapply(partes, `[[`, "base"))                  # NULL si ningún origen trae bases
@@ -383,6 +436,15 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   regs <- lapply(partes, `[[`, "reg")
   if (!all(vapply(regs, is.null, logical(1)))) ajuste <- cbind(exp_id = ex$exp_id, do.call(rbind, regs), stringsAsFactors = FALSE)
   diagnosticos <- do.call(rbind, lapply(partes, `[[`, "diag"))
+  miembros <- setdiff(ids, vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
+  combs_ex <- if (length(miembros) >= 2L) combinaciones_experimento(ex) else character(0)   # con un solo miembro no hay combinación
+  if (length(combs_ex)) {                                                       # B5: combinaciones (F5-13, F5-14e)
+    comb <- combinar_pronosticos(pron, miembros, ex$grupo, stats::setNames(lapply(partes, `[[`, "y"), origenes))
+    diagnosticos <- rbind(diagnosticos, attr(comb, "diagnosticos")); attr(comb, "diagnosticos") <- NULL
+    attr(pron, "diagnosticos") <- NULL
+    pron <- rbind(pron, comb)
+    ids <- c(ids, ids_combinaciones(ex$grupo))
+  }
   if (!is.null(diagnosticos)) {
     diagnosticos <- data.frame(exp_id = ex$exp_id, modelo_id = diagnosticos$modelo_id, origen = ind_a_q(diagnosticos$origen),
                                clave = diagnosticos$clave, valor = diagnosticos$valor, stringsAsFactors = FALSE)
@@ -445,6 +507,7 @@ correr_experimento <- function(ex, insumos, cache_sa) {
   semillas <- vapply(ids, function(id) semilla_de(sem, id, origenes[1]), numeric(1))
   dens_ids <- vapply(Filter(function(m) is.function(m$predecir_densidad), modelos), `[[`, character(1), "modelo_id")
   list(token = token, pronosticos = pron_out, densidad_ids = dens_ids, predictoras = pred, metricas = tab$metricas, pruebas = tab$pruebas, mcs = tab$mcs,
+       combinaciones = combs_ex, rezago_ut = if (es_r7(ex)) REZAGO_UT_R7 else NULL,
        ajuste_estacional = ajuste, diagnosticos = diagnosticos, sub = sub, estabilidad = estab, ids = ids, semillas = semillas,
        muestra_inicio = partes[[1]]$inicio, muestra_fin = obs$periodo[nrow(obs)],
        vintages = unique(obs$vintage_id[q_a_ind(obs$periodo) >= q_a_ind(partes[[1]]$inicio)]))
@@ -553,6 +616,15 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
     if (!is.null(res$diagnosticos)) paste0("diagnosticos: diagnosticos.csv, una fila por (modelo, origen, clave) de los modelos con diagnosticar(): ",
                                            paste(unique(res$diagnosticos$modelo_id), collapse = ", "),
                                            " (órdenes elegidos; en las ARIMAX, número de condición y correlación máxima de las predictoras, B1b-1)") else NULL,
+    if (length(res$combinaciones)) paste0("combinaciones: ", paste(res$combinaciones, collapse = ", "), " sobre los modelos de Fase 5 del experimento ",
+                                          "(sin benchmarks; F5-13, F5-14e); pesos de ECM_INV con δ = ", DELTA_ECM_INV, " e iguales con menos de ",
+                                          MIN_ERRORES_ECM_INV, " errores, contra el objetivo visto en cada origen (B5-1), en diagnosticos.csv; sin densidad (F5-12)") else NULL,
+    if (any(grepl("^(REG\\.ENET|REG\\.PCR|ML\\.RF|ML\\.LGBM)\\.", res$ids))) paste0("validación anidada de REG.ENET, REG.PCR, ML.RF y ML.LGBM: reoptimiza solo en los orígenes Q1 ",
+                                                                             "y reutiliza la elección en los otros tres (variante de F5-11, F5-14d); reoptimizado en diagnosticos.csv") else NULL,
+    if (con_representantes(ex)) paste0("variante con representantes (F5-14c): los univariados de B1, MULT.VAR_DIF, REG.ENET, MIX.PUENTE y ML.RF; ",
+                                       "el BVAR y los demás modelos de Fase 5 no corren; sus combinaciones llevan esos miembros y no son las de la principal (F5-14e)") else NULL,
+    if (!is.null(res$rezago_ut)) paste0("variante R7: UT a ", res$rezago_ut, " días en lugar de 30 (F5-04c); solo los modelos con UT y los benchmarks; sin combinaciones (B5-4)") else NULL,
+    if (length(res$predictoras) && ex$ventana != "expansiva") "predictoras: recortadas al inicio de la ventana del objetivo en cada origen (B5-3)" else NULL,
     "datos: revisados, no en tiempo real (F4-03)",
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_OFICIAL_Q") "limite: serie SA oficial del BCR tal cual; hereda la filtración de su ajuste bilateral (F4-22)" else NULL,
     if (ex$sa == "l3_unico" && ex$objetivo == "PIB_SA_PROPIO_Q") "sa: ajuste único de L3 (R6); hereda la filtración del ajuste sobre la muestra completa" else NULL,
@@ -616,7 +688,9 @@ main <- function(exp_ids = character(0)) {
   conjunto <- exigir_conjunto(conjunto_activo())                               # C-3 (F5-16)
   modelos_corrida <- do.call(c, lapply(seq_len(nrow(sel)), function(k) modelos_experimento(sel[k, ])))
   modelos_corrida <- modelos_corrida[!duplicated(vapply(modelos_corrida, `[[`, character(1), "modelo_id"))]
-  verificar_registro_modelos(modelos_corrida)                                   # C8
+  combs <- unique(unlist(lapply(seq_len(nrow(sel)), function(k) combinaciones_experimento(sel[k, ]))))
+  verificar_registro_modelos(c(modelos_corrida, lapply(combs, function(id) list(modelo_id = id))))   # C8 (y B5)
+  for (k in seq_len(nrow(sel))) verificar_miembros_combinaciones(sel[k, ])                      # F5-13, F5-14e
   commit <- leer_commit()
   vintages <- leer_vintages()
   pol <- unique(sel$vintage)
@@ -644,7 +718,7 @@ main <- function(exp_ids = character(0)) {
     insumos$predictoras <- leer_predictoras(pred, vintages, conjunto)           # G-6 sobre el corte
     archivos <- c(archivos, vapply(pred, function(id) ruta_capa("L3_master", archivo_l3(id)), character(1)))
   }
-  archivos <- c(archivos, here::here("catalogos", "06_modelos", paste0(vapply(modelos_corrida, `[[`, character(1), "modelo_id"), ".yaml")))
+  archivos <- c(archivos, here::here("catalogos", "06_modelos", paste0(c(vapply(modelos_corrida, `[[`, character(1), "modelo_id"), combs), ".yaml")))
   archivos <- unique(unname(archivos))
   insumos_sha <- stats::setNames(vapply(archivos, .sha256_lf, character(1), USE.NAMES = FALSE), ruta_relativa(archivos))   # F4-31
   cache_sa <- new.env()
