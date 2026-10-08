@@ -48,6 +48,10 @@
 #        al AR(p)-BIC en h = 1, 2; la densidad de errores internos cubre dentro de una holgura declarada (subcobertura
 #        de hasta 0,10 además de 3 ee de MC); con un placebo el elastic net no empeora al AR(p)-BIC en más de 10 % en
 #        h = 1; reejecutar reproduce bit a bit (F5-15)
+# Bloque de la frecuencia mixta de Fase 5 (B3b; F5-08, F5-04, F5-12, B3b-1 a B3b-6):
+#   V19  U-MIDAS y puente sobre un DGP con una predictora mensual cuyo promedio trimestral mueve al PIB y 2 meses de o+1
+#        en el borde: baten al AR(p)-BIC en h = 1; la densidad del puente (sistema conjunto) cubre como V14 a V16 y la del
+#        U-MIDAS con la holgura de V18; con un placebo no empeoran al AR(p)-BIC en más de 10 %; reejecutar reproduce bit a bit
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -58,6 +62,7 @@ source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a) y
 source(here::here("src", "evaluacion", "paridad_bvar.R"))          # V17 (F1)
 source(here::here("src", "evaluacion", "forma_directa.R"))          # V18 (B3)
 source(here::here("src", "evaluacion", "modelos_regularizados.R"))  # V18 (B3)
+source(here::here("src", "evaluacion", "modelos_frecuencia_mixta.R")) # V19 (B3b)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -739,5 +744,76 @@ attr(p18a, "diagnosticos") <- NULL; attr(p18b, "diagnosticos") <- NULL
 if (!identical(p18a, p18b) || !identical(d18a, d18b)) stop("V18: reejecutar el elastic net no reproduce bit a bit sus pronósticos y diagnósticos (F5-15)")
 ok("V18", "reejecutar dos orígenes reproduce bit a bit sendero, densidad y diagnósticos del elastic net (F5-15)")
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V18 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V18)\n")
+# --- V19 · Frecuencia mixta (B3b; F5-08, F5-04, F5-12, B3b-1 a B3b-6) -----------------------------------------------
+# DGP: una predictora mensual SA x_m = 0,5 x_{m-1} + u_m (σ_u = 0,01) y una NSA de ruido con estacional mensual
+# determinista; el PIB trimestral sigue Δy_t = 0,004 + β · (promedio de x en los meses de t) + e_t (σ_e = 0,003). Las
+# dos mensuales traen 2 meses de o+1 en el origen (rezago de 24 días, como las remesas; F5-04), así que el borde
+# irregular contiene dos tercios del trimestre o+1. Con β = 1, el U-MIDAS (meses m(t)+2..m(t)−5, la forma de G1) y el
+# puente deben batir al AR(p)-BIC con razón de RMSE < 0,7 en h = 1. Cobertura en h = 1, 2, 4: el puente (densidad del
+# sistema conjunto, plug-in) dentro de ±(3 ee + 0,03) del nominal, como V14 a V16; el U-MIDAS (errores internos, una sola
+# especificación) con la holgura inferior de V18 (0,10). Con β = 0 (placebo), ninguno empeora al AR(p)-BIC en más de
+# 10 % en h = 1. Reejecutar dos orígenes reproduce bit a bit. Uno de cada dos orígenes del diseño; 8 y 4 réplicas (unos
+# 2 minutos). Con estas semillas: razones 0,55 (U-MIDAS) y 0,60 (puente) en h = 1; cobertura del puente 0,77 a 0,84 al
+# 80 % y 0,94 a 0,98 al 95 %; del U-MIDAS 0,77 a 0,78 y 0,91 a 0,94. Sin los términos cruzados de B3b-6 el puente
+# subcubría (0,68 a 0,79 al 80 %), porque su innovación correlaciona con la de los meses del trimestre.
+MESES_V19 <- (q_a_ind("1990-Q1") %/% 4L * 12L):(ultimo_mes_trimestre(q_a_ind("2026-Q2")))
+.ind_a_m19 <- function(i) sprintf("%d-M%02d", i %/% 12L, i %% 12L + 1L)
+sim_v19 <- function(beta) {
+  nm <- length(MESES_V19); u <- stats::rnorm(nm, 0, 0.01); x <- numeric(nm)
+  for (m in 2:nm) x[m] <- 0.5 * x[m - 1] + u[m]
+  z <- stats::rnorm(nm, 0.001, 0.01)
+  q_m <- MESES_V19 %/% 3L
+  xq <- tapply(x, q_m, mean)[as.character(q_a_ind(PERIODOS_OBJ))]
+  dy <- 0.004 + beta * unname(xq) + stats::rnorm(length(PERIODOS_OBJ), 0, 0.003); dy[1] <- 0
+  est <- 0.03 * sin(2 * pi * (MESES_V19 %% 12L) / 12)
+  list(objetivo = data.frame(periodo = PERIODOS_OBJ, y = 4 + cumsum(dy), stringsAsFactors = FALSE),
+       PRUEBA.X.SA.M = data.frame(periodo = .ind_a_m19(MESES_V19), valor = 100 * exp(cumsum(x)), stringsAsFactors = FALSE),
+       PRUEBA.Z.NSA.M = data.frame(periodo = .ind_a_m19(MESES_V19), valor = 100 * exp(cumsum(z) + est), stringsAsFactors = FALSE))
+}
+pred19 <- c("PRUEBA.X.SA.M", "PRUEBA.Z.NSA.M")
+rez19 <- list(PRUEBA.X.SA.M = 24L, PRUEBA.Z.NSA.M = 24L)
+ors19 <- ors[seq(1L, length(ors), by = 2L)]
+mods19 <- list(modelo_directo("PRUEBA.UMIDAS", pred19, especificacion_umidas(), construir = function(datos) matriz_umidas(datos, pred19, "PRUEBA.UMIDAS", 0:5)),
+               modelo_puente("PRUEBA.PUENTE", pred19), modelo_arp_bic())
+corrida19 <- function(beta, R, semilla) {
+  set.seed(semilla)
+  res <- lapply(seq_len(R), function(r) {
+    s <- sim_v19(beta)
+    p <- correr_backtest(s, mods19, ors19, rezagos = rez19, exp_id = "V19", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
+  })
+  list(m = do.call(rbind, lapply(res, `[[`, "m")), p = res[[1]]$p, s = res[[1]]$s)
+}
+cobertura19 <- function(tab, id, holgura_inf) {
+  cs <- list()
+  for (nv in c(80, 95)) for (h in c(1L, 2L, 4L)) {
+    x <- tab[tab$modelo_id == id & tab$h == h, ][[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(length(x))
+    if (mean(x) > nv / 100 + 3 * ee + 0.03 || mean(x) < nv / 100 - 3 * ee - holgura_inf)
+      stop(sprintf("V19: cobertura de %s al %d%% en h=%d fuera de [nominal − (3 ee + %.2f), nominal + 3 ee + 0,03] (%.3f, ee %.4f)", id, nv, h, holgura_inf, mean(x), ee))
+    cs[[as.character(nv)]] <- c(cs[[as.character(nv)]], mean(x))
+  }
+  ok("V19", sprintf("cobertura de %s 80%% %s y 95%% %s en h = 1, 2, 4", id, paste(sprintf("%.3f", cs[["80"]]), collapse = "/"), paste(sprintf("%.3f", cs[["95"]]), collapse = "/")))
+}
+t19 <- corrida19(1, 8L, SEMILLA_RAIZ + 19L)
+for (id in c("PRUEBA.UMIDAS", "PRUEBA.PUENTE")) {
+  rz <- razon15(t19$m, id, "BENCH.ARP_BIC", 1L)
+  if (!(rz < 0.7)) stop(sprintf("V19: en h=1 %s no bate al AR(p)-BIC con el borde irregular (razón de RMSE %.3f)", id, rz))
+  ok("V19", sprintf("borde irregular, h=1: RMSE %s / AR(p)-BIC %.3f (< 0,7); h=2 %.3f", id, rz, razon15(t19$m, id, "BENCH.ARP_BIC", 2L)))
+}
+cobertura19(t19$m, "PRUEBA.PUENTE", 0.03)
+cobertura19(t19$m, "PRUEBA.UMIDAS", 0.10)
+t19p <- corrida19(0, 4L, SEMILLA_RAIZ + 191L)
+for (id in c("PRUEBA.UMIDAS", "PRUEBA.PUENTE")) {
+  rz <- razon15(t19p$m, id, "BENCH.ARP_BIC", 1L)
+  if (!(rz < 1.10)) stop(sprintf("V19: con predictoras placebo %s empeora al AR(p)-BIC en h=1 (razón %.3f)", id, rz))
+  ok("V19", sprintf("placebo (β = 0): RMSE %s / AR(p)-BIC en h=1 %.3f (< 1,10)", id, rz))
+}
+p19b <- correr_backtest(t19$s, mods19[1:2], ors19[1:2], rezagos = rez19, exp_id = "V19", densidad = TRUE)
+p19a <- t19$p[t19$p$modelo_id %in% c("PRUEBA.UMIDAS", "PRUEBA.PUENTE") & t19$p$origen %in% ors19[1:2], ]; rownames(p19a) <- NULL
+attr(p19a, "diagnosticos") <- NULL; attr(p19b, "diagnosticos") <- NULL
+if (!identical(p19a, p19b)) stop("V19: reejecutar U-MIDAS y puente no reproduce bit a bit sus pronósticos (F5-15)")
+ok("V19", "reejecutar dos orígenes reproduce bit a bit sendero y densidad del U-MIDAS y del puente (F5-15)")
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V19 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V19)\n")
