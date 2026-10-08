@@ -14,11 +14,12 @@
 # MULT.VECM.G1. B2b agrega el BVAR del grupo (F5-07, B2-5, B2-7, B2-10 a B2-14): MULT.BVAR.G1/.G2/.G3, con todas
 # las series trimestrales del grupo (en G3, también las remesas reales; B1b-2) y sin piso de grados de libertad. El PR 1 de
 # B3 (B3-8) carga forma_directa.R: forma directa por h y validación anidada (C3, C4; F5-05, F5-11, B3-1 a B3-7), la base de
-# los regularizados y, si B4 lo decide, de los árboles; el registro no cambia hasta que el PR 2 agregue REG.ENET y REG.PCR.
+# los regularizados y, si B4 lo decide, de los árboles. El PR 2 de B3 agrega los regularizados de modelos_regularizados.R
+# (F5-09, B3-1 a B3-7): REG.ENET.Gk y REG.PCR.Gk, con todas las predictoras del grupo (B1b-2) y sin piso de grados de libertad.
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
 #   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8);
-#                    FALSE en el BVAR (B2-7), cuyo prior hace estimable el modelo
+#                    FALSE en el BVAR (B2-7), cuyo prior hace estimable el modelo, y en los regularizados (F5-09)
 #   requiere         series_master_id de las predictoras (predictoras_grupo()), además de "objetivo"
 #   diagnosticar     función(ajuste) -> vector numérico nombrado (órdenes elegidos, número de condición, ...);
 #                    el motor lo escribe por origen en diagnosticos.csv del experimento
@@ -27,6 +28,7 @@
 source(here::here("src", "evaluacion", "modelos_univariados.R"))     # B1: ARIMA, UC, ARIMAX
 source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2: VAR, VECM y BVAR
 source(here::here("src", "evaluacion", "forma_directa.R"))           # B3 y B4: forma directa y validación anidada (C3, C4)
+source(here::here("src", "evaluacion", "modelos_regularizados.R"))   # B3: elastic net y PCR
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
@@ -34,5 +36,6 @@ modelos_fase5 <- function(grupo) {
   c(list(modelo_arima_fase5(), modelo_uc_llt(), modelo_arimax_grupo(grupo)),          # B1 (F5-06)
     if (grupo == "G2") list(modelo_arimax_ivae()),
     modelos_multivariados_grupo(grupo),                                                 # B2a (F5-07)
-    list(modelo_bvar_grupo(grupo)))                                                     # B2b (F5-07)
+    list(modelo_bvar_grupo(grupo)),                                                     # B2b (F5-07)
+    modelos_regularizados_grupo(grupo))                                                 # B3 (F5-09)
 }

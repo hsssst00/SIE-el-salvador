@@ -42,6 +42,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
 | F5-14a a F5-14f | Tope de 8 h por pasada de `make eval`, secuencial; familias = bloques de F5-01, con `MULT.VAR_DIF` como representante de B2; representantes antes que la variante Q1 de F5-11; combinaciones con los miembros presentes; el BVAR sigue con 10 000 / 5 000 | protocolo §5 (nota 2026-10-08); checklist de Fase 5, B5 |
 | B3-1 a B3-8 | Implementación de B3: rejilla de λ desde el λ_max del origen; estacionalidad quitada en la ventana antes de estandarizar; rezagos del PIB dentro del PCA; K = 12 en todos los h; Σ = D · R · D con momentos sin centrar; guardas duras y bordes de rejilla a `diagnosticos.csv`; dos PR | F5-09, F5-11 y F5-12 (notas 2026-10-08); especificación del motor §2 (nota 2026-10-08) |
+| B3-9 | Representante de B3 para R1, R2, R5 y R6: `REG.ENET` (decisión delegada al agente; se puede reabrir) | «Tope de costo y representantes» (nota 2026-10-08) |
 
 ---
 
@@ -887,6 +888,10 @@ Las seis decisiones (F5-14a a F5-14f) se tomaron en la opción recomendada.
   Q1, ese commit los modifica antes de E1.
 - Cada PR de B3, B3b y B4 registra su costo por origen, como lo hicieron B1, B2a y B2b.
 
+**Nota (2026-10-08, B3).** El costo de B3 está medido (PR 2 de B3, en «Implementación del bloque B3»): el elastic net
+cuesta de 1,5 a 3,0 s por origen y el PCR de 0,35 a 0,46 s. B3 suma unos 23 minutos por pasada, y la proyección pasa a
+unos 278 minutos (4 h 38 min). El representante de B3 es `REG.ENET` (B3-9, decisión delegada al agente).
+
 ---
 
 ## Implementación del bloque B3 (decidida por Harold el 2026-10-08)
@@ -987,6 +992,56 @@ Fase 4 ni de los `F5_REPRO_*`: el motor no cambia y el registro de Fase 5 tampoc
   9 filas y 31 columnas (p > n), la senda que genera `glmnet` con su propia rejilla se corta antes de los 100 valores:
   61 en α = 1 y 63 en α = 0,5. Con la rejilla pasada de forma explícita devuelve los 100. El PR 2 pasa la rejilla
   explícita y no toca `glmnet.control()`, que es estado global.
+
+**PR 2 de B3 (2026-10-08): `REG.ENET.Gk` y `REG.PCR.Gk`.** Harold autorizó el 2026-10-08 que el agente avance sin
+supervisión. Lo que este PR fija y las fichas no fijaban es decisión delegada al agente y se puede reabrir.
+
+- **B3-9 · Representante de B3 (F5-14c). DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):**
+  `REG.ENET.Gk`. Con el costo medido (abajo), la diferencia entre llevar el elastic net o el PCR en R1, R2, R5 y R6 es
+  de unos 11 minutos por pasada, el 2 % del tope de 8 h. El elastic net es el regularizado más general: con α = 0 y
+  α = 1 contiene a ridge y lasso. Descartado: el PCR, más barato, que representa a la familia por un solo mecanismo
+  (componentes principales).
+- **Costo observado (dato para F5-14; sandbox Windows, datos sintéticos con las fechas de inicio de L3; mediana de tres
+  ajustes después de cargar `glmnet`), en segundos por origen:**
+
+  | Modelo | G1 primero / último | G2 primero / último | G3 primero / último |
+  |---|---|---|---|
+  | `REG.ENET` | 1,49 / 1,60 | 2,23 / 1,94 | 2,01 / 3,00 |
+  | `REG.PCR` | 0,36 / 0,36 | 0,36 / 0,39 | 0,35 / 0,46 |
+
+  Con los puntos medios y los orígenes de cada experimento (52, 45 y 25; R2 y R5 solo en G2 y G3), B3 suma por pasada
+  unos 4,7 minutos en la principal, 3,1 en R7, 4,7 en R1 y en R6 y 3,1 en R2 y en R5: unos 23 minutos. La proyección
+  de F5-14 pasa de unos 255 a unos 278 minutos (4 h 38 min).
+- **V18** (canario de B3, en la verificación sintética; unos 4 minutos en el sandbox):
+  - el elastic net sobre un DGP con una predictora adelantada entre dos ruidos (uno NSA, que ejercita B3-2) bate al
+    AR(p)-BIC con razón de RMSE < 0,8 en h = 1, 2 (0,60 y 0,75);
+  - el PCR sobre un DGP de factor con tres predictoras bate al AR(p)-BIC con razón < 0,9 (0,65 y 0,79);
+  - con un placebo, el elastic net no empeora al AR(p)-BIC en más de 10 % en h = 1 (1,04);
+  - reejecutar dos orígenes reproduce bit a bit sendero, densidad y diagnósticos.
+- **Límite declarado: la densidad de errores internos subcubre.** En V18, la cobertura al 80 % va de 0,64 a 0,81 y al
+  95 % de 0,86 a 0,96 en h = 1, 2, 4, con la mayor subcobertura en h = 4. Hay dos causas: la varianza se estima con
+  12 errores y el candidato elegido es el de menor ECM interno, que subestima su error fuera de muestra. V18 lo admite
+  con una holgura inferior declarada de 0,10 además de 3 ee de MC (V14 a V16 usan 0,03). En la corrida única, la
+  calibración de los regularizados (y de los árboles, si B4 usa la misma densidad) se lee con este límite. Corregirlo,
+  por ejemplo con cuantiles t o un factor de inflación, sería una decisión metodológica nueva, que queda para Harold.
+
+**Decisiones menores del agente en el PR 2 de B3** (revertibles en un commit; ninguna cambia un resultado de Fase 4 ni de
+los `F5_REPRO_*`, que solo corren benchmarks):
+
+- **Código:** `src/evaluacion/modelos_regularizados.R` (`rejilla_enet()`, `estimar_predecir_enet()`,
+  `estimar_predecir_pcr()`, `modelos_regularizados_grupo()`), que se carga desde `modelos_fase5.R`. Los regularizados
+  van en el registro después del BVAR.
+- **λ_max** con la fórmula de `glmnet` para `standardize = FALSE` e `intercept = FALSE`, verificada contra el primer λ
+  de `glmnet` en `tests/test-modelos-regularizados.R`. La rejilla se pasa explícita y no se toca `glmnet.control()`.
+- **Senda completa por α:** aunque se pida un solo candidato, se estima la senda de las 100 λ de su α. Así el
+  pronóstico de un candidato no depende de qué otros se piden, y el error del elegido en los orígenes comunes coincide
+  con el de la pasada de selección.
+- **PCR:** `stats::prcomp(center = FALSE, scale. = FALSE)` sobre la ventana ya transformada. MCO sin constante sobre
+  los componentes: g_h y las columnas ya están residualizadas sobre la constante y las dummies. La guarda de B3-7 se
+  comprueba sobre la varianza del componente k: un componente sin varianza indica pérdida de rango o menos filas que
+  parámetros.
+- **Diagnósticos por h:** en el ENET, α, λ, posición de λ en la rejilla y bandera de borde (posición 1 o 100); en el
+  PCR, k y bandera de borde (k = 5).
 
 ---
 

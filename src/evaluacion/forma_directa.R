@@ -4,7 +4,8 @@
 # F5-11, F5-12 y B3-1 a B3-8 de doc/metodologia/decisiones_fase5.md). Es la infraestructura del primer PR de B3
 # (B3-8). La usan los regularizados de B3 (REG.ENET.Gk, REG.PCR.Gk) y puede usarla B4 (árboles), que tiene los
 # mismos predictores (F5-10). No cambia el motor: un modelo directo cumple el contrato de eval_lib.R §4 y hace todo
-# dentro de ajustar(), que solo recibe datos <= o (G-1). Sin I/O y sin estado global.
+# dentro de ajustar(), que solo recibe datos <= o (G-1). Sin I/O y sin estado global. Usa dummies_trimestrales() de
+# modelos_univariados.R, que modelos_fase5.R carga antes.
 #
 # Forma directa (F5-05, F5-09). En el origen o y para cada h = 1..8 hay un modelo sobre el crecimiento acumulado
 #   g_h(t) = y_{t+h} - y_t      (y = log-nivel SA del objetivo, el del origen),
