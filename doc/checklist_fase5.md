@@ -45,7 +45,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   representantes»): 8 horas por pasada de `make eval`, secuencial; con B1 y B2 la proyección es de unas 4 h 15 min.
   Representante de B2: `MULT.VAR_DIF`. Faltan el costo y el representante de B3, B3b y B4, y la cuenta final antes de
   E1. Estado 2026-10-08 (PR 2 de B3): B3 medido (ENET 1,5-3,0 s y PCR 0,35-0,46 s por origen; unos 23 minutos más por
-  pasada, unos 278 en total) y representante `REG.ENET` (B3-9). Faltan B3b y B4 y la cuenta final.
+  pasada, unos 278 en total) y representante `REG.ENET` (B3-9). Faltan B3b y B4 y la cuenta final. Estado 2026-10-08
+  (B3b): U-MIDAS y puente, menos de 0,2 s por origen (unos 281 minutos en total); representante `MIX.PUENTE` (B3b-7).
+  Faltan B4 y la cuenta final.
 
 ## C. Infraestructura que piden las decisiones
 
@@ -85,7 +87,10 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   Estado 2026-10-08: el PR 1 de B3 trae la covarianza de errores internos de los regularizados (Σ = D · R · D, B3-5 y
   B3-6; `cov_errores_internos()`), con prueba de su forma; la cobertura llega con V18 en el PR 2. Faltan puente (B3b)
   y árboles (B4). Estado 2026-10-08 (PR 2 de B3): cobertura en V18 con una holgura inferior declarada de 0,10 (la
-  densidad de errores internos subcubre; límite en `decisiones_fase5.md`).
+  densidad de errores internos subcubre; límite en `decisiones_fase5.md`). Estado 2026-10-08 (B3b): puente con el
+  sistema conjunto linealizado y la covarianza de su innovación con las mensuales del trimestre (B3b-5, B3b-6), con
+  prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19. Faltan los
+  árboles (B4).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes.
 
@@ -106,7 +111,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen. Estado 2026-10-08: PR 1 fusionado (#41,
   `13eba72`); el PR 2 en su rama (`REG.ENET.G1/.G2/.G3`, `REG.PCR.G1/.G2/.G3`, sus YAML, V18, costo y representante,
   B3-9).
-- [ ] **D4 · B3b** MIDAS y puente.
+- [ ] **D4 · B3b** MIDAS y puente. Estado 2026-10-08: B3b-1 a B3b-7 decididas (delegadas al agente); en su PR
+  (`MIX.UMIDAS.G1/.G2/.G3`, `MIX.PUENTE.G1/.G2/.G3`, sus YAML, V19, costo y representante `MIX.PUENTE`).
 - [ ] **D5 · B4** Árboles.
 - [ ] **D6 · B5** Combinaciones (al final).
 

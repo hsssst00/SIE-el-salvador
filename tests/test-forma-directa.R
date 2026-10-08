@@ -238,11 +238,12 @@ test_that("C3: un modelo directo cumple el contrato del motor, con densidad y di
                "estimar_predecir\\(\\) debe devolver .* pronósticos finitos \\(B3-7\\)")
 })
 
-test_that("B3: los modelos directos del registro de Fase 5 son los regularizados (PR 2 de B3), sin piso de grados de libertad", {
+test_that("B3, B3b: los modelos directos del registro de Fase 5 son los regularizados (sin piso) y el U-MIDAS (con piso)", {
   for (g in c("G1", "G2", "G3")) {
     ms <- modelos_fase5(g)
     directos <- vapply(ms, function(m) !is.null(m$esp), logical(1))
-    expect_identical(vapply(ms[directos], `[[`, character(1), "modelo_id"), paste0(c("REG.ENET.", "REG.PCR."), g), info = g)
-    expect_false(any(vapply(ms[directos], `[[`, logical(1), "piso_gl")), info = g)
+    ids <- vapply(ms[directos], `[[`, character(1), "modelo_id")
+    expect_identical(ids, paste0(c("REG.ENET.", "REG.PCR.", "MIX.UMIDAS."), g), info = g)
+    expect_identical(unname(vapply(ms[directos], `[[`, logical(1), "piso_gl")), c(FALSE, FALSE, TRUE), info = g)
   }
 })
