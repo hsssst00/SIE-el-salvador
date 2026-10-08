@@ -1304,6 +1304,14 @@ al 80 % (0,185 por debajo del nominal).
   50 rondas como máximo en G1 y G3; la prueba de reproducibilidad usa 100 árboles y 20 rondas. Lo que se prueba ahí
   (filas, guardas y semilla) no depende del número de árboles ni de rondas.
 
+**Nota (2026-10-08, CI de #44).** En CI (Ubuntu), V20 falló en la cobertura del RF al 95 % en h = 4: 0,846 contra una
+cota de 0,85 con «ee 0,0000». Las dos réplicas dieron la misma cobertura, así que la desviación entre réplicas valía 0
+y no estimaba el error de Monte Carlo. Se corrige la prueba, no la cota: el ee es ahora el mayor entre esa desviación y
+el error binomial con los pares de las dos réplicas, que todavía lo subestima porque los errores a h > 1 se traslapan.
+La holgura de V18 (0,10) no cambia. La misma corrida mostró que el RF no es idéntico entre sistemas: la razón de RMSE en
+h = 1 fue 0,638 en Ubuntu y 0,626 en el sandbox de Windows, con el mismo DGP y las mismas semillas. Como con el BVAR
+(F5-15, F1-3), el bit a bit se exige en una misma máquina; E2 corre en la de Harold.
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5

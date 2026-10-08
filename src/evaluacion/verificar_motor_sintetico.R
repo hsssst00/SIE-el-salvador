@@ -852,7 +852,7 @@ corrida20 <- function(beta, R, semilla) {
     s <- sim_v20(beta)
     p <- correr_backtest(s, mods20, ors20, rezagos = rezagos20, exp_id = "V20", densidad = TRUE)
     m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
-    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "n_pares", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
   })
   list(m = do.call(rbind, lapply(res, `[[`, "m")), p = res[[1]]$p, s = res[[1]]$s)
 }
@@ -863,7 +863,10 @@ ok("V20", sprintf("DGP no lineal (|x|), h=1: RMSE RF / AR(p)-BIC %.3f (< 0,8); h
                   razon15(t20$m, "PRUEBA.RF", "BENCH.ARP_BIC", 2L), razon15(t20$m, "PRUEBA.RF", "BENCH.ARP_BIC", 4L)))
 cs20 <- list(); ee20 <- numeric(0)
 for (nv in c(80, 95)) for (h in c(1L, 2L, 4L)) {
-  x <- t20$m[t20$m$modelo_id == "PRUEBA.RF" & t20$m$h == h, ][[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(length(x))
+  t <- t20$m[t20$m$modelo_id == "PRUEBA.RF" & t20$m$h == h, ]; x <- t[[paste0("cobertura_", nv)]]
+  # con 2 réplicas la desviación entre réplicas no estima el error de MC (puede dar 0): piso binomial con los pares de
+  # las réplicas, que todavía lo subestima porque los errores a h > 1 se traslapan (B4-6, nota del 2026-10-08)
+  ee <- max(stats::sd(x) / sqrt(length(x)), sqrt(nv / 100 * (1 - nv / 100) / sum(t$n_pares)))
   if (mean(x) > nv / 100 + 3 * ee + 0.03 || mean(x) < nv / 100 - 3 * ee - 0.10)
     stop(sprintf("V20: cobertura del RF al %d%% en h=%d fuera de [nominal − (3 ee + 0,10), nominal + 3 ee + 0,03] (%.3f, ee %.4f)",
                  nv, h, mean(x), ee))
