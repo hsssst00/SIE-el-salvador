@@ -237,23 +237,27 @@ verificar_vintage_predictora <- function(d, serie_id, vintages, conjunto = NULL)
   if (!nrow(d)) stop("G-6: ", serie_id, " no trae filas")
   if (anyDuplicated(d$periodo)) stop("G-6: ", serie_id, " tiene períodos duplicados")
   if (anyNA(d$valor)) stop("motor: ", serie_id, " trae valores ausentes")
-  pub <- vintages$publicacion_id[match(d$vintage_id, vintages$vintage_id)]
+  # Una serie que combina publicaciones (p. ej. las remesas reales, deflactadas con el IPC) etiqueta cada fila con
+  # sus vintage_id unidos por " + " (vintage_lib.R); cada componente se verifica contra el corte (E2, 2026-10-08).
+  partes <- strsplit(d$vintage_id, " + ", fixed = TRUE)
+  comp <- unlist(partes); fila <- rep(seq_len(nrow(d)), lengths(partes))
+  pub <- vintages$publicacion_id[match(comp, vintages$vintage_id)]
   if (anyNA(pub)) stop("G-6: ", serie_id, " trae vintage_id que no están en 08_vintages.csv: ",
-                       paste(utils::head(unique(d$vintage_id[is.na(pub)]), 3), collapse = ", "))
-  esperado <- character(nrow(d))
+                       paste(utils::head(unique(comp[is.na(pub)]), 3), collapse = ", "))
+  esperado <- character(length(comp))
   for (p in unique(pub)) {
     i <- pub == p
     esperado[i] <- if (p %in% PUBLICACIONES_POR_ANIO) {
-      unname(mapa_vintage_por_anio(p, vintages, conjunto)[substr(d$periodo[i], 1L, 4L)])
+      unname(mapa_vintage_por_anio(p, vintages, conjunto)[substr(d$periodo[fila[i]], 1L, 4L)])
     } else {
       vintage_vigente(p, vintages, conjunto)
     }
   }
-  malas <- is.na(esperado) | d$vintage_id != esperado
+  malas <- is.na(esperado) | comp != esperado
   if (any(malas)) {
     k <- which(malas)[1]
     stop(sprintf("G-6: %s trae %d fila(s) de un vintage distinto del que declara el corte (primera: %s con %s; se espera %s)",
-                 serie_id, sum(malas), d$periodo[k], d$vintage_id[k], esperado[k]))
+                 serie_id, length(unique(fila[malas])), d$periodo[fila[k]], comp[k], esperado[k]))
   }
   invisible(TRUE)
 }
