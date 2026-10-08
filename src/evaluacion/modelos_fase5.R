@@ -16,6 +16,8 @@
 # B3 (B3-8) carga forma_directa.R: forma directa por h y validación anidada (C3, C4; F5-05, F5-11, B3-1 a B3-7), la base de
 # los regularizados y, si B4 lo decide, de los árboles. El PR 2 de B3 agrega los regularizados de modelos_regularizados.R
 # (F5-09, B3-1 a B3-7): REG.ENET.Gk y REG.PCR.Gk, con todas las predictoras del grupo (B1b-2) y sin piso de grados de libertad.
+# B3b agrega los de frecuencia mixta de modelos_frecuencia_mixta.R (F5-08, B3b-1 a B3b-6): MIX.UMIDAS.Gk (directo, con la
+# forma directa y meses) y MIX.PUENTE.Gk (iterado), con las predictoras mensuales sin penalización (B1b-2) y el piso de G-8.
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
 #   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8);
@@ -29,6 +31,7 @@ source(here::here("src", "evaluacion", "modelos_univariados.R"))     # B1: ARIMA
 source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2: VAR, VECM y BVAR
 source(here::here("src", "evaluacion", "forma_directa.R"))           # B3 y B4: forma directa y validación anidada (C3, C4)
 source(here::here("src", "evaluacion", "modelos_regularizados.R"))   # B3: elastic net y PCR
+source(here::here("src", "evaluacion", "modelos_frecuencia_mixta.R")) # B3b: U-MIDAS y puente
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
@@ -37,5 +40,6 @@ modelos_fase5 <- function(grupo) {
     if (grupo == "G2") list(modelo_arimax_ivae()),
     modelos_multivariados_grupo(grupo),                                                 # B2a (F5-07)
     list(modelo_bvar_grupo(grupo)),                                                     # B2b (F5-07)
-    modelos_regularizados_grupo(grupo))                                                 # B3 (F5-09)
+    modelos_regularizados_grupo(grupo),                                                 # B3 (F5-09)
+    modelos_frecuencia_mixta_grupo(grupo))                                              # B3b (F5-08)
 }

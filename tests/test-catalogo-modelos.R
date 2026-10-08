@@ -13,7 +13,7 @@
 #   5. (Fase 5, B1b) los modelos no benchmark declarados son exactamente los del registro modelos_fase5() de
 #      los tres grupos, sus variables son las que piden al motor y las grillas del ARIMA y de las ARIMAX
 #      coinciden con las del código (preregistro F5-02); (B2a) también las rejillas de los VAR y del VECM;
-#      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado); (B3) y las rejillas de ENET y PCR.
+#      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado); (B3) y las rejillas de ENET y PCR; (B3b) y los órdenes de U-MIDAS y puente.
 #
 # No lee datos del proyecto: corre en CI. Lee YAML con `yaml`, en Imports desde Fase 4 (F4-12).
 
@@ -141,5 +141,15 @@ test_that("06_modelos: las rejillas declaradas de los regularizados son las del 
     p <- .leer_modelo(paste0("REG.PCR.", g, ".yaml"))$especificacion$ordenes
     expect_identical(as.integer(unlist(p$rezagos)), as.integer(REZAGOS_FORMA_DIRECTA), info = g)
     expect_identical(as.integer(c(p$K_validacion, p$h_max, p$k_min, p$k_max)), c(K_VALIDACION_ANIDADA, H_FORMA_DIRECTA, 1L, K_MAX_PCR), info = g)
+  }
+})
+
+test_that("06_modelos: los órdenes declarados de U-MIDAS y puente son los del código (F5-08, B3b-1, B3b-4)", {
+  for (g in c("G1", "G2", "G3")) {
+    u <- .leer_modelo(paste0("MIX.UMIDAS.", g, ".yaml"))$especificacion$ordenes
+    expect_identical(as.integer(unlist(u$lags_mensuales)), as.integer(LAGS_UMIDAS[[g]]), info = g)
+    expect_identical(as.integer(c(u$K_validacion, u$h_max)), c(K_VALIDACION_ANIDADA, H_FORMA_DIRECTA), info = g)
+    p <- .leer_modelo(paste0("MIX.PUENTE.", g, ".yaml"))$especificacion$ordenes
+    expect_identical(as.integer(c(p$p_max_ar_mensual, p$rezagos_pib, p$h_max)), c(P_MAX_AR_MENSUAL, 1L, DISENO_FASE4$h_max), info = g)
   }
 })

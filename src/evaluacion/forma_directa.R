@@ -43,6 +43,12 @@
 #   transformar                              -> TRUE para aplicar la ventana de B3-2 (regularizados)
 #   diagnosticar(rejilla, j)                 -> opcional: vector numérico nombrado del candidato elegido j (α, λ,
 #                                               borde de la rejilla, ...)
+#   piso_gl                                  -> opcional (B3b, U-MIDAS sin penalización): TRUE para que el ajuste
+#                                               devuelva gl = c(n_obs, n_par) y el motor aplique G-8 (F5-03); n_obs =
+#                                               filas de la estimación final más chica (h = 8) y n_par = columnas +
+#                                               constante + dummies
+# Un modelo directo puede traer su propia matriz (B3b: U-MIDAS con meses): `construir(datos)` devuelve la misma lista
+# que matriz_directa().
 
 K_VALIDACION_ANIDADA  <- 12L                  # F5-11, B3-4
 REZAGOS_FORMA_DIRECTA <- 0:3                  # F5-09 (y F5-10)
@@ -235,6 +241,7 @@ cov_errores_internos <- function(e_propios, E_comunes, modelo_id = "?") {
   }
   if (!(is.logical(esp$transformar) && length(esp$transformar) == 1L && !is.na(esp$transformar))) stop(modelo_id, ": transformar debe ser TRUE o FALSE")
   if (!is.null(esp$diagnosticar) && !is.function(esp$diagnosticar)) stop(modelo_id, ": diagnosticar debe ser una función")
+  if (!is.null(esp$piso_gl) && !(is.logical(esp$piso_gl) && length(esp$piso_gl) == 1L && !is.na(esp$piso_gl))) stop(modelo_id, ": piso_gl debe ser TRUE o FALSE")
   invisible(TRUE)
 }
 
@@ -245,6 +252,9 @@ ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_A
   .validar_especificacion_directa(esp, md$modelo_id)
   o <- md$o; nw <- which(md$t == o)
   comunes <- origenes_comunes(o, h_max, K)
+  gl <- if (isTRUE(esp$piso_gl)) c(n_obs = sum(md$t + h_max <= o), n_par = ncol(md$X) + if (md$con_dummies) 4L else 1L)
+  if (!is.null(gl)) guarda_gl(list(gl = gl), md$modelo_id, o)    # G-8 antes de la validación anidada (B3b): con menos
+                                                                 # filas que parámetros, las ventanas internas no se estiman
   por_h <- lapply(seq_len(h_max), function(h) {
     g <- crecimiento_acumulado(md, h)
     tr <- which(md$t + h <= o)
@@ -277,8 +287,10 @@ ajustar_directo <- function(md, esp, h_max = H_FORMA_DIRECTA, K = K_VALIDACION_A
   })
   g_hat <- vapply(por_h, `[[`, numeric(1), "g_hat")
   Sigma <- cov_errores_internos(lapply(por_h, `[[`, "e_propios"), vapply(por_h, `[[`, numeric(length(comunes)), "e_comunes"), md$modelo_id)
-  list(modelo_id = md$modelo_id, o = o, y_o = md$y_o, g_hat = g_hat, sendero = md$y_o + g_hat, Sigma = Sigma, por_h = por_h,
-       n_filas = length(md$t), n_columnas = ncol(md$X))
+  aj <- list(modelo_id = md$modelo_id, o = o, y_o = md$y_o, g_hat = g_hat, sendero = md$y_o + g_hat, Sigma = Sigma, por_h = por_h,
+             n_filas = length(md$t), n_columnas = ncol(md$X))
+  if (!is.null(gl)) aj$gl <- gl                                  # G-8 (F5-03) con la estimación final más chica (h = 8)
+  aj
 }
 
 sendero_directo <- function(aj, h) {
@@ -298,12 +310,14 @@ diagnosticos_directo <- function(aj, esp) {
   out
 }
 
-#' Fábrica de un modelo directo bajo el contrato del motor (C3). Sin piso de grados de libertad (F5-09).
-modelo_directo <- function(modelo_id, predictoras, esp, rezagos = REZAGOS_FORMA_DIRECTA) {
+#' Fábrica de un modelo directo bajo el contrato del motor (C3). Sin piso de grados de libertad (F5-09), salvo que la
+#' especificación lo pida (B3b). `construir` reemplaza a matriz_directa() (B3b: U-MIDAS).
+modelo_directo <- function(modelo_id, predictoras, esp, rezagos = REZAGOS_FORMA_DIRECTA, construir = NULL) {
   .validar_especificacion_directa(esp, modelo_id)
+  if (is.null(construir)) construir <- function(datos) matriz_directa(datos, predictoras, modelo_id, rezagos)
   list(
-    modelo_id = modelo_id, requiere = c("objetivo", predictoras), piso_gl = FALSE, esp = esp,
-    ajustar = function(datos, spec) ajustar_directo(matriz_directa(datos, predictoras, modelo_id, rezagos), esp),
+    modelo_id = modelo_id, requiere = c("objetivo", predictoras), piso_gl = isTRUE(esp$piso_gl), esp = esp,
+    ajustar = function(datos, spec) ajustar_directo(construir(datos), esp),
     predecir = function(aj, h) sendero_directo(aj, h),
     predecir_densidad = function(aj, h) list(media = sendero_directo(aj, h), cov = aj$Sigma[seq_len(h), seq_len(h), drop = FALSE]),
     diagnosticar = function(aj) diagnosticos_directo(aj, esp)
