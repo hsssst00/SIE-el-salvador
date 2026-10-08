@@ -119,9 +119,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [x] **D4 · B3b** MIDAS y puente. Estado 2026-10-08: B3b-1 a B3b-7 decididas (delegadas al agente); en su PR
   (`MIX.UMIDAS.G1/.G2/.G3`, `MIX.PUENTE.G1/.G2/.G3`, sus YAML, V19, costo y representante `MIX.PUENTE`). Fusionado
   (#43, `f6028fd`).
-- [ ] **D5 · B4** Árboles. Estado 2026-10-08: B4-1 a B4-6 decididas por el agente (decisiones delegadas; se pueden
+- [x] **D5 · B4** Árboles. Estado 2026-10-08: B4-1 a B4-6 decididas por el agente (decisiones delegadas; se pueden
   reabrir). B4 en su rama: `ML.RF.G1/.G2/.G3` y `ML.LGBM.G1/.G2/.G3` en `src/evaluacion/modelos_arboles.R`, sus YAML,
-  V20, costo por origen y representante `ML.RF` (B4-5). PR #44.
+  V20, costo por origen y representante `ML.RF` (B4-5). Fusionado (#44, `acacc3f`).
 - [ ] **D6 · B5** Combinaciones (al final). Estado 2026-10-08: B5-1 a B5-5 decididas por el agente (delegadas; se pueden
   reabrir). En su PR: `src/evaluacion/combinaciones.R`, los 12 YAML `COMB.MEDIA/MEDIANA/RECORTADA/ECM_INV.Gk`, las
   variantes `F5_Gk_Rn` (R1, R2, R5, R6 y R7) y V21 (C6).
