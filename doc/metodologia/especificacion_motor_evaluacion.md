@@ -74,6 +74,19 @@ condición, ...). `correr_backtest()` lo recoge por origen en el atributo `"diag
 `diagnosticos.csv` (§4). Un modelo sin `diagnosticar` no cambia la salida, así que los benchmarks y los `F5_REPRO_*`
 quedan como estaban. Los modelos de B1b viven en `src/evaluacion/modelos_univariados.R`.
 
+**Nota (2026-10-08, Fase 5, B3; checklist C3 y C4).** Los modelos directos no cambian el contrato. Son los
+regularizados de B3 y, si B4 lo decide, los árboles. Todo ocurre dentro de `ajustar()`, que solo recibe datos ≤ o
+(G-1). Para cada h = 1..8, el modelo:
+
+- estima sobre el crecimiento acumulado g_h(t) = y_{t+h} − y_t con las filas t + h ≤ o (F5-05);
+- elige sus hiperparámetros por validación anidada en los 12 orígenes internos o' = o − h − 11..o − h (F5-11, B3-4).
+  En cada o', la estimación usa solo las filas con t + h ≤ o' y la fila de pronóstico de o';
+- devuelve el sendero y_o + ĝ_h y la densidad gaussiana con Σ = D · R · D de los errores internos (F5-12, B3-5 y
+  B3-6).
+
+`piso_gl = FALSE` (F5-09). La infraestructura vive en `src/evaluacion/forma_directa.R` (`modelo_directo()`). La
+prueba de que ningún pronóstico interno usa datos posteriores a su origen interno está en `tests/test-forma-directa.R`.
+
 ## 3. Bucle de orígenes
 
 ```

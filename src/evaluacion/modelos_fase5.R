@@ -12,7 +12,9 @@
 # en los tres grupos, la ARIMAX del grupo y, en G2, la ARIMAX de referencia con el IVAE. B2a agrega los VAR y el
 # VECM de modelos_multivariados.R (F5-07, B2-1 a B2-4): MULT.VAR_DIF del grupo y, en G1, MULT.VAR_NIV.G1 y
 # MULT.VECM.G1. B2b agrega el BVAR del grupo (F5-07, B2-5, B2-7, B2-10 a B2-14): MULT.BVAR.G1/.G2/.G3, con todas
-# las series trimestrales del grupo (en G3, también las remesas reales; B1b-2) y sin piso de grados de libertad.
+# las series trimestrales del grupo (en G3, también las remesas reales; B1b-2) y sin piso de grados de libertad. El PR 1 de
+# B3 (B3-8) carga forma_directa.R: forma directa por h y validación anidada (C3, C4; F5-05, F5-11, B3-1 a B3-7), la base de
+# los regularizados y, si B4 lo decide, de los árboles; el registro no cambia hasta que el PR 2 agregue REG.ENET y REG.PCR.
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
 #   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8);
@@ -24,6 +26,7 @@
 
 source(here::here("src", "evaluacion", "modelos_univariados.R"))     # B1: ARIMA, UC, ARIMAX
 source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2: VAR, VECM y BVAR
+source(here::here("src", "evaluacion", "forma_directa.R"))           # B3 y B4: forma directa y validación anidada (C3, C4)
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
