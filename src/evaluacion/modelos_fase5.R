@@ -18,10 +18,13 @@
 # (F5-09, B3-1 a B3-7): REG.ENET.Gk y REG.PCR.Gk, con todas las predictoras del grupo (B1b-2) y sin piso de grados de libertad.
 # B3b agrega los de frecuencia mixta de modelos_frecuencia_mixta.R (F5-08, B3b-1 a B3b-6): MIX.UMIDAS.Gk (directo, con la
 # forma directa y meses) y MIX.PUENTE.Gk (iterado), con las predictoras mensuales sin penalización (B1b-2) y el piso de G-8.
+# B4 agrega los árboles de modelos_arboles.R (F5-10, B4-1 a B4-6), también directos sobre forma_directa.R: ML.RF.Gk
+# (ranger) y ML.LGBM.Gk (lightgbm), con todas las predictoras del grupo y sin piso de grados de libertad.
 #
 # Contrato: el de eval_lib.R §4, más los campos opcionales de Fase 5:
 #   piso_gl = TRUE   el ajuste devuelve gl = c(n_obs, n_par) y el motor exige n_obs - n_par >= PISO_GL (G-8);
-#                    FALSE en el BVAR (B2-7), cuyo prior hace estimable el modelo, y en los regularizados (F5-09)
+#                    FALSE en el BVAR (B2-7), cuyo prior hace estimable el modelo, y en los regularizados (F5-09) y
+#                    los árboles (F5-10)
 #   requiere         series_master_id de las predictoras (predictoras_grupo()), además de "objetivo"
 #   diagnosticar     función(ajuste) -> vector numérico nombrado (órdenes elegidos, número de condición, ...);
 #                    el motor lo escribe por origen en diagnosticos.csv del experimento
@@ -32,6 +35,7 @@ source(here::here("src", "evaluacion", "modelos_multivariados.R"))   # B2: VAR, 
 source(here::here("src", "evaluacion", "forma_directa.R"))           # B3 y B4: forma directa y validación anidada (C3, C4)
 source(here::here("src", "evaluacion", "modelos_regularizados.R"))   # B3: elastic net y PCR
 source(here::here("src", "evaluacion", "modelos_frecuencia_mixta.R")) # B3b: U-MIDAS y puente
+source(here::here("src", "evaluacion", "modelos_arboles.R"))         # B4: random forest y LightGBM
 
 #' Modelos de Fase 5 de un grupo de comparación, en el orden en que se reportan.
 modelos_fase5 <- function(grupo) {
@@ -41,5 +45,6 @@ modelos_fase5 <- function(grupo) {
     modelos_multivariados_grupo(grupo),                                                 # B2a (F5-07)
     list(modelo_bvar_grupo(grupo)),                                                     # B2b (F5-07)
     modelos_regularizados_grupo(grupo),                                                 # B3 (F5-09)
-    modelos_frecuencia_mixta_grupo(grupo))                                              # B3b (F5-08)
+    modelos_frecuencia_mixta_grupo(grupo),                                              # B3b (F5-08)
+    modelos_arboles_grupo(grupo))                                                       # B4 (F5-10)
 }

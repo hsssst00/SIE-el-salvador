@@ -52,6 +52,10 @@
 #   V19  U-MIDAS y puente sobre un DGP con una predictora mensual cuyo promedio trimestral mueve al PIB y 2 meses de o+1
 #        en el borde: baten al AR(p)-BIC en h = 1; la densidad del puente (sistema conjunto) cubre como V14 a V16 y la del
 #        U-MIDAS con la holgura de V18; con un placebo no empeoran al AR(p)-BIC en más de 10 %; reejecutar reproduce bit a bit
+# Bloque de los árboles de Fase 5 (B4; F5-10, F5-11, F5-12, F5-15, B4-1 a B4-6):
+#   V20  random forest sobre un DGP no lineal (el PIB responde al valor absoluto de una predictora adelantada): bate al
+#        AR(p)-BIC en h = 1; la densidad de errores internos cubre dentro de la holgura declarada de V18; con un placebo
+#        no empeora al AR(p)-BIC en más de 10 % en h = 1; reejecutar reproduce bit a bit el RF y el LightGBM (F5-15)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -63,6 +67,7 @@ source(here::here("src", "evaluacion", "paridad_bvar.R"))          # V17 (F1)
 source(here::here("src", "evaluacion", "forma_directa.R"))          # V18 (B3)
 source(here::here("src", "evaluacion", "modelos_regularizados.R"))  # V18 (B3)
 source(here::here("src", "evaluacion", "modelos_frecuencia_mixta.R")) # V19 (B3b)
+source(here::here("src", "evaluacion", "modelos_arboles.R"))        # V20 (B4)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -815,5 +820,75 @@ attr(p19a, "diagnosticos") <- NULL; attr(p19b, "diagnosticos") <- NULL
 if (!identical(p19a, p19b)) stop("V19: reejecutar U-MIDAS y puente no reproduce bit a bit sus pronósticos (F5-15)")
 ok("V19", "reejecutar dos orígenes reproduce bit a bit sendero y densidad del U-MIDAS y del puente (F5-15)")
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V19 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V19)\n")
+# --- V20 · Árboles (B4; F5-10, F5-11, F5-12, F5-15, B4-1 a B4-6) ----------------------------------------------------
+# DGP no lineal con predictoras trimestrales desde 1990 (unas 90 filas en el primer origen del diseño): la predictora X
+# (x_t = 0,6 x_{t-1} + u_t, sd(u) = 0,02) adelanta al PIB por su valor absoluto, Δy_t = 0,004 + β (|x_{t-1}| − E|x|) + e_t
+# con β = 0,8 y sd(e) = 0,006, junto a una SA de ruido. Δy no tiene correlación lineal con x_{t-1}, así que un modelo
+# lineal no aprovecha a X. El RF (3 series con rezagos 0..3: 12 columnas, mtry = 4 y min.node.size ∈ {5, 3}) debe batir
+# al AR(p)-BIC con razón de RMSE < 0,8 en h = 1. Densidad de errores internos (B4-2) con la holgura declarada de V18: la
+# cobertura en h = 1, 2, 4 no puede pasar del nominal más 3 ee de MC más 0,03 ni quedar por debajo del nominal menos 3 ee
+# menos 0,10. Placebo (β = 0): el RF no empeora al AR(p)-BIC en más de 10 % en h = 1. Reejecutar dos orígenes reproduce
+# bit a bit sendero, densidad y diagnósticos del RF, y un origen los del LightGBM (semilla del motor, F5-15). Para acotar
+# el costo (unos 4 minutos), el RF corre con 50 árboles en lugar de 500 y el LightGBM con 20 rondas como máximo en lugar
+# de 500; la configuración de producción se prueba en tests/test-modelos-arboles.R. Uno de cada cuatro orígenes del
+# diseño; 2 réplicas y 2 de placebo. El LightGBM no entra a las comparaciones de RMSE ni de cobertura: aun con 50 rondas
+# cuesta unos 19 s por origen en el sandbox (decisiones_fase5.md, «Implementación del bloque B4»).
+MEDIA_ABS_V20 <- 0.025 * sqrt(2 / pi)   # E|x| con x AR(1) estacionario de desviación 0,02 / sqrt(1 − 0,6²)
+sim_v20 <- function(beta, n = length(PERIODOS_OBJ)) {
+  e <- stats::rnorm(n, 0, 0.006); u <- stats::rnorm(n, 0, 0.02); a <- numeric(n); dy <- numeric(n)
+  for (t in 2:n) { a[t] <- 0.6 * a[t - 1] + u[t]; dy[t] <- 0.004 + beta * (abs(a[t - 1]) - MEDIA_ABS_V20) + e[t] }
+  xs <- list(PRUEBA.X.SA.Q = a, PRUEBA.N.SA.Q = stats::rnorm(n, 0, 0.02))
+  s <- list(objetivo = data.frame(periodo = PERIODOS_OBJ, y = 4 + cumsum(dy), stringsAsFactors = FALSE))
+  for (id in names(xs)) s[[id]] <- data.frame(periodo = PERIODOS_OBJ, valor = 100 * exp(cumsum(xs[[id]])), stringsAsFactors = FALSE)
+  s
+}
+ors20 <- ors[seq(1L, length(ors), by = 4L)]
+ids20 <- c("PRUEBA.X.SA.Q", "PRUEBA.N.SA.Q")
+rezagos20 <- stats::setNames(as.list(rep(30L, length(ids20))), ids20)
+mods20 <- list(modelo_directo("PRUEBA.RF", ids20, especificacion_rf(num_arboles = 50L)), modelo_arp_bic())
+corrida20 <- function(beta, R, semilla) {
+  set.seed(semilla)
+  res <- lapply(seq_len(R), function(r) {
+    s <- sim_v20(beta)
+    p <- correr_backtest(s, mods20, ors20, rezagos = rezagos20, exp_id = "V20", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "n_pares", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
+  })
+  list(m = do.call(rbind, lapply(res, `[[`, "m")), p = res[[1]]$p, s = res[[1]]$s)
+}
+t20 <- corrida20(0.8, 2L, SEMILLA_RAIZ + 20L)
+rz20 <- razon15(t20$m, "PRUEBA.RF", "BENCH.ARP_BIC", 1L)
+if (!(rz20 < 0.8)) stop(sprintf("V20: en h=1 el RF no bate al AR(p)-BIC en un DGP no lineal (razón de RMSE %.3f)", rz20))
+ok("V20", sprintf("DGP no lineal (|x|), h=1: RMSE RF / AR(p)-BIC %.3f (< 0,8); h=2 %.3f y h=4 %.3f, informativas", rz20,
+                  razon15(t20$m, "PRUEBA.RF", "BENCH.ARP_BIC", 2L), razon15(t20$m, "PRUEBA.RF", "BENCH.ARP_BIC", 4L)))
+cs20 <- list(); ee20 <- numeric(0)
+for (nv in c(80, 95)) for (h in c(1L, 2L, 4L)) {
+  t <- t20$m[t20$m$modelo_id == "PRUEBA.RF" & t20$m$h == h, ]; x <- t[[paste0("cobertura_", nv)]]
+  # con 2 réplicas la desviación entre réplicas no estima el error de MC (puede dar 0): piso binomial con los pares de
+  # las réplicas, que todavía lo subestima porque los errores a h > 1 se traslapan (B4-6, nota del 2026-10-08)
+  ee <- max(stats::sd(x) / sqrt(length(x)), sqrt(nv / 100 * (1 - nv / 100) / sum(t$n_pares)))
+  if (mean(x) > nv / 100 + 3 * ee + 0.03 || mean(x) < nv / 100 - 3 * ee - 0.10)
+    stop(sprintf("V20: cobertura del RF al %d%% en h=%d fuera de [nominal − (3 ee + 0,10), nominal + 3 ee + 0,03] (%.3f, ee %.4f)",
+                 nv, h, mean(x), ee))
+  cs20[[as.character(nv)]] <- c(cs20[[as.character(nv)]], mean(x)); ee20 <- c(ee20, ee)
+}
+ok("V20", sprintf("cobertura de la densidad de errores internos del RF 80%% %s y 95%% %s en h = 1, 2, 4 (ee de MC de %.3f a %.3f)",
+                  paste(sprintf("%.3f", cs20[["80"]]), collapse = "/"), paste(sprintf("%.3f", cs20[["95"]]), collapse = "/"), min(ee20), max(ee20)))
+t20p <- corrida20(0, 2L, SEMILLA_RAIZ + 201L)
+rz20p <- razon15(t20p$m, "PRUEBA.RF", "BENCH.ARP_BIC", 1L)
+if (!(rz20p < 1.10)) stop(sprintf("V20: con predictoras placebo el RF empeora al AR(p)-BIC en h=1 (razón %.3f)", rz20p))
+ok("V20", sprintf("placebo (β = 0): RMSE RF / AR(p)-BIC en h=1 %.3f (< 1,10)", rz20p))
+sin_attr20 <- function(p) { d <- attr(p, "diagnosticos"); rownames(d) <- NULL; attr(p, "diagnosticos") <- NULL; rownames(p) <- NULL; list(p = p, d = d) }
+p20b <- sin_attr20(correr_backtest(t20$s, mods20[1], ors20[1:2], rezagos = rezagos20, exp_id = "V20", densidad = TRUE))
+p20a <- t20$p[t20$p$modelo_id == "PRUEBA.RF" & t20$p$origen %in% ors20[1:2], ]
+d20a <- attr(t20$p, "diagnosticos"); d20a <- d20a[d20a$modelo_id == "PRUEBA.RF" & d20a$origen %in% ors20[1:2], ]; rownames(d20a) <- NULL
+attr(p20a, "diagnosticos") <- NULL; rownames(p20a) <- NULL
+if (!identical(p20a, p20b$p) || !identical(d20a, p20b$d)) stop("V20: reejecutar el RF no reproduce bit a bit sus pronósticos y diagnósticos (F5-15)")
+lg20 <- list(modelo_directo("PRUEBA.LGBM", ids20, especificacion_lgbm(rondas_max = 20L)))
+l20a <- sin_attr20(correr_backtest(t20$s, lg20, ors20[1], rezagos = rezagos20, exp_id = "V20", densidad = TRUE))
+l20b <- sin_attr20(correr_backtest(t20$s, lg20, ors20[1], rezagos = rezagos20, exp_id = "V20", densidad = TRUE))
+if (!identical(l20a, l20b) || !all(is.finite(l20a$p$sd_log_nivel))) stop("V20: reejecutar el LightGBM no reproduce bit a bit sus pronósticos y diagnósticos (F5-15)")
+ok("V20", "reejecutar reproduce bit a bit sendero, densidad y diagnósticos del RF (dos orígenes) y del LightGBM (uno) (F5-15)")
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V20 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V20)\n")
