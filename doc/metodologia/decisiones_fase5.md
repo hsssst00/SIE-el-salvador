@@ -43,6 +43,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-14a a F5-14f | Tope de 8 h por pasada de `make eval`, secuencial; familias = bloques de F5-01, con `MULT.VAR_DIF` como representante de B2; representantes antes que la variante Q1 de F5-11; combinaciones con los miembros presentes; el BVAR sigue con 10 000 / 5 000 | protocolo §5 (nota 2026-10-08); checklist de Fase 5, B5 |
 | B3-1 a B3-8 | Implementación de B3: rejilla de λ desde el λ_max del origen; estacionalidad quitada en la ventana antes de estandarizar; rezagos del PIB dentro del PCA; K = 12 en todos los h; Σ = D · R · D con momentos sin centrar; guardas duras y bordes de rejilla a `diagnosticos.csv`; dos PR | F5-09, F5-11 y F5-12 (notas 2026-10-08); especificación del motor §2 (nota 2026-10-08) |
 | B3-9 | Representante de B3 para R1, R2, R5 y R6: `REG.ENET` (decisión delegada al agente; se puede reabrir) | «Tope de costo y representantes» (nota 2026-10-08) |
+| B3b-1 a B3b-7 | Implementación de B3b (delegadas al agente): meses del U-MIDAS acotados por el piso (G1 con la letra de F5-08; G2 y G3 con el último mes admitido); guardas de las ARIMAX; densidad del U-MIDAS de errores internos; AR mensual p ≤ 12; agregación linealizada en la densidad del puente; covarianza completa del puente con las innovaciones mensuales del trimestre; representante `MIX.PUENTE` | F5-08 y F5-12 (notas 2026-10-08); «Tope de costo y representantes» (nota 2026-10-08) |
 
 ---
 
@@ -231,6 +232,11 @@ número de rondas): esos se fijan en cada YAML (C8), que Harold revisa en el PR 
 - Ecuación puente: cada mensual se completa hasta el final del horizonte con un AR(p)-BIC mensual (dummies si es
   NSA) y se agrega con la regla de T00x; regresión del Δlog trimestral del PIB SA sobre los agregados
   contemporáneos, más un AR(1) del PIB.
+
+**Nota (2026-10-08, B3b; decisiones delegadas al agente).** El piso acota el U-MIDAS de G2 y G3 a un mes por predictora,
+el último admitido; G1 conserva los meses de esta ficha (B3b-1). F5-12 no nombraba la densidad del U-MIDAS: es la de
+errores internos de los modelos directos (B3b-3). La densidad del puente lleva la covarianza de su innovación con las
+mensuales del mismo trimestre (B3b-6). Ver «Implementación del bloque B3b».
 - Descartadas: MIDAS con polinomio (Almon o beta), que exige optimización no lineal con 39 datos, y tener ambos.
 
 ## F5-09 — Regularizados (§6.5)
@@ -892,6 +898,10 @@ Las seis decisiones (F5-14a a F5-14f) se tomaron en la opción recomendada.
 cuesta de 1,5 a 3,0 s por origen y el PCR de 0,35 a 0,46 s. B3 suma unos 23 minutos por pasada, y la proyección pasa a
 unos 278 minutos (4 h 38 min). El representante de B3 es `REG.ENET` (B3-9, decisión delegada al agente).
 
+**Nota (2026-10-08, B3b).** El costo de B3b está medido («Implementación del bloque B3b»): U-MIDAS y puente cuestan menos
+de 0,2 s por origen y suman unos 3 minutos por pasada (unos 281 en total). El representante de B3b es `MIX.PUENTE`
+(B3b-7, decisión delegada al agente).
+
 ---
 
 ## Implementación del bloque B3 (decidida por Harold el 2026-10-08)
@@ -1042,6 +1052,92 @@ los `F5_REPRO_*`, que solo corren benchmarks):
   parámetros.
 - **Diagnósticos por h:** en el ENET, α, λ, posición de λ en la rejilla y bandera de borde (posición 1 o 100); en el
   PCR, k y bandera de borde (k = 5).
+
+---
+
+## Implementación del bloque B3b (2026-10-08; decisiones delegadas al agente)
+
+Harold autorizó el 2026-10-08 que el agente avance sin supervisión. Al llevar F5-08 a código aparecieron siete puntos que
+la ficha no fijaba; todos son **decisiones delegadas al agente** (tomadas en la opción que se habría recomendado) y se
+pueden reabrir.
+
+- **B3b-1 · Meses del U-MIDAS por grupo (el piso de F5-03). DECIDIDO (delegada):** la predictora i entra en los meses
+  m(t) + d_i, ..., m(t) + 1 (los d_i meses de t+1 que el calendario admite en el origen: 2 en remesas, FOB, ITCER, UT e
+  IPP; 1 en IVAE e IPM) y, en G1, también en m(t), ..., m(t) − 5, la letra de F5-08 (16 columnas). En G2 y G3 entra solo
+  en m(t) + d_i, su último mes admitido (6 y 7 columnas). El U-MIDAS es directo por h y su estimación final más chica es
+  la de h = 8: en el primer origen tiene 67, 32 y 33 filas en G1, G2 y G3, y con los parámetros (columnas + constante + 3
+  dummies) quedan 47, 22 y 22 grados de libertad. En G2, con un solo mes más por predictora (m(t)), quedarían 12, bajo
+  el piso; con la letra de F5-08 habría más parámetros que filas. Descartadas: el U-MIDAS de G2 y G3 solo con algunas
+  predictoras (reabre F5-06/F5-08 y B1b-2) y aplicar el piso solo en h = 1 (contradice F5-03).
+- **B3b-2 · Guardas de los modelos de frecuencia mixta. DECIDIDO (delegada):** las de las ARIMAX (B1b-1): `stop()` si la
+  matriz pierde rango o si el número de condición de los regresores estandarizados supera 1e4, y si una predictora
+  mensual no llega al último mes del origen. En el U-MIDAS el número de condición se mide en la ventana final de cada h y
+  el piso (G-8) se comprueba antes de la validación anidada, porque con menos filas que parámetros las ventanas internas
+  no se pueden estimar.
+- **B3b-3 · Densidad del U-MIDAS (F5-12 no lo nombra). DECIDIDO (delegada):** la de los modelos directos, Σ = D·R·D de
+  los errores internos sin centrar (B3-5, B3-6), con la validación anidada de F5-11 solo para producir esos errores: el
+  U-MIDAS tiene una sola especificación y no elige hiperparámetros, así que no tiene el sesgo de selección de B3. En V19
+  cubre 0,77 a 0,78 al 80 % y 0,91 a 0,94 al 95 % en h = 1, 2, 4. Descartadas: la covarianza de los residuos dentro de
+  muestra de las ocho regresiones directas (subestima más) y dejarlo sin densidad.
+- **B3b-4 · AR mensual y agregación del puente. DECIDIDO (delegada):** AR(p)-BIC mensual en Δlog con p en 0..12 (un
+  año, la analogía de p ≤ 4 trimestral de F5-05) y dummies mensuales si la serie es NSA, con la regla de
+  `seleccionar_ar_bic_x()`. Los meses de o+1 que el calendario admite entran observados y el resto se proyecta hasta el
+  último mes de o+8. El agregado trimestral sigue la regla de T00x (suma en flujos, promedio en índices); el Δlog
+  trimestral es el mismo con las dos, porque difieren en un factor 3.
+- **B3b-5 · Densidad del puente: linealización de la agregación. DECIDIDO (delegada):** el sistema lineal conjunto de
+  F5-12 con el Δlog trimestral de un agregado linealizado en los Δlog mensuales, (Δl_m + 2 Δl_{m−1} + 3 Δl_{m−2} +
+  2 Δl_{m−3} + Δl_{m−4}) / 3, con m el último mes del trimestre (log de la suma ≈ promedio de los logs; la aproximación
+  de Mariano y Murasawa, 2003). El punto usa la agregación exacta. Una prueba compara la covarianza analítica con una
+  simulación del sistema con la agregación exacta (diferencia de las desviaciones < 6 %).
+- **B3b-6 · Innovaciones del puente. DECIDIDO (delegada):** la covarianza completa, en analogía con B1-5: Σ_u, la
+  covarianza contemporánea de los residuos de los AR mensuales (independientes entre meses), y la covarianza de la
+  innovación del puente con las innovaciones mensuales de los meses del mismo trimestre, estimada en los trimestres de la
+  regresión. Si con esos términos la matriz conjunta del trimestre no es definida positiva, se reducen (λ, con un
+  complemento de Schur de al menos 0,05 σ²_e) y λ va a `diagnosticos.csv`. Razón (dato de V19): con la innovación del
+  puente independiente, la densidad subcubría (0,68 a 0,79 al 80 % en h = 1, 2, 4; en h = 1 la desviación prevista era
+  14 % menor que el RMSE), porque el puente es una aproximación y su innovación correlaciona con la del mes que falta;
+  con los términos cruzados cubre 0,77 a 0,84 al 80 % y 0,94 a 0,98 al 95 %. Descartada: la innovación del puente
+  independiente de las mensuales.
+- **B3b-7 · Representante de B3b (F5-14c). DECIDIDO (delegada):** `MIX.PUENTE.Gk`. Los dos cuestan menos de 0,2 s por
+  origen; el puente es el modelo de frecuencia mixta más usado en la práctica, su densidad es analítica y conserva todas
+  las predictoras con su borde en los tres grupos, mientras que el U-MIDAS de G2 y G3 queda reducido por el piso a un mes
+  por predictora.
+
+**Decisiones menores del agente en B3b** (revertibles en un commit; ninguna cambia un resultado de Fase 4 ni de los
+`F5_REPRO_*`):
+
+- **Código:** `src/evaluacion/modelos_frecuencia_mixta.R`: utilidades mensuales (`ultimo_mes_trimestre()`,
+  `dummies_mensuales()`, `seleccionar_ar_bic_m()`, `.proyectar_ar_m()`), el U-MIDAS (`matriz_umidas()`,
+  `especificacion_umidas()`, `modelo_umidas_grupo()`) y el puente (`ajustar_puente()`, `sendero_puente()`,
+  `cov_sistema_puente()`, `modelo_puente_grupo()`). Se carga desde `modelos_fase5.R` y va en el registro después de los
+  regularizados (orden de F5-01).
+- **`forma_directa.R`** admite una matriz propia (`construir`) y un piso (`piso_gl` en la especificación): el ajuste
+  devuelve `gl` con las filas de la estimación final de h = 8 y G-8 se comprueba antes de la validación anidada. Los
+  regularizados no cambian.
+- **U-MIDAS sin término autorregresivo** (la letra de F5-08: el PIB sobre los meses de las predictoras); el puente sí
+  lleva su AR(1).
+- **Desfase del U-MIDAS:** d_i se lee en el origen como meses entre el último mes de la predictora y el último mes de o;
+  G-7 garantiza que es el del calendario. En las filas históricas se usa el mismo d_i (el borde se replica en la
+  historia).
+- **Diagnósticos por origen:** en el U-MIDAS, por h, el número de condición de la ventana final, el ECM interno y las
+  filas; en el puente, observaciones, número de condición, φ, σ_e, meses comunes de Σ_u, λ de B3b-6 y el p de cada AR
+  mensual.
+- **V19** (canario de B3b, en la verificación sintética; unos 2 minutos):
+  - con una predictora mensual cuyo promedio trimestral mueve al PIB y 2 meses de o+1 en el borde, el U-MIDAS y el
+    puente baten al AR(p)-BIC con razón de RMSE < 0,7 en h = 1 (0,55 y 0,60);
+  - cobertura del puente dentro de ±(3 ee + 0,03), como V14 a V16, y del U-MIDAS con la holgura de V18;
+  - con un placebo, ninguno empeora al AR(p)-BIC en más de 10 % en h = 1 (1,01 y 1,02);
+  - reejecutar dos orígenes reproduce bit a bit.
+- **Costo observado (dato para F5-14; sandbox Windows, datos sintéticos con las fechas de inicio de L3, mediana de tres
+  ajustes con la densidad), en segundos por origen:**
+
+  | Modelo | G1 primero / último | G2 primero / último | G3 primero / último |
+  |---|---|---|---|
+  | `MIX.UMIDAS` | 0,16 / 0,20 | 0,17 / 0,18 | 0,20 / 0,20 |
+  | `MIX.PUENTE` | 0,03 / 0,06 | 0,12 / 0,13 | 0,12 / 0,16 |
+
+  B3b suma unos 40 segundos en la principal y unos 3 minutos por pasada con todas las variantes. La proyección de F5-14
+  queda en unos 281 minutos (4 h 41 min).
 
 ---
 
