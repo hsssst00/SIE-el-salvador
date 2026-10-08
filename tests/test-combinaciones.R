@@ -89,7 +89,16 @@ test_that("B5-2 a B5-4: variantes declaradas, R7 con los modelos con UT y sin co
   expect_identical(combinaciones_experimento(v[v$exp_id == "F5_G3_R6", ]), ids_combinaciones("G3"))
   expect_identical(combinaciones_experimento(EXPERIMENTOS_REPRO[1, ]), character(0))
   for (k in seq_len(nrow(EXPERIMENTOS_PRINCIPALES_FASE5))) expect_true(verificar_miembros_combinaciones(EXPERIMENTOS_PRINCIPALES_FASE5[k, ]))
-  for (k in seq_len(nrow(v))) expect_true(verificar_miembros_combinaciones(v[k, ]), info = v$exp_id[k])   # sin representantes, los mismos
+  for (k in seq_len(nrow(v))) expect_true(verificar_miembros_combinaciones(v[k, ]), info = v$exp_id[k])   # F5-14e
+  # F5-14c: R1, R2, R5 y R6 corren los univariados de B1 y los representantes; la principal y R7, todos los suyos
+  for (k in seq_len(nrow(v))) {
+    ids_k <- setdiff(vapply(modelos_experimento(v[k, ]), `[[`, character(1), "modelo_id"), vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
+    g <- v$grupo[k]
+    if (grepl("_R[1256]$", v$exp_id[k])) {
+      expect_identical(ids_k, Filter(function(id) any(startsWith(id, PREFIJOS_REPRESENTANTES)), miembros_combinacion(g)), info = v$exp_id[k])
+      expect_false(any(startsWith(ids_k, "MULT.BVAR.")), info = v$exp_id[k])
+    }
+  }
   d <- data.frame(periodo = ind_a_q(q_a_ind("2000-Q1") + 0:20), valor = 1)
   expect_identical(recortar_inicio_predictora(d, "2003-Q2")$periodo[1], "2003-Q2")
   dm <- data.frame(periodo = sprintf("2003-M%02d", 1:12), valor = 1)
@@ -114,7 +123,7 @@ test_that("B5, F5-13: de punta a punta, la principal escribe las combinaciones; 
       list(y_o = utils::tail(datos$objetivo$y, 1))
     },
     predecir = function(aj, h) aj$y_o + d * seq_len(h))
-  ms <- list(espia("PRUEBA.A", ids_q[1], 0.002), espia("PRUEBA.UT", "UT.DEMANDA_ELEC.GWH.NSA.M", 0.004), espia("PRUEBA.B", ids_q[2], 0.006))
+  ms <- list(espia("UNI.PRUEBA_A", ids_q[1], 0.002), espia("ML.RF.PRUEBA_UT", "UT.DEMANDA_ELEC.GWH.NSA.M", 0.004), espia("REG.ENET.PRUEBA_B", ids_q[2], 0.006))
   orig <- modelos_fase5
   assign("modelos_fase5", function(grupo) ms, envir = globalenv())
   on.exit(assign("modelos_fase5", orig, envir = globalenv()), add = TRUE)
@@ -124,22 +133,22 @@ test_that("B5, F5-13: de punta a punta, la principal escribe las combinaciones; 
   expect_true(all(ids_combinaciones("G2") %in% r$ids))
   expect_identical(r$combinaciones, ids_combinaciones("G2"))
   pc <- r$pronosticos[r$pronosticos$modelo_id == "COMB.MEDIA.G2" & r$pronosticos$h == 2, ]
-  pa <- r$pronosticos[r$pronosticos$modelo_id %in% c("PRUEBA.A", "PRUEBA.UT", "PRUEBA.B") & r$pronosticos$h == 2, ]
+  pa <- r$pronosticos[r$pronosticos$modelo_id %in% c("UNI.PRUEBA_A", "ML.RF.PRUEBA_UT", "REG.ENET.PRUEBA_B") & r$pronosticos$h == 2, ]
   expect_equal(pc$log_nivel_pronosticado, as.numeric(tapply(pa$log_nivel_pronosticado, pa$origen, mean)), tolerance = 1e-12)
   expect_true(any(grepl("^h1\\.peso\\.", r$diagnosticos$clave[r$diagnosticos$modelo_id == "COMB.ECM_INV.G2"])))
   expect_true(all(is.na(r$metricas$cobertura_80[startsWith(r$metricas$modelo_id, "COMB.")])))
-  ut_ppal <- vistos[["PRUEBA.UT 2016-Q1"]][["UT.DEMANDA_ELEC.GWH.NSA.M"]]
+  ut_ppal <- vistos[["ML.RF.PRUEBA_UT 2016-Q1"]][["UT.DEMANDA_ELEC.GWH.NSA.M"]]
   # R7: solo el modelo con UT, UT a 61 días (1 mes de o+1 en lugar de 2) y sin combinaciones
   r7 <- EXPERIMENTOS_VARIANTES_FASE5[EXPERIMENTOS_VARIANTES_FASE5$exp_id == "F5_G2_R7", ]; r7$sa <- "l3_unico"
   rr7 <- correr_experimento(r7, insumos, new.env())
-  expect_false(any(c("PRUEBA.A", "PRUEBA.B") %in% rr7$ids)); expect_true("PRUEBA.UT" %in% rr7$ids)
+  expect_false(any(c("UNI.PRUEBA_A", "REG.ENET.PRUEBA_B") %in% rr7$ids)); expect_true("ML.RF.PRUEBA_UT" %in% rr7$ids)
   expect_false(any(startsWith(rr7$ids, "COMB.")))
-  ut_r7 <- vistos[["PRUEBA.UT 2016-Q1"]][["UT.DEMANDA_ELEC.GWH.NSA.M"]]
+  ut_r7 <- vistos[["ML.RF.PRUEBA_UT 2016-Q1"]][["UT.DEMANDA_ELEC.GWH.NSA.M"]]
   expect_identical(c(ut_ppal, ut_r7), c("1995-M01 2016-M05", "1995-M01 2016-M04"))
-  # R1 con predictoras: la ventana del objetivo recorta también las predictoras (B5-3)
+  # R1 con predictoras (los espías llevan prefijos de representantes, F5-14c): la ventana recorta también las predictoras (B5-3)
   r1 <- EXPERIMENTOS_VARIANTES_FASE5[EXPERIMENTOS_VARIANTES_FASE5$exp_id == "F5_G2_R1", ]; r1$sa <- "l3_unico"
   rr1 <- correr_experimento(r1, insumos, new.env())
-  v <- vistos[["PRUEBA.A 2025-Q4"]]
+  v <- vistos[["UNI.PRUEBA_A 2025-Q4"]]
   expect_identical(unname(v[["inicio_obj"]]), ind_a_q(q_a_ind("2025-Q4") - 91L))
   expect_identical(strsplit(v[[ids_q[1]]], " ")[[1]][1], ind_a_q(q_a_ind("2025-Q4") - 91L))
 })

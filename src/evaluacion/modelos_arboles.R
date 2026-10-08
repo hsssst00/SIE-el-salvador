@@ -140,8 +140,8 @@ especificacion_lgbm <- function(rondas_max = RONDAS_MAX_LGBM, paso = PASO_RONDAS
 # Registro por grupo
 # ---------------------------------------------------------------------------------------------
 
-modelo_rf_grupo   <- function(grupo) modelo_directo(paste0("ML.RF.", grupo), predictoras_grupo(grupo), especificacion_rf())
-modelo_lgbm_grupo <- function(grupo) modelo_directo(paste0("ML.LGBM.", grupo), predictoras_grupo(grupo), especificacion_lgbm())
+modelo_rf_grupo   <- function(grupo) modelo_directo(paste0("ML.RF.", grupo), predictoras_grupo(grupo), especificacion_rf(), reoptimizacion = REOPTIMIZACION_F5_11)
+modelo_lgbm_grupo <- function(grupo) modelo_directo(paste0("ML.LGBM.", grupo), predictoras_grupo(grupo), especificacion_lgbm(), reoptimizacion = REOPTIMIZACION_F5_11)
 
 #' Los árboles de un grupo (F5-10), con todas sus predictoras (B1b-2), en el orden en que se reportan.
 modelos_arboles_grupo <- function(grupo) {

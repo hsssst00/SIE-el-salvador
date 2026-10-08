@@ -247,3 +247,49 @@ test_that("B3, B3b, B4: los modelos directos del registro de Fase 5 son los regu
     expect_identical(unname(vapply(ms[directos], `[[`, logical(1), "piso_gl")), c(FALSE, FALSE, TRUE, FALSE, FALSE), info = g)
   }
 })
+
+test_that("F5-11, variante Q1 (F5-14d): reoptimiza en Q1, reutiliza la elección en los otros tres y recalcula los errores", {
+  obj <- .objetivo_fd(31); pred <- .predictoras_fd(32); ids <- predictoras_grupo("G1")
+  esp <- .esp_ridge(lambdas = c(10, 1, 0.1, 0.01, 0.001))
+  q1 <- modelo_directo("PRUEBA.Q1", ids, esp, reoptimizacion = "q1")
+  cada <- modelo_directo("PRUEBA.CADA", ids, esp)
+  expect_identical(c(q1$reoptimizacion, cada$reoptimizacion), c("q1", "cada_origen"))
+  orgs <- q_a_ind("2016-Q1") + 0:4                                             # Q1, Q2, Q3, Q4 y el Q1 siguiente
+  aq <- lapply(orgs, function(o) q1$ajustar(.datos_fd(obj, pred, ids, o), NULL))
+  ac <- lapply(orgs, function(o) cada$ajustar(.datos_fd(obj, pred, ids, o), NULL))
+  el <- function(a) vapply(a$por_h, `[[`, integer(1), "eleccion")
+  for (k in c(1L, 5L)) {                                                       # en Q1 es la reoptimización completa
+    expect_identical(el(aq[[k]]), el(ac[[k]]), info = k); expect_identical(aq[[k]]$sendero, ac[[k]]$sendero, info = k)
+    expect_identical(aq[[k]]$Sigma, ac[[k]]$Sigma, info = k)
+    expect_identical(unname(q1$diagnosticar(aq[[k]])["reoptimizado"]), 1)
+  }
+  for (k in 2:4) {
+    expect_identical(el(aq[[k]]), el(aq[[1]]), info = k)                       # la elección del Q1
+    expect_identical(aq[[k]]$origen_eleccion, orgs[1])
+    expect_identical(unname(q1$diagnosticar(aq[[k]])["reoptimizado"]), 0)
+    md <- matriz_directa(.datos_fd(obj, pred, ids, orgs[k]), ids, "PRUEBA.Q1")
+    for (h in c(1L, 4L, 8L)) {                                                 # errores internos del elegido con los datos de o
+      ph <- aq[[k]]$por_h[[h]]
+      ip <- pronosticos_internos(md, h, origenes_internos(orgs[k], h, K_VALIDACION_ANIDADA), esp, ph$rejilla, ph$eleccion)
+      expect_identical(ph$e_propios, ip$obs - ip$pred[, 1], info = paste(k, h))
+      expect_identical(sum(!is.na(ph$ecm)), 1L)
+    }
+  }
+  # sin el Q1 previo en esta instancia (primer origen no Q1, u orígenes no consecutivos) reoptimiza
+  q1b <- modelo_directo("PRUEBA.Q1", ids, esp, reoptimizacion = "q1")
+  a4 <- q1b$ajustar(.datos_fd(obj, pred, ids, orgs[4]), NULL)
+  expect_identical(el(a4), el(ac[[4]])); expect_identical(a4$sendero, ac[[4]]$sendero)
+  q1c <- modelo_directo("PRUEBA.Q1", ids, esp, reoptimizacion = "q1")
+  invisible(q1c$ajustar(.datos_fd(obj, pred, ids, orgs[1]), NULL))
+  a3 <- q1c$ajustar(.datos_fd(obj, pred, ids, orgs[3]), NULL)                  # salta Q2: la memoria se vacía
+  expect_identical(el(a3), el(ac[[3]])); expect_identical(a3$origen_eleccion, orgs[3])
+  # repetir la secuencia con una instancia nueva da lo mismo (F5-15)
+  q1d <- modelo_directo("PRUEBA.Q1", ids, esp, reoptimizacion = "q1")
+  ad <- lapply(orgs, function(o) q1d$ajustar(.datos_fd(obj, pred, ids, o), NULL))
+  expect_identical(ad, aq)
+  # el registro de producción declara la variante Q1 en ENET, PCR, RF y LightGBM, y no en el U-MIDAS
+  for (g in c("G1", "G2", "G3")) {
+    r <- vapply(Filter(function(m) !is.null(m$esp), modelos_fase5(g)), function(m) paste(m$modelo_id, m$reoptimizacion), character(1))
+    expect_identical(r, paste(paste0(c("REG.ENET.", "REG.PCR.", "MIX.UMIDAS.", "ML.RF.", "ML.LGBM."), g), c("q1", "q1", "cada_origen", "q1", "q1")), info = g)
+  }
+})

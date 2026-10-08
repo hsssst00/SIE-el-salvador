@@ -125,7 +125,12 @@ EXPERIMENTOS_FASE5 <- rbind(EXPERIMENTOS_REPRO, EXPERIMENTOS_PRINCIPALES_FASE5, 
 PATRON_EXP_R7  <- "^F5_G[123]_R7$"
 REZAGO_UT_R7   <- 61L                                               # F5-04c: 1 mes de o+1, como el IVAE y el IPM
 PREDICTORAS_UT <- c("UT.DEMANDA_ELEC.GWH.NSA.Q", "UT.DEMANDA_ELEC.GWH.NSA.M")
+PATRON_EXP_REPRESENTANTES <- "^F5_G[123]_R[1256]$"
+# F5-14c (cuenta final, decidida por Harold el 2026-10-08): en R1, R2, R5 y R6 corren los univariados de B1 y un
+# representante por familia: MULT.VAR_DIF (B2), REG.ENET (B3-9), MIX.PUENTE (B3b-7) y ML.RF (B4-5).
+PREFIJOS_REPRESENTANTES <- c("UNI.", "MULT.VAR_DIF.", "REG.ENET.", "MIX.PUENTE.", "ML.RF.")
 es_r7    <- function(ex) grepl(PATRON_EXP_R7, ex$exp_id)
+con_representantes <- function(ex) grepl(PATRON_EXP_REPRESENTANTES, ex$exp_id)
 combina  <- function(ex) grepl(PATRON_EXP_PREREGISTRO, ex$exp_id) && !es_r7(ex)   # F5-13, F5-14e; R7 sin combinaciones (B5-4)
 
 # Candado del preregistro (F5-02): los experimentos de modelos de Fase 5 no corren sobre L3 hasta que todos
@@ -140,6 +145,7 @@ modelos_experimento <- function(ex) {
   if (!grepl(PATRON_EXP_PREREGISTRO, ex$exp_id)) return(modelos_referencia())
   f5 <- modelos_fase5(ex$grupo)
   if (es_r7(ex)) f5 <- Filter(function(m) any(m$requiere %in% PREDICTORAS_UT), f5)            # F5-04c: los modelos con UT
+  if (con_representantes(ex)) f5 <- Filter(function(m) any(startsWith(m$modelo_id, PREFIJOS_REPRESENTANTES)), f5)   # F5-14c
   c(modelos_referencia(), f5)
 }
 
@@ -151,7 +157,8 @@ verificar_miembros_combinaciones <- function(ex) {
   esperados <- setdiff(vapply(modelos_experimento(ex), `[[`, character(1), "modelo_id"), vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
   for (id in combinaciones_experimento(ex)) {
     y <- yaml::read_yaml(here::here("catalogos", "06_modelos", paste0(id, ".yaml")))
-    if (!identical(as.character(unlist(y$especificacion$hiperparametros$miembros)), esperados)) {
+    declarados <- y$especificacion$hiperparametros[[if (con_representantes(ex)) "miembros_representantes" else "miembros"]]   # F5-14e
+    if (!identical(as.character(unlist(declarados)), esperados)) {
       stop("C8: los miembros que declara ", id, ".yaml no son los modelos de Fase 5 de ", ex$exp_id, " (F5-13, F5-14e)")
     }
   }
@@ -612,6 +619,10 @@ escribir_experimento <- function(ex, res, commit, insumos_sha, conjunto = NULL) 
     if (length(res$combinaciones)) paste0("combinaciones: ", paste(res$combinaciones, collapse = ", "), " sobre los modelos de Fase 5 del experimento ",
                                           "(sin benchmarks; F5-13, F5-14e); pesos de ECM_INV con δ = ", DELTA_ECM_INV, " e iguales con menos de ",
                                           MIN_ERRORES_ECM_INV, " errores, contra el objetivo visto en cada origen (B5-1), en diagnosticos.csv; sin densidad (F5-12)") else NULL,
+    if (any(grepl("^(REG\\.ENET|REG\\.PCR|ML\\.RF|ML\\.LGBM)\\.", res$ids))) paste0("validación anidada de REG.ENET, REG.PCR, ML.RF y ML.LGBM: reoptimiza solo en los orígenes Q1 ",
+                                                                             "y reutiliza la elección en los otros tres (variante de F5-11, F5-14d); reoptimizado en diagnosticos.csv") else NULL,
+    if (con_representantes(ex)) paste0("variante con representantes (F5-14c): los univariados de B1, MULT.VAR_DIF, REG.ENET, MIX.PUENTE y ML.RF; ",
+                                       "el BVAR y los demás modelos de Fase 5 no corren; sus combinaciones llevan esos miembros y no son las de la principal (F5-14e)") else NULL,
     if (!is.null(res$rezago_ut)) paste0("variante R7: UT a ", res$rezago_ut, " días en lugar de 30 (F5-04c); solo los modelos con UT y los benchmarks; sin combinaciones (B5-4)") else NULL,
     if (length(res$predictoras) && ex$ventana != "expansiva") "predictoras: recortadas al inicio de la ventana del objetivo en cada origen (B5-3)" else NULL,
     "datos: revisados, no en tiempo real (F4-03)",

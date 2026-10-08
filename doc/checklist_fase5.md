@@ -36,7 +36,7 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   2026-10-05 y registradas en `decisiones_fase5.md`.
 - [x] **B4 · F5-14 y F5-15** Robustez y costo, y reproducibilidad. Decididas el 2026-10-05 y registradas en
   `decisiones_fase5.md`.
-- [ ] **B5 · F5-14** Medición del tiempo por origen de cada familia con datos sintéticos; con esa cifra, tope,
+- [x] **B5 · F5-14** Medición del tiempo por origen de cada familia con datos sintéticos; con esa cifra, tope,
   representantes por familia y variante de F5-11, fijados en un commit anterior a la corrida sobre L3.
   Estado 2026-10-07: medidos B1 (UNI.ARIMA 3-4 s por origen; ARIMAX < 1 s) y B2a (VAR y VECM < 0,1 s por origen);
   faltan BVAR (B2b), B3, B3b y B4. Estado 2026-10-07 (B2b): BVAR medido: 16-19 s por origen en G1, 18 s en G2 y 21-26 s en G3,
@@ -51,6 +51,10 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   Estado 2026-10-08 (B4): B4 medido (`ML.RF` de 14 a 40 s y `ML.LGBM` de 73 a 109 s por origen, cifras provisionales
   medidas con otro proceso R en paralelo; unos 1142 minutos más por pasada, unos 1423 en total, sobre el tope de
   8 h) y representante `ML.RF` (B4-5, decisión delegada al agente). Falta la cuenta final (F5-14b a F5-14d).
+  Estado 2026-10-08 (cuenta final): con B4 la pasada proyectaba unas 24 h. Harold respondió F5-14b: no se paraleliza;
+  representantes en R1, R2, R5 y R6 (`MULT.VAR_DIF`, `REG.ENET`, `MIX.PUENTE`, `ML.RF`) y variante Q1 de F5-11 en ENET,
+  PCR, RF y LightGBM (CF-1 a CF-3, delegadas). Proyección ≈ 6 h 48 min por pasada, bajo el tope; en el PR de B5 (#45),
+  anterior a E1.
 
 ## C. Infraestructura que piden las decisiones
 
