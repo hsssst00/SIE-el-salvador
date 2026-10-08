@@ -186,6 +186,6 @@ test_that("correr_experimento pasa las predictoras del grupo con sus rezagos y l
   # una predictora requerida que no se leyó detiene el experimento
   insumos2 <- insumos; insumos2$predictoras <- insumos2$predictoras[-1]
   expect_error(correr_experimento(ex, insumos2, new.env()), "requiere predictoras que no se leyeron: BCR.REMESAS.NOM.NSA.Q")
-  ex_r1 <- ex; ex_r1$ventana <- "rodante92"
-  expect_error(correr_experimento(ex_r1, insumos, new.env()), "con predictoras no está implementada")
+  ex_r1 <- ex; ex_r1$ventana <- "rodante92"                                      # B5-3: R1 con predictoras ya corre
+  expect_true("PRUEBA.ESPIA_G3" %in% correr_experimento(ex_r1, insumos, new.env())$ids)
 })
