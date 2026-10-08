@@ -43,6 +43,11 @@
 #   V17  un BVAR fijo con la configuración de producción (primer origen de G1 y G3) reproduce byte a byte, en Windows,
 #        la media y la covarianza de su predictiva y sus diagnósticos contra la referencia generada en Windows; en
 #        otro sistema informa las diferencias en unidades del error de Monte Carlo, sin detenerse
+# Bloque de los regularizados de Fase 5 (B3; F5-09, F5-11, F5-12, B3-1 a B3-7):
+#   V18  elastic net sobre un DGP con una predictora adelantada entre ruidos (una NSA) y PCR sobre un DGP de factor: baten
+#        al AR(p)-BIC en h = 1, 2; la densidad de errores internos cubre dentro de una holgura declarada (subcobertura
+#        de hasta 0,10 además de 3 ee de MC); con un placebo el elastic net no empeora al AR(p)-BIC en más de 10 % en
+#        h = 1; reejecutar reproduce bit a bit (F5-15)
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -51,6 +56,8 @@ source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_univariados.R"))   # V14 (B1b)
 source(here::here("src", "evaluacion", "modelos_multivariados.R")) # V15 (B2a) y V16 (B2b)
 source(here::here("src", "evaluacion", "paridad_bvar.R"))          # V17 (F1)
+source(here::here("src", "evaluacion", "forma_directa.R"))          # V18 (B3)
+source(here::here("src", "evaluacion", "modelos_regularizados.R"))  # V18 (B3)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -648,5 +655,89 @@ if (.Platform$OS.type == "windows") {
                     substr(c17$sha256, 1, 12), plataforma17))
 }
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V17 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V17)\n")
+# --- V18 · Regularizados (B3; F5-09, F5-11, F5-12, B3-1 a B3-7) ------------------------------------------------------
+# Dos DGP con predictoras trimestrales desde 1990 (unas 90 filas en el primer origen del diseño):
+#   "dispersa"  la predictora X adelanta al PIB como en V14 (x_t = 0,6 x_{t-1} + u_t, Δy_t = 0,004 + 0,4 x_{t-1} + e_t),
+#               junto a una SA de ruido y una NSA de ruido con estacional determinista de amplitud 0,04, que ejercita la
+#               ventana de B3-2. El elastic net (4 series con rezagos 0..3: 16 columnas) debe batir al AR(p)-BIC con razón
+#               de RMSE < 0,8 en h = 1, 2 (con estas semillas, 0,60 y 0,75).
+#   "factor"    tres SA cargan un factor f (f_t = 0,6 f_{t-1} + u_t, ruido idiosincrático de 0,01) que adelanta al PIB
+#               (Δy_t = 0,004 + 0,4 f_{t-1} + e_t), más la NSA de ruido. El PCR debe batir al AR(p)-BIC con razón < 0,9 en
+#               h = 1, 2 (con estas semillas, 0,65 y 0,79).
+# Densidad de errores internos (F5-12, B3-5, B3-6): la cobertura en h = 1, 2, 4 no puede pasar del nominal más 3 ee de
+# MC más 0,03 ni quedar por debajo del nominal menos 3 ee menos 0,10. La holgura inferior es mayor que la de V14 a V16 y
+# se declara (decisiones_fase5.md, PR 2 de B3): con K = 12 errores internos del candidato de menor ECM interno, la
+# densidad subcubre; con estas semillas, 0,64 a 0,81 al 80 % y 0,86 a 0,96 al 95 % en h = 1, 2, 4. Placebo (β = 0 en
+# "dispersa"): el elastic net no empeora al AR(p)-BIC en más de 10 % en h = 1 (1,04). Reejecutar dos orígenes reproduce
+# bit a bit sendero y densidad (F5-15). Uno de cada cuatro orígenes del diseño; 6, 6 y 4 réplicas.
+ESTAC_V18 <- c(0.04, -0.01, -0.04, 0.01)[q_a_ind(PERIODOS_OBJ) %% 4L + 1L]
+sim_v18 <- function(tipo, beta, n = length(PERIODOS_OBJ)) {
+  e <- stats::rnorm(n, 0, 0.006); u <- stats::rnorm(n, 0, 0.02); a <- numeric(n); dy <- numeric(n)
+  for (t in 2:n) { a[t] <- 0.6 * a[t - 1] + u[t]; dy[t] <- 0.004 + beta * a[t - 1] + e[t] }
+  xs <- if (tipo == "dispersa") {
+    list(PRUEBA.X.SA.Q = a, PRUEBA.N.SA.Q = stats::rnorm(n, 0, 0.02), PRUEBA.Z.NSA.Q = stats::rnorm(n, 0.01, 0.015))
+  } else {
+    list(PRUEBA.F1.SA.Q = a + stats::rnorm(n, 0, 0.01), PRUEBA.F2.SA.Q = a + stats::rnorm(n, 0, 0.01),
+         PRUEBA.F3.SA.Q = a + stats::rnorm(n, 0, 0.01), PRUEBA.Z.NSA.Q = stats::rnorm(n, 0.01, 0.015))
+  }
+  s <- list(objetivo = data.frame(periodo = PERIODOS_OBJ, y = 4 + cumsum(dy), stringsAsFactors = FALSE))
+  for (id in names(xs)) {
+    lv <- cumsum(xs[[id]]) + if (grepl(".NSA.", id, fixed = TRUE)) ESTAC_V18 else 0
+    s[[id]] <- data.frame(periodo = PERIODOS_OBJ, valor = 100 * exp(lv), stringsAsFactors = FALSE)
+  }
+  s
+}
+ors18 <- ors[seq(1L, length(ors), by = 4L)]
+rezagos18 <- function(s) { ids <- setdiff(names(s), "objetivo"); stats::setNames(as.list(rep(30L, length(ids))), ids) }
+mods18d <- list(modelo_directo("PRUEBA.ENET", c("PRUEBA.X.SA.Q", "PRUEBA.N.SA.Q", "PRUEBA.Z.NSA.Q"), especificacion_enet()), modelo_arp_bic())
+mods18f <- list(modelo_directo("PRUEBA.PCR", c("PRUEBA.F1.SA.Q", "PRUEBA.F2.SA.Q", "PRUEBA.F3.SA.Q", "PRUEBA.Z.NSA.Q"), especificacion_pcr()), modelo_arp_bic())
+corrida18 <- function(tipo, beta, R, semilla, mods) {
+  set.seed(semilla)
+  res <- lapply(seq_len(R), function(r) {
+    s <- sim_v18(tipo, beta)
+    p <- correr_backtest(s, mods, ors18, rezagos = rezagos18(s), exp_id = "V18", densidad = TRUE)
+    m <- metricas_por_horizonte(calcular_errores(p, s$objetivo))
+    list(m = m[m$unidad == "yoy_pp", c("modelo_id", "h", "rmse", "cobertura_80", "cobertura_95")], p = p, s = s)
+  })
+  list(m = do.call(rbind, lapply(res, `[[`, "m")), p = res[[1]]$p, s = res[[1]]$s)
+}
+cobertura18 <- function(tab, id, etiqueta) {
+  cs <- list()
+  for (nv in c(80, 95)) for (h in c(1L, 2L, 4L)) {
+    x <- tab[tab$modelo_id == id & tab$h == h, ][[paste0("cobertura_", nv)]]; ee <- stats::sd(x) / sqrt(length(x))
+    if (mean(x) > nv / 100 + 3 * ee + 0.03 || mean(x) < nv / 100 - 3 * ee - 0.10)
+      stop(sprintf("V18: cobertura de %s al %d%% en h=%d fuera de [nominal − (3 ee + 0,10), nominal + 3 ee + 0,03] (%.3f, ee %.4f; DGP %s)",
+                   id, nv, h, mean(x), ee, etiqueta))
+    cs[[as.character(nv)]] <- c(cs[[as.character(nv)]], mean(x))
+  }
+  ok("V18", sprintf("DGP %s: cobertura de la densidad de errores internos de %s 80%% %s y 95%% %s en h = 1, 2, 4", etiqueta, id,
+                    paste(sprintf("%.3f", cs[["80"]]), collapse = "/"), paste(sprintf("%.3f", cs[["95"]]), collapse = "/")))
+}
+t18d <- corrida18("dispersa", 0.4, 6L, SEMILLA_RAIZ + 18L, mods18d)
+for (h in c(1L, 2L)) {
+  rz <- razon15(t18d$m, "PRUEBA.ENET", "BENCH.ARP_BIC", h)
+  if (!(rz < 0.8)) stop(sprintf("V18: en h=%d el elastic net no bate al AR(p)-BIC con una predictora adelantada entre ruidos (razón de RMSE %.3f)", h, rz))
+  ok("V18", sprintf("DGP disperso, h=%d: RMSE elastic net / AR(p)-BIC %.3f (< 0,8)", h, rz))
+}
+cobertura18(t18d$m, "PRUEBA.ENET", "disperso")
+t18f <- corrida18("factor", 0.4, 6L, SEMILLA_RAIZ + 181L, mods18f)
+for (h in c(1L, 2L)) {
+  rz <- razon15(t18f$m, "PRUEBA.PCR", "BENCH.ARP_BIC", h)
+  if (!(rz < 0.9)) stop(sprintf("V18: en h=%d el PCR no bate al AR(p)-BIC en un DGP de factor (razón de RMSE %.3f)", h, rz))
+  ok("V18", sprintf("DGP de factor, h=%d: RMSE PCR / AR(p)-BIC %.3f (< 0,9)", h, rz))
+}
+cobertura18(t18f$m, "PRUEBA.PCR", "de factor")
+t18p <- corrida18("dispersa", 0, 4L, SEMILLA_RAIZ + 182L, mods18d)
+rz18p <- razon15(t18p$m, "PRUEBA.ENET", "BENCH.ARP_BIC", 1L)
+if (!(rz18p < 1.10)) stop(sprintf("V18: con predictoras placebo el elastic net empeora al AR(p)-BIC en h=1 (razón %.3f)", rz18p))
+ok("V18", sprintf("placebo (β = 0): RMSE elastic net / AR(p)-BIC en h=1 %.3f (< 1,10)", rz18p))
+p18b <- correr_backtest(t18d$s, mods18d[1], ors18[1:2], rezagos = rezagos18(t18d$s), exp_id = "V18", densidad = TRUE)
+p18a <- t18d$p[t18d$p$modelo_id == "PRUEBA.ENET" & t18d$p$origen %in% ors18[1:2], ]; rownames(p18a) <- NULL
+d18a <- attr(t18d$p, "diagnosticos"); d18a <- d18a[d18a$modelo_id == "PRUEBA.ENET" & d18a$origen %in% ors18[1:2], ]; rownames(d18a) <- NULL
+d18b <- attr(p18b, "diagnosticos"); rownames(d18b) <- NULL
+attr(p18a, "diagnosticos") <- NULL; attr(p18b, "diagnosticos") <- NULL
+if (!identical(p18a, p18b) || !identical(d18a, d18b)) stop("V18: reejecutar el elastic net no reproduce bit a bit sus pronósticos y diagnósticos (F5-15)")
+ok("V18", "reejecutar dos orígenes reproduce bit a bit sendero, densidad y diagnósticos del elastic net (F5-15)")
+
+cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V18 (V11 SKIP)\n"
+    else "verificación sintética: bloques OK (V1-V18)\n")
