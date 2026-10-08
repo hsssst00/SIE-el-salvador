@@ -47,7 +47,7 @@ test_that("F5-07, B1b-2, B2-7: registro del BVAR por grupo bajo el contrato", {
   n_series <- c(G1 = 3L, G2 = 7L, G3 = 9L)
   for (g in names(n_series)) {
     ids <- vapply(modelos_fase5(g), `[[`, character(1), "modelo_id")
-    expect_identical(utils::tail(ids, 1), paste0("MULT.BVAR.", g), info = g)
+    expect_identical(utils::tail(ids[startsWith(ids, "MULT.")], 1), paste0("MULT.BVAR.", g), info = g)   # B3 va después
     m <- modelo_bvar_grupo(g)
     expect_silent(.validar_modelo(m))
     expect_identical(m$requiere, c("objetivo", predictoras_grupo(g)), info = g)
