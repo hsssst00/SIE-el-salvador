@@ -393,6 +393,15 @@ Monte Carlo de sus momentos, y no hay tolerancia numérica fija. La reproducibil
 máquina de la corrida única: ahí V17 exige bit a bit con `stop()`. En otro sistema, V17 informa las diferencias en
 unidades del error de Monte Carlo sin detenerse. Detalle en `decisiones_fase5.md`.
 
+**Nota (2026-10-08, E1; F5-02 y hallazgo I1).** El preregistro de Fase 5 se congeló en el commit `f8fe345`
+(`f8fe345da83749a623f33cf3706474470890035c`), que pone `PREREGISTRO_FASE5_CERRADO <- TRUE` en `motor_backtesting.R`. Antes de ese commit
+quedaron declarados y versionados en `catalogos/06_modelos/` los YAML de los 32 modelos de Fase 5, de las 12
+combinaciones y de los 6 benchmarks; los 3 experimentos principales y las 12 variantes (`F5_Gk_Rn`); la cuenta
+final de F5-14 (commit `e8b6d36`: representantes en R1, R2, R5 y R6 y variante Q1 de F5-11), y el corte congelado de
+F5-16. Ningún `F5_G*` corrió sobre L3 antes de ese commit. Desde ahí `make eval` corre todos los `F5_*`, y cambiar un
+YAML, un modelo o un experimento reabre el preregistro y se declara. La corrida única (E2) se hace en la máquina de
+Harold, desde el entorno del agente, con la autorización de Harold del 2026-10-08.
+
 **[2026-09-29, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
 antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
 (precedente: C8, `a78d2c6`).
