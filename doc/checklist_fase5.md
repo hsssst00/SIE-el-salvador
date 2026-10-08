@@ -44,7 +44,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   Estado 2026-10-08: tope y reglas decididos (F5-14a a F5-14f en `decisiones_fase5.md`, «Tope de costo y
   representantes»): 8 horas por pasada de `make eval`, secuencial; con B1 y B2 la proyección es de unas 4 h 15 min.
   Representante de B2: `MULT.VAR_DIF`. Faltan el costo y el representante de B3, B3b y B4, y la cuenta final antes de
-  E1.
+  E1. Estado 2026-10-08 (PR 2 de B3): B3 medido (ENET 1,5-3,0 s y PCR 0,35-0,46 s por origen; unos 23 minutos más por
+  pasada, unos 278 en total) y representante `REG.ENET` (B3-9). Faltan B3b y B4 y la cuenta final.
 
 ## C. Infraestructura que piden las decisiones
 
@@ -62,15 +63,18 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
   marca con la evidencia de CI al fusionar. Estado 2026-10-05: B1a fusionado (PR #31, `8d72e83`) con CI verde en push y
   pull_request; queda para marcar en la revisión de Harold.
-- [ ] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
+- [x] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
   árboles. Con B3. Estado 2026-10-08: B3-1 a B3-8 decididas. El PR 1 de B3 (B3-8) trae la forma directa en
   `src/evaluacion/forma_directa.R`: `matriz_directa()`, `crecimiento_acumulado()`, la ventana de B3-2 y la fábrica
   `modelo_directo()`. Las pruebas están en `tests/test-forma-directa.R`. Se marca con la evidencia de CI al fusionar.
-- [ ] **C4 · F5-11** Validación anidada con K = 12 y reoptimización por origen, con su prueba de que no usa datos
+  **Cierre (2026-10-08):** PR #41 fusionado por Harold (merge `13eba72`), CI verde en el PR (runs 37726823262 y
+  37726826461) y en `main` (run 37773963675).
+- [x] **C4 · F5-11** Validación anidada con K = 12 y reoptimización por origen, con su prueba de que no usa datos
   posteriores a `o`. Estado 2026-10-08: en el PR 1 de B3 (`pronosticos_internos()`, `ajustar_directo()`). Las pruebas
   de `tests/test-forma-directa.R` comprueban dos cosas: que el pronóstico de cada origen interno o' no cambia al
   alterar los datos posteriores a o', y que su ventana son las filas con t + h ≤ o'. Prueban además las filas de B3-4
-  en el primer origen de cada grupo. Se marca con la evidencia de CI al fusionar.
+  en el primer origen de cada grupo. Se marca con la evidencia de CI al fusionar. **Cierre (2026-10-08):** PR #41
+  (merge `13eba72`), CI verde en `main` (run 37773963675).
 - [ ] **C5 · F5-12** Densidad del sistema conjunto en ARIMAX y puente (forma compañera) y de errores internos en
   regularizados y árboles, cubierta por V13 o un bloque nuevo. Estado 2026-10-05: la parte de ARIMAX llega con B1b
   (`cov_sistema_arimax()`, prueba contra la simulación de sus recursiones y cobertura en V14); faltan puente (B3b),
@@ -80,7 +84,8 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   una simulación de senderos, y cobertura en V16 (B2b).
   Estado 2026-10-08: el PR 1 de B3 trae la covarianza de errores internos de los regularizados (Σ = D · R · D, B3-5 y
   B3-6; `cov_errores_internos()`), con prueba de su forma; la cobertura llega con V18 en el PR 2. Faltan puente (B3b)
-  y árboles (B4).
+  y árboles (B4). Estado 2026-10-08 (PR 2 de B3): cobertura en V18 con una holgura inferior declarada de 0,10 (la
+  densidad de errores internos subcubre; límite en `decisiones_fase5.md`).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes.
 
@@ -98,7 +103,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   B2-9 fusionado (PR #34, `a91b791`); B2-10 a B2-16 decididas; B2b en su PR (`MULT.BVAR.G1/.G2/.G3`, sus YAML y V16).
 - [ ] **D3 · B3** Regularizados. Estado 2026-10-08: B3-1 a B3-8 decididas. B3 va en dos PR, uno después del otro
   (B3-8). El PR 1 es la infraestructura: forma directa, validación anidada y covarianza de errores internos. El PR 2
-  trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen.
+  trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen. Estado 2026-10-08: PR 1 fusionado (#41,
+  `13eba72`); el PR 2 en su rama (`REG.ENET.G1/.G2/.G3`, `REG.PCR.G1/.G2/.G3`, sus YAML, V18, costo y representante,
+  B3-9).
 - [ ] **D4 · B3b** MIDAS y puente.
 - [ ] **D5 · B4** Árboles.
 - [ ] **D6 · B5** Combinaciones (al final).
