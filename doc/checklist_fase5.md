@@ -48,6 +48,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   pasada, unos 278 en total) y representante `REG.ENET` (B3-9). Faltan B3b y B4 y la cuenta final. Estado 2026-10-08
   (B3b): U-MIDAS y puente, menos de 0,2 s por origen (unos 281 minutos en total); representante `MIX.PUENTE` (B3b-7).
   Faltan B4 y la cuenta final.
+  Estado 2026-10-08 (B4): B4 medido (`ML.RF` de 14 a 40 s y `ML.LGBM` de 73 a 109 s por origen, cifras provisionales
+  medidas con otro proceso R en paralelo; unos 1142 minutos más por pasada, unos 1423 en total, sobre el tope de
+  8 h) y representante `ML.RF` (B4-5, decisión delegada al agente). Falta la cuenta final (F5-14b a F5-14d).
 
 ## C. Infraestructura que piden las decisiones
 
@@ -89,8 +92,9 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   y árboles (B4). Estado 2026-10-08 (PR 2 de B3): cobertura en V18 con una holgura inferior declarada de 0,10 (la
   densidad de errores internos subcubre; límite en `decisiones_fase5.md`). Estado 2026-10-08 (B3b): puente con el
   sistema conjunto linealizado y la covarianza de su innovación con las mensuales del trimestre (B3b-5, B3b-6), con
-  prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19. Faltan los
-  árboles (B4).
+  prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19.
+  Estado 2026-10-08 (B4): los árboles usan la misma densidad de errores internos (B4-2); cobertura del RF en V20 con
+  la holgura de V18 (con 2 réplicas, una comprobación débil; límite en `decisiones_fase5.md`).
 - [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes.
 
@@ -113,7 +117,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   B3-9).
 - [ ] **D4 · B3b** MIDAS y puente. Estado 2026-10-08: B3b-1 a B3b-7 decididas (delegadas al agente); en su PR
   (`MIX.UMIDAS.G1/.G2/.G3`, `MIX.PUENTE.G1/.G2/.G3`, sus YAML, V19, costo y representante `MIX.PUENTE`).
-- [ ] **D5 · B4** Árboles.
+- [ ] **D5 · B4** Árboles. Estado 2026-10-08: B4-1 a B4-6 decididas por el agente (decisiones delegadas; se pueden
+  reabrir). B4 en su rama: `ML.RF.G1/.G2/.G3` y `ML.LGBM.G1/.G2/.G3` en `src/evaluacion/modelos_arboles.R`, sus YAML,
+  V20, costo por origen y representante `ML.RF` (B4-5).
 - [ ] **D6 · B5** Combinaciones (al final).
 
 ## E. Preregistro y corrida única

@@ -44,6 +44,7 @@ como notas fechadas; no se reescribe lo registrado.
 | B3-1 a B3-8 | Implementación de B3: rejilla de λ desde el λ_max del origen; estacionalidad quitada en la ventana antes de estandarizar; rezagos del PIB dentro del PCA; K = 12 en todos los h; Σ = D · R · D con momentos sin centrar; guardas duras y bordes de rejilla a `diagnosticos.csv`; dos PR | F5-09, F5-11 y F5-12 (notas 2026-10-08); especificación del motor §2 (nota 2026-10-08) |
 | B3-9 | Representante de B3 para R1, R2, R5 y R6: `REG.ENET` (decisión delegada al agente; se puede reabrir) | «Tope de costo y representantes» (nota 2026-10-08) |
 | B3b-1 a B3b-7 | Implementación de B3b (delegadas al agente): meses del U-MIDAS acotados por el piso (G1 con la letra de F5-08; G2 y G3 con el último mes admitido); guardas de las ARIMAX; densidad del U-MIDAS de errores internos; AR mensual p ≤ 12; agregación linealizada en la densidad del puente; covarianza completa del puente con las innovaciones mensuales del trimestre; representante `MIX.PUENTE` | F5-08 y F5-12 (notas 2026-10-08); «Tope de costo y representantes» (nota 2026-10-08) |
+| B4-1 a B4-6 | Implementación de B4: ventana de B3-2; densidad de errores internos y no OOB; rejilla del RF con mtry deduplicado en G1 y semilla del generador de R que siembra el motor; rondas de LightGBM en 10..500 por `num_iteration`; representante `ML.RF`; canario V20 (decisiones delegadas al agente; se pueden reabrir) | F5-10, F5-12 y «Tope de costo y representantes» (notas 2026-10-08) |
 
 ---
 
@@ -274,6 +275,14 @@ bloque B3», más abajo):
 - La importancia por permutación (no por impureza, senda §6.6) queda fuera de Fase 5.
 - Descartada: solo RF con LightGBM como extensión.
 
+**Nota (2026-10-08, B4-1, B4-3 y B4-4).** Al implementar B4 se precisaron tres puntos de esta ficha (ver «Implementación
+del bloque B4», más abajo; decisiones delegadas al agente):
+
+- los dos modelos van sobre la forma directa de B3 (`forma_directa.R`), con la ventana de B3-2 (B4-1);
+- en G1, p = 12 columnas y ⌈p/3⌉ = ⌈√p⌉ = 4: la rejilla de mtry se deduplica y el RF tiene 2 candidatos (B4-3);
+- las rondas de LightGBM se eligen en {10, 20, ..., 500}, con un entrenamiento por num_leaves y el pronóstico en cada
+  número de rondas (B4-4).
+
 ---
 
 ## F5-11 — Validación anidada (esquema común para regularizados y ML)
@@ -330,6 +339,10 @@ sendero (F4-33, `predecir_densidad()`); lo que no la emite queda con las columna
 - las correlaciones salen de los 12 orígenes internos comunes a h = 1..8.
 
 Ver «Implementación del bloque B3». B4 decide si los árboles usan la misma o los OOB de RF.
+
+**Nota (2026-10-08, B4-2).** Los árboles usan la misma covarianza de errores internos que los regularizados
+(Σ = D · R · D), no los OOB del RF: los OOB son errores de bootstrap dentro de la muestra y no pseudo fuera de muestra en
+el tiempo (decisión delegada al agente; ver «Implementación del bloque B4»).
 
 ## F5-13 — Combinaciones (§6.7)
 
@@ -902,6 +915,11 @@ unos 278 minutos (4 h 38 min). El representante de B3 es `REG.ENET` (B3-9, decis
 de 0,2 s por origen y suman unos 3 minutos por pasada (unos 281 en total). El representante de B3b es `MIX.PUENTE`
 (B3b-7, decisión delegada al agente).
 
+**Nota (2026-10-08, B4).** El costo de B4 está medido («Implementación del bloque B4»): el RF cuesta de 14 a 40 s por
+origen y LightGBM de 73 a 109 s. B4 suma unos 1142 minutos por pasada, y la proyección pasa a unos 1423 minutos
+(23 h 43 min), sobre el tope de 8 h. El representante de B4 es `ML.RF` (B4-5, decisión delegada al
+agente). Las cifras son provisionales (se midieron con otro proceso R en paralelo); la cuenta final (F5-14b a F5-14d) se hace con todos los bloques.
+
 ---
 
 ## Implementación del bloque B3 (decidida por Harold el 2026-10-08)
@@ -1138,6 +1156,153 @@ pueden reabrir.
 
   B3b suma unos 40 segundos en la principal y unos 3 minutos por pasada con todas las variantes. La proyección de F5-14
   queda en unos 281 minutos (4 h 41 min).
+
+---
+
+## Implementación del bloque B4 (2026-10-08; decisiones delegadas al agente)
+
+Harold autorizó el 2026-10-08 que el agente avance sin supervisión. Al llevar F5-10, F5-11, F5-12 y F5-15 a código sobre
+la infraestructura de B3 (`forma_directa.R`, B3-8) aparecieron seis puntos que las fichas no fijaban. Los seis son
+decisiones delegadas al agente (2026-10-08) y se pueden reabrir. Ningún dato medido las contradice.
+
+- **B4-1 · Ventana de estimación. DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):** los
+  árboles usan la ventana de B3-2 (`transformar = TRUE`). En cada ventana, la final y cada interna, las columnas y g_h se
+  residualizan sobre constante + 3 dummies trimestrales y las columnas se estandarizan. Los árboles reciben así el mismo
+  conjunto de información que el ENET y el PCR, sin la estacionalidad de las NSA, y el pronóstico de g_h es la parte
+  determinista de la ventana más el del árbol. La estandarización no cambia las particiones; la residualización sí, y
+  evita que los árboles gasten particiones en el trimestre del año. Descartada: las columnas crudas
+  (`transformar = FALSE`). Con ellas las primeras particiones sobre una NSA recogen estacionalidad y los árboles se
+  comparan con B3 sobre otro conjunto de información.
+- **B4-2 · Densidad. DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):** RF y LightGBM usan
+  Σ = D · R · D de los errores internos (B3-5, B3-6), la misma de los regularizados. Descartados: los errores OOB del RF,
+  que F5-12 dejaba abiertos. Son errores de bootstrap dentro de la muestra y no pseudo fuera de muestra en el tiempo:
+  cada fila OOB se pronostica con árboles que vieron filas posteriores, no miden el error a h pasos y no existen en
+  LightGBM, así que las dos densidades de B4 no serían comparables. El RF corre con `oob.error = FALSE`.
+- **B4-3 · Rejilla y semilla del RF. DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):**
+  - 500 árboles, mtry ∈ {⌈√p⌉, ⌈p/3⌉} y min.node.size ∈ {5, 3} (F5-10), con p = columnas de la matriz directa: 12, 28
+    y 36 en G1, G2 y G3. En G1 los dos mtry valen 4 y la rejilla se deduplica: 2 candidatos en G1 y 4 en G2 y G3
+    (mtry 6 y 10 en G2; 6 y 12 en G3);
+  - orden de más a menos regularizado: min.node.size de mayor a menor y, dentro de cada uno, mtry de menor a mayor (más
+    aleatoriedad por partición). Un empate en el ECM interno va al primero;
+  - `num.threads = 1`; muestreo con reemplazo de n filas por árbol y partición por varianza (los defectos de `ranger`);
+  - semilla: `estimar_predecir()` no recibe `semilla_de()`. Cada llamada (cada estimación interna o final) toma
+    `seed = sample.int(.Machine$integer.max, 1)` del generador de R, que el motor siembra con
+    `set.seed(semilla_de(exp_id, modelo, origen))` antes de `ajustar()`, y la pasa explícitamente a `ranger` (`seed =`,
+    también en `predict()`). Es la forma en que se cumple la semilla del motor de F5-15, y está declarada en los YAML.
+    La misma semilla sirve a los bosques de todos los candidatos de la llamada: el ECM interno compara hiperparámetros
+    con los mismos números aleatorios.
+
+  Descartadas: una semilla fija por modelo, que no depende del experimento ni del origen, y una semilla por candidato.
+- **B4-4 · Rejilla de LightGBM. DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):**
+  - num_leaves ∈ {4, 8}, learning_rate = 0,05 y min_data_in_leaf = 5 (F5-10), con rondas ∈ {10, 20, ..., 500}: 100
+    candidatos, de menor a mayor num_leaves y, dentro de cada uno, de menos a más rondas. Un empate va al primero;
+  - un entrenamiento por num_leaves hasta la mayor ronda pedida y el pronóstico con las primeras r rondas de cada
+    candidato (`predict(num_iteration = r)`). Sin bagging, las primeras r rondas no dependen de cuántas más se entrenen
+    (prueba en `tests/test-modelos-arboles.R`);
+  - objetivo L2, `num_threads = 1`, `deterministic = TRUE`, `force_row_wise = TRUE` (F5-15), `verbose = -1` y la semilla
+    del generador de R pasada como `seed =`, como en B4-3. Sin bagging ni submuestreo de columnas (los defectos), así
+    que el ajuste no tiene componente aleatorio y con otra semilla da lo mismo (prueba);
+  - con menos de 10 filas (2 · min_data_in_leaf) no hay partición posible. La ventana interna más chica de G2 y G3 a
+    h = 8 en los primeros orígenes tiene 9 (B3-4). LightGBM deja entonces un árbol constante y pronostica la media de
+    la ventana, sin error. Con la ventana de B4-1, el pronóstico de g_h es la media estacional de la ventana;
+  - unas rondas elegidas en un extremo de la rejilla (10 o 500) se anotan en `diagnosticos.csv` y no detienen el motor
+    (B3-7).
+
+  Descartadas: la parada temprana con un conjunto de validación, que exige otra partición de ventanas de 9 a 30 filas,
+  y una rejilla de rondas de 1 en 1, que agrega candidatos casi idénticos y multiplica por 10 las predicciones.
+- **B4-5 · Representante de B4 (F5-14c). DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):**
+  `ML.RF.Gk`. Con el costo medido (abajo), LightGBM cuesta de 3,4 a 5,1 veces lo que el RF por origen, y llevarlo en
+  R1, R2, R5 y R6 suma unos 608 minutos por pasada, más que el tope de 8 h por sí solo. F5-10 ya declara que con 39-90
+  datos LightGBM está en el límite de lo razonable. Descartado: `ML.LGBM.Gk`.
+- **B4-6 · Canario V20. DECIDIDO por el agente (decisión delegada, 2026-10-08; se puede reabrir):** V19 queda reservado
+  para B3b. V20 corre el RF sobre un DGP no lineal, en el que el PIB responde al valor absoluto de una predictora
+  adelantada: Δy_t = 0,004 + 0,8 (|x_{t−1}| − E|x|) + e_t, con x AR(1) de coeficiente 0,6, junto a una SA de ruido. Un
+  modelo lineal no aprovecha a x, porque Δy no tiene correlación lineal con x_{t−1}. Exige cuatro cosas:
+  - que el RF bata al AR(p)-BIC con razón de RMSE < 0,8 en h = 1;
+  - que la densidad de errores internos cubra en h = 1, 2, 4 con la holgura declarada de V18 (subcobertura de hasta
+    0,10 además de 3 ee de MC);
+  - que con un placebo (β = 0) el RF no empeore al AR(p)-BIC en más de 10 % en h = 1;
+  - que reejecutar reproduzca bit a bit sendero, densidad y diagnósticos del RF (dos orígenes) y de LightGBM (uno).
+
+  Para acotar el costo a unos 4 minutos, el RF corre con 50 árboles en lugar de 500 y LightGBM con 20 rondas como
+  máximo, como V16 hizo con las extracciones del BVAR. Corre en uno de cada cuatro orígenes del diseño, con 2 réplicas y
+  2 de placebo. LightGBM no entra a las comparaciones de RMSE ni de cobertura: aun con 50 rondas cuesta unos 19 s por
+  origen en el sandbox. En la calibración, con una réplica y 50 rondas, su razón contra el AR(p)-BIC en h = 1 fue 0,49.
+  Descartado: un canario con LightGBM de producción, que tardaría más de 20 minutos.
+
+**Costo observado (dato para F5-14; sandbox Windows, datos sintéticos con las fechas de inicio de L3 de
+`tests/test-modelos-regularizados.R`; configuración de producción; después de cargar `ranger` y `lightgbm`), en
+segundos por origen.** El RF es la mediana de tres ajustes. LightGBM es un solo ajuste por celda, porque cada uno tarda
+de 73 a 109 s; su ajuste no tiene componente aleatorio y el tiempo de los tres ajustes del RF varió menos de 5 %.
+Durante la medición corría otro proceso de R en la máquina (12 núcleos; los dos de un hilo).
+
+| Modelo | G1 primero / último | G2 primero / último | G3 primero / último |
+|---|---|---|---|
+| `ML.RF` | 14,06 / 26,31 | 14,46 / 39,86 | 15,24 / 28,70 |
+| `ML.LGBM` | 103,47 / 104,23 | 75,32 / 109,26 | 73,24 / 108,50 |
+
+- Origen de cada celda: el primero de cada grupo (2013-Q1, 2014-Q4 y 2019-Q4) y el último (2025-Q4).
+- Por qué cuesta tanto LightGBM: en el sandbox, una ronda cuesta unos 0,34 ms dentro de la librería, casi sin depender
+  de las filas ni de las columnas (500 rondas: unos 0,25 s con num_leaves = 4 y 0,37 s con 8). Cada origen pide 192
+  entrenamientos internos (8 horizontes × 12 orígenes internos × 2 valores de num_leaves), más hasta 36 en los orígenes
+  comunes y en la estimación final. El RF pide 420 bosques por origen en G2 y G3 (228 en G1).
+
+**Proyección (F5-14).** Con los puntos medios y los orígenes de cada experimento (52, 45 y 25; R7, R2 y R5 solo en G2 y
+G3), B4 suma por pasada:
+
+| Experimento | `ML.RF` | `ML.LGBM` | B4 |
+|---|---|---|---|
+| Principal (`F5_G1` a `F5_G3`) | 47,0 | 197,1 | 244,1 |
+| R7 (modelos con UT de G2 y G3) | 29,5 | 107,1 | 136,6 |
+| R1 / R6 | 47,0 | 197,1 | 244,1 cada una |
+| R2 / R5 | 29,5 | 107,1 | 136,6 cada una |
+| **Pasada** | **229,6** | **912,6** | **≈ 1142 (19 h 2 min)** |
+
+- Con B4, la proyección de F5-14 pasa de unos 281 (con B3b) a unos 1423 minutos (23 h 43 min). Supera el tope de 8 h
+  (F5-14a).
+- Solo como referencia: con los representantes en R1, R2, R5 y R6 (`MULT.VAR_DIF`, `REG.ENET` y `ML.RF`; F5-14c), B4
+  sumaría unos 534 minutos y la pasada unos 686 (11 h 26 min), todavía sobre el tope. LightGBM en la principal y en R7
+  pone 304 de esos minutos.
+- Este PR no aplica ninguna palanca. La cuenta final la hace el agente principal al cerrar B4, con B3b medido y en un
+  commit anterior a E1, y sigue el orden de F5-14b (preguntarle a Harold si se paraleliza), F5-14c y F5-14d.
+
+**V20** (canario de B4, en la verificación sintética; unos 3 min 40 s en el sandbox, que no están en la proyección):
+
+- el RF bate al AR(p)-BIC en h = 1 con razón de RMSE 0,626 (< 0,8); en h = 2 y h = 4, 0,835 y 0,955 (informativas);
+- con un placebo, la razón en h = 1 es 0,997 (< 1,10). En la calibración, con 4 réplicas, la razón de cada réplica fue
+  de 0,81 a 1,14 (1,01 con las cuatro); con una sola réplica el placebo no es confiable, y por eso lleva dos;
+- reejecutar reproduce bit a bit el RF (dos orígenes) y LightGBM (un origen).
+
+**Límite declarado: la densidad de errores internos del RF subcubre, más en h = 2 y h = 4.** En V20, la cobertura al
+80 % es 0,846, 0,731 y 0,615 en h = 1, 2 y 4, y al 95 % 0,962, 0,808 y 0,885. Las causas son las de V18: la varianza se
+estima con 12 errores internos y el candidato elegido es el de menor ECM interno. La mayor subcobertura es la de h = 4
+al 80 % (0,185 por debajo del nominal).
+
+- Con 2 réplicas, el ee de MC de cada celda va de 0,038 a 0,154, así que la condición de cobertura de V20 es débil: solo
+  detecta una densidad muy mal calibrada. La evidencia de cobertura de la densidad de errores internos con más réplicas
+  sigue siendo V18 (6 réplicas); V20 la extiende al RF con la misma regla y deja las cifras a la vista.
+- En la corrida única, la calibración de los árboles se lee con este límite, como la de los regularizados. Corregirlo
+  sería una decisión metodológica nueva, que queda para Harold.
+
+**Decisiones menores del agente en B4** (revertibles en un commit; ninguna cambia un resultado de Fase 4 ni de los
+`F5_REPRO_*`, que solo corren benchmarks):
+
+- **Código:** `src/evaluacion/modelos_arboles.R` (`rejilla_rf()`, `estimar_predecir_rf()`, `rejilla_lgbm()`,
+  `estimar_predecir_lgbm()`, `modelos_arboles_grupo()`), que se carga desde `modelos_fase5.R`. Los árboles van en el
+  registro después de los regularizados (y, al integrar B3b, después de `MIX.*`). No cambian `eval_lib.R`,
+  `motor_backtesting.R` ni `forma_directa.R`.
+- **Defectos fijados en el código y en los YAML:** en `ranger`, `replace = TRUE`, `sample.fraction = 1`,
+  `splitrule = "variance"` e `importance = "none"`; en `lightgbm`, `objective = "regression"`, sin bagging y
+  `serializable = FALSE`, que no guarda una copia del modelo y no cambia los pronósticos.
+- **`oob.error = FALSE`:** el OOB no se usa (B4-2) y cuesta tiempo; no cambia los pronósticos (comprobado).
+- **Diagnósticos por h:** en el RF, mtry y min.node.size; en LightGBM, num_leaves, rondas y bandera de borde (10 o 500
+  rondas). El RF no lleva bandera de borde: sus dos hiperparámetros solo toman los valores de F5-10.
+- **Guardas (B3-7):** además de las de `forma_directa.R`, `stop()` si `ranger` devuelve otro número de árboles, si
+  LightGBM no deja ninguna ronda o si los pronósticos no son finitos.
+- **Pruebas:** `tests/test-modelos-arboles.R` tarda unos 4 minutos en el sandbox. LightGBM de producción cuesta unos
+  70 s por origen, así que el primer origen corre con la configuración de producción en G2 (el caso de 9 filas) y con
+  50 rondas como máximo en G1 y G3; la prueba de reproducibilidad usa 100 árboles y 20 rondas. Lo que se prueba ahí
+  (filas, guardas y semilla) no depende del número de árboles ni de rondas.
 
 ---
 
