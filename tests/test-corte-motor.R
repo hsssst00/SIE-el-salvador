@@ -141,8 +141,9 @@ test_that("C-6/C-7: F5_REPRO_* repite cada F4_BENCH_* con sus semillas", {
 })
 
 test_that("C-8: los exp_id F4_* se rechazan; por defecto corren los de Fase 5", {
-  # con el preregistro abierto (F5-02), el default son los F5_REPRO_*; los F5_G* se agregan al cerrarlo
-  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_REPRO$exp_id)
+  # con el preregistro abierto (F5-02) el default eran los F5_REPRO_*; desde E1 (cerrado), todos los F5_*
+  expect_identical(seleccionar_experimentos(preregistro_cerrado = FALSE)$exp_id, EXPERIMENTOS_REPRO$exp_id)
+  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_FASE5$exp_id)
   expect_identical(seleccionar_experimentos(c("F5_REPRO_G3_R6", "F5_REPRO_G1"))$exp_id, c("F5_REPRO_G1", "F5_REPRO_G3_R6"))
   expect_error(seleccionar_experimentos("F4_BENCH_G1"), "C-8: F4_BENCH_G1 es de Fase 4")
   expect_error(seleccionar_experimentos("F4_BENCH_G1"), "F5_REPRO_G1", fixed = TRUE)

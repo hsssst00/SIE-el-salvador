@@ -134,11 +134,12 @@ con_representantes <- function(ex) grepl(PATRON_EXP_REPRESENTANTES, ex$exp_id)
 combina  <- function(ex) grepl(PATRON_EXP_PREREGISTRO, ex$exp_id) && !es_r7(ex)   # F5-13, F5-14e; R7 sin combinaciones (B5-4)
 
 # Candado del preregistro (F5-02): los experimentos de modelos de Fase 5 no corren sobre L3 hasta que todos
-# sus YAML estén declarados y versionados. Mientras el candado esté abierto (FALSE), `make eval` corre solo
-# los F5_REPRO_* y pedir un F5_G* se detiene. Lo cierra el commit de congelamiento del preregistro (E1 del
-# checklist de Fase 5), que se cita en el protocolo §6. Los F5_G* se ejercen con datos sintéticos en tests/.
+# sus YAML estén declarados y versionados. Con el candado abierto (FALSE), `make eval` corría solo los
+# F5_REPRO_* y pedir un F5_G* se detenía. Lo cerró el commit de congelamiento del preregistro (E1 del checklist
+# de Fase 5, 2026-10-08), citado en el protocolo §6: desde ahí `make eval` corre todos los F5_*. Cambiar un YAML de
+# 06_modelos/, un modelo o un experimento después de ese commit reabre el preregistro y se declara.
 PATRON_EXP_PREREGISTRO <- "^F5_G"
-PREREGISTRO_FASE5_CERRADO <- FALSE
+PREREGISTRO_FASE5_CERRADO <- TRUE
 
 #' Modelos de un experimento: los benchmarks y, en los experimentos de modelos de Fase 5, los del grupo.
 modelos_experimento <- function(ex) {

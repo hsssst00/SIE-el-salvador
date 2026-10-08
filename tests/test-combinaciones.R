@@ -77,7 +77,8 @@ test_that("B5-2 a B5-4: variantes declaradas, R7 con los modelos con UT y sin co
   expect_identical(v$exp_id, c("F5_G1_R1", "F5_G2_R1", "F5_G3_R1", "F5_G2_R2", "F5_G3_R2", "F5_G2_R5", "F5_G3_R5",
                                "F5_G1_R6", "F5_G2_R6", "F5_G3_R6", "F5_G2_R7", "F5_G3_R7"))
   expect_true(all(grepl(PATRON_EXP_PREREGISTRO, v$exp_id)))                           # F5-02: bloqueadas hasta E1
-  for (k in seq_len(nrow(v))) expect_error(seleccionar_experimentos(v$exp_id[k]), "^F5-02", info = v$exp_id[k])
+  for (k in seq_len(nrow(v))) expect_error(seleccionar_experimentos(v$exp_id[k], preregistro_cerrado = FALSE), "^F5-02", info = v$exp_id[k])
+  expect_identical(seleccionar_experimentos(v$exp_id)$exp_id, v$exp_id)                     # E1: el candado está cerrado
   r7 <- v[v$exp_id == "F5_G2_R7", ]
   ids <- vapply(modelos_experimento(r7), `[[`, character(1), "modelo_id")
   f5 <- setdiff(ids, vapply(modelos_referencia(), `[[`, character(1), "modelo_id"))
