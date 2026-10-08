@@ -41,7 +41,8 @@ test_that("F5-06, B1-3: modelos_fase5 devuelve los univariados de cada grupo baj
     expect_identical(ids[startsWith(ids, "UNI.")], esperados[[g]], info = g)       # B2a agrega los MULT.* después
     for (m in ms) {
       expect_silent(.validar_modelo(m))
-      expect_true(isTRUE(m$piso_gl) || startsWith(m$modelo_id, "MULT.BVAR.") || startsWith(m$modelo_id, "REG."), info = m$modelo_id)   # B2-7 y F5-09: sin piso
+      expect_true(isTRUE(m$piso_gl) || startsWith(m$modelo_id, "MULT.BVAR.") || startsWith(m$modelo_id, "REG.") || startsWith(m$modelo_id, "ML."),
+                  info = m$modelo_id)                                                # B2-7, F5-09 y F5-10: sin piso
       expect_true(is.function(m$predecir_densidad) && is.function(m$diagnosticar), info = m$modelo_id)
     }
     ax <- ms[[3]]

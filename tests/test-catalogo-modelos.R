@@ -13,7 +13,8 @@
 #   5. (Fase 5, B1b) los modelos no benchmark declarados son exactamente los del registro modelos_fase5() de
 #      los tres grupos, sus variables son las que piden al motor y las grillas del ARIMA y de las ARIMAX
 #      coinciden con las del código (preregistro F5-02); (B2a) también las rejillas de los VAR y del VECM;
-#      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado); (B3) y las rejillas de ENET y PCR; (B3b) y los órdenes de U-MIDAS y puente.
+#      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado); (B3) y las rejillas de ENET y PCR; (B3b) y los órdenes de
+#      U-MIDAS y puente; (B4) y las rejillas del RF y de LightGBM (árboles, mtry por grupo, tamaño de nodo, hojas, tasa, rondas).
 #
 # No lee datos del proyecto: corre en CI. Lee YAML con `yaml`, en Imports desde Fase 4 (F4-12).
 
@@ -151,5 +152,33 @@ test_that("06_modelos: los órdenes declarados de U-MIDAS y puente son los del c
     expect_identical(as.integer(c(u$K_validacion, u$h_max)), c(K_VALIDACION_ANIDADA, H_FORMA_DIRECTA), info = g)
     p <- .leer_modelo(paste0("MIX.PUENTE.", g, ".yaml"))$especificacion$ordenes
     expect_identical(as.integer(c(p$p_max_ar_mensual, p$rezagos_pib, p$h_max)), c(P_MAX_AR_MENSUAL, 1L, DISENO_FASE4$h_max), info = g)
+  }
+})
+
+test_that("06_modelos: las rejillas declaradas de los árboles son las del código (F5-10, F5-11, B4-3, B4-4)", {
+  for (g in c("G1", "G2", "G3")) {
+    m <- modelo_rf_grupo(g)
+    e <- .leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$ordenes
+    p <- 4L * (1L + length(predictoras_grupo(g)))                          # Δy y cada predictora con rezagos 0..3
+    expect_identical(as.integer(unlist(e$rezagos)), as.integer(REZAGOS_FORMA_DIRECTA), info = g)
+    expect_identical(as.integer(c(e$K_validacion, e$h_max, e$num_arboles, e$columnas, e$num_threads)),
+                     c(K_VALIDACION_ANIDADA, H_FORMA_DIRECTA, NUM_ARBOLES_RF, p, 1L), info = g)
+    expect_identical(m$esp$num_arboles, NUM_ARBOLES_RF, info = g)
+    expect_identical(as.integer(unlist(e$mtry)), mtry_rf(p), info = g)
+    expect_identical(as.integer(unlist(e$min_node_size)), NODO_MIN_RF, info = g)
+    declarada <- data.frame(min_node_size = rep(as.integer(unlist(e$min_node_size)), each = length(unlist(e$mtry))),
+                            mtry = rep(as.integer(unlist(e$mtry)), times = length(unlist(e$min_node_size))))
+    expect_identical(m$esp$candidatos(matrix(0, 2L, p), numeric(2), 1L), declarada, info = g)
+    l <- modelo_lgbm_grupo(g)
+    o <- .leer_modelo(paste0(l$modelo_id, ".yaml"))$especificacion$ordenes
+    expect_identical(as.integer(unlist(o$rezagos)), as.integer(REZAGOS_FORMA_DIRECTA), info = g)
+    expect_identical(as.integer(c(o$K_validacion, o$h_max, o$min_data_in_leaf, o$num_threads)),
+                     c(K_VALIDACION_ANIDADA, H_FORMA_DIRECTA, DATOS_HOJA_LGBM, 1L), info = g)
+    expect_identical(as.integer(unlist(o$num_leaves)), HOJAS_LGBM, info = g)
+    expect_identical(as.numeric(o$learning_rate), TASA_LGBM, info = g)
+    expect_identical(as.integer(c(o$rondas_min, o$rondas_max, o$paso_rondas)), c(PASO_RONDAS_LGBM, RONDAS_MAX_LGBM, PASO_RONDAS_LGBM), info = g)
+    rl <- l$esp$candidatos(matrix(0, 2L, p), numeric(2), 1L)
+    expect_identical(unique(rl$num_leaves), as.integer(unlist(o$num_leaves)), info = g)
+    expect_identical(unique(rl$rondas), seq.int(as.integer(o$rondas_min), as.integer(o$rondas_max), by = as.integer(o$paso_rondas)), info = g)
   }
 })
