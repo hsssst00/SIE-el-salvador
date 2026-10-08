@@ -281,3 +281,22 @@ test_that("correr_experimento lleva los diagnósticos a res$diagnosticos con exp
   ex_ref <- EXPERIMENTOS_REPRO[EXPERIMENTOS_REPRO$grupo == "G1", ][1, ]; ex_ref$sa <- "l3_unico"; ex_ref$r3 <- FALSE; ex_ref$r4 <- FALSE
   expect_null(correr_experimento(ex_ref, insumos, new.env())$diagnosticos)                     # F5_REPRO_*: sin diagnósticos
 })
+
+test_that("UNI.UC_LLT (E2): si StructTS no converge desde su arranque, el mejor de cinco arranques fijos; si converge, el de siempre", {
+  serie <- function(s) { set.seed(s); 4.3 + cumsum(0.006 + as.numeric(stats::arima.sim(list(ar = 0.3), 93, sd = 0.009))) }
+  y <- serie(1)                                                                # converge desde el arranque por defecto
+  a <- ajustar_structts_llt(y, "x"); d <- stats::StructTS(stats::ts(y, frequency = 4L), type = "trend")
+  expect_identical(a$arranque, 0); expect_identical(a$coef, d$coef); expect_identical(a$mod, d$model)
+  for (s in c(14L, 26L)) {                                                     # code 52 desde el arranque por defecto
+    y <- serie(s)
+    d <- suppressWarnings(stats::StructTS(stats::ts(y, frequency = 4L), type = "trend")); expect_false(d$code == 0L)
+    a <- ajustar_structts_llt(y, "x")
+    expect_true(a$arranque %in% seq_along(ARRANQUES_UC), info = as.character(s))
+    alt <- lapply(ARRANQUES_UC, function(k) suppressWarnings(stats::StructTS(stats::ts(y, frequency = 4L), type = "trend", init = k * stats::var(diff(y)))))
+    ll <- vapply(alt, function(r) if (r$code == 0L) r$loglik else -Inf, numeric(1))
+    expect_identical(a$arranque, as.numeric(which.max(ll)), info = as.character(s))
+    expect_identical(a$coef, alt[[which.max(ll)]]$coef, info = as.character(s))
+    m <- modelo_uc_llt(); aj <- m$ajustar(list(objetivo = data.frame(periodo = ind_a_q(q_a_ind("2000-Q1") + seq_along(y) - 1L), y = y)), NULL)
+    expect_identical(unname(m$diagnosticar(aj)["arranque"]), a$arranque)
+  }
+})

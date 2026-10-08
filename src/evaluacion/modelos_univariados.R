@@ -172,18 +172,37 @@ cov_estado_uc <- function(mod, h) {
   S
 }
 
+#' StructTS(type = "trend") con arranques alternativos si optim no converge (E2, 2026-10-08; decisión delegada al agente,
+#' se puede reabrir). Primero el arranque por defecto de StructTS, como se preregistró; si optim no converge (code != 0),
+#' se reestima desde cinco arranques fijos, proporcionales a v = var(Δy) (nivel, pendiente, irregular), y se queda el
+#' ajuste convergido de mayor log-verosimilitud. Si ninguno converge, stop() (Regla 7). La superficie es plana cerca del
+#' óptimo y L-BFGS-B termina a veces con «ABNORMAL_TERMINATION_IN_LNSRCH» (code 52) lejos de él.
+ARRANQUES_UC <- list(c(1, 1e-2, 1), c(0.5, 0.1, 0.5), c(2, 0.5, 2), c(1, 1e-3, 0.1), c(0.1, 1e-3, 1))
+ajustar_structts_llt <- function(y, periodo_origen) {
+  x <- stats::ts(y, frequency = 4L)
+  a <- suppressWarnings(stats::StructTS(x, type = "trend"))
+  if (identical(as.integer(a$code), 0L)) return(list(mod = a$model, coef = a$coef, arranque = 0))
+  v <- stats::var(diff(y))
+  alt <- lapply(ARRANQUES_UC, function(k) suppressWarnings(stats::StructTS(x, type = "trend", init = k * v)))
+  ok <- which(vapply(alt, function(r) identical(as.integer(r$code), 0L) && is.finite(r$loglik), logical(1)))
+  if (!length(ok)) {
+    stop("UNI.UC_LLT: StructTS no convergió (optim code ", a$code, ") ni desde los ", length(ARRANQUES_UC), " arranques alternativos en ", periodo_origen)
+  }
+  j <- ok[which.max(vapply(alt[ok], `[[`, numeric(1), "loglik"))]
+  list(mod = alt[[j]]$model, coef = alt[[j]]$coef, arranque = as.numeric(j))
+}
+
 modelo_uc_llt <- function() list(
   modelo_id = "UNI.UC_LLT", requiere = "objetivo", piso_gl = TRUE,
   ajustar = function(datos, spec) {
     y <- .y_de(datos)
-    a <- stats::StructTS(stats::ts(y, frequency = 4L), type = "trend")
-    if (!identical(as.integer(a$code), 0L)) stop("UNI.UC_LLT: StructTS no convergió (optim code ", a$code, ") en ", utils::tail(datos$objetivo$periodo, 1))
-    list(mod = a$model, coef = a$coef, gl = c(n_obs = length(y), n_par = 3L))
+    a <- ajustar_structts_llt(y, utils::tail(datos$objetivo$periodo, 1))
+    list(mod = a$mod, coef = a$coef, arranque = a$arranque, gl = c(n_obs = length(y), n_par = 3L))
   },
   predecir = function(aj, h) as.numeric(stats::KalmanForecast(h, aj$mod)$pred),
   predecir_densidad = function(aj, h) list(media = as.numeric(stats::KalmanForecast(h, aj$mod)$pred), cov = cov_estado_uc(aj$mod, h)),
   diagnosticar = function(aj) c(var_nivel = unname(aj$coef["level"]), var_pendiente = unname(aj$coef["slope"]),
-                                var_irregular = unname(aj$coef["epsilon"]))
+                                var_irregular = unname(aj$coef["epsilon"]), arranque = aj$arranque)
 )
 
 # ---------------------------------------------------------------------------------------------
