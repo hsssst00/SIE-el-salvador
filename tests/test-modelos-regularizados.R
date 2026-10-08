@@ -64,8 +64,8 @@ test_that("B3-1: la rejilla de 位 va de 位_max (el de glmnet) a 位_max 路 10鈦宦
     propio <- glmnet::glmnet(v$Z, v$g, alpha = a, standardize = FALSE, intercept = FALSE)
     expect_equal(l[1], max(propio$lambda), tolerance = 1e-10, info = a)           # 位_max de glmnet
   }
-  # en 位_max el lasso y el elastic net anulan todos los coeficientes
-  expect_true(all(.senda_glmnet(v$Z, v$g, 1, rj$lambda[rj$alpha == 1])[, 1] == 0))
+  # en 位_max el lasso anula todos los coeficientes (hasta el redondeo: en Linux uno queda en ~1e-17)
+  expect_lt(max(abs(.senda_glmnet(v$Z, v$g, 1, rj$lambda[rj$alpha == 1])[, 1])), 1e-10)
   expect_error(rejilla_enet(v$Z, rep(0, length(v$g)), 1L), "位_max no positivo")
 })
 
