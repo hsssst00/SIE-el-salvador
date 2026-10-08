@@ -118,6 +118,15 @@ test_that("G-6 sobre predictoras: cada fila con el vintage que declara el corte,
   expect_error(verificar_vintage_predictora(x, "PUB.X.Q", v), "vintage distinto")   # sin corte, el vigente es v2
   x2 <- x; x2$vintage_id[3] <- "PUB.v2"
   expect_error(verificar_vintage_predictora(x2, "PUB.X.Q", v, cj), "1 fila\\(s\\) de un vintage distinto .* 2019-Q3 con PUB.v2; se espera PUB.v1")
+  # serie compuesta (remesas reales = nominales / IPC): vintage_id unidos por " + ", cada componente contra el corte
+  v2 <- rbind(v, data.frame(vintage_id = c("IPC.v5", "IPC.v6"), publicacion_id = "IPC", periodo_referencia_max = c("2020-M06", "2020-M07")))
+  cj2 <- rbind(cj, data.frame(publicacion_id = "IPC", vintage_id = "IPC.v5"))
+  xc <- x; xc$vintage_id <- "PUB.v1 + IPC.v5"
+  expect_silent(verificar_vintage_predictora(xc, "PUB.REAL.Q", v2, cj2))
+  xc2 <- xc; xc2$vintage_id[2] <- "PUB.v1 + IPC.v6"
+  expect_error(verificar_vintage_predictora(xc2, "PUB.REAL.Q", v2, cj2), "1 fila\\(s\\) de un vintage distinto .* 2019-Q2 con IPC.v6; se espera IPC.v5")
+  xc3 <- xc; xc3$vintage_id[1] <- "PUB.v1 + IPC.v9"
+  expect_error(verificar_vintage_predictora(xc3, "PUB.REAL.Q", v2, cj2), "no están en 08_vintages.csv: IPC.v9")
   ut <- .trimestral("2019-Q1", "2020-Q4"); ut$vintage_id <- ifelse(substr(ut$periodo, 1, 4) == "2019", "UT.DEMANDA_TOTAL_MENSUAL.v2019-12", "UT.DEMANDA_TOTAL_MENSUAL.v2020-12")
   expect_silent(verificar_vintage_predictora(ut, "UT.DEMANDA_ELEC.GWH.NSA.Q", v, cj))
   ut2 <- ut; ut2$vintage_id[8] <- "UT.DEMANDA_TOTAL_MENSUAL.v2020-12b"                 # recaptura fuera del corte
