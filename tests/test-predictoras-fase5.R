@@ -134,9 +134,10 @@ test_that("B1-3 y F5-02: experimentos F5_G*, sus modelos y el candado del prereg
   expect_identical(EXPERIMENTOS_PRINCIPALES_FASE5$r3, c(TRUE, TRUE, FALSE))
   expect_true(all(EXPERIMENTOS_PRINCIPALES_FASE5$r4))
   expect_identical(EXPERIMENTOS_PRINCIPALES_FASE5$semilla_exp, EXPERIMENTOS_PRINCIPALES_FASE5$exp_id)
-  expect_false(PREREGISTRO_FASE5_CERRADO)
-  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_REPRO$exp_id)
-  expect_error(seleccionar_experimentos("F5_G1"), "^F5-02: F5_G1 no corre sobre L3 hasta cerrar el preregistro")
+  expect_true(PREREGISTRO_FASE5_CERRADO)                                       # E1: cerrado el 2026-10-08
+  expect_identical(seleccionar_experimentos()$exp_id, EXPERIMENTOS_FASE5$exp_id)
+  expect_identical(seleccionar_experimentos(preregistro_cerrado = FALSE)$exp_id, EXPERIMENTOS_REPRO$exp_id)
+  expect_error(seleccionar_experimentos("F5_G1", preregistro_cerrado = FALSE), "^F5-02: F5_G1 no corre sobre L3 hasta cerrar el preregistro")
   expect_identical(seleccionar_experimentos(preregistro_cerrado = TRUE)$exp_id, EXPERIMENTOS_FASE5$exp_id)
   expect_identical(seleccionar_experimentos("F5_G2", preregistro_cerrado = TRUE)$exp_id, "F5_G2")
   ids_bench <- vapply(modelos_referencia(), `[[`, character(1), "modelo_id")

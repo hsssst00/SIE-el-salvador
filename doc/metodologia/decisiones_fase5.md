@@ -169,6 +169,9 @@ regularizados y ML.
   estricto, y (c) todo iterado, que obliga a proyectar todas las predictoras para árboles que no
   extrapolan.
 
+**Nota (2026-10-08, E1).** Preregistro congelado en el commit `f8fe345` (protocolo §6, nota E1). Harold autorizó el
+2026-10-08 que el agente corra Fase 5 sobre L3; la corrida única (E2) se hace en su máquina, desde el entorno del agente.
+
 ---
 
 ## Nota previa a F5-06 y siguientes (2026-10-05)

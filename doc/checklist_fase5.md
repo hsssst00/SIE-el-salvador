@@ -132,8 +132,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 
 ## E. Preregistro y corrida única
 
-- [ ] **E1 · F5-02** Todos los YAML de Fase 5 declarados y versionados antes de cualquier corrida sobre L3;
-  commit de congelamiento citado (protocolo §6).
+- [x] **E1 · F5-02** Todos los YAML de Fase 5 declarados y versionados antes de cualquier corrida sobre L3;
+  commit de congelamiento citado (protocolo §6). — commit `f8fe345` (2026-10-08), citado en la nota E1 del
+  protocolo §6.
 - [ ] **E2** Corrida única sobre L3 con el corte congelado; filas en `07_experimentos.csv` y tablas de
   resultados por horizonte, generadas en la máquina de Harold.
 - [ ] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.

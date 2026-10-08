@@ -129,7 +129,7 @@ eval-sintetico:
 # congelado y lee L1/L3 del directorio que armó `make master` con ese corte; sin CONJUNTO= se detiene.
 #   make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 #   make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
-# Los exp_id F4_* están cerrados (C-8); por defecto corren los F5_* (hoy, F5_REPRO_*).
+# Los exp_id F4_* están cerrados (C-8); por defecto corren todos los F5_* (preregistro cerrado en E1).
 eval: eval-sintetico
 	Rscript src/evaluacion/motor_backtesting.R
 	Rscript src/evaluacion/tabla_resultados_fase4.R
