@@ -1,0 +1,94 @@
+Evidencia de la corrida única de Fase 5 (checklist E2, E5; insumo de F1 y F2)
+==============================================================================
+
+Máquina: PC de Harold (Windows), R 4.6.1, entorno renv del repositorio.
+Commit: e1722fa (main, merge del PR #50). Árbol limpio: los 28 manifiestos de
+data/L4_experiments/F5_*/ registran «commit: e1722fa» y «arbol: limpio».
+Corte: SIE_CONJUNTO=doc/metodologia/corte_fase5.csv, SIE_SALIDA=data/conjuntos/corte_f5
+(conjunto corte_fase5@901b0f79, el mismo en todos los experimentos).
+Orden: la secuencia de `make eval` (validación, maestro, verificación sintética,
+motor, tablas), lanzada paso a paso con el mismo entorno; hora local (UTC-6).
+
+Inicio 2026-10-08T23:09:51. Fin 2026-10-09T05:20:30. Todos los pasos con rc=0:
+  src/validacion/validate_catalogs.R            rc=0       6.2 s  fin 2026-10-08T23:09:58
+  src/validacion/validar_integridad_catalogos.R rc=0       2.6 s  fin 2026-10-08T23:10:00
+  src/transformacion/validar_conjunto.R         rc=0       2.1 s  fin 2026-10-08T23:10:03
+  src/transformacion/extraer_bcr_pib.R          rc=0      10.6 s  fin 2026-10-08T23:10:13
+  src/transformacion/ut_demanda_serie.R         rc=0       2.6 s  fin 2026-10-08T23:10:16
+  src/transformacion/extraer_bcr_ivae.R         rc=0       1.7 s  fin 2026-10-08T23:10:17
+  src/transformacion/extraer_bcr_remesas.R      rc=0       1.7 s  fin 2026-10-08T23:10:19
+  src/transformacion/extraer_onec_ipc.R         rc=0       1.7 s  fin 2026-10-08T23:10:21
+  src/transformacion/extraer_bcr_ipp.R          rc=0       1.7 s  fin 2026-10-08T23:10:23
+  src/transformacion/extraer_bcr_balanza_comercial.R rc=0       1.7 s  fin 2026-10-08T23:10:24
+  src/transformacion/extraer_bcr_itcer.R        rc=0       1.8 s  fin 2026-10-08T23:10:26
+  src/transformacion/extraer_bcr_indices_precios_comercio_exterior.R rc=0       1.7 s  fin 2026-10-08T23:10:28
+  src/validacion/validar_l2_pib.R               rc=0       8.2 s  fin 2026-10-08T23:10:36
+  src/validacion/validar_l2_predictores.R       rc=0      26.0 s  fin 2026-10-08T23:11:02
+  src/transformacion/l3_pib_objetivo.R          rc=0       4.1 s  fin 2026-10-08T23:11:06
+  src/transformacion/l3_predictores.R           rc=0       2.0 s  fin 2026-10-08T23:11:08
+  src/evaluacion/verificar_motor_sintetico.R    rc=0    1850.6 s  fin 2026-10-08T23:41:59
+  src/evaluacion/motor_backtesting.R            rc=0   20306.8 s  fin 2026-10-09T05:20:26
+  src/evaluacion/tabla_resultados_fase4.R       rc=0       2.4 s  fin 2026-10-09T05:20:28
+  src/evaluacion/tabla_resultados_fase5.R       rc=0       2.3 s  fin 2026-10-09T05:20:30
+
+La verificación sintética V1-V21 pasó completa (V21 incluida: registro de G2
+con la configuración de producción, sha256 idéntico en dos corridas).
+
+Motor: 20306.8 s. Los 13 F5_REPRO_* suman 240 s; los 15 experimentos de
+Fase 5 suman 20056 s:
+  F5_G1        9568 pronósticos   3363 s
+  F5_G2        7920 pronósticos   2983 s
+  F5_G3        4200 pronósticos   1788 s
+  F5_G1_R1     7072 pronósticos    869 s
+  F5_G2_R1     6480 pronósticos    894 s
+  F5_G3_R1     3400 pronósticos    468 s
+  F5_G2_R2     6480 pronósticos    893 s
+  F5_G3_R2     3400 pronósticos    475 s
+  F5_G2_R5     6480 pronósticos    897 s
+  F5_G3_R5     3400 pronósticos    498 s
+  F5_G1_R6     7072 pronósticos    974 s
+  F5_G2_R6     6480 pronósticos    890 s
+  F5_G3_R6     3400 pronósticos    468 s
+  F5_G2_R7     5040 pronósticos   2877 s
+  F5_G3_R7     2800 pronósticos   1719 s
+La proyección previa era de unos 408 min por pasada (F5-14b, cuenta final
+CF-1 a CF-3); la pasada real tomó unos 371 min, verificación sintética incluida.
+
+catalogos/07_experimentos.csv: el motor informa «346 filas de 28 experimentos»
+(78 de F5_REPRO_* y 268 de los 15 experimentos F5_G*), todas con
+commit_hash e1722fa. Las 78 filas F4_BENCH_* no cambian. Las filas F5_REPRO_*
+sustituyen a las de la corrida anterior del bloque A.
+
+Tablas:
+  doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv: sha256 (sin CR)
+    8c1581e4..., sin cambios; no se commitea.
+  doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv: 1960 filas,
+    15 experimentos; sha256 (sin CR) 29218ad0866b29cbd7ed040d3908f6cf106a5179ab64ef9e9b4f0609f31c4e94.
+
+Cambios después del congelamiento (f8fe345), todos declarados en el protocolo §6
+y en decisiones_fase5.md, sección «Corrida única (E2)»:
+  intento 1: se detuvo en el maestro (vintage_id compuesto de
+    BCR.REMESAS.REAL.NSA.Q, G-6). Corrección en el PR #47.
+  intento 2: se detuvo en F5_G1, origen 2013-Q2: StructTS de UNI.UC_LLT terminó
+    con optim código 52. E2-1 (PR #48): arranques alternativos ARRANQUES_UC
+    solo si falla el arranque por defecto; se elige la mayor verosimilitud.
+  intentos 3 y 4: se detuvieron en F5_G3_R1, h=8, GW de UNI.ARIMA contra el paseo
+    aleatorio (matriz singular). E2-2 (PR #49 y PR #50): d idénticamente 0 → p=1
+    «degenerada»; Ω singular → NA «singular» / «instrumento_degenerado».
+  Antes del intento 5, una prueba de humo y barridos de todos los orígenes con
+  los modelos baratos, ARIMA y ENET no dieron otras fallas; esos pronósticos no
+  se guardaron ni se miraron.
+
+Uso de E2-1 (arranque alternativo de UNI.UC_LLT) en la corrida citada: 9 pares
+experimento-origen (F5_G1: 3; F5_G2: 1; F5_G1_R6: 2; F5_G2_R6: 2; F5_G3_R6: 1).
+Uso de E2-2: una celda GW no definida (F5_G3_R1, h=8, UNI.ARIMA, varianza
+singular). Ninguna prueba DM degenerada.
+
+Reproducibilidad (F1, misma máquina): excluidas las líneas commit, arbol y
+fecha_corrida del manifiesto, los 130 archivos de 18 directorios
+(13 F5_REPRO_*, F5_G1, F5_G2, F5_G3, F5_G1_R1, F5_G2_R1) son idénticos byte a
+byte en los intentos 3 (189e629), 4 (c63f318) y 5 (e1722fa); los cambios entre
+esos commits no tocan esos experimentos. Los otros 10 experimentos (F5_G3_R1,
+F5_G2_R2, F5_G3_R2, F5_G2_R5, F5_G3_R5, F5_G1_R6, F5_G2_R6, F5_G3_R6, F5_G2_R7,
+F5_G3_R7) se están corriendo de nuevo sobre e1722fa (segunda pasada, iniciada
+2026-10-09T11:39); el resultado irá en una nota fechada al final de este archivo.

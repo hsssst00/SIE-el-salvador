@@ -99,9 +99,10 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19.
   Estado 2026-10-08 (B4): los árboles usan la misma densidad de errores internos (B4-2); cobertura del RF en V20 con
   la holgura de V18 (con 2 réplicas, una comprobación débil; límite en `decisiones_fase5.md`).
-- [ ] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
+- [x] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes. Estado 2026-10-08: V21 en el PR de B5 (registro de G2 con la configuración de producción, benchmarks y
-  combinaciones, en el primer origen de G2; sha256 idéntico en dos corridas).
+  combinaciones, en el primer origen de G2; sha256 idéntico en dos corridas). Hecho: PR #45 con CI en verde; V21
+  también pasó en la corrida única (`doc/evidencia_corrida_unica_fase5.txt`).
 
 ## D. Bloques de modelos (un PR por bloque, sin apilar; orden de F5-01)
 
@@ -135,13 +136,17 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [x] **E1 · F5-02** Todos los YAML de Fase 5 declarados y versionados antes de cualquier corrida sobre L3;
   commit de congelamiento citado (protocolo §6). — commit `f8fe345` (2026-10-08), citado en la nota E1 del
   protocolo §6.
-- [ ] **E2** Corrida única sobre L3 con el corte congelado; filas en `07_experimentos.csv` y tablas de
-  resultados por horizonte, generadas en la máquina de Harold.
+- [x] **E2** Corrida única sobre L3 con el corte congelado; filas en `07_experimentos.csv` y tablas de
+  resultados por horizonte, generadas en la máquina de Harold. — commit `e1722fa`, 2026-10-08/09: 346 filas de 28
+  experimentos y `doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv`. Detalle, intentos previos y cambios
+  posteriores al congelamiento en `doc/evidencia_corrida_unica_fase5.txt`.
 - [ ] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.
+  Estado 2026-10-09: calculadas por la corrida única (`pruebas.csv` y `mcs.csv` de cada experimento, y la tabla de
+  Fase 5); falta el informe de lectura.
 - [ ] **E4** Análisis de robustez (protocolo §5) sobre los modelos de Fase 5.
-- [ ] **E5 · F5-04c** Experimento de robustez R7 (modelos con UT de G2 y G3 con UT a 61 días), declarado antes de la
+- [x] **E5 · F5-04c** Experimento de robustez R7 (modelos con UT de G2 y G3 con UT a 61 días), declarado antes de la
   corrida única y con su propio `exp_id`. Estado 2026-10-08: declarado como `F5_G2_R7` y `F5_G3_R7` en el PR de B5
-  (B5-4); falta correrlo en E2.
+  (B5-4). Corrido en E2 (commit `e1722fa`): `F5_G2_R7` 2877 s y `F5_G3_R7` 1719 s.
 
 ## F. Cierre
 
@@ -157,6 +162,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   Nota 2026-10-07 (más tarde): F1-3 reabierta. En otro runner de Ubuntu cambian 4 de 5 000 decisiones del MH y la
   diferencia llega al error de Monte Carlo. La paridad entre sistemas queda declarada hasta ese error. V17 exige bit a
   bit en Windows y fuera de Windows solo informa.
+  Nota 2026-10-09: en la máquina de Harold, 18 de los 28 experimentos de `make eval` (130 archivos) salieron idénticos
+  byte a byte en tres corridas; los otros 10 están en una segunda pasada (`doc/evidencia_corrida_unica_fase5.txt`).
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
