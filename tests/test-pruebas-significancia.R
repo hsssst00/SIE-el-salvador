@@ -119,3 +119,13 @@ test_that("B2-9: mcs_tmax_dedup sin duplicados reproduce a mcs_tmax y con duplic
   expect_identical(unname(modelos_identicos(L4)), c(NA_character_, NA_character_, NA_character_))
   expect_error(mcs_tmax_dedup(L[, 1, drop = FALSE], 1L, semilla = 1L), "al menos 2 modelos")
 })
+
+test_that("GW (E2-2): diferencial idénticamente cero → degenerada (p = 1); instrumento nulo → NA marcado; si no, Bartlett", {
+  set.seed(7); e2 <- stats::rnorm(18)
+  g0 <- prueba_gw(e2, e2, 8L)
+  expect_identical(c(g0$estadistico, g0$p_valor), c(0, 1)); expect_identical(g0$varianza, "degenerada")
+  e1 <- e2; e1[12:18] <- e1[12:18] + 0.5                                         # iguales en los 11 primeros pares
+  g1 <- prueba_gw(e2, e1, 8L)                                                   # el caso de F5_G3_R1, UNI.ARIMA, h = 8
+  expect_true(is.na(g1$p_valor)); expect_identical(g1$varianza, "instrumento_degenerado"); expect_identical(g1$n_pares, 10L)
+  expect_identical(prueba_gw(stats::rnorm(50), stats::rnorm(50), 1L)$varianza, "bartlett")
+})

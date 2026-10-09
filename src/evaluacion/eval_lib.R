@@ -548,6 +548,12 @@ prueba_gw <- function(e1, e2, h) {
   m <- n - h
   if (m < 5L) stop(sprintf("GW: con n = %d y h = %d quedan %d pares útiles; mínimo 5", n, h, m))
   t_ <- (h + 1L):n
+  # E2-2 (2026-10-08, después del congelamiento; decisión delegada al agente): si el diferencial es idénticamente cero
+  # (pronósticos iguales al benchmark), la prueba es degenerada como en DM/HLN (p = 1); si el instrumento d_{t-h} es
+  # idénticamente cero en los pares útiles, la prueba condicional no está definida (Ω singular): NA, marcado.
+  if (all(d == 0)) return(list(estadistico = 0, p_valor = 1, n_pares = m, media_diferencial = 0, varianza = "degenerada"))
+  if (all(d[t_ - h] == 0)) return(list(estadistico = NA_real_, p_valor = NA_real_, n_pares = m, media_diferencial = mean(d),
+                                       varianza = "instrumento_degenerado"))
   Z <- cbind(1, d[t_ - h]) * d[t_]
   zbar <- colMeans(Z); Zc <- sweep(Z, 2L, zbar)
   Om <- crossprod(Zc) / m
@@ -558,7 +564,7 @@ prueba_gw <- function(e1, e2, h) {
   inv <- tryCatch(solve(Om), error = function(e) stop("GW: matriz de varianza singular (", conditionMessage(e), ")"))
   est <- as.numeric(m * t(zbar) %*% inv %*% zbar)
   list(estadistico = est, p_valor = stats::pchisq(est, df = 2L, lower.tail = FALSE), n_pares = m,
-       media_diferencial = mean(d))
+       media_diferencial = mean(d), varianza = "bartlett")
 }
 
 #' Longitud media de bloque del bootstrap del MCS (F4-15).
@@ -833,7 +839,7 @@ evaluar_errores <- function(err, ids, exp_id, grupo, perdida, semilla_mcs, bench
         g <- prueba_gw(E[, benchmark], E[, id], h)
         pruebas[[length(pruebas) + 1L]] <- data.frame(exp_id = exp_id, grupo = grupo, h = h, unidad = perdida,
           prueba = "gw", modelo_a = benchmark, modelo_b = id, estadistico = g$estadistico, p_valor = g$p_valor,
-          n_pares = g$n_pares, varianza = "bartlett", media_diferencial = g$media_diferencial,
+          n_pares = g$n_pares, varianza = g$varianza, media_diferencial = g$media_diferencial,
           marca_tamano = "tamano_no_verificado", stringsAsFactors = FALSE)
       }
     }

@@ -402,12 +402,16 @@ F5-16. Ningún `F5_G*` corrió sobre L3 antes de ese commit. Desde ahí `make ev
 YAML, un modelo o un experimento reabre el preregistro y se declara. La corrida única (E2) se hace en la máquina de
 Harold, desde el entorno del agente, con la autorización de Harold del 2026-10-08.
 
-**Nota (2026-10-08, E2; cambios después del congelamiento).** La corrida única se detuvo dos veces antes de escribir
-ningún resultado de un `F5_G*`, y se corrigió dos veces:
+**Nota (2026-10-08, E2; cambios después del congelamiento).** La corrida única se detuvo antes de escribir los
+resultados de los experimentos afectados, y se corrigió:
 1. En la lectura de insumos, la guarda G-6 no separaba los `vintage_id` compuestos de las remesas reales. Es un error
    del código, no de la especificación. Se arregló en el PR #47 (`e34ccad`).
 2. En `F5_G1`, 2013-Q2, `UNI.UC_LLT` no convergió. Se resolvió con la decisión E2-1 (arranques alternativos de
    `StructTS`, delegada al agente, con nota fechada en F5-06 y su YAML).
+3. (Agregado el mismo día.) En la evaluación de `F5_G3_R1`, h = 8, la prueba de Giacomini-White de `UNI.ARIMA`
+   contra el benchmark quedó con Ω singular: el instrumento era nulo en los pares útiles. Se resolvió con la decisión
+   E2-2 (NA marcado si el instrumento es nulo; p = 1 si el diferencial es idénticamente cero, como DM/HLN). Detalle en
+   `decisiones_fase5.md`, «Corrida única (E2)».
 
 Antes de relanzar se corrió sobre L3 una prueba de humo y un barrido de guardas: todos los modelos en el primer y el
 último origen, y los modelos baratos en todos los orígenes de los 15 `F5_G*`. Solo se registró si había `stop()`; los
