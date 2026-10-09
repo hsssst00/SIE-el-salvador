@@ -48,7 +48,7 @@ como notas fechadas; no se reescribe lo registrado.
 | B5-1 a B5-5 | Implementación de B5 (delegadas al agente): errores de los pesos inversos al ECM contra el objetivo visto en el origen; variantes `F5_Gk_Rn` (R1 y R6 en los tres grupos, R2 y R5 en G2 y G3, R7 en G2 y G3); predictoras recortadas al inicio de la ventana en R1 y R2; R7 con los modelos con UT y sin combinaciones; combinaciones como paso del orquestador, con los miembros en su YAML | F5-13, F5-14 y F5-04c (esta sección); «Implementación del bloque B5» |
 | F5-14b (respuesta) y CF-1 a CF-3 | Cuenta final: no se paraleliza; representantes en R1, R2, R5 y R6 y variante Q1 de F5-11 en ENET, PCR, RF y LightGBM (decisión de Harold); reutilizar la elección del Q1 con errores internos recalculados, reoptimizar sin Q1 previo y canarios (delegadas al agente). Proyección ≈ 6 h 48 min | protocolo §5 y F5-11 (notas 2026-10-08); YAML de `REG.*`, `ML.*` y `COMB.*` |
 | E2-1 | `UNI.UC_LLT`: si `StructTS` no converge desde su arranque por defecto, el mejor de cinco arranques fijos; si ninguno converge, `stop()` (delegada al agente; después del congelamiento, declarada) | F5-06 (nota 2026-10-08); protocolo §6; `UNI.UC_LLT.yaml` |
-| E2-2 | Giacomini-White: diferencial idénticamente cero → p = 1 (degenerada); instrumento nulo en los pares útiles → NA marcado `instrumento_degenerado` (delegada al agente; después del congelamiento, declarada) | «Corrida única (E2): cambios después del congelamiento»; protocolo §6 |
+| E2-2 | Giacomini-White: diferencial idénticamente cero → p = 1 (degenerada); instrumento nulo en los pares útiles → NA marcado `instrumento_degenerado`; Ω singular por otra causa → NA marcado `singular` (PR #49 y #50) (delegada al agente; después del congelamiento, declarada) | «Corrida única (E2): cambios después del congelamiento»; protocolo §6 |
 
 ---
 
@@ -300,7 +300,9 @@ resultado no cambia. Razón: cerca del óptimo la superficie es plana. En 2013-Q
 log-verosimilitud de 274,83; cuatro de los cinco alternativos convergen a 275,19-275,21. Con datos sintéticos parecidos
 al PIB, el arranque por defecto falla en 19 de 400 series y el alternativo las resuelve todas. Sobre L3, un barrido de
 todos los orígenes de los 15 `F5_G*` muestra que el alternativo se usa en 9 pares experimento-origen y que ninguno
-falla. `diagnosticos.csv` registra el arranque (0 = por defecto). Descartadas: aceptar el ajuste con code 52, que no es
+falla. `diagnosticos.csv` registra el arranque (0 = por defecto). Qué series fallan desde el arranque por defecto depende de la plataforma
+(L-BFGS-B y la BLAS): en algunos runners de Ubuntu del CI convergen series que en Windows fallan, así que la prueba
+busca las series que fallan en cada plataforma (PR #50). La corrida única se hace en Windows (F1-3 reabierta). Descartadas: aceptar el ajuste con code 52, que no es
 un óptimo, y reescalar la serie, que no corrigió 2013-Q2. Cambia `UNI.UC_LLT.yaml` (campo `convergencia`) y se declara
 en el protocolo §6.
 
@@ -1463,6 +1465,11 @@ Cada corrección es mínima y se declara aquí y en el protocolo §6:
    - si el diferencial es idénticamente cero, la prueba es degenerada con p = 1, como ya hacía DM/HLN;
    - si solo el instrumento es nulo en los pares útiles, la prueba condicional no está definida: estadístico y p-valor
      quedan en NA y `pruebas.csv` lo marca en `varianza` (`instrumento_degenerado`).
+
+   **Nota (2026-10-08, misma noche).** El primer arreglo (PR #49) solo cubría el instrumento nulo en todos los pares
+   útiles, y la corrida volvió a detenerse en la misma celda: ahí d_{t−h} no es nulo en todos los pares, pero el
+   producto d_{t−h} · d_t sí (11 de los 18 diferenciales son cero). El PR #50 generaliza el arreglo: si Ω es singular
+   por cualquier causa, la prueba queda en NA marcado `singular`.
 
    DM/HLN de esa celda sigue definida. Descartada: cambiar a la prueba incondicional en esas celdas, porque sería otra
    prueba que F4-17 no declara. En los F5_REPRO y en Fase 4 no cambia nada, porque ninguna celda tenía Ω singular.

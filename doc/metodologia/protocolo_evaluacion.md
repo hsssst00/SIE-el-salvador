@@ -410,8 +410,9 @@ resultados de los experimentos afectados, y se corrigió:
    `StructTS`, delegada al agente, con nota fechada en F5-06 y su YAML).
 3. (Agregado el mismo día.) En la evaluación de `F5_G3_R1`, h = 8, la prueba de Giacomini-White de `UNI.ARIMA`
    contra el benchmark quedó con Ω singular: el instrumento era nulo en los pares útiles. Se resolvió con la decisión
-   E2-2 (NA marcado si el instrumento es nulo; p = 1 si el diferencial es idénticamente cero, como DM/HLN). Detalle en
-   `decisiones_fase5.md`, «Corrida única (E2)».
+   E2-2: NA marcado si Ω es singular y p = 1 si el diferencial es idénticamente cero, como DM/HLN. Hicieron falta dos
+   PR: el #49 solo cubría el instrumento nulo entero, la corrida volvió a detenerse en esa celda y el #50 lo
+   generalizó. Detalle en `decisiones_fase5.md`, «Corrida única (E2)».
 
 Antes de relanzar se corrió sobre L3 una prueba de humo y un barrido de guardas: todos los modelos en el primer y el
 último origen, y los modelos baratos en todos los orígenes de los 15 `F5_G*`. Solo se registró si había `stop()`; los
