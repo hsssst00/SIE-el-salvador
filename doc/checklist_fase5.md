@@ -163,7 +163,9 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   diferencia llega al error de Monte Carlo. La paridad entre sistemas queda declarada hasta ese error. V17 exige bit a
   bit en Windows y fuera de Windows solo informa.
   Nota 2026-10-09: en la máquina de Harold, 18 de los 28 experimentos de `make eval` (130 archivos) salieron idénticos
-  byte a byte en tres corridas; los otros 10 están en una segunda pasada (`doc/evidencia_corrida_unica_fase5.txt`).
+  byte a byte en tres corridas. Una segunda pasada, detenida a pedido de Harold, sumó 2
+  más (solo los resultados: el manifiesto acumula lo que leyó el proceso de R y depende de la secuencia). Quedan 8 sin
+  réplica (`doc/evidencia_corrida_unica_fase5.txt`).
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
