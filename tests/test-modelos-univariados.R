@@ -284,12 +284,16 @@ test_that("correr_experimento lleva los diagnósticos a res$diagnosticos con exp
 
 test_that("UNI.UC_LLT (E2): si StructTS no converge desde su arranque, el mejor de cinco arranques fijos; si converge, el de siempre", {
   serie <- function(s) { set.seed(s); 4.3 + cumsum(0.006 + as.numeric(stats::arima.sim(list(ar = 0.3), 93, sd = 0.009))) }
-  y <- serie(1)                                                                # converge desde el arranque por defecto
+  codigo <- function(y) suppressWarnings(stats::StructTS(stats::ts(y, frequency = 4L), type = "trend"))$code
+  # Qué series fallan desde el arranque por defecto depende de la plataforma (L-BFGS-B y la BLAS): se buscan aquí.
+  cods <- vapply(1:400, function(s) codigo(serie(s)), numeric(1))
+  y <- serie(which(cods == 0)[1])                                              # converge desde el arranque por defecto
   a <- ajustar_structts_llt(y, "x"); d <- stats::StructTS(stats::ts(y, frequency = 4L), type = "trend")
   expect_identical(a$arranque, 0); expect_identical(a$coef, d$coef); expect_identical(a$mod, d$model)
-  for (s in c(14L, 26L)) {                                                     # code 52 desde el arranque por defecto
+  fallan <- utils::head(which(cods != 0), 2L)
+  skip_if(length(fallan) == 0L, "ninguna de las 400 series sintéticas falla desde el arranque por defecto en esta plataforma")
+  for (s in fallan) {
     y <- serie(s)
-    d <- suppressWarnings(stats::StructTS(stats::ts(y, frequency = 4L), type = "trend")); expect_false(d$code == 0L)
     a <- ajustar_structts_llt(y, "x")
     expect_true(a$arranque %in% seq_along(ARRANQUES_UC), info = as.character(s))
     alt <- lapply(ARRANQUES_UC, function(k) suppressWarnings(stats::StructTS(stats::ts(y, frequency = 4L), type = "trend", init = k * stats::var(diff(y)))))

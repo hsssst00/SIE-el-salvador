@@ -300,7 +300,9 @@ resultado no cambia. Razón: cerca del óptimo la superficie es plana. En 2013-Q
 log-verosimilitud de 274,83; cuatro de los cinco alternativos convergen a 275,19-275,21. Con datos sintéticos parecidos
 al PIB, el arranque por defecto falla en 19 de 400 series y el alternativo las resuelve todas. Sobre L3, un barrido de
 todos los orígenes de los 15 `F5_G*` muestra que el alternativo se usa en 9 pares experimento-origen y que ninguno
-falla. `diagnosticos.csv` registra el arranque (0 = por defecto). Descartadas: aceptar el ajuste con code 52, que no es
+falla. `diagnosticos.csv` registra el arranque (0 = por defecto). Qué series fallan desde el arranque por defecto depende de la plataforma
+(L-BFGS-B y la BLAS): en algunos runners de Ubuntu del CI convergen series que en Windows fallan, así que la prueba
+busca las series que fallan en cada plataforma (PR #50). La corrida única se hace en Windows (F1-3 reabierta). Descartadas: aceptar el ajuste con code 52, que no es
 un óptimo, y reescalar la serie, que no corrigió 2013-Q2. Cambia `UNI.UC_LLT.yaml` (campo `convergencia`) y se declara
 en el protocolo §6.
 
