@@ -128,4 +128,12 @@ test_that("GW (E2-2): diferencial idénticamente cero → degenerada (p = 1); in
   g1 <- prueba_gw(e2, e1, 8L)                                                   # el caso de F5_G3_R1, UNI.ARIMA, h = 8
   expect_true(is.na(g1$p_valor)); expect_identical(g1$varianza, "instrumento_degenerado"); expect_identical(g1$n_pares, 10L)
   expect_identical(prueba_gw(stats::rnorm(50), stats::rnorm(50), 1L)$varianza, "bartlett")
+  # el patrón de F5_G3_R1: 11 de 18 diferenciales nulos, con d_{t-8} · d_t = 0 en los 10 pares útiles sin que el
+  # instrumento sea nulo entero (Ω singular)
+  e3 <- e2; dif <- c(1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0) == 1
+  e3[dif] <- e3[dif] + 0.5
+  d3 <- e2^2 - e3^2; t_ <- 9:18
+  expect_false(all(d3[t_ - 8L] == 0)); expect_true(all(d3[t_ - 8L] * d3[t_] == 0))
+  g3 <- prueba_gw(e2, e3, 8L)
+  expect_true(is.na(g3$p_valor)); expect_identical(g3$varianza, "singular")
 })

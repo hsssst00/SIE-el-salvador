@@ -550,7 +550,8 @@ prueba_gw <- function(e1, e2, h) {
   t_ <- (h + 1L):n
   # E2-2 (2026-10-08, después del congelamiento; decisión delegada al agente): si el diferencial es idénticamente cero
   # (pronósticos iguales al benchmark), la prueba es degenerada como en DM/HLN (p = 1); si el instrumento d_{t-h} es
-  # idénticamente cero en los pares útiles, la prueba condicional no está definida (Ω singular): NA, marcado.
+  # idénticamente cero en los pares útiles, o si Ω es singular por otra causa (p. ej., d_{t-h} · d_t nulo en todos los
+  # pares útiles), la prueba condicional no está definida: NA, marcado en `varianza`.
   if (all(d == 0)) return(list(estadistico = 0, p_valor = 1, n_pares = m, media_diferencial = 0, varianza = "degenerada"))
   if (all(d[t_ - h] == 0)) return(list(estadistico = NA_real_, p_valor = NA_real_, n_pares = m, media_diferencial = mean(d),
                                        varianza = "instrumento_degenerado"))
@@ -561,7 +562,9 @@ prueba_gw <- function(e1, e2, h) {
     G <- crossprod(Zc[(l + 1L):m, , drop = FALSE], Zc[1:(m - l), , drop = FALSE]) / m
     Om <- Om + (1 - l / h) * (G + t(G))
   }
-  inv <- tryCatch(solve(Om), error = function(e) stop("GW: matriz de varianza singular (", conditionMessage(e), ")"))
+  inv <- tryCatch(solve(Om), error = function(e) NULL)             # E2-2: Ω singular → prueba no definida, NA marcado
+  if (is.null(inv)) return(list(estadistico = NA_real_, p_valor = NA_real_, n_pares = m, media_diferencial = mean(d),
+                                varianza = "singular"))
   est <- as.numeric(m * t(zbar) %*% inv %*% zbar)
   list(estadistico = est, p_valor = stats::pchisq(est, df = 2L, lower.tail = FALSE), n_pares = m,
        media_diferencial = mean(d), varianza = "bartlett")
