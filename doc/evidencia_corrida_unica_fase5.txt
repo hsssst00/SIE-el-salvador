@@ -90,5 +90,21 @@ fecha_corrida del manifiesto, los 130 archivos de 18 directorios
 byte en los intentos 3 (189e629), 4 (c63f318) y 5 (e1722fa); los cambios entre
 esos commits no tocan esos experimentos. Los otros 10 experimentos (F5_G3_R1,
 F5_G2_R2, F5_G3_R2, F5_G2_R5, F5_G3_R5, F5_G1_R6, F5_G2_R6, F5_G3_R6, F5_G2_R7,
-F5_G3_R7) se están corriendo de nuevo sobre e1722fa (segunda pasada, iniciada
-2026-10-09T11:39); el resultado irá en una nota fechada al final de este archivo.
+F5_G3_R7) se corrieron de nuevo sobre e1722fa en una segunda pasada (nota siguiente).
+
+Nota 2026-10-09 (segunda pasada). Iniciada a las 11:39, con dos procesos
+`Rscript src/evaluacion/motor_backtesting.R <exp_ids>` en paralelo y otra
+agrupación de experimentos que la de `make eval`. Se detuvo a las 11:56, a pedido
+de Harold, para liberar la PC. Alcanzó a terminar 2 de los 10 experimentos:
+F5_G3_R1 (564 s) y F5_G3_R2 (568 s). En los dos, los 6 archivos de resultados
+(pronósticos, métricas, pruebas, MCS, diagnósticos y ajuste estacional) son
+idénticos byte a byte a los de la corrida citada. El manifiesto difiere, y no
+solo en fecha_corrida: la lista de paquetes cargados y la de archivos de
+catálogo y de L3 leídos es la del proceso de R acumulada hasta ese experimento.
+Por eso depende de qué experimentos corrieron antes en el mismo proceso, y la
+misma orden con la misma secuencia (`make eval`) da manifiestos iguales, como en
+los intentos 3, 4 y 5. Los archivos que aparecen en ambas listas tienen el mismo
+sha256. Saldo para F1: 20 de los 28 experimentos tienen réplica byte a byte de
+sus resultados; quedan 8 sin réplica (F5_G2_R2, F5_G2_R5, F5_G3_R5, F5_G1_R6,
+F5_G2_R6, F5_G3_R6, F5_G2_R7, F5_G3_R7). El motor no reescribe
+07_experimentos.csv hasta terminar el proceso, así que el catálogo no cambió.
