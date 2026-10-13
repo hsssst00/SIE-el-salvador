@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.8 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8)
+**Versión:** 0.9 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -36,6 +36,9 @@ maestra bitemporal" — cada archivo
   cambios de contenido.
 - **0.8** (2026-09-29): añade a la nota de cierre de Fase 4 la corrección de la premisa sobre X-13 en CI
   (hallazgo I3 de la auditoría independiente de Fase 4). Sin otros cambios de contenido.
+- **0.9** (2026-10-13): añade a §4 la nota de cierre de Fase 5, que fija las lecturas de «una sola orden»,
+  «reproducible», «todo resultado reportado» y «una semilla fijada». El registro del cierre está en
+  `doc/adr/README.md`, "Cierre de Fase 5". Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -548,6 +551,32 @@ Actividades: implementación del conjunto de modelos (sección 6); ajuste de hip
 Entregables: catálogos `06` y `07` poblados; tablas de resultados por horizonte; pruebas DM/GW y conjunto de modelos de confianza; análisis de robustez.
 
 **Criterio de cierre:** todo resultado reportado es reproducible con una sola orden y una semilla fijada.
+
+**Nota de cierre — lecturas de «una sola orden», «reproducible» y «todo resultado reportado» (2026-10-13).**
+El criterio admite más de una lectura en tres frases. Esta nota las fija con la misma disciplina que las de
+Fase 1 a 4: la lectura se declara, no se infiere. Las tomó el agente en la opción que propone, bajo la
+autorización de Harold del 2026-10-08 (decisiones no fijadas en la opción recomendada); son **delegadas al
+agente y se pueden reabrir**.
+
+- **«Una sola orden».** Es `make eval CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5`,
+  precedida por `make master` con el mismo corte. La corrida única (E2) ejecutó los pasos de esa receta en
+  su orden, uno por uno y con el mismo entorno, para registrar el código de salida y el tiempo de cada paso
+  (`doc/evidencia_corrida_unica_fase5.txt`). Se lee como la misma orden porque los pasos y su secuencia son
+  los del objetivo del Makefile.
+- **«Reproducible».** En la misma máquina (la de Harold, Windows), cada archivo de resultados de
+  `data/L4_experiments/<exp_id>/` se regenera byte a byte. Del manifiesto se excluyen `commit_hash`, `arbol` y
+  `fecha_corrida`. Las listas de paquetes cargados y de archivos leídos se excluyen solo si los experimentos
+  corren en otra agrupación, porque acumulan lo que leyó el proceso de R (nota del 2026-10-09 de esa
+  evidencia); las entradas comunes deben tener el mismo sha256. Entre sistemas operativos, el BVAR y el
+  random forest no son bit a bit; la paridad se declara hasta el error de Monte Carlo (F1-3 en
+  `doc/metodologia/decisiones_fase5.md`).
+- **«Todo resultado reportado».** Son las filas F5 de `catalogos/07_experimentos.csv`,
+  `doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv` y los valores del informe
+  `doc/metodologia/reportes_fase5/lectura_resultados_fase5.md`, que salen de esa tabla y de L4.
+- **«Una semilla fijada».** Es la semilla de cada experimento derivada de su `exp_id` (C-7), y la de cada
+  modelo derivada de ella (F5-15).
+
+El registro del cierre, con su evidencia, está en `doc/adr/README.md`, «Cierre de Fase 5».
 
 ### Fase 6 — Proyección condicional (Ejercicio B)
 
