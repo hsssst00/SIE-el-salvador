@@ -153,7 +153,7 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 
 ## F. Cierre
 
-- [ ] **F1** Reproducibilidad con una sola orden y una semilla fijada (criterio de la senda; forma concreta en
+- [x] **F1** Reproducibilidad con una sola orden y una semilla fijada (criterio de la senda; forma concreta en
   F5-15): `make eval` regenera bit a bit `data/L4_experiments/<exp_id>/`, y la paridad Windows/Linux del BVAR se
   verifica o se declara su tolerancia. Estado 2026-10-07: el BVAR ya existe (B2b); en una misma máquina es bit a bit
   (prueba en `tests/test-modelo-bvar.R` y V16). Falta comparar Windows y Linux.
@@ -169,6 +169,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   byte a byte en tres corridas. Una segunda pasada, detenida a pedido de Harold, sumó 2
   más (solo los resultados: el manifiesto acumula lo que leyó el proceso de R y depende de la secuencia). Quedan 8 sin
   réplica (`doc/evidencia_corrida_unica_fase5.txt`).
+  Nota 2026-10-13: los 8 restantes, corridos de nuevo sobre `f7d8d6f` (sin cambios de código desde `e1722fa`),
+  salieron con resultados idénticos byte a byte: 28 de 28. Detalle en la nota del 2026-10-13 de la misma evidencia.
 - [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
