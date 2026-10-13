@@ -171,6 +171,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   réplica (`doc/evidencia_corrida_unica_fase5.txt`).
   Nota 2026-10-13: los 8 restantes, corridos de nuevo sobre `f7d8d6f` (sin cambios de código desde `e1722fa`),
   salieron con resultados idénticos byte a byte: 28 de 28. Detalle en la nota del 2026-10-13 de la misma evidencia.
-- [ ] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
+- [x] **F2** Nota «Cierre de Fase 5» en `doc/adr/README.md`, archivo de evidencia textual de la corrida y, si un
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
+  Nota 2026-10-13: «Cierre de Fase 5» en `doc/adr/README.md`; lecturas del criterio en la senda (v0.9), delegadas al
+  agente; evidencia en `doc/evidencia_corrida_unica_fase5.txt`.
 - [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
