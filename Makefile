@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico report validate test audit trace
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -124,16 +124,23 @@ eval-sintetico:
 # X-13ARIMA-SEATS. No corre en CI porque L3 no está ahí; X-13 sí corre en CI, y la orquestación con
 # X-13 se ejerce en CI con insumos sintéticos (V12; hallazgo I3 de la auditoría independiente de
 # Fase 4). Escribe data/L4_experiments/<exp_id>/, las filas de catalogos/07_experimentos.csv y
-# doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (F4-30).
+# doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv (la de Fase 4, F4-30, pasó a `make tabla-fase4`).
 # Fase 5 (F5-16, decisiones C-1 a C-8 de doc/metodologia/decisiones_fase5.md): el motor exige el corte
 # congelado y lee L1/L3 del directorio que armó `make master` con ese corte; sin CONJUNTO= se detiene.
 #   make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 #   make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 # Los exp_id F4_* están cerrados (C-8); por defecto corren todos los F5_* (preregistro cerrado en E1).
+# La tabla de Fase 4 ya no corre acá (C-8a, 2026-10-13): relee los directorios F4_BENCH_* del cierre, que el
+# motor no regenera, así que en una máquina limpia `make eval` no podía terminar. Va en `make tabla-fase4`.
 eval: eval-sintetico
 	Rscript src/evaluacion/motor_backtesting.R
-	Rscript src/evaluacion/tabla_resultados_fase4.R
 	Rscript src/evaluacion/tabla_resultados_fase5.R
+
+# Fase 4 (cerrada) — reescribe doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv desde los directorios
+# data/L4_experiments/F4_BENCH_* de la corrida de cierre. Solo en una máquina que los conserve; si falta uno,
+# se detiene (regla 7). Debe dejar el archivo versionado sin cambios (C-8a).
+tabla-fase4:
+	Rscript src/evaluacion/tabla_resultados_fase4.R
 
 # Fase 7 — sitio de documentación.
 report:

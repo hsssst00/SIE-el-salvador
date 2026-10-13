@@ -37,6 +37,7 @@ como notas fechadas; no se reescribe lo registrado.
 | F5-16 | Captura mensual en L0; evaluación de Fase 5 contra un corte de `vintage_id` congelado | protocolo §2.4 (nota 2026-10-03); especificación del motor §3 (nota 2026-10-03) |
 | F5-17 | UT trimestral y manual (Regla 9) | ninguno aquí; ADR-007 (nota 2026-09-30) |
 | C-1 a C-8 | Implementación del corte congelado: composición, ubicación, guardas y registro | los mismos que F5-16 |
+| C-8a | `make eval` ya no corre la tabla de Fase 4 (relee los `F4_BENCH_*` del cierre, que el motor no regenera); va en `make tabla-fase4` | Makefile; especificación del motor (nota 2026-10-13) |
 | F1-1 y F1-2 | Paridad Windows/Linux del BVAR: bloque V17 con una referencia generada en Windows; ajuste fijo en el primer origen de G1 y G3 con la configuración de producción | checklist de Fase 5, F1 (nota 2026-10-07) |
 | F1-3 | Tolerancia de la paridad del BVAR entre sistemas: entradas, tamaños y aceptación exactos; media ≤ 1e-6 en log-nivel; covarianza e hiperparámetros ≤ 1e-5 relativo. En Windows, bit a bit | protocolo §6 (nota 2026-10-07) |
 | F1-3 (reabierta) | En Windows, V17 exige bit a bit; fuera de Windows solo informa, en unidades del error de Monte Carlo. La paridad del BVAR entre sistemas llega hasta el error de Monte Carlo (reemplaza a la fila anterior) | protocolo §6 (segunda nota 2026-10-07) |
@@ -1558,6 +1559,14 @@ Una `make master` sin corte habría movido la evaluación, en silencio, a los da
   con `stop()` si se le piden. `make eval CONJUNTO=…` corre por defecto los experimentos de Fase 5 (hoy, los
   `F5_REPRO_*`). `EXPERIMENTOS` de Fase 4 sigue declarado para V12 y para `tabla_resultados_fase4.R`, que
   relee los directorios del cierre.
+- **C-8a · Tabla de Fase 4 fuera de `make eval`** (2026-10-13; consecuencia de C-8, pedida por Harold).
+  `make eval` corría `tabla_resultados_fase4.R` después del motor (F4-30). Con C-8 el motor no regenera
+  los `F4_BENCH_*`, así que en una máquina sin los directorios del cierre (que no están en el repo ni en el
+  almacén de L0) la tabla se detenía y `make eval` no terminaba (hallazgo H2 de
+  `doc/evidencia_reproduccion_linux_fase5.txt`). Desde ahora `make eval` corre el motor y
+  `tabla_resultados_fase5.R`, y la tabla de Fase 4 corre con `make tabla-fase4`, solo donde esos
+  directorios existen; si falta uno se sigue deteniendo. Ningún resultado cambia: la tabla de Fase 4
+  versionada es la del cierre, y en Fase 5 `make eval` solo podía reescribirla igual.
 
 **Uso.**
 

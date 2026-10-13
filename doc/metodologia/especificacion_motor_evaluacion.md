@@ -181,6 +181,11 @@ trabajo; los de las salidas, que el motor escribe en LF, son de los bytes tal cu
 largo (variante, `muestra_eval`, `exp_id`, grupo, h, unidad, `modelo_id`, `n_pares`, `rmse`, `mae`,
 `rmse_relativo`, `en_mcs`, `p_mcs`, `marca_tamano`), solo en la unidad primaria `yoy_pp`.
 
+**Actualizado el 2026-10-13 (C-8a).** Con Fase 4 cerrada (C-8), `make eval` ya no corre
+`tabla_resultados_fase4.R`: la tabla relee los directorios `F4_BENCH_*` de la corrida de cierre, que el motor
+no regenera, y en una máquina limpia el objetivo no podía terminar. Corre aparte con `make tabla-fase4`, solo
+donde esos directorios existen. `make eval` corre el motor y `tabla_resultados_fase5.R`.
+
 **Actualizado al implementar (2026-09-24).** Columnas agregadas respecto de la versión anterior:
 `qoq_pp_pronosticado` (unidad secundaria), `unidad`, `varianza` y `media_diferencial` en
 `pruebas.csv` (la columna `varianza` es el registro que pide F4-16), `orden_eliminacion` y `bloque`

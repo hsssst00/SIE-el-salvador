@@ -6,7 +6,8 @@
 # data/L4_experiments/<exp_id>/ y no recalcula nada: une metricas.csv con mcs.csv (y los
 # *_submuestras.csv de R3/R4) en la unidad primaria de la pérdida (F4-04, yoy_pp).
 #
-# Uso:  Rscript src/evaluacion/tabla_resultados_fase4.R   (lo corre `make eval` después del motor)
+# Uso:  Rscript src/evaluacion/tabla_resultados_fase4.R   (`make tabla-fase4`; desde C-8a, 2026-10-13, ya no lo
+#       corre `make eval`: los directorios F4_BENCH_* que lee son los del cierre y el motor no los regenera)
 #
 # Escribe doc/metodologia/reportes_fase4/tabla_resultados_fase4.csv (versionado; LF). Formato
 # largo, una fila por (exp_id, muestra_eval, h, modelo_id):
