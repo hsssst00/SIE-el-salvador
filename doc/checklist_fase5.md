@@ -140,10 +140,13 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   resultados por horizonte, generadas en la máquina de Harold. — commit `e1722fa`, 2026-10-08/09: 346 filas de 28
   experimentos y `doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv`. Detalle, intentos previos y cambios
   posteriores al congelamiento en `doc/evidencia_corrida_unica_fase5.txt`.
-- [ ] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.
+- [x] **E3** Pruebas DM/GW y MCS sobre el conjunto completo, con las marcas `marca_tamano` y `marca_n`.
   Estado 2026-10-09: calculadas por la corrida única (`pruebas.csv` y `mcs.csv` de cada experimento, y la tabla de
   Fase 5); falta el informe de lectura.
-- [ ] **E4** Análisis de robustez (protocolo §5) sobre los modelos de Fase 5.
+  Nota 2026-10-13: informe de lectura en `doc/metodologia/reportes_fase5/lectura_resultados_fase5.md` (§1 a §3,
+  §5 y §6). El MCS al 10 % conserva todos los modelos en las 12 celdas de la principal.
+- [x] **E4** Análisis de robustez (protocolo §5) sobre los modelos de Fase 5.
+  Nota 2026-10-13: R1 a R7 leídos en `doc/metodologia/reportes_fase5/lectura_resultados_fase5.md`, §4.
 - [x] **E5 · F5-04c** Experimento de robustez R7 (modelos con UT de G2 y G3 con UT a 61 días), declarado antes de la
   corrida única y con su propio `exp_id`. Estado 2026-10-08: declarado como `F5_G2_R7` y `F5_G3_R7` en el PR de B5
   (B5-4). Corrido en E2 (commit `e1722fa`): `F5_G2_R7` 2877 s y `F5_G3_R7` 1719 s.
