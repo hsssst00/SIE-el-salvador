@@ -91,3 +91,8 @@ H2. `make eval` en una máquina limpia no termina: tabla_resultados_fase4.R
     La corrida única pasó porque la máquina de Harold los conservaba.
     Resuelto el 2026-10-13 (C-8a en decisiones_fase5.md): `make eval` ya no corre
     tabla_resultados_fase4.R; la tabla de Fase 4 va en `make tabla-fase4`.
+    Verificado el mismo día en esta máquina, sin ningún directorio F4_BENCH_*:
+    `make eval CONJUNTO=… SALIDA=…` de 19:19:17Z a 21:42:50Z, V1-V21 OK, 28
+    experimentos OK, «346 filas de 28 experimentos», tabla de Fase 5 de 1960
+    filas y rc=0. La tabla salió idéntica byte a byte (sha256 561c153c...) a la
+    de la pasada del 2026-10-12 en la misma máquina.
