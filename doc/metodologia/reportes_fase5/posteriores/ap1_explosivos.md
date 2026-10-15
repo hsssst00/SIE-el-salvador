@@ -36,7 +36,7 @@ explosión de h = 4. h = 7 también es explosivo (g_7 = +2,64).
 - **La validación no lo ve.** Los 12 orígenes internos de h = 4 (2017-Q2 a 2020-Q1) son todos anteriores al choque,
   y el ECM interno es casi plano en λ (`ap1_enet_senda_lambda.csv`). Con α = 1, va de 0,00635 en el candidato más
   penalizado a 0,00628 en el elegido, un 1 % de diferencia. Sobre esa misma senda, g_4 va de +0,02 a +3,38. El
-  argmin cae en el borde por una diferencia que la validación no puede distinguir del ruido.
+  argmin cae en el borde por una diferencia del 1 % en el ECM de 12 orígenes internos.
 - **Aportes a g_4:** el rezago 3 del PIB aporta +1,92 (z = −33,2 por un coeficiente de −0,058), las remesas reales
   y nominales (rezago 3) +0,87 y −0,85, el FOB (rezago 2) −0,78, el IVAE (rezago 3) +0,72 y UT (rezago 3) +0,44.
 
