@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.9 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9)
+**Versión:** 0.10 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9); 2026-10-14 (v0.10)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -39,6 +39,8 @@ maestra bitemporal" — cada archivo
 - **0.9** (2026-10-13): añade a §4 la nota de cierre de Fase 5, que fija las lecturas de «una sola orden»,
   «reproducible», «todo resultado reportado» y «una semilla fijada». El registro del cierre está en
   `doc/adr/README.md`, "Cierre de Fase 5". Sin otros cambios de contenido.
+- **0.10** (2026-10-14): añade a la nota de cierre de Fase 5 la adopción de sus lecturas por Harold (hallazgo I2 de la
+  auditoría independiente de Fase 5). Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -577,6 +579,10 @@ agente y se pueden reabrir**.
   modelo derivada de ella (F5-15).
 
 El registro del cierre, con su evidencia, está en `doc/adr/README.md`, «Cierre de Fase 5».
+
+**Adopción de las lecturas (2026-10-14, Harold; auditoría independiente de Fase 5, hallazgo I2).** Las cuatro lecturas
+de esta nota dejan de ser decisiones delegadas al agente: Harold las adopta tal como están escritas. Con eso, el
+criterio de cierre de Fase 5 queda leído por quien declara el avance de fase, como en las Fases 1 a 4.
 
 ### Fase 6 — Proyección condicional (Ejercicio B)
 
