@@ -549,3 +549,16 @@ robustez R1-R7 (E4) en `doc/metodologia/reportes_fase5/lectura_resultados_fase5.
 **Tag: `v0.8.0-fase5` (propuesto),** sobre el commit que ya contiene esta certificación, la evidencia y la
 nota de la senda §4, nunca antes. Antes de tagear hay que confirmar que el run de CI sobre ese commit queda en
 verde. La revisión independiente en `doc/auditorias/` y el tag (F3) quedan a cargo de Harold.
+
+### Nota de corrección (2026-10-14) — auditoría independiente de Fase 5, hallazgo I1
+
+La evidencia «Preregistro» de este registro remite al protocolo §6 para los cambios posteriores al congelamiento. Esa
+nota afirmaba que ningún resultado de Fase 5 existía antes de ellos, y no era exacto: los intentos 3 y 4 de la corrida
+única escribieron cinco experimentos `F5_G*` antes de E2-2, sin que E2-2 los alterara (ver la nota de corrección del
+protocolo §6, 2026-10-14). El texto de este registro se conserva sin editar.
+
+### Adopción de las lecturas y de E2-1 y E2-2 (2026-10-14) — auditoría independiente de Fase 5, hallazgo I2
+
+Harold adopta las cuatro lecturas del criterio de cierre (senda §4, nota de adopción de la v0.10) y los cambios E2-1
+y E2-2 (`doc/metodologia/decisiones_fase5.md`). Dejan de ser decisiones delegadas al agente y de estar abiertas a
+reapertura por esa razón.

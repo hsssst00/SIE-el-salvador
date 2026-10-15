@@ -143,6 +143,9 @@ para ella la regla anterior no es aplicable tal cual y requería decisión: F4-0
 «UT solo con años cerrados»; su forma operativa y su implementación siguen pendientes (checklist de
 remediación de la auditoría de Fase 4, A3 y E4).
 
+**Nota (2026-10-13, auditoría independiente de Fase 5, hallazgo M2).** «Siguen pendientes» describe el 2026-09-29 por
+la mañana: F4-34 fijó la forma operativa ese mismo día (párrafo siguiente) y para Fase 5 la reemplazó F5-04.
+
 **[decidido 2026-09-29, F4-34]** Forma operativa: el año `a` de UT entra solo en los orígenes
 posteriores a `a`-Q4, es decir, desde (a+1)-Q1. Se decide por el período de la observación y el
 origen, no por la fecha sintética del vintage. En el origen 2019-Q3, cuyo corte (2019-12-31)
@@ -419,9 +422,24 @@ Antes de relanzar se corrió sobre L3 una prueba de humo y un barrido de guardas
 pronósticos no se guardaron ni se miraron. Ningún otro modelo, YAML ni experimento cambió. Ningún resultado de Fase 5
 existía antes de estos cambios, así que la comparación sigue preregistrada.
 
+**Nota de corrección (2026-10-13, auditoría independiente de Fase 5, hallazgo I1).** La frase «Ningún resultado de
+Fase 5 existía antes de estos cambios» es inexacta; el texto de arriba se conserva sin editar. Los intentos 3 (sobre
+`189e629`) y 4 (sobre `c63f318`) escribieron completos en `data/L4_experiments/` cinco experimentos `F5_G*`: `F5_G1`,
+`F5_G2`, `F5_G3`, `F5_G1_R1` y `F5_G2_R1` (`doc/evidencia_corrida_unica_fase5.txt`). Los dos intentos son anteriores a
+E2-2 (`cf26a62` y `d8d045e`), que se decidió con esos resultados en disco. E2-1 (`39884c6`) sí es anterior a cualquier
+`F5_G*` terminado. E2-2 no alteró los resultados ya escritos: los 130 archivos de esos 18 directorios (excluidas del
+manifiesto las líneas de commit, árbol y fecha) son idénticos byte a byte en los intentos 3, 4 y 5. A la lista de cambios posteriores al congelamiento se agregan dos que
+no cambian ningún modelo, YAML ni experimento: `51cc015` (formato de la tabla de resultados de Fase 5) y `b400a25`
+(prueba de los arranques de UC). El intento 3 se lanzó sobre `189e629`, con el CI de `main` en rojo (run #333) por esa
+prueba; la corrida citada (`e1722fa`) tiene CI en verde (run #341).
+
 **[2026-09-29, auditoría independiente de Fase 4, hallazgo I1]** Toda afirmación de que algo se fijó
 antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas escritas a mano
 (precedente: C8, `a78d2c6`).
+
+**[2026-10-13, auditoría independiente de Fase 5, hallazgo I1]** Toda corrida sobre L3 que se detenga antes de
+terminar asienta en su evidencia qué directorios de `data/L4_experiments/` dejó escritos y sobre qué commit. Toda
+decisión que se tome con resultados en disco lo dice, aunque esos resultados no se hayan mirado.
 
 ## 7. Lo que este protocolo no cubre
 

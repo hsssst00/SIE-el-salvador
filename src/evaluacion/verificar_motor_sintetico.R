@@ -29,7 +29,7 @@
 # F4-33, decidida el 2026-09-29):
 #   V13  densidad gaussiana: cobertura al 80/95 % dentro de ±3 ee de MC con el modelo verdadero, CRPS
 #        del verdadero < paseo aleatorio, y CRPS propio contra scoringRules::crps_norm (Suggests)
-#   V5   (extensión F4-34, al final del archivo) canario de predictora anual: UT solo con años cerrados
+#   V5   (extensión F4-34, al final del archivo) canario de predictora anual (rama retenida sin series; UT usa 30 días desde F5-04)
 # Bloque de los univariados de Fase 5 (B1b; F5-06, F5-12):
 #   V14  ARIMAX sobre un DGP con predictora adelantada: bate al AR(p)-BIC en h = 1, 2 (estricto), su densidad
 #        del sistema conjunto cubre al nominal en h = 1, 2, 4 (±3 ee de MC más 0,03 de sesgo plug-in) y, con
