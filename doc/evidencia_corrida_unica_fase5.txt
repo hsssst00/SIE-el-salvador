@@ -137,3 +137,20 @@ resultados en la máquina de Harold.
 Después de comparar se restauraron en la copia de Harold los manifiestos de la corrida citada (los 8
 directorios quedan idénticos a los de E2) y catalogos/07_experimentos.csv a HEAD, porque las filas
 citadas son las de E2. git status quedó vacío. Los manifiestos de la réplica no se versionan.
+
+Nota 2026-10-14 (remediación de I3 e I4 de la auditoría independiente de Fase 5).
+BLAS/LAPACK de la corrida: en los 28 manifiestos F5_* el bloque de sessionInfo() entre «Matrix products:» y
+«locale:» es idéntico (md5 único sobre los 28) y dice solo:
+  Matrix products: default
+  LAPACK version 3.12.1
+Windows no nombra la BLAS en sessionInfo(). Lectura de hoy sobre la misma instalación de R (R 4.6.1, ucrt),
+`Rscript --vanilla -e "La_library(); La_version(); extSoftVersion()['BLAS']"`:
+  La_library() = ""   La_version() = "3.12.1"   extSoftVersion()["BLAS"] = ""
+es decir, la BLAS/LAPACK de referencia que trae R para Windows (sin librería externa).
+La reproducción bit a bit de F1 se hizo con esa librería y la exige: la auditoría mostró que en Linux, con la
+BLAS/LAPACK de referencia, V1-V11 y el random forest de V20 dan lo mismo que en Windows, y con OpenBLAS no.
+Tablas de pruebas generadas desde la L4 de esta corrida (src/evaluacion/tabla_pruebas_fase5.R), sin volver a
+correr el motor; cada archivo leído coincide con el sha256 de su manifiesto:
+  tabla_pruebas_fase5.csv          2056 filas  sha256 269ffc159a735018f4dd82023c6b975299ada3a5acc6a3c13c9d010e5b46ca25
+  tabla_estabilidad_fase5.csv       172 filas  sha256 5afc628edc969d9fec0e0b2269fb9f69a9809c7ad8553e2ad9ebbd4962befd5b
+  extracto_pronosticos_fase5.csv     84 filas  sha256 1c87929ec952f89d68c1c9533c9a293c60867a8163a63b6ea84a02045f708b24

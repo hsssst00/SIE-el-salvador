@@ -15,6 +15,11 @@ cual, y las observaciones descriptivas (§3 a §5), que no fueron hipótesis pre
 - DM/HLN, GW y el contraste de estabilidad: `pruebas.csv`, `pruebas_submuestras.csv` y `estabilidad.csv` de
   `data/L4_experiments/F5_*/`. No se versionan, pero `make eval` los regenera byte a byte (F1).
 - Pronósticos puntuales citados en §3.3: `pronosticos.csv` de `F5_G3`.
+- **Nota (2026-10-14, auditoría independiente de Fase 5, hallazgo I3).** Desde la remediación de I3, las cifras de DM/HLN, GW y
+  estabilidad que cita este informe están versionadas en `tabla_pruebas_fase5.csv` (sha256 sin CR `269ffc159a735018f4dd82023c6b975299ada3a5acc6a3c13c9d010e5b46ca25`) y
+  `tabla_estabilidad_fase5.csv` (`5afc628edc969d9fec0e0b2269fb9f69a9809c7ad8553e2ad9ebbd4962befd5b`), y los pronósticos de §3.3 en `extracto_pronosticos_fase5.csv` (`1c87929ec952f89d68c1c9533c9a293c60867a8163a63b6ea84a02045f708b24`), en
+  esta misma carpeta. Las genera `src/evaluacion/tabla_pruebas_fase5.R` desde la L4 de `e1722fa`, sin volver a correr
+  el motor. El texto de este informe no cambia.
 
 Unidad: variación interanual en puntos porcentuales (`yoy_pp`). La referencia del RMSE relativo y de DM/HLN es
 `BENCH.RW_SIN_DERIVA`. El diferencial es `d = e_RW² − e_modelo²`, así que `d > 0` favorece al modelo.
