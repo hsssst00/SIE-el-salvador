@@ -1583,3 +1583,23 @@ Una `make master` sin corte habría movido la evaluación, en silencio, a los da
 make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 ```
+
+---
+
+## Análisis posteriores (AP-1 a AP-4)
+
+**Registro (2026-10-15, a pedido de Harold).** Después del cierre de Fase 5 (`v0.8.0-fase5`, `v0.8.1-fase5`), y antes de
+Fase 6, Harold pidió cuatro análisis. Se decidió que vivan en el repositorio, en R (ADR-009), en
+`src/analisis_posterior/` y `doc/metodologia/reportes_fase5/posteriores/`.
+
+| Código | Análisis | Diseño decidido por Harold (2026-10-15) |
+|---|---|---|
+| AP-1 | Diagnóstico de los pronósticos explosivos (`REG.ENET.G3` 2021-Q1, `MULT.BVAR.G3` 2020-Q2) | Especificación, estimación o implementación, con las funciones del pipeline |
+| AP-2 | Estabilidad de `MIX.PUENTE` | Evaluación prospectiva preregistrada con los objetivos que se publiquen de ahora en adelante, más una estabilidad descriptiva hoy, rotulada como no independiente |
+| AP-3 | Tamaño de GW y del contraste de estabilidad | Primero el Monte Carlo del tamaño; las alternativas solo por ficha si hay distorsión |
+| AP-4 | Comparación por familias | Tablas descriptivas por familia (punto, densidad, extremos) y un MCS de representantes fijados antes de calcularlo |
+
+**Alcance.** Los cuatro son **posteriores a los resultados**. No cambian ningún modelo, YAML, experimento, la tabla de
+resultados ni el MCS de Fase 5, y no mueven los tags. Ninguno elige un modelo para Fase 6: lo que encuentren entra a
+las fichas de Fase 6 como evidencia y lo decide Harold. Todo contraste nuevo (el MCS de representantes de AP-4) se
+rotula como posterior.
