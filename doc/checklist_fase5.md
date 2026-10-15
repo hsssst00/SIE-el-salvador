@@ -58,7 +58,7 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 
 ## C. Infraestructura que piden las decisiones
 
-- [ ] **C1 · F5-03** Guarda de ≥ 20 grados de libertad en el motor, con `stop()` y una prueba que verifique que
+- [x] **C1 · F5-03** Guarda de ≥ 20 grados de libertad en el motor, con `stop()` y una prueba que verifique que
   el diseño la cumple en el primer origen de cada grupo. Guarda G-8 implementada en B1a
   (`tests/test-predictoras-fase5.R`); la prueba sobre el primer origen de cada grupo llega con los modelos de B1b.
   Estado 2026-10-05: la prueba está en `tests/test-modelos-univariados.R` (ARIMAX de G1, G2, G3 e IVAE en el primer
@@ -68,10 +68,12 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   dispara G-8). Estado 2026-10-07: el BVAR no tiene piso (B2-7); `tests/test-modelo-bvar.R` lo corre con la
   configuración de producción en el primer origen de cada grupo con las fechas de inicio de L3 (77, 40 y 40
   observaciones).
-- [ ] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
+  
+- [x] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
   meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
   marca con la evidencia de CI al fusionar. Estado 2026-10-05: B1a fusionado (PR #31, `8d72e83`) con CI verde en push y
   pull_request; queda para marcar en la revisión de Harold.
+  
 - [x] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
   árboles. Con B3. Estado 2026-10-08: B3-1 a B3-8 decididas. El PR 1 de B3 (B3-8) trae la forma directa en
   `src/evaluacion/forma_directa.R`: `matriz_directa()`, `crecimiento_acumulado()`, la ventana de B3-2 y la fábrica
@@ -84,7 +86,7 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   alterar los datos posteriores a o', y que su ventana son las filas con t + h ≤ o'. Prueban además las filas de B3-4
   en el primer origen de cada grupo. Se marca con la evidencia de CI al fusionar. **Cierre (2026-10-08):** PR #41
   (merge `13eba72`), CI verde en `main` (run 37773963675).
-- [ ] **C5 · F5-12** Densidad del sistema conjunto en ARIMAX y puente (forma compañera) y de errores internos en
+- [x] **C5 · F5-12** Densidad del sistema conjunto en ARIMAX y puente (forma compañera) y de errores internos en
   regularizados y árboles, cubierta por V13 o un bloque nuevo. Estado 2026-10-05: la parte de ARIMAX llega con B1b
   (`cov_sistema_arimax()`, prueba contra la simulación de sus recursiones y cobertura en V14); faltan puente (B3b),
   regularizados y árboles. Estado 2026-10-07: VAR y VECM (pesos MA, B2-1) con prueba contra `predict()` y contra la
@@ -99,6 +101,7 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19.
   Estado 2026-10-08 (B4): los árboles usan la misma densidad de errores internos (B4-2); cobertura del RF en V20 con
   la holgura de V18 (con 2 réplicas, una comprobación débil; límite en `decisiones_fase5.md`).
+  
 - [x] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes. Estado 2026-10-08: V21 en el PR de B5 (registro de G2 con la configuración de producción, benchmarks y
   combinaciones, en el primer origen de G2; sha256 idéntico en dos corridas). Hecho: PR #45 con CI en verde; V21
@@ -109,13 +112,15 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
 Cada bloque declara sus YAML en `catalogos/06_modelos/` (C8), lleva su canario sintético (V14 y siguientes,
 F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 antes de la corrida única.
 
-- [ ] **D1 · B1** ARIMA/ARIMAX y componentes no observados. Estado 2026-10-05: B1a fusionado (PR #31); B1b en su PR
+- [x] **D1 · B1** ARIMA/ARIMAX y componentes no observados. Estado 2026-10-05: B1a fusionado (PR #31); B1b en su PR
   (`UNI.ARIMA`, `UNI.UC_LLT`, `UNI.ARIMAX.G1/.G2/.G3`, `UNI.ARIMAX_IVAE.G2`, sus YAML y V14).
-- [ ] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
+  
+- [x] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
   `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar. B2-9 (deduplicación de pérdidas
   idénticas en el MCS) decidida; va en un PR del motor antes de E1. Estado 2026-10-07: B2a fusionado (PR #33,
   `821eaac`); B2-9 en su PR (`mcs_tmax_dedup()`, solo en `F5_G*`; los `F5_REPRO_*` no cambian). Estado 2026-10-07:
   B2-9 fusionado (PR #34, `a91b791`); B2-10 a B2-16 decididas; B2b en su PR (`MULT.BVAR.G1/.G2/.G3`, sus YAML y V16).
+  
 - [x] **D3 · B3** Regularizados. Estado 2026-10-08: B3-1 a B3-8 decididas. B3 va en dos PR, uno después del otro
   (B3-8). El PR 1 es la infraestructura: forma directa, validación anidada y covarianza de errores internos. El PR 2
   trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen. Estado 2026-10-08: PR 1 fusionado (#41,
@@ -127,9 +132,10 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [x] **D5 · B4** Árboles. Estado 2026-10-08: B4-1 a B4-6 decididas por el agente (decisiones delegadas; se pueden
   reabrir). B4 en su rama: `ML.RF.G1/.G2/.G3` y `ML.LGBM.G1/.G2/.G3` en `src/evaluacion/modelos_arboles.R`, sus YAML,
   V20, costo por origen y representante `ML.RF` (B4-5). Fusionado (#44, `acacc3f`).
-- [ ] **D6 · B5** Combinaciones (al final). Estado 2026-10-08: B5-1 a B5-5 decididas por el agente (delegadas; se pueden
+- [x] **D6 · B5** Combinaciones (al final). Estado 2026-10-08: B5-1 a B5-5 decididas por el agente (delegadas; se pueden
   reabrir). En su PR: `src/evaluacion/combinaciones.R`, los 12 YAML `COMB.MEDIA/MEDIANA/RECORTADA/ECM_INV.Gk`, las
   variantes `F5_Gk_Rn` (R1, R2, R5, R6 y R7) y V21 (C6).
+  
 
 ## E. Preregistro y corrida única
 
