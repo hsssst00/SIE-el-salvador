@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12), FMI y FRED resueltos; ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; Banco Mundial y BID aplazados a la resolución del BCR; CEPAL en gestión (corte 2026-10-16)
+**Estado:** Parcial — BCR (corte 2026-10-12 vencido sin pronunciamiento: default conservador), FMI, FRED, Banco Mundial y BID resueltos; ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; política de L0 por fuente (2026-10-14); CEPAL en gestión (corte 2026-10-16)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -291,3 +291,24 @@ seguiría siendo manual.
 **Pendiente:** ninguno de licencias por fuente. Este ADR permanece en estado **Parcial** solo
 por BCR (corte 2026-10-12) y CEPAL (corte 2026-10-16), y por la decisión de arquitectura de L0
 aplazada a la resolución del BCR.
+
+## Enmienda — vencimiento del corte del BCR y política de L0 (2026-10-14)
+
+**Hecho.** Sin pronunciamiento del BCR al 2026-10-12. La gestión consta en la enmienda del BCR de este ADR
+(consulta del 2026-08-07, ampliación de usos del 2026-08-12 a solicitud de la propia institución).
+
+**Decisión de Harold (2026-10-14).** Para el BCR se mantiene el default conservador de este ADR: el repositorio
+publica el *script* de descarga y el *checksum* (SHA-256) de cada archivo, no los archivos crudos de L0. Política de
+L0, aplazada hasta esta fecha en la enmienda del Banco Mundial (2026-08-12): **por fuente**. Cada fuente se rige por
+sus propias condiciones documentadas; no hay una política única para todas.
+
+**Banco Mundial y BID.** Harold declara que ninguna de las dos fuentes tiene restricción de uso y que esa condición
+está documentada (BID: licencia `cc-by`, ver la enmienda del 2026-08-17; Banco Mundial: CC-BY 4.0 declarada, ver la
+enmienda del 2026-08-12). Con eso, los tramos de las dos fuentes quedan resueltos y salen del aplazamiento: para ellas
+se admite comprometer al repositorio público los archivos crudos de L0, con atribución y sin dejar de registrar
+procedencia en el manifiesto. La salvedad del Banco Mundial sobre indicadores de terceros se resuelve indicador por
+indicador, según los metadatos del propio indicador.
+
+**Alcance de la decisión.** Esta enmienda fija la política, no la implementación: ningún archivo crudo se compromete
+con ella. Ni los catálogos (`catalogos/`) ni `data/L0_raw/` cambian aquí; su adopción en el *pipeline* de descarga y
+en el manifiesto es trabajo de la fase correspondiente. Queda abierto solo CEPAL (corte 2026-10-16).
