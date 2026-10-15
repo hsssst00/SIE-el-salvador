@@ -6,7 +6,7 @@ on:
 
 jobs:
   validate-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DEBIAN_FRONTEND: noninteractive
       NEEDRESTART_MODE: a
@@ -15,7 +15,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: 'release'
+          r-version: '4.6.1'
           use-public-rspm: true
 
       # Dependencias de SISTEMA, no de R. `polite` (verificación de robots.txt, regla 9)
@@ -25,6 +25,16 @@ jobs:
       # Cadena verificada en los DESCRIPTION reales, no supuesta.
       - name: Instalar dependencias de sistema
         run: sudo apt-get update && sudo apt-get install -y libgit2-dev
+
+      # BLAS/LAPACK de referencia (remediación I4 de la auditoría independiente de Fase 5): la reproducción bit a bit
+      # depende de la librería de álgebra lineal, y la máquina de la corrida única usa la de referencia. Con OpenBLAS,
+      # V10 y el random forest de V20 dan otros valores que en Windows.
+      - name: Fijar BLAS/LAPACK de referencia
+        run: |
+          sudo apt-get install -y libblas3 liblapack3
+          sudo update-alternatives --set libblas.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/blas/libblas.so.3
+          sudo update-alternatives --set liblapack.so.3-x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3
+          Rscript --vanilla -e 'b <- sessionInfo()$BLAS; cat("BLAS:", b, "\n"); if (grepl("openblas", b, ignore.case = TRUE)) stop("CI sigue con OpenBLAS")'
 
       - uses: r-lib/actions/setup-renv@v2
 
@@ -41,12 +51,12 @@ jobs:
         run: Rscript src/evaluacion/verificar_motor_sintetico.R
 
   check-l0-integrity:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: 'release'
+          r-version: '4.6.1'
           use-public-rspm: true
       - name: Verificar consistencia cruzada de L0 (manifiesto <-> 08_vintages)
         run: Rscript scripts/check_l0_integrity.R
