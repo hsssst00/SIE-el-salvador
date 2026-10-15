@@ -562,3 +562,18 @@ protocolo §6, 2026-10-14). El texto de este registro se conserva sin editar.
 Harold adopta las cuatro lecturas del criterio de cierre (senda §4, nota de adopción de la v0.10) y los cambios E2-1
 y E2-2 (`doc/metodologia/decisiones_fase5.md`). Dejan de ser decisiones delegadas al agente y de estar abiertas a
 reapertura por esa razón.
+
+### Nota de corrección (2026-10-14) — auditoría independiente de Fase 5, hallazgos I3 e I4
+
+**I3.** Las cifras de DM/HLN, GW y estabilidad y los pronósticos citados en este registro están versionados, desde
+esta remediación, en `doc/metodologia/reportes_fase5/` (`tabla_pruebas_fase5.csv`, `tabla_estabilidad_fase5.csv` y
+`extracto_pronosticos_fase5.csv`), generados desde la L4 de `e1722fa`.
+
+**I4.** La frase «Entre Windows y Linux, el BVAR y el random forest no son bit a bit; la paridad se declara hasta el
+error de Monte Carlo» se conserva sin editar, con tres precisiones:
+1. Lo que separa los resultados es la librería BLAS/LAPACK, no el sistema operativo. La de la corrida única está en
+   la nota del 2026-10-14 de `doc/evidencia_corrida_unica_fase5.txt`, y la reproducción bit a bit la exige.
+2. La paridad hasta el error de Monte Carlo está verificada solo para el BVAR (V17). La del random forest y la de
+   `UNI.UC_LLT`, cuya convergencia depende de la plataforma (nota de E2-1 en F5-06), no están acotadas, y tampoco
+   las de las combinaciones que los contienen.
+3. Un tercero que reproduzca en otra máquina debe usar la misma BLAS/LAPACK para esperar resultados bit a bit.
