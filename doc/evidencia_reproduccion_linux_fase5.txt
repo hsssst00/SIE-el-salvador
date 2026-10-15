@@ -1,0 +1,98 @@
+Evidencia de la reproducción de las pruebas de Fase 5 en Linux (insumo de F1)
+==============================================================================
+
+Fecha: 2026-10-12. Máquina: contenedor de nube, Ubuntu 24.04.5 LTS, 4 núcleos,
+R 4.6.1 (2026-06-24) de CRAN, BLAS/LAPACK de referencia 3.12.0, entorno de
+renv.lock (renv::restore() con binarios de Posit Package Manager para noble).
+Locale: C.UTF-8 (LANG/LC_ALL; ver hallazgo H1). Commit: f7d8d6f (main, merge del
+PR #52), árbol limpio. Ningún archivo versionado cambia con esta nota: la tabla y
+las filas de 07_experimentos.csv regeneradas se compararon y se descartaron; la
+referencia sigue siendo la corrida única de Harold (e1722fa, Windows).
+
+L0: materializado con `make materializar-l0` desde una copia de trabajo de
+hsssst00/SIE-el-salvador-L0 (59e4887): 75 copiados, 0 faltan;
+verificar_l0_fisico.R: 75 PASS, 0 FAIL, 0 AUSENTE.
+
+1. Pruebas de tests/ (las de CI)
+--------------------------------
+`Rscript -e 'testthat::test_dir("tests")'`: rc=0, sin fallas, todos los
+archivos (incluidos los de Fase 5: modelos-univariados, -multivariados,
+modelo-bvar, paridad-bvar, forma-directa, modelos-regularizados,
+-frecuencia-mixta, -arboles, combinaciones, predictoras-fase5,
+pruebas-significancia, robustez-registro, tabla-resultados).
+Con el locale por defecto del contenedor (POSIX, no UTF-8) fallan 3
+expectativas de tests/test-adquisicion.R (literales con «—»); es el entorno, no
+el código (H1).
+
+2. make master + make eval con el corte congelado
+-------------------------------------------------
+  make master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+  make eval   CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+Inicio 2026-10-12T14:39:34Z, fin del motor 17:00:22Z.
+  - Maestro: todos los pasos rc=0; conjunto corte_fase5@901b0f79 (36 vintages de
+    12 publicaciones), el mismo de la corrida única.
+  - verificar_motor_sintetico.R: V1-V21 OK (unos 12 min). V17 (informativa,
+    F1-3): 140 de 158 valores distintos de la referencia de Windows; 0
+    decisiones del MH distintas en G1 y G3; máx |dif|/MCSE 2,2e-07.
+  - motor_backtesting.R: los 28 experimentos OK, con el mismo número de
+    pronósticos que la corrida única en cada uno; 7669 s en total (7582 s los 15
+    F5_G*). «07_experimentos.csv: 346 filas de 28 experimentos», igual que en
+    e1722fa.
+  - tabla_resultados_fase4.R se detuvo: «falta el directorio del experimento
+    declarado F4_BENCH_G1» (H2). Por eso `make eval` terminó con rc=2 y
+    tabla_resultados_fase5.R se corrió aparte, con las mismas variables
+    (SIE_CONJUNTO, SIE_SALIDA): 1960 filas, 15 experimentos.
+
+3. Comparación con la corrida única (e1722fa, Windows)
+------------------------------------------------------
+07_experimentos.csv: mismas 424 filas y mismos valores en todas las columnas
+salvo commit_hash, fecha_corrida y entorno (semillas, vintages y muestras
+incluidos). 10 filas F5 aparecen en otro orden (H1).
+
+tabla_resultados_fase5.csv: sha256 561c153c... contra 29218ad0... de la
+referencia; no es idéntica byte a byte. Unidas por clave (variante,
+muestra_eval, exp_id, grupo, h, unidad, modelo_id): mismas 1960 claves, mismos
+n_pares, mismos en_mcs en todas las filas (ningún modelo entra o sale de un
+conjunto de confianza), mismas marcas. Diferencias numéricas:
+  - Del orden de la aritmética de punto flotante (máx |dif| en RMSE ≤ 1e-6):
+    benchmarks, UNI.ARIMA, UNI.ARIMAX.G1/.G2, UNI.ARIMAX_IVAE.G2, VAR, VECM,
+    ENET, PCR, U-MIDAS y puente. BVAR ≤ 6e-8, dentro de lo declarado en F1-3.
+    ML.LGBM: idéntico en todas las filas.
+  - Materiales (máx |dif| en RMSE entre 1e-3 y 4,3e-2):
+      UNI.UC_LLT: en los experimentos con arranques alternativos de E2-1. Linux
+        los usó en 4 pares experimento-origen (F5_G1: 2; F5_G1_R6: 1; F5_G2: 1);
+        la corrida única, en 9. La convergencia de StructTS/optim depende de la
+        plataforma (ya observado en b400a25). Máx 3,4e-2 (F5_G3_R6).
+      ML.RF.Gk (num.threads = 1, semilla explícita): máx 2,5e-2 (F5_G3).
+      UNI.ARIMAX.G3: ≈ 1e-2 en los experimentos con X-13 por origen (F5_G3,
+        _R1, _R7); ≤ 1e-6 en los de sa = l3_unico (R5, R6).
+      COMB.*: heredan las anteriores (COMB.MEDIANA.G3 máx 4,3e-2).
+  - p_mcs: difiere hasta 0,062 en 977 filas (mismo bootstrap sembrado sobre
+    pérdidas que difieren).
+
+Lectura: fuera de Windows, la corrida reproduce la estructura completa (mismos
+experimentos, pronósticos, semillas, filas del catálogo y pertenencia al MCS),
+pero no bit a bit ni hasta el error de redondeo en UC_LLT, RF y ARIMAX.G3. Esto
+no reemplaza la réplica en la misma máquina que pide F1 para los 8 experimentos
+pendientes (F5_G2_R2, F5_G2_R5, F5_G3_R5, F5_G1_R6, F5_G2_R6, F5_G3_R6,
+F5_G2_R7, F5_G3_R7). La tolerancia entre sistemas de F1-3 cubre solo el BVAR:
+si se extiende a estos modelos o no es una decisión abierta, no tomada acá.
+
+4. Hallazgos de reproducibilidad (no corregidos; para decisión)
+---------------------------------------------------------------
+H1. El orden de las filas depende del locale. Con C.UTF-8, «UNI.ARIMAX.G2» y
+    «UNI.ARIMAX_IVAE.G2» (y pares análogos) se ordenan distinto que en Windows,
+    así que la tabla de Fase 5 y 07_experimentos.csv cambian de bytes aunque
+    los valores fueran iguales. Además, test-adquisicion.R falla sin un locale
+    UTF-8.
+H2. `make eval` en una máquina limpia no termina: tabla_resultados_fase4.R
+    exige los directorios F4_BENCH_* en data/L4_experiments/, que el motor ya no
+    regenera por defecto (C-8) y que no están en el repo ni en el almacén de L0.
+    La corrida única pasó porque la máquina de Harold los conservaba.
+    Resuelto el 2026-10-13 (C-8a en decisiones_fase5.md): `make eval` ya no corre
+    tabla_resultados_fase4.R; la tabla de Fase 4 va en `make tabla-fase4`.
+    Verificado el mismo día en esta máquina, sin ningún directorio F4_BENCH_*:
+    `make eval CONJUNTO=… SALIDA=…` de 19:19:17Z a 21:42:50Z, V1-V21 OK, 28
+    experimentos OK, «346 filas de 28 experimentos», tabla de Fase 5 de 1960
+    filas y rc=0. La tabla salió idéntica byte a byte (sha256 561c153c...) a la
+    de la pasada del 2026-10-12 en la misma máquina.
