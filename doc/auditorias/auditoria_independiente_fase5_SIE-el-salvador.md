@@ -268,3 +268,25 @@ Nada de esto exige volver a correr el motor. Con I1 e I2 resueltos antes del tag
 ### Fe de erratas del auditor (2026-10-13, antes de depositar el informe)
 
 La primera versión de este informe, entregada a Harold el 2026-10-13, decía en I4(c) que *«ni la columna `entorno` … ni los manifiestos de L4 la registran»* (la BLAS). Es falso en la mitad de los manifiestos. `escribir_experimento()` de `motor_backtesting.R` agrega al final de cada `manifiesto.txt` la salida de `utils::sessionInfo()`, y en Linux esa salida nombra la BLAS y la LAPACK en uso (`BLAS: …/libblas.so.3`). Se corrigieron el resumen, I4(c), su remediación 1, el pendiente 5 y el veredicto. El hallazgo se mantiene con la misma severidad: ni `entorno`, ni las lecturas del criterio, ni la declaración de paridad, ni la comparación de F1 usan la BLAS como condición de la reproducción bit a bit. El error lo detectó el propio auditor al preparar el prompt de remediación, releyendo el código del manifiesto; no lo señaló un tercero.
+
+---
+
+### Nota de remediación (2026-10-14)
+
+Agregada por quien remedió; el informe de arriba se conserva sin editar.
+
+| Hallazgo | Resolución | Commit (merge) |
+|---|---|---|
+| I1 | Notas de corrección en el protocolo §6, el acta de Fase 5 y el registro de cierre; regla nueva para corridas detenidas | `1156d48` (#56) |
+| I2 | Adopción de las lecturas y de E2-1 y E2-2 por Harold (senda v0.10); régimen de delegación en `CLAUDE.md` (A3 = a: terminó con el cierre de Fase 5) | `1156d48` (#56) |
+| I3 | `tabla_pruebas_fase5.csv` (2056 filas), `tabla_estabilidad_fase5.csv` (172) y `extracto_pronosticos_fase5.csv` (84), versionados desde la L4 de `e1722fa` | `3776d43` (#58) |
+| I4 | BLAS/LAPACK de la corrida en la evidencia; nota sobre el alcance de la paridad (senda v0.11); CI con la BLAS de referencia (log del run #378: `BLAS: …/blas/libblas.so.3.12.0`, V20 `0.626`) | `3776d43` (#58), `4250733` (#60) |
+| M1 | Checklist de Fase 5 marcado con evidencia | `e348806` (#57) |
+| M2 | Notas en el acta y el protocolo; cabecera de V5 | `1156d48` (#56) |
+| M3 | Objetivo `make fase5` | `e348806` (#57) |
+| M4 | Enmienda de ADR-008: corte del BCR vencido sin pronunciamiento (default conservador), política de L0 por fuente, Banco Mundial y BID resueltos | `c302033` (#61) |
+| M5 | `r-version: '4.6.1'` y `runs-on: ubuntu-24.04` en CI | `4250733` (#60) |
+
+CI verde: run #381 sobre el último merge (`c302033`); #378 sobre `4250733` (R 4.6.1, `ubuntu-24.04`, BLAS de referencia, 2977 PASS, V1-V21 en OK) y #377 sobre `fc3c227`. Tags: `v0.8.0-fase5` → `1156d48`. El tag `v0.8.1-fase5` lo crea Harold sobre el commit de merge de este cierre, cuando su CI esté en verde.
+
+**Decisiones de Harold registradas en esta remediación.** A1, A2 y A3: lecturas, E2-1 y E2-2 adoptadas tal como estaban y delegación terminada. A4: tag sobre el merge del PR-1. A5: R, imagen y BLAS fijados en CI. A6: BCR sin pronunciamiento, política de L0 por fuente. A7: formato de las tablas de pruebas aprobado tal cual.

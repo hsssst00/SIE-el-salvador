@@ -181,4 +181,5 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
   criterio admite lecturas, nota fechada en `doc/senda_metodologica.md`.
   Nota 2026-10-13: «Cierre de Fase 5» en `doc/adr/README.md`; lecturas del criterio en la senda (v0.9), delegadas al
   agente; evidencia en `doc/evidencia_corrida_unica_fase5.txt`.
-- [ ] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
+- [x] **F3** Revisión independiente en `doc/auditorias/` y tag de cierre.
+  **Cierre (2026-10-14):** revisión independiente depositada (`9685fe4`, merge `fc3c227`) e indexada; tag `v0.8.0-fase5` → `1156d48` (run #362).

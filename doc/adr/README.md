@@ -577,3 +577,13 @@ error de Monte Carlo» se conserva sin editar, con tres precisiones:
    `UNI.UC_LLT`, cuya convergencia depende de la plataforma (nota de E2-1 en F5-06), no están acotadas, y tampoco
    las de las combinaciones que los contienen.
 3. Un tercero que reproduzca en otra máquina debe usar la misma BLAS/LAPACK para esperar resultados bit a bit.
+
+## Remediación de la auditoría independiente de Fase 5 (2026-10-14)
+
+La auditoría independiente del cierre de Fase 5 (`doc/auditorias/auditoria_independiente_fase5_SIE-el-salvador.md`,
+commit auditado `7093f7c`) encontró I1–I4 y M1–M5, sin críticos. Resolución por hallazgo y commits: ver la nota de
+remediación al final del propio informe. Decisiones de Harold registradas en esta remediación: adopción de las
+lecturas del criterio (A1) y de E2-1 y E2-2 (A2); régimen de delegación (A3 = a, terminó con el cierre de Fase 5);
+ruta del tag (A4 = a, `v0.8.0-fase5` sobre el merge del PR-1); CI (A5: R 4.6.1, `ubuntu-24.04` y BLAS de referencia);
+ADR-008 (A6: BCR sin pronunciamiento, política de L0 por fuente, Banco Mundial y BID resueltos). Ningún resultado de
+Fase 5 cambió: no se volvió a correr el motor. `v0.8.0-fase5` no se mueve.
