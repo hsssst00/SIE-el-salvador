@@ -8,7 +8,7 @@ Sistema de Información Estadística (SIE) para variables macroeconómicas de El
 
 ## Estado del proyecto
 
-Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación— arranca a continuación, con los modelos declarados en `catalogos/06_modelos/` antes de correr. Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial, con BCR/CEPAL en gestión y la decisión de política de L0 como únicos tramos abiertos — el estado por fuente vive en ADR-008, no acá.
+Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación y comparación— cerrada el 2026-10-13 (tag `v0.8.0-fase5` propuesto, pendiente de la revisión independiente). Fase 6 —proyección condicional— no ha empezado. Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial, con BCR/CEPAL en gestión y la decisión de política de L0 como únicos tramos abiertos — el estado por fuente vive en ADR-008, no acá.
 
 **Antes de escribir cualquier código de estimación o transformación, lee los ADR relevantes en `doc/adr/`.** Son la especificación. No hay decisión metodológica de las diez que debas tomar tú — ya están tomadas y documentadas.
 
@@ -18,6 +18,11 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
 2. **Nunca edites los catálogos en `catalogos/` a mano fuera de lo declarado en su esquema.** Cualquier cambio de esquema pasa primero por `catalogos/datapackage.json`.
 3. **Ninguna capa de datos (`L1`–`L4`) se edita directamente.** Cada una se genera por código a partir de la anterior. Si necesitas cambiar un valor derivado, cambias el código que lo genera, no el archivo.
 4. **Ante una decisión metodológica no cubierta por un ADR existente, detente y pregunta.** No la resuelvas por inferencia ni la dejes implícita en el código. Esto incluye: definiciones de variables nuevas, tratamiento de datos faltantes no contemplado, elección de hiperparámetros no especificada, cualquier cosa que debería ser su propio ADR.
+
+   **Delegación al agente en Fase 5 (2026-10-14, auditoría independiente de Fase 5, hallazgo I2).** Entre el
+   2026-10-08 y el 2026-10-13, Harold autorizó que el agente avanzara sin supervisión en Fase 5 y fijara detalles de
+   implementación, rotulados «delegada al agente» en `doc/metodologia/decisiones_fase5.md`. Esa autorización terminó
+   con el cierre de Fase 5. Desde el 2026-10-14 esta regla rige sin excepciones.
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.

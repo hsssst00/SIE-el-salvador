@@ -1475,6 +1475,15 @@ Cada corrección es mínima y se declara aquí y en el protocolo §6:
    DM/HLN de esa celda sigue definida. Descartada: cambiar a la prueba incondicional en esas celdas, porque sería otra
    prueba que F4-17 no declara. En los F5_REPRO y en Fase 4 no cambia nada, porque ninguna celda tenía Ω singular.
 
+**Nota de corrección (2026-10-13, auditoría independiente de Fase 5, hallazgos I1 y M2).** La corrida se detuvo
+cuatro veces, no tres: en el maestro (intento 1), en `UNI.UC_LLT` (intento 2) y dos veces en la misma celda de GW
+(intentos 3 y 4; `doc/evidencia_corrida_unica_fase5.txt`). Los intentos 3 y 4 escribieron completos cinco experimentos
+`F5_G*` antes de E2-2; el detalle está en la nota de corrección del protocolo §6. El texto de arriba se conserva sin
+editar.
+
+**Adopción (2026-10-14, Harold; auditoría independiente de Fase 5, hallazgo I2).** E2-1 y E2-2 dejan de ser decisiones
+delegadas: Harold las adopta tal como están.
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5

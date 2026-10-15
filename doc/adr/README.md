@@ -489,3 +489,76 @@ de `c4e8b39`. La salida de V1-V11 sigue idéntica a la de `doc/evidencia_cierre_
 
 **Tag: `v0.7.1-fase4`** (A6), sobre el commit que ya contiene esta sección y con el run de CI citado
 en el mensaje, nunca antes. No sustituye a `v0.7.0-fase4` (`a67bde9`), que no se mueve.
+
+## Cierre de Fase 5 (2026-10-13)
+
+**Criterio de cierre de Fase 5 (senda metodológica §4): SATISFECHO.** «Todo resultado reportado es
+reproducible con una sola orden y una semilla fijada». Las lecturas de «una sola orden», «reproducible»,
+«todo resultado reportado» y «una semilla fijada» están en `doc/senda_metodologica.md`, nota de cierre de
+Fase 5 (v0.9). Las tomó el agente bajo la autorización de Harold del 2026-10-08: son **delegadas al agente y
+se pueden reabrir**.
+
+**Evidencia.**
+
+- **Preregistro:** todos los YAML de Fase 5 versionados antes de cualquier corrida sobre L3, con el commit
+  de congelamiento `f8fe345` citado en el protocolo §6 (E1). Los cambios posteriores al congelamiento
+  (PR #47 a #50) están declarados en el protocolo §6 y en `doc/metodologia/decisiones_fase5.md`.
+- **Corrida única (E2):** máquina de Harold, R 4.6.1, árbol limpio, sobre `e1722fa`. Siguió la secuencia de
+  `make eval` con el corte congelado; todos los pasos con código 0. Son 28 experimentos (13 `F5_REPRO_*` y 15
+  `F5_G*`), 346 filas en `catalogos/07_experimentos.csv` y 1960 en
+  `doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv`. Detalle en
+  `doc/evidencia_corrida_unica_fase5.txt`.
+- **Reproducibilidad (F1):** en la máquina de Harold, los archivos de resultados de los 28 experimentos se
+  regeneraron byte a byte. 18 coincidieron en tres corridas, 2 en una segunda pasada y los 8 restantes en la
+  réplica del 2026-10-13 (notas fechadas de la misma evidencia). Entre Windows y Linux, el BVAR y el random
+  forest no son bit a bit; la paridad se declara hasta el error de Monte Carlo (F1-3, V17).
+- **CI:** run [38349884159](https://github.com/hsssst00/SIE-el-salvador/actions/runs/38349884159) en verde
+  sobre `c74c54e` (merge del PR #53), el último commit de `main` antes de este registro.
+
+**Entregables (senda §4, Fase 5).** `catalogos/06_modelos/`: 32 modelos de Fase 5, 12 combinaciones y los 6
+benchmarks. `catalogos/07_experimentos.csv`, con las filas F5. La tabla de resultados por horizonte. Las
+pruebas DM/HLN y GW y el MCS en `data/L4_experiments/F5_*/`, que no se versiona. La lectura (E3) y la
+robustez R1-R7 (E4) en `doc/metodologia/reportes_fase5/lectura_resultados_fase5.md`.
+
+**Lo que dicen los modelos (interanual, pp), con las marcas del protocolo §4.**
+- Corrida principal: el MCS al 10 % conserva todos los modelos (de 21 a 23 por grupo) en las 12 celdas de
+  grupo × horizonte. Por la regla de reporte, el resultado es el conjunto completo, sin ganador. Con h = 1 y 2,
+  DM/HLN no rechaza a favor de ningún modelo frente al paseo aleatorio sin deriva. Con h = 8 rechaza a favor
+  de muchos, pero con `distorsion_tamano_documentada`, y el menor RMSE es de `BENCH.ARP_BIC` en los tres
+  grupos.
+- Descriptivo, sin respaldo inferencial: `MIX.PUENTE` tiene el menor RMSE con h = 1, 2 y 4 en casi todas las
+  celdas y variantes (en h = 1, 0,80 en G1 —0,799 de `MIX.UMIDAS`—, 0,45 en G2 y 0,50 en G3).
+- Sin los targets de 2020 ni 2021, en G1 y G2 con h = 1 y 2 (n de 36 a 44, sin marcas), el paseo aleatorio sin
+  deriva sale del MCS y todos los demás modelos quedan dentro. Es la misma lectura de Fase 4, y en Fase 5 esa
+  línea estaba fijada antes del preregistro.
+- R7 (UT a 61 días) no cambia la lectura: 80 de 112 comparaciones son idénticas.
+
+**Lo que queda abierto y NO bloquea este cierre** (declarado, no silenciado):
+
+- Pronósticos explosivos aislados en G3 que el MCS no excluye: `REG.ENET.G3` en el origen 2021-Q1 (−348 pp a
+  h = 8) y `MULT.BVAR.G3` en 2020-Q2 (−126 pp a h = 8). Contaminan las combinaciones por media. No se
+  diagnosticaron, porque sería un análisis posterior a los resultados (informe de lectura, §3.3 y §6).
+- El tamaño de GW (R1) y el del contraste de estabilidad (R3) siguen sin verificar (`tamano_no_verificado`).
+- El manifiesto de L4 depende de la secuencia de experimentos del proceso de R. Su bit a bit completo solo
+  vale repitiendo la misma secuencia.
+- El rezago de 30 días de UT es un supuesto, no una medición (R7 lo acota).
+- Higiene: el motor acepta cualquier `CONJUNTO` (reuso de `exp_id`); el acta de `decisiones_fase5.md` no tiene
+  filas B2-1 a B2-16.
+- CI: `ubuntu-latest` pasa a Ubuntu 26 desde el 2026-10-19.
+
+**Tag: `v0.8.0-fase5` (propuesto),** sobre el commit que ya contiene esta certificación, la evidencia y la
+nota de la senda §4, nunca antes. Antes de tagear hay que confirmar que el run de CI sobre ese commit queda en
+verde. La revisión independiente en `doc/auditorias/` y el tag (F3) quedan a cargo de Harold.
+
+### Nota de corrección (2026-10-14) — auditoría independiente de Fase 5, hallazgo I1
+
+La evidencia «Preregistro» de este registro remite al protocolo §6 para los cambios posteriores al congelamiento. Esa
+nota afirmaba que ningún resultado de Fase 5 existía antes de ellos, y no era exacto: los intentos 3 y 4 de la corrida
+única escribieron cinco experimentos `F5_G*` antes de E2-2, sin que E2-2 los alterara (ver la nota de corrección del
+protocolo §6, 2026-10-14). El texto de este registro se conserva sin editar.
+
+### Adopción de las lecturas y de E2-1 y E2-2 (2026-10-14) — auditoría independiente de Fase 5, hallazgo I2
+
+Harold adopta las cuatro lecturas del criterio de cierre (senda §4, nota de adopción de la v0.10) y los cambios E2-1
+y E2-2 (`doc/metodologia/decisiones_fase5.md`). Dejan de ser decisiones delegadas al agente y de estar abiertas a
+reapertura por esa razón.

@@ -108,3 +108,32 @@ sha256. Saldo para F1: 20 de los 28 experimentos tienen réplica byte a byte de
 sus resultados; quedan 8 sin réplica (F5_G2_R2, F5_G2_R5, F5_G3_R5, F5_G1_R6,
 F5_G2_R6, F5_G3_R6, F5_G2_R7, F5_G3_R7). El motor no reescribe
 07_experimentos.csv hasta terminar el proceso, así que el catálogo no cambió.
+
+Nota 2026-10-13 (réplica de los 8 experimentos restantes, F1). Sobre `f7d8d6f` (main), en la
+copia de Harold con árbol limpio. Entre `e1722fa` y `f7d8d6f` solo cambian
+catalogos/07_experimentos.csv, doc/checklist_fase5.md, esta evidencia y la tabla de Fase 5; no
+cambia código, pruebas, YAML ni renv.lock. Mismo entorno y corte (SIE_CONJUNTO, SIE_SALIDA). Dos
+procesos `Rscript src/evaluacion/motor_backtesting.R <exp_ids>` en paralelo, iniciados a las
+04:43:52 UTC; el segundo terminó con código 0 y los dos escribieron todos sus experimentos y el
+catálogo (último a las 05:54:50 UTC, 71 min):
+  proceso A:
+  F5_G2_R7   6 de 6 archivos de resultados idénticos   46 min
+  F5_G3_R7   6 de 6 archivos de resultados idénticos   25 min
+  proceso B:
+  F5_G2_R2   6 de 6 archivos de resultados idénticos   15 min
+  F5_G2_R5   5 de 5 archivos de resultados idénticos   13 min
+  F5_G3_R5   5 de 5 archivos de resultados idénticos   8 min
+  F5_G1_R6   5 de 5 archivos de resultados idénticos   15 min
+  F5_G2_R6   5 de 5 archivos de resultados idénticos   13 min
+  F5_G3_R6   5 de 5 archivos de resultados idénticos   6 min
+Los archivos de resultados (pronósticos, métricas, pruebas, MCS, diagnósticos y, donde existe, ajuste
+estacional) son idénticos byte a byte a los de la corrida citada. En el manifiesto, todas las entradas
+que aparecen en ambas versiones (49 a 64 por experimento) tienen el mismo sha256. La réplica lista
+menos entradas (14 o 29 menos): son las que el proceso de E2 había leído para experimentos anteriores
+de la misma secuencia, como se explica en la nota del 2026-10-09. Cambian también commit_hash y
+fecha_corrida. Saldo para F1: los 28 experimentos de Fase 5 tienen réplica byte a byte de sus
+resultados en la máquina de Harold.
+
+Después de comparar se restauraron en la copia de Harold los manifiestos de la corrida citada (los 8
+directorios quedan idénticos a los de E2) y catalogos/07_experimentos.csv a HEAD, porque las filas
+citadas son las de E2. git status quedó vacío. Los manifiestos de la réplica no se versionan.

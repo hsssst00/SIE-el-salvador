@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -141,6 +141,14 @@ eval: eval-sintetico
 # se detiene (regla 7). Debe dejar el archivo versionado sin cambios (C-8a).
 tabla-fase4:
 	Rscript src/evaluacion/tabla_resultados_fase4.R
+
+# Fase 5 — el criterio de cierre con una sola orden (remediación M3 de la auditoría independiente de Fase 5): master y
+# eval con el corte congelado de F5-16, la misma secuencia que la corrida única (doc/evidencia_corrida_unica_fase5.txt).
+# LOCAL: exige L0 materializada y X-13; tarda unas 6-7 horas y reescribe data/L4_experiments/ y las filas F5 de
+# catalogos/07_experimentos.csv. La reproducción bit a bit exige además la BLAS/LAPACK de la corrida (nota I4).
+fase5:
+	$(MAKE) master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+	$(MAKE) eval CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 
 # Fase 7 — sitio de documentación.
 report:
