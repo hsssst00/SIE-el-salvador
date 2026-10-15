@@ -1603,3 +1603,9 @@ Fase 6, Harold pidió cuatro análisis. Se decidió que vivan en el repositorio,
 resultados ni el MCS de Fase 5, y no mueven los tags. Ninguno elige un modelo para Fase 6: lo que encuentren entra a
 las fichas de Fase 6 como evidencia y lo decide Harold. Todo contraste nuevo (el MCS de representantes de AP-4) se
 rotula como posterior.
+
+**Representantes de AP-4 (Harold, 2026-10-15; fijados antes de calcular el MCS de representantes).** La regla es «el de
+referencia» de cada familia, tomada de documentos anteriores a la corrida única, no del resultado:
+`BENCH.RW_SIN_DERIVA` (benchmark del protocolo, F4-07), `UNI.ARIMA` (univariado base, F5-06),
+`MULT.VAR_DIF.Gk` (representante de B2, F5-14c), `REG.ENET.Gk` (de B3, B3-9), `MIX.PUENTE.Gk` (de B3b), `ML.RF.Gk`
+(de B4, B4-5) y `COMB.MEDIA.Gk` (primer esquema de F5-13).
