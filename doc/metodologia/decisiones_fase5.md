@@ -1484,6 +1484,9 @@ editar.
 **Adopción (2026-10-14, Harold; auditoría independiente de Fase 5, hallazgo I2).** E2-1 y E2-2 dejan de ser decisiones
 delegadas: Harold las adopta tal como están.
 
+**Nota (2026-10-15).** La nota de corrección fechada 2026-10-13 de arriba entró al repositorio en `af9afa3`
+(2026-10-14 18:55 -0600); la fecha verificable es la del commit (protocolo §6, nota del 2026-10-15).
+
 ---
 
 ## F5-16 — Cadencia de actualización y corte de evaluación de Fase 5

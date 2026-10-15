@@ -60,6 +60,21 @@ Unidad: variación interanual en puntos porcentuales (`yoy_pp`). La referencia d
    ajuste. El procedimiento que controla la multiplicidad es el MCS. Además, el p-valor DM del modelo con menor RMSE
    corresponde a un modelo elegido después de ver el RMSE.
 
+**Nota (2026-10-15, verificación de la remediación de la auditoría independiente de Fase 5; residuo de I1).** Commits
+que fijaron las reglas de esta sección. Todos son anteriores al congelamiento del preregistro (`f8fe345`) y a la corrida
+citada (`e1722fa`), salvo lo que se dice en el punto 6. El texto de arriba se conserva sin editar.
+1. El MCS como resultado: regla de reporte del protocolo §4 (`2bd1050`, 2026-09-23).
+2. La marca «d» en h = 4 y 8: F4-18 (`a81a099`, 2026-09-24). El tamaño empírico de V7 junto al p-valor: F4-21
+   (`f900189`, 2026-09-24). La tabla sale de `doc/evidencia_cierre_fase4.txt` (`c4e8b39`).
+3. Las celdas con n < 18: `marca_n` de F4-35 (`2da3d3b`, 2026-09-29; fila del acta en `d42edf2`).
+4. La potencia baja (V8): F4-18 (`a81a099`).
+5. `tamano_no_verificado` en GW y en el contraste de estabilidad: F4-25 a F4-29 (`23eb3d7`, 2026-09-28).
+6. La multiplicidad: antes del congelamiento solo constaba que DM/HLN compara por pares contra el benchmark del grupo y
+   que el MCS es la prueba principal (protocolo §4, `2bd1050` y `a81a099`). La lectura misma (DM/HLN va sin ajuste, el
+   MCS es el procedimiento que controla la multiplicidad y el p-valor del modelo de menor RMSE es el de un modelo
+   elegido después de ver el RMSE) se redactó en este informe (`459c9a0`, 2026-10-12), después de la corrida.
+   Restringe lo que se afirma y no cambia ningún resultado.
+
 ## 3. E3: corrida principal (`F5_G1`, `F5_G2`, `F5_G3`)
 
 | Grupo | h | n | Modelos | En el MCS | p_MCS mín. | Menor RMSE relativo | p DM del menor | DM a favor / en contra (5 %) | Marca |

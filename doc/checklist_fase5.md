@@ -68,12 +68,15 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   dispara G-8). Estado 2026-10-07: el BVAR no tiene piso (B2-7); `tests/test-modelo-bvar.R` lo corre con la
   configuración de producción en el primer origen de cada grupo con las fechas de inicio de L3 (77, 40 y 40
   observaciones).
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** guarda G-8 en B1a (PR #31, merge
+  `8d72e83`, run #255, 37386602359); prueba en el primer origen de cada grupo en B1b (PR #32, `ad47bc1`, run #260,
+  37394685978) y la del BVAR en B2b (PR #37, `ac958a8`, run #283, 37691786323). CI verde en `main` en los tres.
 - [x] **C2 · F5-04** `rezago_alineacion(serie, grupo)` con su prueba, y guarda de completitud del borde (los
   meses que el origen admite existen en la serie). Implementadas en B1a (G-7; `tests/test-predictoras-fase5.R`); se
   marca con la evidencia de CI al fusionar. Estado 2026-10-05: B1a fusionado (PR #31, `8d72e83`) con CI verde en push y
   pull_request; queda para marcar en la revisión de Harold.
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** PR #31 (merge `8d72e83`),
+  CI verde en `main` (run #255, 37386602359).
 - [x] **C3 · F5-05** Contrato de modelo para la forma directa (crecimiento acumulado por `h`) en regularizados y
   árboles. Con B3. Estado 2026-10-08: B3-1 a B3-8 decididas. El PR 1 de B3 (B3-8) trae la forma directa en
   `src/evaluacion/forma_directa.R`: `matriz_directa()`, `crecimiento_acumulado()`, la ventana de B3-2 y la fábrica
@@ -101,7 +104,10 @@ tablero no las repite. Una actividad que depende de una ficha todavía no decidi
   prueba contra una simulación y cobertura en V19; U-MIDAS con errores internos (B3b-3), cobertura en V19.
   Estado 2026-10-08 (B4): los árboles usan la misma densidad de errores internos (B4-2); cobertura del RF en V20 con
   la holgura de V18 (con 2 réplicas, una comprobación débil; límite en `decisiones_fase5.md`).
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** ARIMAX en B1b (PR #32,
+  `ad47bc1`, run #260); VAR y VECM en B2a (PR #33, `821eaac`, run #265); BVAR en B2b (PR #37, `ac958a8`, run #283);
+  regularizados en B3 (PR #42, `3623032`, run #306); U-MIDAS y puente en B3b (PR #43, `f6028fd`, run #309); árboles
+  en B4 (PR #44, `acacc3f`, run #316). CI verde en `main` en todos.
 - [x] **C6 · F5-15** Bloque de CI que corre dos veces un experimento sintético con los modelos de Fase 5 y compara
   hashes. Estado 2026-10-08: V21 en el PR de B5 (registro de G2 con la configuración de producción, benchmarks y
   combinaciones, en el primer origen de G2; sha256 idéntico en dos corridas). Hecho: PR #45 con CI en verde; V21
@@ -114,13 +120,16 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 
 - [x] **D1 · B1** ARIMA/ARIMAX y componentes no observados. Estado 2026-10-05: B1a fusionado (PR #31); B1b en su PR
   (`UNI.ARIMA`, `UNI.UC_LLT`, `UNI.ARIMAX.G1/.G2/.G3`, `UNI.ARIMAX_IVAE.G2`, sus YAML y V14).
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** B1a (PR #31, merge
+  `8d72e83`, run #255, 37386602359) y B1b (PR #32, `ad47bc1`, run #260, 37394685978), CI verde en `main`.
 - [x] **D2 · B2** VAR, VECM y BVAR. Estado 2026-10-07: B2-1 a B2-8 decididas; B2a en su PR (`MULT.VAR_DIF.G1/.G2/.G3`,
   `MULT.VAR_NIV.G1`, `MULT.VECM.G1`, sus YAML y V15); B2b (BVAR) después, sin apilar. B2-9 (deduplicación de pérdidas
   idénticas en el MCS) decidida; va en un PR del motor antes de E1. Estado 2026-10-07: B2a fusionado (PR #33,
   `821eaac`); B2-9 en su PR (`mcs_tmax_dedup()`, solo en `F5_G*`; los `F5_REPRO_*` no cambian). Estado 2026-10-07:
   B2-9 fusionado (PR #34, `a91b791`); B2-10 a B2-16 decididas; B2b en su PR (`MULT.BVAR.G1/.G2/.G3`, sus YAML y V16).
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** B2a (PR #33, merge
+  `821eaac`, run #265, 37566626366), B2-9 (PR #34, `a91b791`, run #268, 37569884518) y B2b (PR #37, `ac958a8`,
+  run #283, 37691786323), CI verde en `main`.
 - [x] **D3 · B3** Regularizados. Estado 2026-10-08: B3-1 a B3-8 decididas. B3 va en dos PR, uno después del otro
   (B3-8). El PR 1 es la infraestructura: forma directa, validación anidada y covarianza de errores internos. El PR 2
   trae `REG.ENET.Gk` y `REG.PCR.Gk`, sus YAML, V18 y el costo por origen. Estado 2026-10-08: PR 1 fusionado (#41,
@@ -135,7 +144,8 @@ F5-02) y se verifica solo con datos sintéticos y en CI. Ninguno corre sobre L3 
 - [x] **D6 · B5** Combinaciones (al final). Estado 2026-10-08: B5-1 a B5-5 decididas por el agente (delegadas; se pueden
   reabrir). En su PR: `src/evaluacion/combinaciones.R`, los 12 YAML `COMB.MEDIA/MEDIANA/RECORTADA/ECM_INV.Gk`, las
   variantes `F5_Gk_Rn` (R1, R2, R5, R6 y R7) y V21 (C6).
-  
+  **Cierre (2026-10-15; evidencia que pidió M1 de la auditoría independiente de Fase 5):** PR #45 (merge `c2598f4`),
+  CI verde en `main` (run #323, 37823653511).
 
 ## E. Preregistro y corrida única
 
