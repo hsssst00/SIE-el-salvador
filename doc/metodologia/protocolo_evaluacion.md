@@ -441,6 +441,20 @@ antes de un resultado cita el commit que lo fijó y el de la corrida, no fechas 
 terminar asienta en su evidencia qué directorios de `data/L4_experiments/` dejó escritos y sobre qué commit. Toda
 decisión que se tome con resultados en disco lo dice, aunque esos resultados no se hayan mirado.
 
+**Nota (2026-10-15, verificación de la remediación de la auditoría independiente de Fase 5; residuo de I1).** `51cc015`
+(formato de la tabla de resultados de Fase 5) se escribió con `F5_G1` ya en disco. Según el log del motor del intento 3,
+`F5_G1` terminó a las 16:29 (-0600) del 2026-10-08, y la fecha de autor de `51cc015` es 17:00. Antes de escribirlo solo
+se había leído la línea de avance de ese log (número de pronósticos y segundos), no el contenido de `F5_G1`; sus pruebas
+usan una L4 sintética. La fuente es el registro de la sesión que supervisó E2, que no se versiona: desde el repositorio
+no se puede comprobar. `51cc015` no cambia ningún modelo, YAML, experimento ni regla de lectura, y no recalcula nada:
+une columnas que el motor ya escribe en L4.
+
+**Nota (2026-10-15, fechas de la remediación de la auditoría independiente de Fase 5).** Cuatro notas de esa
+remediación llevan la fecha 2026-10-13: la de §2.3 (M2), la de corrección de §6 (I1), la regla de §6 sobre corridas
+detenidas (I1) y la de corrección de «Corrida única (E2)» en `doc/metodologia/decisiones_fase5.md` (I1 y M2). Las cuatro
+entraron al repositorio en `af9afa3` (2026-10-14 18:55 -0600), con las demás de la remediación, que dicen 2026-10-14.
+La fecha verificable es la del commit. Su texto no se edita.
+
 ## 7. Lo que este protocolo no cubre
 
 - El Ejercicio B (Fase 6) y sus escenarios.

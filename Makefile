@@ -145,9 +145,12 @@ tabla-fase4:
 	Rscript src/evaluacion/tabla_resultados_fase4.R
 
 # Fase 5 — el criterio de cierre con una sola orden (remediación M3 de la auditoría independiente de Fase 5): master y
-# eval con el corte congelado de F5-16, la misma secuencia que la corrida única (doc/evidencia_corrida_unica_fase5.txt).
+# eval con el corte congelado de F5-16. Es la secuencia de la corrida única (doc/evidencia_corrida_unica_fase5.txt) con
+# dos cambios posteriores que no tocan sus resultados: sin la tabla de Fase 4 (C-8a) y con tabla_pruebas_fase5.R (I3).
 # LOCAL: exige L0 materializada y X-13; tarda unas 6-7 horas y reescribe data/L4_experiments/ y las filas F5 de
 # catalogos/07_experimentos.csv. La reproducción bit a bit exige además la BLAS/LAPACK de la corrida (nota I4).
+# Con el árbol sucio, tabla_pruebas_fase5.R se detiene (exige manifiestos con «arbol: limpio») después de que el
+# motor ya reescribió L4 y 07: antes de correr, `git status --short` debe salir vacío.
 fase5:
 	$(MAKE) master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 	$(MAKE) eval CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
