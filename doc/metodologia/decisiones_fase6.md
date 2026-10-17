@@ -42,6 +42,13 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   inversión en inteligencia artificial, con el producto mundial 1,1 % debajo de la base hacia 2028. Las cifras salen
   de reseñas del informe; falta verificar en la fuente qué desviaciones publica para EE. UU. y para las variables de
   escenario (F6-14).
+- **La base de datos del WEO está en la API SDMX 3.0 del FMI**, la misma que ya usa `src/adquisicion/fmi.R`
+  (dataflow `IMF.RES/WEO`). Consultada el 2026-10-17, trae proyecciones anuales hasta 2031 de, entre otras,
+  `USA.NGDP_R`, `USA.PCPIPCH`, `USA.LUR`, `G001.NGDP_RPCH`, `G001.TRADEPCH` y `G001.POILAPSP`, con
+  `COUNTRY_UPDATE_DATE` de septiembre de 2026 (EE. UU.: 2026-09-30), y también `SLV.NGDP_RPCH`, que usa la
+  coherencia de F6-10. El crecimiento mundial de 2026 que devuelve (3,06 %) coincide con el 3,1 % que anunció el
+  informe. La consulta no capturó nada en L0. La API sirve el WEO vigente, así que la captura (C2) tiene que fijar
+  el vintage por fecha y sha256.
 - **Rango del interanual del PIB en el corte de Fase 5** (100 · Δ₄ log del PIB SA propio, 1991-Q1 a 2026-Q1). Sin
   2020-2021: mínimo −3,08 (2009-Q1), máximo 11,00 (1992-Q4), desviación estándar 2,08. Con todo: −22,29 (2020-Q2) y
   25,27 (2021-Q2). Se cita solo para dimensionar F6-08; el rango que rige se calcula sobre `corte_fase6` al
