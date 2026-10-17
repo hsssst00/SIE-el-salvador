@@ -22,6 +22,8 @@ vez de que se transcriban a mano aquí (hallazgo M5 de la revisión independient
 
 **Fase 5 — cerrada.** Estimación y comparación (Ejercicio A). El criterio de cierre (senda §4) se satisface con las lecturas que fija la nota de cierre de Fase 5 de la senda (v0.9). Los 32 modelos de Fase 5, las 12 combinaciones y los 6 benchmarks se declararon en `catalogos/06_modelos/` antes de la corrida única sobre L3 (preregistro `f8fe345`). Esa corrida registra 28 experimentos en `catalogos/07_experimentos.csv` y la tabla `doc/metodologia/reportes_fase5/tabla_resultados_fase5.csv`, y sus resultados se regeneran byte a byte en la máquina de Harold. En la corrida principal, el MCS al 10 % conserva todos los modelos en todos los grupos y horizontes, así que no hay ganador. La lectura con la robustez R1-R7 está en `doc/metodologia/reportes_fase5/lectura_resultados_fase5.md`. Ver el registro "Cierre de Fase 5" en [`doc/adr/README.md`](doc/adr/README.md). Tag `v0.8.0-fase5`; revisión independiente en `doc/auditorias/`.
 
+**Fase 6 — en curso** desde el 2026-10-17. Proyección condicional (Ejercicio B). Las decisiones F6-01 a F6-13 están en `doc/metodologia/decisiones_fase6.md`, el método en `doc/metodologia/protocolo_proyeccion.md` (borrador hasta el congelamiento) y el avance en `doc/checklist_fase6.md`. Todavía no hay ninguna proyección.
+
 ## Estructura
 
 ```
