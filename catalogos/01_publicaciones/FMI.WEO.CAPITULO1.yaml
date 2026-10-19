@@ -1,0 +1,23 @@
+publicacion_id: FMI.WEO.CAPITULO1
+institucion_id: FMI
+nombre: "World Economic Outlook, capítulo 1 (Global Prospects and Policies): datos de las figuras"
+periodicidad: semestral
+formato: xlsx
+url: https://www.imf.org/-/media/files/publications/weo/2026/october/english/data/ch1data.xlsx
+cobertura_temporal: "Libro de datos de las figuras del capítulo 1 de cada edición del WEO. Verificado por el agente el 2026-10-19 sobre la edición de octubre de 2026: 25 hojas (portada «October 2026 WEO Chapter 1», fechada 2026-10-13, índice, figuras 1.1 a 1.14, recuadros 1.1 y 1.2 y la sección especial de materias primas 1.SF), unos 11,6 MB. Cada figura tiene su propio horizonte; no hay un período de referencia único."
+condiciones_uso: "Idénticas a las de FMI.WEO.yaml (todos los derechos reservados, reuso libre no comercial con cita obligatoria, default conservador de ADR-008: el repositorio publica script y checksum, no el archivo)."
+notas: |
+  Fuente: FMI, Departamento de Investigación, World Economic Outlook,
+  capítulo 1. Alta del 2026-10-19 (Fase 6, checklist C2), como insumo de la
+  ficha F6-14 (escenario adverso): los recuadros de escenarios del capítulo
+  traen las desviaciones respecto de la base.
+
+  Es una publicación aparte de FMI.WEO porque el archivo no sale de la API
+  SDMX sino de la página del informe
+  (https://www.imf.org/en/publications/weo/issues/2026/10/13/world-economic-outlook-october-2026),
+  y porque con un publicacion_id común colisionaría en vintage_id con la
+  base de datos de la misma edición (ADR-007).
+
+  fecha_publicacion: el Last-Modified que declara el servidor
+  (src/adquisicion/fmi.R, bloque 5). robots.txt de www.imf.org no
+  restringe la ruta (verificado el 2026-10-19).
