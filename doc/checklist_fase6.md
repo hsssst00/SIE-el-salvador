@@ -31,9 +31,10 @@ se marca.
   2026-10-17 en la opción recomendada (autorización de Harold), con detalles delegados al agente.
 - [x] **B2 · F6-06 a F6-13** Especificación: condicionamiento, intervalos, guarda, sensibilidad, coherencia,
   reporte, preregistro y BVAR con h = 20. Decididas el 2026-10-17, igual que B1.
-- [ ] **B3 · F6-14** Escenario adverso y traducción de sus desviaciones. Requiere C2.
-- [ ] **B4 · F6-15 a F6-18** Satélites, paso de anual a trimestral, puente con senderos trimestrales y variables de
-  escenario en L3.
+- [x] **B3 · F6-14** Escenario adverso y traducción de sus desviaciones. Requiere C2. — 2026-10-19: escenario C del
+  recuadro 1.2; además entra el favorable (A) por la regla de F6-05.
+- [x] **B4 · F6-15 a F6-18** Satélites, paso de anual a trimestral, puente con senderos trimestrales y variables de
+  escenario en L3. — 2026-10-19, en la opción recomendada (delegación del 2026-10-17).
 
 ## C. Insumos
 
@@ -47,6 +48,9 @@ se marca.
   `FMI.WEO.v2026-10`, `FMI.WEO.CAPITULO1.v2026-10` y `CBO.PROYECCIONES_ECONOMICAS.v2026-02` en `08_vintages.csv` y
   el manifiesto; detalle y sha256 en «Hechos verificados el 2026-10-19» de `decisiones_fase6.md`. Crudos en el
   almacén privado de L0 (commit `a6ea856`).
+- [ ] **C2b** Captura a L0 del petróleo en USD (`G001.POILAPSP.USD.M`) como publicación nueva
+  `FMI.PCPS.POILAPSP_USD`, con su alta por el esquema (regla 2). La serie `INDEX` de L0 no es el precio del WEO
+  (F6-18).
 - [ ] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18).
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 
