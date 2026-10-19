@@ -27,9 +27,14 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
    **Delegación al agente en Fase 6 (2026-10-17).** Harold autorizó en el chat que el agente empezara Fase 6 por su
    cuenta y aplicara las decisiones recomendadas de las fichas F6-01 a F6-13. Cada decisión se registra en
    `doc/metodologia/decisiones_fase6.md` como tomada en la opción recomendada por esa autorización, y los detalles
-   que una ficha no fijaba se rotulan «delegada al agente; se puede reabrir». La autorización no incluye fusionar PR.
-   Rige hasta que Harold la retire o hasta el cierre de Fase 6; un hecho que contradiga lo que supone una ficha
-   vuelve a preguntarse.
+   que una ficha no fijaba se rotulan «delegada al agente; se puede reabrir». La autorización no incluía fusionar PR
+   (véase la ampliación siguiente). Rige hasta que Harold la retire o hasta el cierre de Fase 6; un hecho que
+   contradiga lo que supone una ficha vuelve a preguntarse.
+
+   **Ampliación (2026-10-19): fusión de PR.** Harold autorizó en el chat que el agente abra sus PR y los fusione él
+   mismo a `main`. El agente fusiona solo con el CI en verde sobre la cabeza del PR y sin apilar. Por criterio propio
+   (no por condición de Harold), los PR de congelamiento (E1) y de corrida única (E3) se le consultan antes de
+   fusionarlos. Rige igual que la delegación del 2026-10-17.
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.
