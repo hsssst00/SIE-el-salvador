@@ -272,6 +272,14 @@ institución se los pasa, extraídos de la respuesta. Si una fuente no declara
 `periodo_referencia_max` de forma parseable, el campo queda vacío —nunca `n.d.` ni `0`, senda
 §3.4— y el motivo se anota en `notas`.
 
+**Nota (2026-10-19), publicaciones de proyecciones.** En una publicación que trae proyecciones
+(hoy `FMI.WEO` y `CBO.PROYECCIONES_ECONOMICAS`), `periodo_referencia_max` es el **último período
+del horizonte proyectado** (`2031` y `2036-T4` en sus primeros vintages), no el último dato
+observado. El último dato observado cambia según la serie o la variable, y la CBO lo marca por
+fila mientras que el WEO no lo marca por observación. Cuando la fuente lo informa, va en `notas`
+(p. ej., `empl_payroll_nf` observado hasta 2025-T2). Decisión de Harold del 2026-10-19 (opción
+recomendada), planteada en el PR #73.
+
 **Literales que se escriben al catálogo.** Deben coincidir carácter por carácter con las filas
 ya existentes, porque la igualdad literal es el mecanismo de detección de deriva del proyecto.
 Hoy son dos: `"primera captura — sin vintage previo con el cual comparar"` y
