@@ -5,7 +5,9 @@
 # antes de que ningun otro script escriba algo: formato, SALIDA que no cae en una capa vigente,
 # cada vintage_id existe y es de su publicacion, su archivo esta en L0 con el sha256 del
 # manifiesto, y no falta ninguna publicacion que el pipeline necesita (todas las de
-# catalogos/03_series.csv). Las sobrantes se permiten y se informan. Reglas en conjunto_lib.R,
+# catalogos/03_series.csv; las de escenario de Fase 6 solo si el conjunto declara alguna, y
+# entonces todas -- F6-18-d, etapa_escenario_activa()). Las sobrantes se permiten y se informan.
+# Reglas en conjunto_lib.R,
 # que prueba tests/test-conjunto.R. Falla con stop() (regla 7 de CLAUDE.md).
 
 source(here::here("src", "transformacion", "conjunto_lib.R"))
@@ -25,7 +27,9 @@ resultado <- validar_conjunto(
   manifiesto = leer_manifiesto(dir_l0),
   dir_l0 = dir_l0,
   necesarias = publicaciones_necesarias(
-    read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = ""))
+    read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = ""),
+    read.csv(here::here("catalogos", "05_series_master.csv"), stringsAsFactors = FALSE, na.strings = ""),
+    conjunto)
 )
 
 cat("OK conjunto: ", nrow(conjunto), " vintage(s) de ", length(unique(conjunto$publicacion_id)),

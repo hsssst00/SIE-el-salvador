@@ -187,7 +187,13 @@ test_that("C-1/C-2: el corte congelado de Fase 5 no cambia y es coherente con lo
   cj <- leer_conjunto(ruta)
   expect_identical(nrow(cj), 36L)
   series <- utils::read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
-  expect_setequal(unique(cj$publicacion_id), unique(stats::na.omit(series$publicacion_id)))
+  master <- utils::read.csv(here::here("catalogos", "05_series_master.csv"), stringsAsFactors = FALSE, na.strings = "")
+  # Desde C3 de Fase 6 (2026-10-19), 03_series.csv tiene publicaciones de escenario que el corte de
+  # Fase 5 no declara: el corte cubre todas las demas y ninguna de escenario (F6-18-d).
+  esc <- publicaciones_de_escenario(series, master)
+  expect_false(etapa_escenario_activa(cj, esc))
+  expect_setequal(unique(cj$publicacion_id), publicaciones_necesarias(series, master, cj))
+  expect_setequal(unique(cj$publicacion_id), setdiff(unique(stats::na.omit(series$publicacion_id)), esc))
   v <- leer_vintages()
   expect_true(all(cj$vintage_id %in% v$vintage_id))
   expect_identical(vintage_vigente("BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA", v, cj), "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA.v2026-06")
