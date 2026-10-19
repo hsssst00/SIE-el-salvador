@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12 vencido sin pronunciamiento: default conservador), FMI, FRED, Banco Mundial y BID resueltos; ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; política de L0 por fuente (2026-10-14); CEPAL en gestión (corte 2026-10-16)
+**Estado:** Parcial — BCR (corte 2026-10-12 vencido sin pronunciamiento: default conservador), FMI, FRED, Banco Mundial y BID resueltos; CBO resuelta por dominio público (2026-10-17); ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; política de L0 por fuente (2026-10-14); CEPAL en gestión (corte 2026-10-16)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -312,3 +312,27 @@ indicador, según los metadatos del propio indicador.
 **Alcance de la decisión.** Esta enmienda fija la política, no la implementación: ningún archivo crudo se compromete
 con ella. Ni los catálogos (`catalogos/`) ni `data/L0_raw/` cambian aquí; su adopción en el *pipeline* de descarga y
 en el manifiesto es trabajo de la fase correspondiente. Queda abierto solo CEPAL (corte 2026-10-16).
+
+## Enmienda — condiciones de la fuente CBO (2026-10-17)
+
+**Contexto.** Fase 6 usa las proyecciones económicas de la Oficina de Presupuesto del Congreso de EE. UU. (CBO) para
+el empleo de EE. UU. en el escenario base (F6-05 y F6-05-a de `doc/metodologia/decisiones_fase6.md`). ADR-002 ya la
+nombraba como fuente («Fed / BEA / CBO»), pero este ADR no tenía su tramo.
+
+**Hallazgo (relevamiento del agente vía web, 2026-10-17, pendiente de verificación directa de Harold).** La página de
+políticas de la CBO (`https://www.cbo.gov/about/privacy`, sección *Copyright*) declara que la información y los
+documentos de su sitio no tienen derechos de autor, que sus productos son obras del gobierno y de dominio público, y
+que pueden copiarse y distribuirse completos sin permiso, con el pedido de reconocer a la CBO como fuente. Las
+excepciones que declara son imágenes u otro material de terceros dentro de sus productos y el uso de su logotipo.
+
+**Decisión aplicada (delegada al agente; se puede reabrir).** Bajo la política de L0 por fuente (enmienda del
+2026-10-14), los archivos crudos de la CBO **pueden** comprometerse al repositorio público, con atribución y con su
+procedencia en el manifiesto. Si un archivo de la CBO incluye material marcado de terceros, ese archivo vuelve al
+default conservador (*script* y *checksum*). Tramo cerrado.
+
+**Reserva Federal.** El SEP de la Junta de la Reserva Federal no se usa en Fase 6 (F6-05-a). No se verificó una
+declaración de dominio público equivalente para la Junta. Si un uso futuro la reabre, su tramo se releva aquí antes de
+capturar nada.
+
+**Alcance.** Como la del 2026-10-14, esta enmienda fija la condición, no la implementación: ningún archivo se captura
+ni se compromete con ella. La captura es el ítem C2 de `doc/checklist_fase6.md`.
