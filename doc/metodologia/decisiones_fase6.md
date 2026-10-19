@@ -76,7 +76,7 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   proyecciones económicas en CSV por vintage. Vintage `CBO.PROYECCIONES_ECONOMICAS.v2026-02`, archivo
   `CBO_proyecciones_economicas_trimestrales_2026_02_2026-10-19.csv` (sha256
   `eda9f9eb6607461621504a973ff7609ef627ccfd02d8096219843efccf55ca7f`), por `src/adquisicion/cbo.R`. Es
-  **trimestral**, 2023q1 a 2036q4, con `empl_payroll_nf` observado hasta 2025q2. Sale de *The Budget and Economic
+  **trimestral**, 2023-T1 a 2036-T4, con `empl_payroll_nf` observado hasta 2025-T2. Sale de *The Budget and Economic
   Outlook: 2026 to 2036* (2026-02-11), con el pronóstico cerrado el 2025-12-03, es decir, ocho meses antes que el WEO.
   El repositorio no trae un vintage posterior a 2026-02. Las dos cosas entran a F6-15 y F6-16.
 - **Copias.** Los tres archivos están en `data/L0_raw/` de la copia de Harold y en el almacén privado

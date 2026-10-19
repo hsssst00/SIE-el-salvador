@@ -235,7 +235,8 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
 #     que la fuente declara y de ella sale fecha_publicacion. Sin ese parametro no viene. El
 #     updatedAfter bisecado de BOP/QNEA/PCPS da otra cosa aca (2026-10-09, el refresco interno
 #     previo a la publicacion), por eso no se usa;
-#   - COUNTRY_UPDATE_DATE es atributo de serie (USA y SLV lo traen; G001 no);
+#   - COUNTRY_UPDATE_DATE es atributo de serie (USA y SLV lo traen; G001 no), en M/D/AAAA
+#     (9/30/2026); a las notas del vintage pasa en ISO;
 #   - dos descargas seguidas dan el mismo sha256 (respuesta determinista).
 .WEO_URL <- "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/WEO/+/G001+USA+SLV.*.A?attributes=all"
 
@@ -296,6 +297,17 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
   substr(v, 1, 10)
 }
 
+# COUNTRY_UPDATE_DATE ("9/30/2026", M/D/AAAA) -> "2026-09-30". NA queda NA.
+.fecha_mdy <- function(x) {
+  m <- regmatches(x, regexec("^([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})$", x))
+  vapply(seq_along(x), function(i) {
+    if (is.na(x[i])) return(NA_character_)
+    p <- m[[i]]
+    if (length(p) != 4) stop("FALLO VISIBLE [FMI.WEO]: COUNTRY_UPDATE_DATE no reconocida: '", x[i], "'.")
+    sprintf("%s-%02d-%02d", p[4], as.integer(p[2]), as.integer(p[3]))
+  }, character(1))
+}
+
 .weo_verificar_forma <- function(contenido_crudo) {
   tab <- tryCatch(.weo_tabla(contenido_crudo), error = function(e) NULL)
   if (is.null(tab) || nrow(tab) == 0) return(FALSE)
@@ -320,7 +332,7 @@ descargar_fmi_weo <- function() {
   }
   tab <- .weo_tabla(contenido_crudo)
   fecha_pub <- .weo_fecha_publicacion(contenido_crudo)
-  upd <- tapply(tab$actualizacion, sub("\\..*$", "", tab$clave),
+  upd <- tapply(.fecha_mdy(tab$actualizacion), sub("\\..*$", "", tab$clave),
                 function(x) paste(sort(unique(stats::na.omit(x))), collapse = "/"))
   upd_txt <- paste(sprintf("%s=%s", names(upd), ifelse(nzchar(upd), upd, "sin atributo")), collapse = "; ")
   anio_max <- max(as.integer(tab$periodo))
@@ -392,6 +404,10 @@ descargar_fmi_weo <- function() {
 }
 
 descargar_fmi_weo_capitulo1 <- function(anio, mes_en) {
+  meses_es <- c("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+                "septiembre", "octubre", "noviembre", "diciembre")
+  mes_es <- meses_es[match(tolower(mes_en), tolower(month.name))]
+  if (is.na(mes_es)) stop("FALLO VISIBLE [FMI.WEO.CAPITULO1]: mes en ingles no reconocido: '", mes_en, "'.")
   url_datos <- .weo_cap1_url(anio, mes_en)
   resp <- .weo_cap1_perform(url_datos)
   codigo_http <- httr2::resp_status(resp)
@@ -422,11 +438,11 @@ descargar_fmi_weo_capitulo1 <- function(anio, mes_en) {
     verificacion_forma = .weo_cap1_verificar_forma,
     notas_vintage = sprintf(
       paste(
-        "Datos de las figuras del capitulo 1 del WEO (%s %d), %d hojas. fecha_publicacion = %s, del",
+        "Datos de las figuras del capitulo 1 del WEO (%s de %d), %d hojas. fecha_publicacion = %s, del",
         "Last-Modified del servidor (%s). periodo_referencia_max vacio a proposito: cada figura tiene su",
         "horizonte. Insumo de la ficha F6-14 (escenario adverso). Captura de Fase 6 (checklist C2)."
       ),
-      mes_en, as.integer(anio), length(hojas), fecha_pub, lm
+      mes_es, as.integer(anio), length(hojas), fecha_pub, lm
     )
   )
 }

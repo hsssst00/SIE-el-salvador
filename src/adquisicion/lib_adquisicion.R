@@ -50,7 +50,8 @@ calcular_sha256_norm <- function(contenido_crudo, extension) {
 # fuente: "BCR", "FMI", "FRED", "BM", "CBO" - coincide con institucion_id
 # publicacion_id: debe existir en 01_publicaciones/*.yaml
 # url: URL exacta consultada
-# descripcion_archivo: snake_case, sin fuente ni fecha
+# descripcion_archivo: snake_case, sin fuente ni fecha de descarga (puede nombrar la edicion
+#   de la fuente: README de adquisicion, seccion 2.2)
 # extension: "xlsx", "json", etc.
 # contenido_crudo: bytes crudos ya obtenidos (raw vector)
 # codigo_http: codigo de estado HTTP de la respuesta

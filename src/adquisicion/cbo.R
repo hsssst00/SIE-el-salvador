@@ -19,6 +19,10 @@
 # BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03). El script se detiene si el mes de la fecha
 # no coincide con el del nombre del archivo.
 #
+# Periodos. El CSV escribe los trimestres AAAAqN (2036q4) y la verificacion de forma los mira asi.
+# Lo que va a 08_vintages.csv (periodo_referencia_max y notas) pasa a la convencion del catalogo,
+# AAAA-TN (2036-T4), como hace fred.R.
+#
 # Falla de forma visible (regla 6 de CLAUDE.md).
 
 library(httr2)
@@ -43,6 +47,14 @@ source("src/adquisicion/lib_adquisicion.R")
 .cbo_tabla <- function(contenido_crudo) {
   utils::read.csv(text = rawToChar(contenido_crudo), stringsAsFactors = FALSE,
                   colClasses = c("character", "character", "numeric", "character"))
+}
+
+# Trimestre de la fuente ("2036q4") -> convencion del catalogo ("2036-T4").
+.cbo_periodo <- function(x) {
+  if (!all(grepl("^[0-9]{4}q[1-4]$", x))) {
+    stop("FALLO VISIBLE [CBO]: trimestre no reconocido: '", paste(x, collapse = "', '"), "'.")
+  }
+  sub("q", "-T", x, fixed = TRUE)
 }
 
 .cbo_verificar_forma <- function(contenido_crudo) {
@@ -90,7 +102,7 @@ descargar_cbo_proyecciones_trimestrales <- function(vintage_cbo, fecha_informe, 
     contenido_crudo = contenido_crudo,
     codigo_http = codigo_http,
     fecha_publicacion = fecha_informe,
-    periodo_referencia_max = max(tab$date),
+    periodo_referencia_max = .cbo_periodo(max(tab$date)),
     verificacion_forma = .cbo_verificar_forma,
     notas_vintage = sprintf(
       paste(
@@ -101,7 +113,8 @@ descargar_cbo_proyecciones_trimestrales <- function(vintage_cbo, fecha_informe, 
         "Dominio publico (17 U.S.C. 105; LICENSE.md del repositorio); se reconoce a la CBO como fuente",
         "(ADR-008, tramo de la CBO). Captura de Fase 6 (checklist C2)."
       ),
-      vintage_cbo, length(unique(tab$variable)), min(tab$date), max(tab$date), ult_actual,
+      vintage_cbo, length(unique(tab$variable)), .cbo_periodo(min(tab$date)),
+      .cbo_periodo(max(tab$date)), .cbo_periodo(ult_actual),
       fecha_informe, fuente_fecha
     )
   )
