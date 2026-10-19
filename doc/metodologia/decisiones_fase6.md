@@ -54,6 +54,34 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   25,27 (2021-Q2). Se cita solo para dimensionar F6-08; el rango que rige se calcula sobre `corte_fase6` al
   congelar.
 
+## Hechos verificados el 2026-10-19 (captura C2)
+
+- **WEO de octubre de 2026 en L0.** Vintage `FMI.WEO.v2026-10`, archivo `FMI_weo_2026-10-19.json` (sha256
+  `f115cd02d510e12d8537970ed0b84a0e93853f38958f541840bdbeaa39fef7ec`), por `descargar_fmi_weo()` de
+  `src/adquisicion/fmi.R`. Es un extracto de la API con G001, USA y SLV y todos sus indicadores (173 series, anuales
+  hasta 2031), para no adelantar la elección de satélites. Con `attributes=all` la respuesta trae el
+  `PUBLICATION_DATE` del dataset (2026-10-13), que es la `fecha_publicacion`. El `updatedAfter` bisecado que usan
+  BOP/QNEA/PCPS da 2026-10-09 en este dataflow, que es un refresco interno anterior a la publicación, y por eso no se
+  usa. `COUNTRY_UPDATE_DATE`: USA 2026-09-30, SLV 2026-09-17; G001 no lo trae. Dos descargas seguidas dan el mismo
+  sha256.
+- **Capítulo 1 del WEO en L0.** Vintage `FMI.WEO.CAPITULO1.v2026-10`, archivo
+  `FMI_weo_capitulo1_2026_october_2026-10-19.xlsx` (sha256
+  `74576dbb057c6bcc1bf1f525b195ab29386c3a42fa6426d92ae14e6b0d1af961`), publicación nueva porque no sale de la API y
+  porque con `FMI.WEO` colisionaría en `vintage_id`. Las figuras de escenarios para F6-14 son la 1.2.2 («Impact of
+  Scenarios on the Level of GDP») y la 1.2.3 («Impact of Scenarios on the Other Key Macroeconomic Variables»), del
+  recuadro 1.2. `fecha_publicacion` = `Last-Modified` del servidor (2026-10-13).
+- **CBO: www.cbo.gov bloquea el acceso automatizado.** Responde 403 con un desafío de DataDome a un cliente sin
+  navegador. Por la regla 9 no se evade. El canal programático es el repositorio público de la propia CBO,
+  `US-CBO/cbo-data` (licencia de dominio público, 17 U.S.C. § 105 con renuncia mundial), que publica las
+  proyecciones económicas en CSV por vintage. Vintage `CBO.PROYECCIONES_ECONOMICAS.v2026-02`, archivo
+  `CBO_proyecciones_economicas_trimestrales_2026_02_2026-10-19.csv` (sha256
+  `eda9f9eb6607461621504a973ff7609ef627ccfd02d8096219843efccf55ca7f`), por `src/adquisicion/cbo.R`. Es
+  **trimestral**, 2023q1 a 2036q4, con `empl_payroll_nf` observado hasta 2025q2. Sale de *The Budget and Economic
+  Outlook: 2026 to 2036* (2026-02-11), con el pronóstico cerrado el 2025-12-03, es decir, ocho meses antes que el WEO.
+  El repositorio no trae un vintage posterior a 2026-02. Las dos cosas entran a F6-15 y F6-16.
+- **Copias.** Los tres archivos están en `data/L0_raw/` de la copia de Harold y como artefactos de la sesión. Falta
+  subirlos al almacén privado `SIE-el-salvador-L0`.
+
 ---
 
 ## Acta de decisiones
