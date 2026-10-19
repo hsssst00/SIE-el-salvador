@@ -165,6 +165,15 @@ Ejemplo real: `BCR_pib_t_indices_volumen_nsa_2026-08-06.xlsx`. `FUENTE` en mayú
 con `institucion_id` de `00_instituciones.csv`. `fecha_descarga` es la fecha en que el script
 corrió, en ISO — **no** la fecha de publicación de la fuente, que va en `08_vintages.csv`.
 
+**Nota (2026-10-19): la edición de la fuente en la descripción.** Cuando una publicación baja un
+archivo por edición o por año, la descripción puede nombrarlo, y `fecha_descarga` sigue siendo el
+último componente. Hay tres casos en el manifiesto: `UT_demanda_total_2026_2026-10-02.csv` (año
+del archivo), `CBO_proyecciones_economicas_trimestrales_2026_02_2026-10-19.csv` (vintage
+`AAAA-MM` del repositorio de la CBO, con guion bajo) y
+`FMI_weo_capitulo1_2026_october_2026-10-19.xlsx` (año y mes de la ruta del FMI, en inglés como en
+la URL). Cada publicación conserva la forma de su primer archivo, y lo ya registrado no se
+renombra (regla 1 de `CLAUDE.md`).
+
 **Captura vía navegador headless:** el archivo cae en la carpeta de Descargas del sistema con el
 nombre que le asigna el navegador, con deduplicación tipo `(2)`/`(3)` si ya existen homónimos. El
 script tiene que mover y renombrar desde ahí a esta convención; no puede asumir que el archivo
