@@ -45,8 +45,8 @@ se marca.
 - [x] **C2** Captura a L0, por *script* de `src/adquisicion/` y con manifiesto, del WEO de octubre de 2026 (base de
   datos y datos del capítulo 1) y de las proyecciones económicas de la CBO. — 2026-10-19: vintages
   `FMI.WEO.v2026-10`, `FMI.WEO.CAPITULO1.v2026-10` y `CBO.PROYECCIONES_ECONOMICAS.v2026-02` en `08_vintages.csv` y
-  el manifiesto; detalle y sha256 en «Hechos verificados el 2026-10-19» de `decisiones_fase6.md`. La subida al
-  almacén privado de L0 queda aparte.
+  el manifiesto; detalle y sha256 en «Hechos verificados el 2026-10-19» de `decisiones_fase6.md`. Crudos en el
+  almacén privado de L0 (commit `a6ea856`).
 - [ ] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18).
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 

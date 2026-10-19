@@ -79,8 +79,8 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   **trimestral**, 2023q1 a 2036q4, con `empl_payroll_nf` observado hasta 2025q2. Sale de *The Budget and Economic
   Outlook: 2026 to 2036* (2026-02-11), con el pronóstico cerrado el 2025-12-03, es decir, ocho meses antes que el WEO.
   El repositorio no trae un vintage posterior a 2026-02. Las dos cosas entran a F6-15 y F6-16.
-- **Copias.** Los tres archivos están en `data/L0_raw/` de la copia de Harold y como artefactos de la sesión. Falta
-  subirlos al almacén privado `SIE-el-salvador-L0`.
+- **Copias.** Los tres archivos están en `data/L0_raw/` de la copia de Harold y en el almacén privado
+  `SIE-el-salvador-L0` (commit `a6ea856`; el sha256 de cada blob coincide con el del manifiesto).
 
 ---
 
