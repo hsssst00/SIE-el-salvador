@@ -8,7 +8,7 @@ Sistema de Información Estadística (SIE) para variables macroeconómicas de El
 
 ## Estado del proyecto
 
-Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación y comparación— cerrada el 2026-10-13 (tag `v0.8.0-fase5`; revisión independiente en `doc/auditorias/`). Fase 6 —proyección condicional— en curso desde el 2026-10-17 (decisiones en `doc/metodologia/decisiones_fase6.md`, tablero en `doc/checklist_fase6.md`). Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial, con CEPAL en gestión (corte 2026-10-16) como único tramo abierto — el estado por fuente vive en ADR-008, no acá.
+Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación y comparación— cerrada el 2026-10-13 (tag `v0.8.0-fase5`; revisión independiente en `doc/auditorias/`). Fase 6 —proyección condicional— en curso desde el 2026-10-17 (decisiones en `doc/metodologia/decisiones_fase6.md`, tablero en `doc/checklist_fase6.md`). Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial: el corte de CEPAL venció el 2026-10-16 sin pronunciamiento y queda abierta solo la condición sobre obras derivadas — el estado por fuente vive en ADR-008, no acá.
 
 **Antes de escribir cualquier código de estimación o transformación, lee los ADR relevantes en `doc/adr/`.** Son la especificación. No hay decisión metodológica de las diez que debas tomar tú — ya están tomadas y documentadas.
 
@@ -27,9 +27,14 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
    **Delegación al agente en Fase 6 (2026-10-17).** Harold autorizó en el chat que el agente empezara Fase 6 por su
    cuenta y aplicara las decisiones recomendadas de las fichas F6-01 a F6-13. Cada decisión se registra en
    `doc/metodologia/decisiones_fase6.md` como tomada en la opción recomendada por esa autorización, y los detalles
-   que una ficha no fijaba se rotulan «delegada al agente; se puede reabrir». La autorización no incluye fusionar PR.
-   Rige hasta que Harold la retire o hasta el cierre de Fase 6; un hecho que contradiga lo que supone una ficha
-   vuelve a preguntarse.
+   que una ficha no fijaba se rotulan «delegada al agente; se puede reabrir». La autorización no incluía fusionar PR
+   (véase la ampliación siguiente). Rige hasta que Harold la retire o hasta el cierre de Fase 6; un hecho que
+   contradiga lo que supone una ficha vuelve a preguntarse.
+
+   **Ampliación (2026-10-19): fusión de PR.** Harold autorizó en el chat que el agente abra sus PR y los fusione él
+   mismo a `main`. El agente fusiona solo con el CI en verde sobre la cabeza del PR y sin apilar. Por criterio propio
+   (no por condición de Harold), los PR de congelamiento (E1) y de corrida única (E3) se le consultan antes de
+   fusionarlos. Rige igual que la delegación del 2026-10-17.
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.
