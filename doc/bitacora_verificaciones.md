@@ -526,3 +526,32 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
 - `make test` → **946 PASS / 0 FAIL / 0 WARN / 0 SKIP**, código de salida 0.
 - Notas: corrida ejecutada por Claude Code (Sonnet 5.5) contra el árbol local de Harold, con
   `data/L0_raw/` presente. No requirió cambios al verificador.
+
+## 2026-10-19 — C3 de Fase 6: cuatro filas del capítulo 1 del WEO y seis filas JSON
+
+- **Cambio en el catálogo:** `03_series.csv` pasa de 106 a 116 filas (checklist C3, F6-18). Cuatro son celdas del
+  libro del capítulo 1 del WEO (`FMI.WEO.CAPITULO1.v2026-10`), que este verificador resuelve como cualquier `.xlsx`:
+  `FMI.DESV_PIB_EEUU_ESC_A.PCT.NSA.A` y `_C_` (hoja `Figure 1.2.2.`, filas 8 y 10, «Scenario A» y «Scenario C») y
+  `FMI.DESV_INFL_EEUU_ESC_A.PP.NSA.A` y `_C_` (hoja `Figure 1.2.3.`, filas 10 y 12). Seis son series cuyo vintage es
+  `.json` (FRED, PCPS y WEO) y quedan `FUERA_DE_ALCANCE`; su ancla (la clave que cita `fuente_celda`) la exige
+  `src/transformacion/extraer_escenarios.R`, que además comprueba en el libro del capítulo 1 el rótulo de la columna
+  anterior a la del primer dato, los rótulos de panel y los años 2026..2031.
+- Archivo `.xlsx` nuevo verificado: `FMI_weo_capitulo1_2026_october_2026-10-19.xlsx`:
+  `74576dbb057c6bcc1bf1f525b195ab29386c3a42fa6426d92ae14e6b0d1af961`.
+- **Primera corrida, con la copia de L0 de Harold tal como está** → **19 PASS / 91 FAIL / 0 NO_VERIFICABLE /
+  6 FUERA_DE_ALCANCE** (de 116), código de salida 1. Los 91 FAIL son de checksum: los 17 archivos de los vintages
+  `v2026-09` del BCR (capturas del 2026-10-01 y 2026-10-02) tienen en esa copia el tamaño del manifiesto pero otro
+  sha256. No es un fallo de las filas nuevas (las cuatro del capítulo 1 dieron PASS).
+- **Segunda corrida, con esos 17 archivos tomados del almacén privado de L0** (`SIE-el-salvador-L0`, commit
+  `c5d8361`, donde los 79 archivos del manifiesto coinciden con su sha256; la copia de Harold no se tocó) →
+  **110 PASS / 0 FAIL / 0 NO_VERIFICABLE / 6 FUERA_DE_ALCANCE** (de 116), código de salida 0. `FUERA_DE_ALCANCE`:
+  `FRED.PIB_EEUU.VOL.SA.Q`, `FRED.IPC_EEUU.IDX.SA.M`, `FMI.PETROLEO_APSP.USD.NSA.M`, `FMI.PIB_EEUU_VAR.PCT.NSA.A`,
+  `FMI.IPC_EEUU_VAR.PCT.NSA.A` y `FMI.PETROLEO_APSP.USD.NSA.A`.
+- `make master` (los mismos pasos, uno por uno con `Rscript --vanilla`) con esa L0 → código de salida 0; las 10 series
+  de L1 y las 19 de L3 previas, idénticas por sha256 sin CR; 10 archivos nuevos en L3. Validaciones de F6-18 en
+  verde (detalle en «Hechos verificados el 2026-10-19 (variables de escenario en L3, C3)» de `decisiones_fase6.md`).
+- `testthat::test_dir("tests")` → 0 FAIL, 1 SKIP (`test-adquisicion.R:263`, sin ejecutable `zip` en el sandbox).
+- Notas: corrida ejecutada por el agente en el sandbox de Windows (R 4.6.1, biblioteca de `renv` de la copia de
+  Harold), sobre un clon de `main` = `ac13938` con este cambio. No requirió cambios al verificador. Para C4, la copia
+  de Harold tiene que reponer los 17 archivos desde el almacén y traer `BCR_panorama_banco_central_2026-10-07.xlsx`,
+  que le falta.

@@ -321,7 +321,7 @@ test_that("cada publicacion de 03_series.csv aparece en algun extractor de L1", 
 
 test_that("los extractores seleccionan su archivo de L0 solo con archivo_l0_vigente()", {
   extractores <- list.files(here::here("src", "transformacion"), pattern = "^extraer_.*\\.R$", full.names = TRUE)
-  expect_equal(length(extractores), 8L)
+  expect_equal(length(extractores), 9L)   # 9 desde C3 de Fase 6 (extraer_escenarios.R, 2026-10-19)
   for (f in extractores) {
     txt <- paste(readLines(f, warn = FALSE), collapse = "\n")
     expect_true(grepl("archivo_l0_vigente(", txt, fixed = TRUE), info = basename(f))

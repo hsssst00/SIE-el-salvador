@@ -51,11 +51,47 @@ leer_conjunto <- function(ruta) {
   conjunto
 }
 
+#' Publicaciones de catalogos/03_series.csv que solo alimentan series maestras de rol `escenario`
+#' (Fase 6, F6-18): todas sus series aparecen en `series_insumo_ids` de filas `escenario` de
+#' 05_series_master.csv y en ninguna de otro rol. Pura.
+publicaciones_de_escenario <- function(catalogo_series, catalogo_master) {
+  tokens <- function(x) unique(trimws(unlist(strsplit(x[!is.na(x)], ",", fixed = TRUE))))
+  es_esc <- !is.na(catalogo_master$rol) & catalogo_master$rol == "escenario"
+  solo_esc <- setdiff(tokens(catalogo_master$series_insumo_ids[es_esc]),
+                      tokens(catalogo_master$series_insumo_ids[!es_esc]))
+  en_esc <- catalogo_series$serie_id %in% solo_esc
+  sort(setdiff(unique(catalogo_series$publicacion_id[en_esc]),
+               unique(catalogo_series$publicacion_id[!en_esc])))
+}
+
+#' ¿Corre la etapa de escenario (extraer_escenarios.R y l3_escenarios.R) con este conjunto? Sin
+#' conjunto (pipeline vigente), si. Con un conjunto, si declara TODAS las publicaciones de
+#' escenario; no, si no declara ninguna (un corte anterior a Fase 6, como corte_fase5.csv, que se
+#' congelo antes de que existieran y debe seguir reproduciendose). Declarar solo algunas es
+#' stop(): la etapa es todo o nada (F6-18-d, delegada al agente). Pura.
+etapa_escenario_activa <- function(conjunto, publicaciones_escenario) {
+  if (is.null(conjunto) || length(publicaciones_escenario) == 0) return(TRUE)
+  declaradas <- intersect(publicaciones_escenario, conjunto$publicacion_id)
+  if (length(declaradas) == 0) return(FALSE)
+  faltan <- setdiff(publicaciones_escenario, declaradas)
+  if (length(faltan) > 0) {
+    stop("FALLO VISIBLE: el conjunto declara una parte de las publicaciones de escenario (",
+         paste(declaradas, collapse = ", "), ") y le faltan ", paste(faltan, collapse = ", "),
+         ". La etapa de escenario es todo o nada (F6-18-d).")
+  }
+  TRUE
+}
+
 #' Publicaciones que el pipeline necesita: todas las publicacion_id de catalogos/03_series.csv.
 #' (Decision de interfaz, no metodologica: tests/test-conjunto.R comprueba que cada una aparece en
-#' algun extractor, y archivo_l0_vigente() falla al usarse si alguna falta.) Pura.
-publicaciones_necesarias <- function(catalogo_series) {
-  sort(unique(catalogo_series$publicacion_id))
+#' algun extractor, y archivo_l0_vigente() falla al usarse si alguna falta.) Con
+#' `catalogo_master`, las publicaciones de escenario solo se exigen si la etapa de escenario corre
+#' con ese conjunto (etapa_escenario_activa()). Pura.
+publicaciones_necesarias <- function(catalogo_series, catalogo_master = NULL, conjunto = NULL) {
+  todas <- sort(unique(catalogo_series$publicacion_id))
+  if (is.null(catalogo_master)) return(todas)
+  esc <- publicaciones_de_escenario(catalogo_series, catalogo_master)
+  if (etapa_escenario_activa(conjunto, esc)) todas else setdiff(todas, esc)
 }
 
 #' Valida un conjunto contra los catalogos y L0. Falla visible (stop) si:

@@ -150,6 +150,40 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 - **Copias.** El archivo está en `data/L0_raw/` de la copia de Harold y en el almacén privado `SIE-el-salvador-L0`
   (commit `c5d8361`; el sha256 del blob coincide con el del manifiesto).
 
+## Hechos verificados el 2026-10-19 (variables de escenario en L3, C3)
+
+- **Corrida.** `make master` completo sobre `main` = `ac13938` más este cambio, en el sandbox de Windows (R 4.6.1, la
+  biblioteca de `renv` de la copia de Harold) con `data/L0_raw/` repoblado y los 79 archivos del manifiesto con su
+  sha256: código de salida 0. Las 10 series de L1 y las 19 de L3 que ya existían quedan idénticas por sha256 sin CR
+  a las de la corrida anterior al cambio. Las nuevas: `ESCENARIOS_series_largo.csv` en L1 (10 series, 1 870 filas) y
+  10 archivos en L3 (tres historias y siete `ESC.*`, de 1947-Q1 o 1992-Q1 a 2031-Q4).
+- **Validaciones de F6-18.** (1) metas anuales, (2) historia y (4) estructura en las siete `ESC.*`, con el origen
+  2026-Q1 de esta L3. (3) El desvío contra la base se reproduce con diferencia máxima de 2,4 × 10⁻¹⁶ en el PIB y de
+  4,4 × 10⁻¹⁴ pp en la inflación. (5) El promedio anual del petróleo en USD reproduce `POILAPSP` del WEO en 1992-2025
+  (error relativo máximo 3,3 × 10⁻⁸). (6) La inflación anual de CPIAUCSL reproduce `PCPIPCH` en 1980-2024 (diferencia
+  máxima 5,0 × 10⁻⁷ pp; 2025 queda fuera porque le falta 2025-10). Informativo: el crecimiento anual de GDPC1
+  difiere del de `NGDP_RPCH` hasta 0,238 pp (2025), por vintage.
+- **T012** interpola un solo mes, 2025-M10 del IPC de EE. UU. (F6-18-b).
+- **El año 2026 del petróleo queda casi entero observado y la meta lo fuerza en 2026-T4.** El WEO supone 95,74 USD de
+  promedio en 2026. Los meses observados de 2026-T1 a 2026-T3 promedian 78,56, 95,99 y 90,17 USD (septiembre en
+  103,65), así que la restricción de F6-16 deja 2026-T4 en 118,22 USD, un alza de 31 % sobre 2026-T3, y el sendero
+  baja a 77,56 USD en 2027-T4. Es el método decidido aplicado a estos datos, no un error; entra a IPM e IPP por sus
+  satélites (F6-15) en los tres escenarios, porque el petróleo no cambia entre ellos. Con más meses observados en
+  el corte de C4 la cifra cambia. Queda planteado a Harold si se mantiene.
+- **Con d_2026 = 0 el PIB del adverso se curva dentro de 2026.** Es la propiedad que declara F6-16-b: 2026-T3 queda
+  0,15 % sobre la base y 2026-T4, 0,15 % debajo; el promedio del año no cambia.
+- **Copia de L0 de Harold.** En `D:\…\data\L0_raw\` los 17 archivos de los vintages `v2026-09` del BCR (capturas del
+  2026-10-01 y 2026-10-02) tienen el tamaño del manifiesto pero otro sha256, y falta
+  `BCR_panorama_banco_central_2026-10-07.xlsx`. En el almacén privado de L0 (commit `c5d8361`) los 17 coinciden con
+  el manifiesto, y con ellos `verificar_fuente_celda.R` pasa. Sin conjunto, la cadena de `make master` no verifica
+  sha256, así que la L1 y la L3 de esa copia no lo detectan; con la copia actual, `make trace` da 91 FAIL. Para C4 hay
+  que reponer esos archivos desde el almacén. La copia no se tocó.
+- **El PIB de la L3 vigente llega a 2026-Q1 aunque el vintage `v2026-09` trae 2026-Q2.** En `03_series.csv`, el
+  `col_fin` de las 85 filas de las tres publicaciones trimestrales vigentes del PIB (`BCR.PIB_T.*`, sin la
+  retropolada) sigue en `CH`, y los tres libros de `v2026-09` traen 2026-T2 («II (e)») en la columna `CI`. El
+  extractor lee hasta `col_fin`, así que la columna nueva queda afuera sin error. El origen de F6-04 (2026-Q2)
+  necesita que se corrija antes de C4. No se tocó en C3 (es otro tema).
+
 ---
 
 ## Acta de decisiones
@@ -686,3 +720,22 @@ trimestral, con nota en el catálogo. Un hueco de dos meses o más es `stop()`.
 **Delegada al agente; se puede reabrir (F6-18-c):** los senderos de la sensibilidad (F6-09) no van a L3. Se arman en
 L4 con la misma función de `T014`, a partir de las metas anuales de la base y de las desviaciones estándar de
 F6-09-a, y quedan en el manifiesto.
+
+**Delegada al agente; se puede reabrir (F6-18-d, 2026-10-19, C3), corte de Fase 5:** las cinco publicaciones que
+solo alimentan series de rol `escenario` (`FRED.BEA_PIB_EEUU`, `FRED.CPIAUCSL`, `FMI.PCPS.POILAPSP_USD`, `FMI.WEO`
+y `FMI.WEO.CAPITULO1`) no las declara `corte_fase5.csv`, que se congeló antes y debe seguir reproduciéndose sin
+cambiar su sha256. Un conjunto de vintages las declara todas (la etapa de escenario corre) o ninguna (la etapa se
+omite y `make master` sobre ese corte da lo mismo que antes); declarar solo algunas es `stop()`.
+`corte_fase6.csv` (C4) las declara todas. La regla vive en `etapa_escenario_activa()` de `conjunto_lib.R`.
+
+**Delegada al agente; se puede reabrir (F6-18-e, 2026-10-19, C3), filas de `T014`:** `serie_producto` de
+`04_transformaciones.csv` es de valor único, así que `T014` ocupa siete filas, `T014_SENDERO_ESCENARIO_<variable>_<escenario>`,
+una por serie `ESC.*`, con la misma regla y el mismo script. La función de cada fila nombra el tipo de traducción:
+`sendero_escenario_crecimiento()` (base del PIB y del IPC), `sendero_escenario_desvio_nivel()` (PIB de A y C),
+`sendero_escenario_desvio_crecimiento()` (IPC de A y C) y `sendero_escenario_nivel_anual()` (petróleo, cuyo WEO
+publica el nivel: se encadena el crecimiento implícito en él).
+
+**Delegada al agente; se puede reabrir (F6-18-f, 2026-10-19, C3), vintage y tramo:** en L3, cada serie `ESC.*` lleva
+la columna `tramo` (`historia` o `sendero`). El tramo histórico lleva el `vintage_id` de su serie histórica y el
+sendero, el de todos sus insumos unidos con « + ». El origen de la validación 4 es el último trimestre de
+`PIB_SA_PROPIO_Q.csv` en la misma L3 (F6-04).

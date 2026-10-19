@@ -68,7 +68,9 @@ cubre es la de `01_publicaciones/*.yaml` hacia sí mismo, que se queda en
 
 Una fila por transformación L1→L3 — es la especificación ejecutable que
 `src/transformacion/l3_predictores.R` recorre y resuelve con `match.fun()` (no una bitácora
-paralela al código). `series_insumo` es una lista separada por comas de `serie_id` (1 o 2);
+paralela al código; desde 2026-10-19 también `src/transformacion/l3_escenarios.R`, cada uno con las
+filas cuyo `script_path` es él, y en este segundo `series_insumo` lleva hasta 3 series: historia,
+crecimiento o nivel anual del WEO y desvío del escenario). `series_insumo` es una lista separada por comas de `serie_id` (1 o 2);
 `funcion` nombra una función de `src/transformacion/*_reglas.R` con la firma
 `fn(insumo(s), etiqueta)`. `reversible` documenta si `valor_producto` puede reconstruir
 `valor_insumo` exactamente (ver `notas` de cada fila para el porqué).
@@ -79,6 +81,17 @@ Una fila por serie que entra a la matriz de modelado (Fase 4+). `series_master_i
 identificador que usará el motor de evaluación; `rol` distingue `target_primary` /
 `target_robustness` / `predictor`. `linaje_l0` documenta de qué archivo(s) de `data/L0_raw/`
 desciende la serie, vía `transf_id` → `04_transformaciones.csv` → `series_insumo`.
+
+**Nota (2026-10-19, Fase 6, F6-18).** `rol` admite además `escenario` (y `intermediate`, ya en el
+esquema): variables exógenas de la proyección condicional, fuera de la matriz de predictores de Fase 5.
+Son la historia trimestral del PIB y del IPC de EE. UU. y del petróleo en USD, y las series
+`ESC.<variable>.<unidad>.<ajuste>.Q.<ESCENARIO>` (historia + sendero hasta 2031-Q4, con columna
+`tramo` en L3; el sufijo nombra el escenario, F6-18-a). Las construye
+`src/transformacion/l3_escenarios.R` a partir de `src/transformacion/extraer_escenarios.R`, que son
+también filas de `04_transformaciones.csv` (T012, T013 y las siete `T014_SENDERO_ESCENARIO_*`, una
+por serie producto). Una publicación de `03_series.csv` que solo alimenta series de rol `escenario`
+es «publicación de escenario» (`publicaciones_de_escenario()` en `conjunto_lib.R`): un conjunto de
+vintages las declara todas o ninguna (F6-18-d), y `corte_fase5.csv` no declara ninguna.
 
 ## `06_modelos/`
 

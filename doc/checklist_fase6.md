@@ -54,7 +54,15 @@ se marca.
   2026-09); su promedio anual reproduce `G001.POILAPSP` del WEO en 1992-2025. Detalle y sha256 en «Hechos
   verificados el 2026-10-19 (captura C2b)» de `decisiones_fase6.md`. Crudo en el almacén privado de L0 (commit
   `c5d8361`).
-- [ ] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18).
+- [x] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18). —
+  2026-10-19: rol `escenario` en `datapackage.json`; 10 series en `03_series.csv`, `T012`, `T013` y las siete
+  `T014_SENDERO_ESCENARIO_*` en `04_transformaciones.csv` y 10 maestras en `05_series_master.csv`;
+  `src/transformacion/extraer_escenarios.R` y `l3_escenarios.R` en `make master`, con reglas en
+  `l3_escenarios_reglas.R` y pruebas sintéticas en `tests/test-l3-escenarios.R`. `make master` y las seis validaciones
+  de F6-18 en verde en el sandbox; `verificar_fuente_celda.R` asentado en `doc/bitacora_verificaciones.md`
+  (entrada del 2026-10-19, 110 PASS / 0 FAIL / 6 FUERA_DE_ALCANCE); detalle en «Hechos verificados el 2026-10-19
+  (variables de escenario en L3, C3)» de `decisiones_fase6.md`. Para C4: reponer en la copia de Harold los 17
+  archivos `v2026-09` del BCR desde el almacén y corregir el `col_fin` del PIB (mismos hechos).
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 
 ## D. Implementación (solo datos sintéticos)
@@ -62,7 +70,8 @@ se marca.
 - [ ] **D1** `DISENO_FASE6` con `h_max = 20`, sin tocar `DISENO_FASE4`; los `F5_REPRO_*` siguen bit a bit en CI.
 - [ ] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
   demás de la tabla de F6-01.
-- [ ] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4.
+- [ ] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4. (La prueba de Denton frente a
+  `tempdisagg` de F6-16 ya está en `tests/test-l3-escenarios.R`, desde C3.)
 - [ ] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07).
 - [ ] **D5** Canarios V22 y V23 en `verificar_motor_sintetico.R`, en verde en CI.
 - [ ] **D6** Sensibilidad (F6-09), coherencia (F6-10) y tablas de reporte (F6-11).
