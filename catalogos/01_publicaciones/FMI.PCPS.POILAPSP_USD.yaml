@@ -1,0 +1,30 @@
+publicacion_id: FMI.PCPS.POILAPSP_USD
+institucion_id: FMI
+nombre: "Average Petroleum Spot Price (POILAPSP) en dólares por barril, Primary Commodity Price System"
+periodicidad: mensual
+formato: api (SDMX 3.0; JSON o XML)
+url: https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.POILAPSP.USD.M
+cobertura_temporal: "Confirmado por la captura del 2026-10-19 (vintage FMI.PCPS.POILAPSP_USD.v2026-10): 1992-M01 a 2026-M09, 417 observaciones mensuales continuas, sin huecos."
+condiciones_uso: "Idénticas a las de FMI.PCPS.yaml (ficha de familia) y FMI.WEO.yaml — ver esa ficha para el texto completo (todos los derechos reservados, reuso libre no comercial con cita obligatoria, default conservador de ADR-008). No repetido acá para evitar duplicación (senda §10.6)."
+notas: |
+  Fuente: FMI, Departamento de Investigación (agencia SDMX IMF.RES),
+  dataflow PCPS. Petróleo crudo, promedio spot (APSP — promedio simple de
+  Brent, WTI y Dubai Fateh), unidad USD (dólares por barril), frecuencia
+  mensual. Mismo indicador que FMI.PCPS.POILAPSP, otra unidad.
+
+  Alta de Fase 6 (2026-10-19, checklist C2b; decisiones_fase6.md, F6-18).
+  Es el precio que proyecta el WEO (G001.POILAPSP de FMI.WEO): su promedio
+  anual coincide con el del WEO en 2015-2025. La unidad INDEX de
+  FMI.PCPS.POILAPSP no lo es (su crecimiento anual difiere hasta 8,8 pp), por
+  eso la serie de petróleo del Ejercicio B sale de esta ficha y no de aquella.
+
+  Ficha propia y no un vintage más de FMI.PCPS.POILAPSP: otra url y otro
+  contenido bajo el mismo publicacion_id romperían la comparación de vintages
+  por sha256_norm (ADR-007), y las dos unidades se refrescan juntas, así que
+  colisionarían en vintage_id. Mismo criterio de un publicacion_id por serie
+  de la nota de ADR-007 del 2026-08-27.
+
+  fecha_publicacion: fecha bisecada del parámetro SDMX `updatedAfter`, igual
+  que en el resto de PCPS. Captura con
+  descargar_fmi_pcps_indicador("POILAPSP", "FMI.PCPS.POILAPSP_USD", unidad = "USD")
+  en src/adquisicion/fmi.R.

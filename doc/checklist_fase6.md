@@ -48,9 +48,12 @@ se marca.
   `FMI.WEO.v2026-10`, `FMI.WEO.CAPITULO1.v2026-10` y `CBO.PROYECCIONES_ECONOMICAS.v2026-02` en `08_vintages.csv` y
   el manifiesto; detalle y sha256 en «Hechos verificados el 2026-10-19» de `decisiones_fase6.md`. Crudos en el
   almacén privado de L0 (commit `a6ea856`).
-- [ ] **C2b** Captura a L0 del petróleo en USD (`G001.POILAPSP.USD.M`) como publicación nueva
+- [x] **C2b** Captura a L0 del petróleo en USD (`G001.POILAPSP.USD.M`) como publicación nueva
   `FMI.PCPS.POILAPSP_USD`, con su alta por el esquema (regla 2). La serie `INDEX` de L0 no es el precio del WEO
-  (F6-18).
+  (F6-18). — 2026-10-19: vintage `FMI.PCPS.POILAPSP_USD.v2026-10` en `08_vintages.csv` y el manifiesto (1992-01 a
+  2026-09); su promedio anual reproduce `G001.POILAPSP` del WEO en 1992-2025. Detalle y sha256 en «Hechos
+  verificados el 2026-10-19 (captura C2b)» de `decisiones_fase6.md`. Crudo en el almacén privado de L0 (commit
+  `c5d8361`).
 - [ ] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18).
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 

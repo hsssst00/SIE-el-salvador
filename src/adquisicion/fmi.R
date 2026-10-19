@@ -1,7 +1,8 @@
 # fmi.R
 #
 # Adquisicion FMI (SDMX 3.0, api.imf.org). Sin clave de API - REST publica.
-# Bloques: 2 dataflow completo (BOP, QNEA); 3 PCPS por indicador; 4 WEO y 5 su capitulo 1 (Fase 6).
+# Bloques: 2 dataflow completo (BOP, QNEA); 3 PCPS por indicador (INDEX o USD); 4 WEO y 5 su
+# capitulo 1 (Fase 6).
 #
 # fecha_publicacion: BOP, QNEA y PCPS NO traen ninguna fecha de dato legible
 # (ni en meta, ni en atributos de serie/observacion, ni en cabeceras HTTP, ni en
@@ -157,11 +158,27 @@ descargar_fmi_qnea <- function() {
 # nota 2026-08-27, preventivo: los candidatos de PCPS comparten dataflow y fecha
 # de refresco, colisionarian igual que FRED.INDICADORES_MENSUALES_EEUU) ---
 
-descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
+# unidad: transformacion SDMX de PCPS. "INDEX" (default, las tres capturas de 2026-08) o
+# "USD" (precio en dolares; Fase 6, checklist C2b: G001.POILAPSP.USD.M es el precio que
+# proyecta el WEO y la unidad INDEX no lo es, decisiones_fase6.md F6-18). Con "INDEX" la url,
+# el nombre del archivo y las notas quedan como antes; con otra unidad el archivo lleva la
+# unidad en el nombre (FMI_poilapsp_usd_AAAA-MM-DD.json) para no chocar con el INDEX.
+descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id, unidad = "INDEX") {
+  if (!unidad %in% c("INDEX", "USD")) {
+    stop("FALLO VISIBLE [", publicacion_id, "]: unidad de PCPS no prevista: '", unidad,
+         "'. Las admitidas son INDEX y USD; otra unidad requiere su ficha antes de capturar.")
+  }
   url_datos <- sprintf(
-    "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.%s.INDEX.M",
-    codigo_indicador
+    "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.RES/PCPS/+/G001.%s.%s.M",
+    codigo_indicador, unidad
   )
+  descripcion <- if (unidad == "INDEX") tolower(codigo_indicador) else
+    tolower(paste(codigo_indicador, unidad, sep = "_"))
+  nota_unidad <- if (unidad == "USD") paste(
+    " Unidad USD (dolares por barril): es el precio que proyecta el WEO (G001.POILAPSP);",
+    "la unidad INDEX capturada en 2026-08 no lo es (decisiones_fase6.md, F6-18). Captura",
+    "de Fase 6 (checklist C2b)."
+  ) else ""
   fecha_pub <- .fmi_bisecar_fecha_actualizacion(url_datos)
 
   resp <- .fmi_perform(url_datos)
@@ -197,7 +214,7 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
     fuente = "FMI",
     publicacion_id = publicacion_id,
     url = url_datos,
-    descripcion_archivo = tolower(codigo_indicador),
+    descripcion_archivo = descripcion,
     extension = "json",
     contenido_crudo = contenido_crudo,
     codigo_http = codigo_http,
@@ -206,7 +223,7 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
     verificacion_forma = verif,
     notas_vintage = sprintf(
       paste(
-        "Serie %s de PCPS (G001.%s.INDEX.M). fecha_publicacion = %s, fecha bisecada del",
+        "Serie %s de PCPS (G001.%s.%s.M). fecha_publicacion = %s, fecha bisecada del",
         "parametro SDMX updatedAfter (mismo mecanismo que BOP/QNEA - PCPS no trae fecha",
         "de dato legible, diagnostico 2026-08-28). La url NO basta para reproducir esta",
         "respuesta: el formato lo decide el header Accept:",
@@ -214,9 +231,10 @@ descargar_fmi_pcps_indicador <- function(codigo_indicador, publicacion_id) {
         "2026-08-28). %d observaciones con valor, periodo",
         "mas reciente %s. publicacion_id = %s, un publicacion_id por indicador desde el",
         "inicio (ADR-007, nota 2026-08-27, preventivo: los candidatos de PCPS comparten",
-        "dataflow y fecha de refresco, colisionarian en vintage_id bajo una ficha comun)."
+        "dataflow y fecha de refresco, colisionarian en vintage_id bajo una ficha comun).%s"
       ),
-      codigo_indicador, codigo_indicador, fecha_pub, length(idx_con_valor), periodo_max, publicacion_id
+      codigo_indicador, codigo_indicador, unidad, fecha_pub, length(idx_con_valor), periodo_max,
+      publicacion_id, nota_unidad
     )
   )
 }
