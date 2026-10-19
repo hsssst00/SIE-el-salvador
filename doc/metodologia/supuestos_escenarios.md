@@ -31,3 +31,18 @@ agente). Las casillas de arriba no se marcan hasta que los supuestos estén capt
   y este documento debe declararlo junto con la nota de coherencia de arriba.
 
 El método completo está en `doc/metodologia/protocolo_proyeccion.md`.
+
+## Nota (2026-10-19, F6-14 a F6-18)
+
+Las fichas F6-14 a F6-18 de `doc/metodologia/decisiones_fase6.md` completan lo que la nota anterior dejaba abierto.
+
+- **Base:** WEO de octubre de 2026 para el PIB de EE. UU., la inflación de EE. UU. y el precio del petróleo. La CBO
+  quedó capturada y sin uso; el empleo de EE. UU. y el comercio mundial no se usan (F6-15).
+- **Adverso:** escenario C («Market Correction») del recuadro 1.2 del capítulo 1, con sus desvíos anuales del PIB y
+  de la inflación de EE. UU. El petróleo queda en la base (F6-14).
+- **Favorable:** escenario A («Strong Payoffs») del mismo recuadro, con la misma traducción (F6-05, nota del
+  2026-10-19).
+- **De anual a trimestral:** Denton-Cholette con los trimestres observados fijos (F6-16).
+- **Inconsistencias que se declaran:** el adverso y el favorable vienen de un modelo del FMI (GIMF) distinto del que
+  arma la base; con C y con A el petróleo no se mueve; y las remesas nominales y reales tienen satélites separadas
+  (F6-15-b).

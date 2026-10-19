@@ -1,8 +1,8 @@
 # Protocolo de proyección condicional (Ejercicio B)
 
-**Estado:** borrador v0.1 del 2026-10-17. Aplica las decisiones F6-01 a F6-13 de
-`doc/metodologia/decisiones_fase6.md`. Las secciones marcadas **[abierto]** dependen de las fichas de especificación
-F6-14 a F6-18. El protocolo se congela con commit en el ítem E1 de `doc/checklist_fase6.md`, antes de la primera
+**Estado:** borrador v0.2 del 2026-10-19 (v0.1 del 2026-10-17). Aplica las decisiones F6-01 a F6-18 de
+`doc/metodologia/decisiones_fase6.md`; la v0.2 cerró las secciones que la v0.1 marcaba **[abierto]** (F6-14 a
+F6-18). El protocolo se congela con commit en el ítem E1 de `doc/checklist_fase6.md`, antes de la primera
 proyección sobre datos reales; después, cualquier cambio entra como nota fechada.
 **Alcance:** Ejercicio B de la senda metodológica §1.3, proyección condicional del PIB trimestral de El Salvador a
 2030, con h = 1 a 20. El Ejercicio A se rige por `protocolo_evaluacion.md`, cuyo §7 lo deja fuera.
@@ -42,37 +42,46 @@ preregistro.
 
 | Escenario | Fuente | Variables |
 |---|---|---|
-| Base | FMI, WEO de octubre de 2026 (base de datos) | PIB de EE. UU., comercio mundial, precios de materias primas, inflación de EE. UU. |
-| Base | CBO, proyecciones económicas vigentes al congelar | empleo de EE. UU. |
-| Adverso | FMI, WEO de octubre de 2026, capítulo 1 | **[abierto: F6-14]** |
+| Base | FMI, WEO de octubre de 2026 (base de datos) | PIB de EE. UU. (`USA.NGDP_RPCH`), inflación de EE. UU. (`USA.PCPIPCH`), petróleo (`G001.POILAPSP`) |
+| Adverso | FMI, WEO de octubre de 2026, capítulo 1, recuadro 1.2, escenario C (F6-14) | PIB e inflación de EE. UU. en desvío de la base; el petróleo queda en la base |
+| Favorable | el mismo recuadro, escenario A (F6-05, nota del 2026-10-19) | igual que el adverso |
 | Sensibilidad | las mismas de la base | §8 |
 
 - Cada fuente entra a L0 como vintage inmutable, con su sha256 en el manifiesto, por un *script* de
   `src/adquisicion/` (regla 1 de `CLAUDE.md`), antes de congelar.
-- Condiciones de uso: FMI según su tramo de ADR-008 (*script* y *checksum*); CBO según su tramo del 2026-10-17
-  (dominio público, con reconocimiento de la fuente).
+- Condiciones de uso: FMI según su tramo de ADR-008 (*script* y *checksum*). La CBO quedó capturada y sin uso
+  (F6-15); el comercio mundial y el empleo de EE. UU. no se usan.
 - La combinación de fuentes no garantiza consistencia interna perfecta (ADR-002). `supuestos_escenarios.md` lo
   declara.
-- Paso de anuales a trimestrales: **[abierto: F6-16]**.
+- Paso de anuales a trimestrales (F6-16): metas anuales encadenadas con los crecimientos del WEO desde el último año
+  completo de la historia trimestral, y Denton-Cholette con los trimestres completos observados fijos, hasta 2031-T4.
+  La traducción de los desvíos del adverso y del favorable está en F6-14.
 
 ## 5. Ecuaciones satélite (F6-03)
 
-Una satélite por predictora externa: remesas, FOB, IPM e IPP, e ITCER. Cada una vincula la predictora del modelo, en
+Una satélite por predictora externa (F6-15): remesas nominales y reales y FOB sobre el PIB de EE. UU., ITCER sobre
+el IPC de EE. UU., IPM e IPP sobre el petróleo. Cada una vincula la predictora del modelo, en
 su unidad de Fase 5 (Δlog, con dummies si es NSA, F4-06), con una variable de escenario. IVAE y UT no se
 condicionan.
 
 - Se especifican con las reglas de Fase 5: muestra hasta `o`, criterio de información, YAML en `catalogos/06_modelos/`
-  antes de correr. Forma, rezagos y elección de la variable de escenario: **[abierto: F6-15]**.
+  antes de correr. Forma (F6-15): Δlog X_t sobre constante, dummies T2..T4, p rezagos propios y Δlog Z de t a t − q,
+  con p y q en 0..4 por BIC y el término contemporáneo siempre; sin las filas de 2020 y 2021; una satélite común a
+  los tres grupos.
 - El sendero de cada predictora externa es la media de su satélite dado el sendero del escenario. La varianza del
-  error de la satélite entra a la densidad del modelo que la recibe; cómo se suma es parte de F6-15.
-- Las variables de escenario entran a L3 por el circuito de Fase 3: **[abierto: F6-18]**.
+  error de la satélite entra a la densidad del modelo que la recibe por varianza total, Σ_y + J Σ_X J' (F6-15-a).
+- Las variables de escenario entran a L3 por el circuito de Fase 3 como series `ESC.*` por escenario, con rol
+  `escenario` y validación con `stop()` (F6-18). Los senderos de la sensibilidad se arman en L4 (F6-18-c).
 
 ## 6. Condicionamiento (F6-06)
 
 Condicionamiento duro: el sendero de cada predictora externa se trata como conocido.
 
 - **ARIMAX y puente:** el sendero reemplaza a la proyección AR de la predictora. La densidad es la del error ARMA
-  del modelo más la varianza que aporta la satélite (§5). Borde mensual del puente: **[abierto: F6-17]**.
+  del modelo más la varianza que aporta la satélite (§5). Borde del puente (F6-17): en o+1 manda el dato
+  observado (los meses que faltan, con el AR mensual de Fase 5); desde el primer trimestre sin meses observados, el
+  agregado trimestral de la satélite. IVAE y UT siguen con su AR mensual hasta o+20. En todos los modelos, un
+  trimestre completo observado después de `o` entra como dato (F6-17-a).
 - **VAR, VECM y BVAR:** distribución normal del vector apilado de pronósticos (variables × h) condicionada a que las
   componentes de las predictoras externas igualen su sendero. En el BVAR, por extracción, con los momentos de B2-10.
   Las variables internas (PIB, IVAE, UT) responden (F6-06-a).

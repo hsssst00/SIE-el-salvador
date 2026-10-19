@@ -4,6 +4,9 @@
 por autorización de Harold (ver «Origen de estas decisiones»). Las fichas de especificación F6-14 en adelante están
 abiertas.
 
+**Nota (2026-10-19).** F6-14 a F6-18 quedaron decididas el 2026-10-19 en la opción recomendada, bajo la misma
+autorización, con los hechos verificados ese día (recuadro 1.2 y fuentes de las satélites).
+
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase5.md` para Fase 6: cada ficha lleva la
 línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran como notas
 fechadas; no se reescribe lo registrado. El protocolo que aplica estas decisiones es
@@ -82,6 +85,50 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 - **Copias.** Los tres archivos están en `data/L0_raw/` de la copia de Harold y en el almacén privado
   `SIE-el-salvador-L0` (commit `a6ea856`; el sha256 de cada blob coincide con el del manifiesto).
 
+## Hechos verificados el 2026-10-19 (recuadro 1.2 y fuentes de las satélites)
+
+- **Capítulo 1 en PDF.** `https://www.imf.org/-/media/files/publications/weo/2026/october/english/ch1.pdf`, 46
+  páginas, 1 242 447 bytes, sha256 `56935fc42267b24a779f2b3b08886efec3a6ddacf26831ecab3188129ace7c70`,
+  `Last-Modified` 2026-10-13. Se leyó para saber qué es cada escenario; las cifras salen del xlsx de L0. No se
+  capturó a L0. El recuadro 1.2 («Risk Assessment Surrounding the Baseline Projection») ocupa las páginas 25 a 30 y
+  tiene tres partes: bandas de confianza (figura 1.2.1), un escenario de materias primas y bonos y tres escenarios de
+  inteligencia artificial.
+- **Escenario de materias primas y bonos** (modelo G20 del FMI). El conflicto en Oriente Medio dura hasta fines de
+  junio de 2027; el petróleo llega a 130 USD de 2026-T4 a 2027-T1 y vuelve a la base hacia 2027-T4, y queda 17 % y
+  40 % sobre la base en el promedio de 2026 y 2027. Las primas por plazo suben 60 pb desde 2026-T4. El cuadro 1.2.1
+  da, en pp de desvío de la base, el crecimiento del PIB de 2026 y 2027: Mundo −0,2 y −0,5, avanzadas −0,2 y −0,5,
+  emergentes −0,3 y −0,6. El texto agrega el nivel del PIB de las avanzadas, −0,7 % hacia 2031. **No publica cifras
+  de EE. UU.** Es el escenario «del petróleo a 130 USD» de las reseñas citadas el 2026-10-17.
+- **Escenarios de inteligencia artificial** (modelo GIMF). **A, «Strong Payoffs»:** más inversión en IA y ganancias
+  de productividad tempranas; es favorable. **B, «Capacity Constraints»:** el mismo gasto con oferta restringida en
+  Asia, más inflación en EE. UU. y alza de tasas. **C, «Market Correction»:** las ganancias de productividad no
+  llegan, cae la inversión en tecnología de EE. UU. y las acciones de EE. UU. bajan 20 % en 2026; es adverso.
+  Valores de la hoja del vintage `FMI.WEO.CAPITULO1.v2026-10`, años 2026 a 2031:
+
+  | Serie (EE. UU.) | Escenario A | Escenario B | Escenario C |
+  |---|---|---|---|
+  | Nivel del PIB, % de desvío (figura 1.2.2, panel 2) | 0,0 / 0,4 / 0,7 / 1,0 / 1,1 / 1,3 | 0,0 / 0,1 / 0,2 / 0,5 / 0,6 / 0,7 | 0,0 / −1,5 / −1,8 / −1,4 / −0,8 / −0,5 |
+  | Inflación, pp de desvío (figura 1.2.3, panel 1) | 0,0 / 0,1 / 0,0 / 0,0 / 0,0 / 0,0 | 0,0 / 0,3 / 0,4 / 0,3 / 0,2 / 0,0 | 0,0 / 0,0 / −0,1 / −0,3 / −0,2 / 0,0 |
+
+  El texto dice que con C el PIB mundial queda 1,1 % debajo de la base hacia 2028; la hoja trae −1,2 para el Mundo en
+  2028. El dato de EE. UU. coincide (−1,8 en texto y hoja). Las figuras no traen petróleo, comercio mundial ni empleo.
+- **Petróleo en L0 frente al WEO.** La serie capturada, `G001.POILAPSP.INDEX.M` (`FMI.PCPS.POILAPSP.v2026-08`), no
+  es el precio que proyecta el WEO: de 2015 a 2025 su crecimiento anual difiere del de `G001.POILAPSP` del WEO entre
+  −3,4 y +8,8 pp. En cambio, `G001.POILAPSP.USD.M` de la misma API (consultado el 2026-10-19, sin capturar) da un
+  promedio anual igual al del WEO en todos esos años, que a su vez es el promedio simple de Brent, WTI y Dubai. No se
+  verificó por qué el índice difiere.
+- **PIB y precios de EE. UU. en L0 frente al WEO.** El crecimiento anual de GDPC1 (`FRED.BEA_PIB_EEUU.v2026-08`)
+  difiere del de `USA.NGDP_RPCH` hasta 0,24 pp (2025) en 1993-2025; la media de 2015 a 2025 es 0,06 pp. Es diferencia de
+  vintage. La inflación anual de CPIAUCSL (`FRED.CPIAUCSL.v2026-08`) coincide con `USA.PCPIPCH` a tres decimales en
+  todos los años completos; 2025 no está completo porque falta 2025-10.
+- **El WEO no publica** empleo asalariado de EE. UU. Sí publica, entre los precios de materias primas, `POILAPSP`,
+  `PFOODW`, `PALLFNFW` y `PNFUELW`. No se verificó si `PFOODW` y `PALLFNFW` son los mismos conceptos que `PFOOD` y
+  `PALLFNF` del PCPS en L0.
+- **Predictoras externas de los elegibles** (YAML de `catalogos/06_modelos/`): remesas nominales en los 14; FOB en
+  12; ITCER e IPM en 6 (G2 y G3); IPP en 3 (G3); remesas reales en 1 (`MULT.BVAR.G3`). Detalle en F6-15.
+- **Catálogos.** `03_series.csv` no tiene series de FRED, del FMI ni de la CBO, y el `rol` de `05_series_master.csv`
+  no admite un valor para variables de escenario. Las dos cosas entran a F6-18.
+
 ---
 
 ## Acta de decisiones
@@ -101,6 +148,11 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 | F6-11 | Cifra principal: crecimiento anual 2026-2030 (promedio del año de los niveles SA); además interanual trimestral y nivel | ninguno |
 | F6-12 | Preregistro y reproducibilidad con el esquema de Fase 5; protocolo propio; canarios V22 y V23; `make fase6` | protocolo de proyección (nuevo) |
 | F6-13 | Medir raíces y distancia media-mediana del BVAR antes de proyectar, con lo que se mira fijado aquí; luego mediana de la predictiva como sendero | ninguno |
+| F6-14 | Adverso = escenario C del recuadro 1.2 (corrección del mercado de IA); desvíos anuales de PIB e inflación de EE. UU.; el petróleo queda en la base | protocolo de proyección §4 |
+| F6-15 | Seis satélite ADL en Δlog (PIB de EE. UU. para remesas y FOB, IPC de EE. UU. para ITCER, petróleo para IPM e IPP); error por varianza total; la CBO queda sin uso | protocolo §5; `CBO.PROYECCIONES_ECONOMICAS.yaml` y ADR-008 (notas 2026-10-19) |
+| F6-16 | Denton-Cholette con los trimestres observados fijos y metas anuales encadenadas con los crecimientos del WEO | protocolo §4 |
+| F6-17 | En el puente manda el dato observado de o+1; desde el primer trimestre sin meses, el agregado de la satélite | protocolo §6 |
+| F6-18 | Series `ESC.*` por escenario en L3 con rol nuevo `escenario`; petróleo en USD (publicación nueva); validación con `stop()` | protocolo §5; checklist (C2b) |
 
 ---
 
@@ -163,6 +215,10 @@ por predictora externa, con lista cerrada:
 
 La forma de cada satélite y la elección en las filas con dos candidatas («o») son la ficha de especificación F6-15.
 
+**Nota (2026-10-19).** F6-15 eligió el PIB de EE. UU. para remesas y FOB, el IPC de EE. UU. para ITCER y el
+petróleo para IPM e IPP. El empleo de EE. UU., el comercio mundial y los índices de alimentos y general de materias
+primas no se usan.
+
 ## F6-04 — Origen, corte de datos y horizonte
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** un corte nuevo
@@ -192,6 +248,20 @@ congelamiento.
 Razones: la CBO declara sus productos de dominio público, mientras que la Fed no tiene una declaración equivalente
 verificada; la CBO proyecta diez años, lo que cubre 2031-Q2, mientras que el SEP llega a tres años más el largo
 plazo; y el SEP no proyecta el empleo asalariado. Con eso solo hace falta el tramo de la CBO en ADR-008.
+
+**Nota (2026-10-19), favorable.** Se cumplió la condición de la opción (b): el recuadro 1.2 del capítulo 1 del mismo
+WEO publica un escenario favorable con cifras para EE. UU., el **A** («Strong Payoffs»). Entra como escenario
+favorable, con la misma traducción que el adverso de F6-14 y sus desvíos de las figuras 1.2.2 y 1.2.3. Los escenarios
+del Ejercicio B quedan en base, adverso (C), favorable (A) y sensibilidad.
+
+**Delegada al agente; se puede reabrir (F6-05-b):** el favorable es A y no B. B también sube el PIB de EE. UU., pero
+con más inflación y alza de tasas; no es el lado favorable de C. A y C salen del mismo modelo (GIMF), del mismo
+recuadro y con las mismas variables.
+
+**Nota (2026-10-19), empleo.** F6-15 eligió el PIB de EE. UU. del WEO para la satélite de remesas. La línea «Empleo de
+EE. UU.» y F6-05-a quedan sin efecto: la CBO queda capturada en L0 (`CBO.PROYECCIONES_ECONOMICAS.v2026-02`) y sin
+uso en Fase 6, con nota fechada en su YAML y en el tramo CBO de ADR-008. La razón de no usar el SEP de la Fed sigue
+valiendo.
 
 ## F6-06 — Método de condicionamiento
 
@@ -257,6 +327,9 @@ escenario se mueve ±1 desviación estándar histórica de su crecimiento anual,
 - Las demás variables de escenario quedan en su sendero base. No se mueve una variable de escenario por su
   correlación con otra.
 
+**Nota (2026-10-19).** Con F6-15, las variables de escenario son tres: PIB de EE. UU., IPC de EE. UU. y petróleo.
+La sensibilidad son seis corridas (±1 desviación estándar de cada una), con sus senderos armados como dice F6-18-c.
+
 ## F6-10 — Coherencia interna (lo que reemplaza a la validación)
 
 **DECIDIDO (opción recomendada, autorización de Harold del 2026-10-17):** la lista tal cual. Cualquier ítem nuevo
@@ -317,19 +390,278 @@ ficha nueva antes de congelar.
 
 ---
 
-## Fichas de especificación abiertas
+## Fichas de especificación F6-14 a F6-18
 
-Estas fichas se redactan con contexto verificado y una recomendación cuando haya datos para decidirlas. Ninguna
-está decidida.
+**Nota (2026-10-19).** Hasta esta fecha esta sección listaba las cinco fichas como abiertas. Se redactaron y
+decidieron el 2026-10-19 con los hechos de «Hechos verificados el 2026-10-19 (recuadro 1.2 y fuentes de las
+satélites)», en la opción recomendada de cada una y bajo la delegación del 2026-10-17 (regla 4 de `CLAUDE.md`). Cada
+ficha conserva su pregunta original.
 
-- **F6-14 — Escenario adverso.** Cuál de los escenarios del capítulo 1 del WEO de octubre de 2026 y cómo se
-  traducen sus desviaciones (que pueden venir solo como anuales o regionales) a las variables de escenario,
-  incluido el empleo de EE. UU. Se decide al capturar el capítulo y sus datos de gráficos.
-- **F6-15 — Especificación de las satélite.** Forma, rezagos, muestra, dummies para las predictoras NSA y elección
-  en las filas con dos candidatas de F6-03.
-- **F6-16 — De supuestos anuales a trimestrales.** El WEO proyecta años; la CBO publica trimestres. Desagregación
-  temporal (por ejemplo, Denton-Cholette con `tempdisagg`, ya en el stack) o crecimiento trimestral constante.
-- **F6-17 — El puente con senderos trimestrales.** Cómo se combinan el borde mensual observado de o+1 y el sendero
-  trimestral de la satélite.
-- **F6-18 — Variables de escenario en L3.** Identificadores, transformaciones y validación de las series nuevas
-  (regla 4: definición de variables nuevas).
+## F6-14 — Escenario adverso y traducción de sus desviaciones
+
+**Pregunta (la de la lista abierta).** Cuál de los escenarios del capítulo 1 del WEO de octubre de 2026 y cómo se
+traducen sus desviaciones (que pueden venir solo como anuales o regionales) a las variables de escenario, incluido
+el empleo de EE. UU.
+
+**Contexto verificado.** El recuadro 1.2 tiene dos bloques de escenarios (detalle en los hechos del 2026-10-19):
+
+- **Materias primas y bonos** (modelo G20). Publica petróleo +17 % y +40 % sobre la base en el promedio de 2026 y
+  2027, con 130 USD de 2026-T4 a 2027-T1, y el crecimiento del Mundo, de las avanzadas y de las emergentes en 2026 y
+  2027 (cuadro 1.2.1). **No publica cifras de EE. UU.** ni un sendero del petróleo después de 2027 fuera de «vuelve a
+  la base hacia 2027-T4».
+- **Inteligencia artificial** (modelo GIMF). A es favorable, B es mixto y C es adverso. Para EE. UU. publica, de
+  2026 a 2031, el nivel del PIB en % de desvío de la base (figura 1.2.2) y la inflación en pp (figura 1.2.3).
+
+Las predictoras externas que mueve cada variable de escenario están en F6-15: el PIB de EE. UU. llega a remesas y FOB,
+es decir, a los 14 elegibles; el petróleo llega a IPM e IPP, que solo están en 6 elegibles de G2 y G3.
+
+**Opciones.**
+
+- **(a) Escenario C** («Market Correction»). Trae EE. UU. en todo el horizonte, con las dos variables que usan las
+  satélite de F6-15, y viene del mismo modelo y del mismo recuadro que el A (favorable). No mueve el petróleo.
+- **(b) Materias primas y bonos.** Mueve el petróleo, pero el PIB de EE. UU. tendría que suponerse igual al de las
+  avanzadas, y solo hay crecimiento de 2026 y 2027 más un nivel en 2031. Hacen falta supuestos sin fuente para
+  2028-2031 y para el perfil trimestral del petróleo.
+- **(c) Los dos como adversos.** F6-05 fija **un** escenario de riesgo; esta opción reabre F6-05 y habría que
+  preguntarle a Harold.
+
+**Implicación práctica.** Con (a), el adverso entra por remesas y FOB (todos los grupos) y por ITCER (G2 y G3), y el
+petróleo queda en la base. Con (b) entraría casi solo por IPM e IPP en G2 y G3, y el canal de EE. UU. sería un
+supuesto propio. El riesgo de petróleo se sigue viendo en la sensibilidad de F6-09.
+
+**Recomendación:** (a).
+
+**DECIDIDO (opción recomendada (a), delegación del 2026-10-17):** el escenario adverso es el **C** del recuadro 1.2.
+Traducción a las variables de escenario (F6-18), año a año, de 2026 a 2031:
+
+- **PIB de EE. UU.:** nivel anual del adverso = nivel anual de la base × (1 + d_y / 100), con d_y de la figura 1.2.2,
+  panel 2 (EE. UU.), fila «Scenario C»: 0,0 / −1,5 / −1,8 / −1,4 / −0,8 / −0,5.
+- **Inflación de EE. UU.:** inflación anual del adverso = la de la base + d_y (pp), con d_y de la figura 1.2.3, panel
+  1, línea de EE. UU., fila «Scenario C»: 0,0 / 0,0 / −0,1 / −0,3 / −0,2 / 0,0. El índice se encadena con esa
+  inflación.
+- **Petróleo:** el escenario C no lo publica. Queda en el sendero base y el informe lo declara.
+- **Empleo de EE. UU.:** no se usa (F6-15).
+- Las cifras se leen de la hoja del vintage `FMI.WEO.CAPITULO1.v2026-10` en L0, no del PDF. El PDF solo fija qué
+  es cada letra. El paso a trimestres es F6-16.
+
+**Delegada al agente; se puede reabrir (F6-14-a):** la «Inflation» de la figura 1.2.3 se lee como la inflación del
+IPC en promedio anual, la variable `PCPIPCH` de la base de datos del WEO. El recuadro no lo precisa. Con C los desvíos
+son de 0,3 pp o menos, así que la lectura importa poco.
+
+**Delegada al agente; se puede reabrir (F6-14-b):** las cifras van con el decimal que trae la hoja. No se
+reconstruyen decimales a partir del gráfico.
+
+## F6-15 — Especificación de las satélite
+
+**Pregunta (la de la lista abierta).** Forma, rezagos, muestra, dummies para las predictoras NSA y elección en las
+filas con dos candidatas de F6-03.
+
+**Contexto verificado.** Predictoras externas de los 14 elegibles, según sus YAML:
+
+| Predictora (L3, trimestral) | Modelos elegibles que la usan |
+|---|---|
+| `BCR.REMESAS.NOM.NSA.Q` | los 14 |
+| `BCR.EXPORT_FOB.NOM.NSA.Q` | 12 (todos menos `MULT.VAR_DIF.G2` y `.G3`) |
+| `BCR.ITCER.IDX.NSA.Q`, `BCR.IPM.IDX.NSA.Q` | 6 (`UNI.ARIMAX`, `MULT.BVAR` y `MIX.PUENTE` de G2 y G3) |
+| `BCR.IPP.IDX.NSA.Q` | 3 (los mismos, solo G3) |
+| `BCR.REMESAS.REAL.NSA.Q` | 1 (`MULT.BVAR.G3`) |
+
+El puente usa las versiones mensuales, pero su ecuación solo toma los agregados trimestrales (F6-17). Las seis son
+NSA. Fuentes: la base del WEO trae PIB e inflación de EE. UU., petróleo y comercio mundial (anuales) y no trae empleo
+asalariado; A y C publican solo PIB e inflación de EE. UU.; la CBO trae empleo trimestral, pero su vintage es del
+2026-02. No hay historia trimestral del comercio mundial en L0.
+
+**Opciones para las filas con dos candidatas.**
+
+- **Remesas:** (a) PIB de EE. UU. o (b) empleo de EE. UU. de la CBO. Con (b), la base mezclaría dos fuentes con ocho
+  meses de diferencia, y el adverso y el favorable necesitarían pasar el desvío del PIB a empleo con una elasticidad
+  sin fuente.
+- **FOB:** (a) PIB de EE. UU. o (b) comercio mundial. Con (b) no hay historia trimestral para estimar, y ni A ni C
+  publican comercio.
+- **IPM e IPP:** (a) solo el petróleo o (b) el petróleo más alimentos o el índice general. El WEO publica `PFOODW` y
+  `PALLFNFW`, y no está verificado que sean los mismos conceptos que `PFOOD` y `PALLFNF` de L0.
+- **ITCER:** (a) la inflación de EE. UU. o (b) el diferencial con la inflación local. La inflación local es interna
+  (como IVAE y UT en F6-03), no tiene serie en L3 y ningún escenario publica su desvío.
+
+**Opciones de forma.** (a) Rezagos distribuidos autorregresivos en Δlog, estimados por MCO; (b) niveles con
+corrección de error; (c) elasticidad fija sin estimar. (b) exige una relación de largo plazo que el Ejercicio A no
+evaluó, y (c) es un supuesto sin fuente.
+
+**Recomendación:** (a) en todas las filas y forma (a).
+
+**DECIDIDO (opción recomendada, delegación del 2026-10-17):**
+
+| Satélite | Predictora | Variable de escenario |
+|---|---|---|
+| `SAT.REMESAS_NOM` | `BCR.REMESAS.NOM.NSA.Q` | PIB de EE. UU. |
+| `SAT.REMESAS_REAL` | `BCR.REMESAS.REAL.NSA.Q` | PIB de EE. UU. |
+| `SAT.EXPORT_FOB` | `BCR.EXPORT_FOB.NOM.NSA.Q` | PIB de EE. UU. |
+| `SAT.ITCER` | `BCR.ITCER.IDX.NSA.Q` | IPC de EE. UU. |
+| `SAT.IPM` | `BCR.IPM.IDX.NSA.Q` | petróleo (promedio APSP, USD) |
+| `SAT.IPP` | `BCR.IPP.IDX.NSA.Q` | petróleo (promedio APSP, USD) |
+
+- **Ecuación:** Δlog X_t = c + δ'D_t + Σ_{i=1..p} φ_i Δlog X_{t−i} + Σ_{j=0..q} β_j Δlog Z_{t−j} + e_t, con D las
+  dummies T2..T4 (las seis predictoras son NSA) y Z la variable de escenario trimestral de F6-18.
+- **Rezagos:** p en 0..4 y q en 0..4, por BIC sobre la misma muestra (las filas con cuatro rezagos disponibles), como
+  B2-2. El término contemporáneo β_0 está siempre: sin él la satélite no transmite el escenario.
+- **Muestra:** desde el primer trimestre con las dos series hasta el origen `o`, sin las filas cuyo trimestre está en
+  2020 o 2021. Eso equivale a ocho dummies de impulso y sigue el criterio de F6-08-a y F6-09-a.
+- **Estimación:** una sola vez, en `o` (F6-04). Una satélite por predictora, común a G1-G3, a los modelos
+  trimestrales y al puente. Cada una lleva su YAML en `catalogos/06_modelos/` antes de correr (D3).
+- **Sendero:** la ecuación se itera con el sendero de Z del escenario y los rezagos observados de X.
+- **Guardas (`stop()`):** matriz sin rango completo; raíz del polinomio en φ con módulo ≥ 1; menos de 20 grados de
+  libertad (el `PISO_GL` de Fase 5).
+
+**Delegada al agente; se puede reabrir (F6-15-a), cómo se suma el error de la satélite:** por varianza total. Si el
+pronóstico del modelo dado el sendero apilado de sus predictoras externas X es normal, con media lineal en X
+(matriz J) y covarianza Σ_y, y la satélite da X ~ N(m, Σ_X) dado el sendero de Z, la densidad del modelo es
+N(μ(m), Σ_y + J Σ_X J'). Σ_X sale de los pesos MA de cada satélite y de la covarianza contemporánea de sus residuos,
+estimada en la muestra común de las satélites que usa ese modelo, como en B3b-6. En el BVAR, J y Σ_y van por
+extracción y Σ_X es común. Va con estimador plug-in, sin incertidumbre de parámetros, como en Fase 5. Se supone que los
+residuos de la satélite son independientes de las innovaciones del modelo, y el informe lo declara.
+
+**Delegada al agente; se puede reabrir (F6-15-b):** las remesas nominales y las reales tienen cada una su satélite
+sobre el mismo Z. El deflactor implícito (cociente entre ambas) no queda atado. Solo afecta a `MULT.BVAR.G3` y se
+declara.
+
+**Consecuencias (2026-10-19).** La CBO queda capturada y sin uso en Fase 6, como preveía F6-05-a. Va nota fechada en
+su YAML, en F6-05 y en el tramo CBO de ADR-008. El comercio mundial tampoco se usa (protocolo §4).
+
+## F6-16 — De supuestos anuales a trimestrales
+
+**Pregunta (la de la lista abierta).** El WEO proyecta años; la CBO publica trimestres. Desagregación temporal (por
+ejemplo, Denton-Cholette con `tempdisagg`, ya en el stack) o crecimiento trimestral constante.
+
+**Contexto verificado.** Con F6-15, las tres variables de escenario (PIB e IPC de EE. UU. y petróleo) vienen del WEO,
+anuales, y tienen historia trimestral en L0 (FRED y PCPS). El año del origen está observado en parte: el PIB de EE.
+UU. hasta 2026-T2 en el vintage de L0, y el IPC y el petróleo mensuales hasta 2026-07. Entre el WEO y FRED el
+crecimiento anual del PIB de EE. UU. difiere hasta 0,24 pp (2025) por vintage. `tempdisagg` 1.2.0 está en el
+`renv.lock`.
+
+**Opciones.**
+
+- **(a) Denton-Cholette** con los trimestres observados fijos: el sendero trimestral más suave (mínimas primeras
+  diferencias) cuyo promedio de cada año iguala el supuesto anual.
+- **(b) Crecimiento trimestral constante dentro de cada año.** Da saltos de pendiente en cada enero y no respeta
+  exactamente el promedio anual cuando el año está observado en parte.
+- **(c) Perfil intra-anual de la CBO** para el PIB de EE. UU. Mezcla fuente y vintage, y no sirve para el IPC ni el
+  petróleo.
+
+**Recomendación:** (a).
+
+**DECIDIDO (opción recomendada (a), delegación del 2026-10-17):**
+
+- **Metas anuales:** A_y = promedio de los cuatro trimestres del año y. El año ancla es el último año completo de la
+  historia trimestral en L3; de ahí en adelante, A_y = A_{y−1} · (1 + g_y / 100), con g_y el crecimiento anual del
+  WEO del escenario (F6-14). Se encadenan **crecimientos** del WEO sobre la historia propia, no niveles.
+- **Sendero:** se fijan los trimestres observados y se eligen los demás, hasta 2031-T4, para minimizar Σ (x_t −
+  x_{t−1})² desde el último trimestre observado, con la restricción de que cada año proyectado promedie A_y. Los
+  trimestres observados del año del origen entran en su promedio. Es un problema de mínimos cuadrados con
+  restricciones lineales y se resuelve en forma cerrada con código propio.
+- **Contraste:** sin trimestres fijos, el código propio debe coincidir con
+  `tempdisagg::td(A ~ 1, conversion = "average", method = "denton-cholette")` (prueba sintética en D3).
+
+**Delegada al agente; se puede reabrir (F6-16-a):** solo se fijan trimestres **completos**. Un trimestre con uno o dos
+meses observados cuenta como no observado.
+
+**Delegada al agente; se puede reabrir (F6-16-b):** el sendero se resuelve hasta 2031-T4 aunque el horizonte termine
+antes, porque la meta de 2031 necesita sus cuatro trimestres. Una propiedad que se declara: con d_2026 = 0 y d_2027 ≠ 0
+(A y C), el suavizado curva también los trimestres libres de 2026 sin cambiar su promedio.
+
+## F6-17 — El puente con senderos trimestrales
+
+**Pregunta (la de la lista abierta).** Cómo se combinan el borde mensual observado de o+1 y el sendero trimestral de
+la satélite.
+
+**Contexto verificado.** La ecuación del puente (F5-05, B3b) usa solo los agregados trimestrales de sus predictoras
+mensuales. En Fase 5, los meses de o+1 que admite el calendario entran observados (F5-04) y un AR(p)-BIC mensual
+completa el resto hasta el último mes de o+8 (B3b-4). El Δlog trimestral no depende de si el agregado es suma o
+promedio. Las predictoras externas del puente son remesas y FOB (G1-G3), ITCER e IPM (G2 y G3) e IPP (G3); las
+internas son IVAE y UT (G2 y G3).
+
+**Opciones.**
+
+- **(a) El dato observado manda.** En o+1, los meses observados más el AR mensual de Fase 5 para los que faltan; desde
+  el primer trimestre sin meses observados, el agregado trimestral sale de la satélite.
+- **(b) Satélite desde o+1,** sin usar los meses observados de o+1. Pierde el dato que da su ventaja al puente.
+- **(c) Satélites mensuales.** Doce veces más parámetros, y los escenarios no son mensuales.
+
+**Recomendación:** (a).
+
+**DECIDIDO (opción recomendada (a), delegación del 2026-10-17):**
+
+- **Predictoras externas.** Si o+1 tiene sus tres meses observados, su agregado es dato. Si tiene uno o dos, los que
+  faltan se completan con el AR mensual de B3b-4, y la satélite no se usa en o+1 para esa predictora. Desde el primer
+  trimestre sin meses observados, Δlog X_Q viene de la satélite de F6-15. Para las externas no hace falta un sendero
+  mensual más allá de o+1.
+- **Predictoras internas (IVAE y UT).** El AR mensual de Fase 5 hasta el último mes de o+20 (antes, o+8).
+- **Densidad.** El sistema lineal de B3b-5 y B3b-6, reducido a los AR mensuales que siguen en uso (los de las
+  internas y los de los meses que faltan en o+1), más el término de la satélite (F6-15-a). Se suponen independientes
+  los residuos de los AR mensuales y los de las satélites.
+
+**Delegada al agente; se puede reabrir (F6-17-a), regla general del borde para todos los modelos:** un trimestre
+**completo** observado de una predictora externa posterior a `o` entra como dato en todos los elegibles: en la
+ARIMAX como regresor conocido y en el VAR, el VECM y el BVAR como parte del sendero condicionado. La satélite arranca
+en el primer trimestre sin dato completo. Si una predictora no llega a `o`, rige la guarda de Fase 5 (`stop()`); las
+satélites no rellenan huecos anteriores al origen.
+
+**Delegada al agente; se puede reabrir (F6-17-b):** si o+1 está incompleto, el puente usa en o+1 el AR mensual y los
+modelos trimestrales usan la satélite, así que en ese trimestre los escenarios no difieren para el puente. Se declara;
+cuántos meses de o+1 hay se sabe al congelar.
+
+## F6-18 — Variables de escenario en L3
+
+**Pregunta (la de la lista abierta).** Identificadores, transformaciones y validación de las series nuevas (regla 4:
+definición de variables nuevas).
+
+**Contexto verificado.** `03_series.csv` no tiene ninguna serie de FRED, del FMI ni de la CBO: las publicaciones
+y sus vintages existen, las series no. El campo `rol` de `05_series_master.csv` admite solo `target_primary`,
+`target_robustness`, `predictor` e `intermediate` (`datapackage.json`). La serie de petróleo de L0
+(`G001.POILAPSP.INDEX.M`) **no** es el precio que proyecta el WEO: su crecimiento anual difiere del de `POILAPSP` del
+WEO hasta 8,8 pp (2022). La unidad en USD de la misma API (`G001.POILAPSP.USD.M`) da un promedio anual idéntico al del
+WEO de 2015 a 2025. Al IPC de EE. UU. de L0 le falta 2025-10.
+
+**Opciones.** (a) Series de escenario completas en L3 (historia + proyección) por escenario, construidas por una
+transformación declarada; (b) solo la historia en L3 y los senderos armados en tiempo de corrida, en L4. Con (b),
+los senderos no pasan por la validación de Fase 3 ni quedan en el linaje de L3.
+
+**Recomendación:** (a).
+
+**DECIDIDO (opción recomendada (a), delegación del 2026-10-17):**
+
+- **Captura previa (C2b del checklist).** `G001.POILAPSP.USD.M` entra a L0 como publicación nueva,
+  `FMI.PCPS.POILAPSP_USD`, por el esquema (regla 2). No se usa la unidad `INDEX` ya capturada. Antes de congelar
+  también se renuevan los vintages de FRED del PIB y del IPC de EE. UU. (C4).
+- **`03_series.csv`:** `FRED.PIB_EEUU.VOL.SA.Q` (GDPC1), `FRED.IPC_EEUU.IDX.SA.M` (CPIAUCSL),
+  `FMI.PETROLEO_APSP.USD.NSA.M`; del WEO, `FMI.PIB_EEUU_VAR.PCT.NSA.A` (`USA.NGDP_RPCH`),
+  `FMI.IPC_EEUU_VAR.PCT.NSA.A` (`USA.PCPIPCH`) y `FMI.PETROLEO_APSP.USD.NSA.A` (`G001.POILAPSP`); del capítulo 1,
+  `FMI.DESV_PIB_EEUU_ESC_A.PCT.NSA.A`, `FMI.DESV_PIB_EEUU_ESC_C.PCT.NSA.A`, `FMI.DESV_INFL_EEUU_ESC_A.PP.NSA.A` y
+  `FMI.DESV_INFL_EEUU_ESC_C.PP.NSA.A`, con `hoja` y celdas, verificadas con `verificar_fuente_celda.R` y asentadas
+  en la bitácora (regla 8).
+- **`04_transformaciones.csv`:** `T012` agregación trimestral del IPC de EE. UU. (promedio de 3 meses), `T013`
+  agregación trimestral del petróleo (promedio) y `T014_SENDERO_ESCENARIO` (traducción de F6-14 y desagregación de
+  F6-16).
+- **`05_series_master.csv`:** `FRED.PIB_EEUU.VOL.SA.Q`, `FRED.IPC_EEUU.IDX.SA.Q` y `FMI.PETROLEO_APSP.USD.NSA.Q`
+  (historia) y `ESC.PIB_EEUU.VOL.SA.Q.{BASE,ADVERSO,FAVORABLE}`, `ESC.IPC_EEUU.IDX.SA.Q.{BASE,ADVERSO,FAVORABLE}`
+  y `ESC.PETROLEO_APSP.USD.NSA.Q.BASE` (historia + proyección hasta 2031-T4). Rol nuevo `escenario`, agregado
+  primero a `datapackage.json` (regla 2). Una variable que un escenario no publica usa la serie `BASE`; no se
+  duplica.
+- **Validación (`stop()`, regla 7):** (1) el promedio anual de cada año proyectado iguala su meta con error relativo
+  ≤ 1e-10; (2) la historia de cada serie `ESC.*` es bit a bit la de su serie histórica y la misma en todos los
+  escenarios; (3) adverso / base − 1 = d_y / 100 en el PIB y la diferencia de inflación = d_y, a 1e-10; (4) sin NA,
+  niveles positivos, trimestres contiguos y fin ≥ `o` + 20; (5) el promedio anual del petróleo en USD iguala la
+  historia de `POILAPSP` del WEO con error relativo ≤ 1e-6 en los años completos comunes; (6) la inflación anual del
+  IPC de FRED difiere de `PCPIPCH` del WEO en ≤ 0,01 pp en los años completos comunes. El PIB de EE. UU. solo se
+  informa (difiere por vintage).
+
+**Delegada al agente; se puede reabrir (F6-18-a), identificadores:** el prefijo `ESC` marca una serie construida por el
+SIE con más de una fuente, como `PIB.SA.PROPIO.Q` en el objetivo. El sufijo tras la frecuencia nombra el escenario.
+Es un uso nuevo del sufijo de la senda §3.4 (allí distingue tramos de captura) y queda declarado aquí.
+
+**Delegada al agente; se puede reabrir (F6-18-b), dato faltante:** un mes aislado sin dato en una serie mensual de
+escenario (hoy 2025-10 del IPC de EE. UU.) se interpola log-linealmente entre sus vecinos, solo para el agregado
+trimestral, con nota en el catálogo. Un hueco de dos meses o más es `stop()`.
+
+**Delegada al agente; se puede reabrir (F6-18-c):** los senderos de la sensibilidad (F6-09) no van a L3. Se arman en
+L4 con la misma función de `T014`, a partir de las metas anuales de la base y de las desviaciones estándar de
+F6-09-a, y quedan en el manifiesto.
