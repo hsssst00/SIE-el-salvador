@@ -38,12 +38,15 @@ se marca.
 ## C. Insumos
 
 - [x] **C1** Tramo de la CBO en ADR-008. — enmienda del 2026-10-17. La Fed no se usa (F6-05-a).
-- [ ] **C1b** Alta de la CBO en `catalogos/00_instituciones.csv` y de su publicación de proyecciones económicas en
+- [x] **C1b** Alta de la CBO en `catalogos/00_instituciones.csv` y de su publicación de proyecciones económicas en
   `catalogos/01_publicaciones/` (con sus condiciones de uso de ADR-008), por el esquema de
-  `catalogos/datapackage.json` (regla 2). Hoy el catálogo tiene 11 instituciones y la CBO no está; el WEO ya
-  figura como `FMI.WEO`. Va en el mismo PR que C2, antes de capturar.
-- [ ] **C2** Captura a L0, por *script* de `src/adquisicion/` y con manifiesto, del WEO de octubre de 2026 (base de
-  datos y datos del capítulo 1) y de las proyecciones económicas de la CBO.
+  `catalogos/datapackage.json` (regla 2). — 2026-10-19: `CBO` y `CBO.PROYECCIONES_ECONOMICAS.yaml`, más
+  `FMI.WEO.CAPITULO1.yaml`; `make validate` y `check_l0_integrity.R` en verde en el sandbox y en el CI del PR.
+- [x] **C2** Captura a L0, por *script* de `src/adquisicion/` y con manifiesto, del WEO de octubre de 2026 (base de
+  datos y datos del capítulo 1) y de las proyecciones económicas de la CBO. — 2026-10-19: vintages
+  `FMI.WEO.v2026-10`, `FMI.WEO.CAPITULO1.v2026-10` y `CBO.PROYECCIONES_ECONOMICAS.v2026-02` en `08_vintages.csv` y
+  el manifiesto; detalle y sha256 en «Hechos verificados el 2026-10-19» de `decisiones_fase6.md`. Crudos en el
+  almacén privado de L0 (commit `a6ea856`).
 - [ ] **C3** Variables de escenario en L3 (catálogo, transformación, validación). Depende de B4 (F6-18).
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 

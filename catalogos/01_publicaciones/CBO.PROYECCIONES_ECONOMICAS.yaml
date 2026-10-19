@@ -1,0 +1,34 @@
+publicacion_id: CBO.PROYECCIONES_ECONOMICAS
+institucion_id: CBO
+nombre: "Proyecciones económicas a 10 años de la CBO (Economic Projections), serie trimestral"
+periodicidad: semestral
+formato: csv (repositorio US-CBO/cbo-data en GitHub; en cbo.gov, xlsx)
+url: https://github.com/US-CBO/cbo-data/tree/main/data/economic/economic_projections
+cobertura_temporal: "Verificado por el agente el 2026-10-19 sobre quarterly_2026-02.csv: trimestral de 2023q1 a 2036q4, 146 variables en formato largo (date, variable, value, estimate_type). empl_payroll_nf (empleo asalariado no agrícola, millones) trae observado hasta 2025q2 y proyección hasta 2036q4. El repositorio guarda un archivo por vintage (2024-02, 2024-06, 2025-01, 2025-09 y 2026-02 a esa fecha). La publicación canónica en cbo.gov es https://www.cbo.gov/data/budget-economic-data (Economic Projections, publicación 51135)."
+condiciones_uso: "Dominio público. La CBO declara sus productos obras del gobierno de EE. UU. de dominio público (https://www.cbo.gov/about/privacy, sección Copyright) y el LICENSE.md de US-CBO/cbo-data dice que el material es de dominio público en EE. UU. por 17 U.S.C. § 105, con renuncia mundial a otros derechos. Pide reconocer a la CBO como fuente y que se identifique cualquier modificación. Tramo de la CBO de ADR-008 (2026-10-17): el crudo puede comprometerse al repositorio público con atribución; por ahora se maneja como el resto de L0 (almacén privado y manifiesto)."
+notas: |
+  Fuente: Congressional Budget Office, Economic Projections (las del informe
+  The Budget and Economic Outlook de cada vintage). Alta del 2026-10-19,
+  Fase 6, checklist C1b.
+
+  Uso en el proyecto: empleo de EE. UU. del escenario base (F6-05-a). Si la
+  ficha F6-15 elige el PIB o el desempleo de EE. UU. del WEO para la
+  satélite de remesas, esta publicación queda capturada y sin uso, y se
+  registra con nota fechada.
+
+  Canal (verificado el 2026-10-19): www.cbo.gov responde 403 con un desafío
+  de DataDome a un cliente HTTP sin navegador, que es un bloqueo de acceso
+  automatizado; por la regla 9 no se evade. La captura se hace desde el
+  repositorio de la propia CBO en GitHub (src/adquisicion/cbo.R), que
+  publica las mismas proyecciones en CSV con nombre por vintage. El README
+  del repositorio dice que la fuente canónica sigue siendo cbo.gov.
+
+  fecha_publicacion: el CSV no trae fecha. Se usa la fecha del informe de
+  origen, pasada a mano y declarada en las notas del vintage. El vintage
+  2026-02 sale de The Budget and Economic Outlook: 2026 to 2036, publicado
+  el 2026-02-11 (https://www.cbo.gov/publication/61882), con proyecciones
+  económicas cerradas el 2025-12-03.
+
+  Desfase con el WEO: el vintage 2026-02 es ocho meses anterior al WEO de
+  octubre de 2026. Es una inconsistencia entre fuentes que ADR-002 pide
+  declarar (checklist F1).

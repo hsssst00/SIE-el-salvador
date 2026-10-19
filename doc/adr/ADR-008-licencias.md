@@ -337,6 +337,13 @@ capturar nada.
 **Alcance.** Como la del 2026-10-14, esta enmienda fija la condición, no la implementación: ningún archivo se captura
 ni se compromete con ella. La captura es el ítem C2 de `doc/checklist_fase6.md`.
 
+**Nota (2026-10-19), canal de captura.** `www.cbo.gov` bloquea el acceso automatizado (desafío de DataDome), y por la
+regla 9 no se evade. La captura usa el repositorio público de la propia CBO en GitHub, `US-CBO/cbo-data`, cuyo
+`LICENSE.md` declara el material de dominio público en EE. UU. (17 U.S.C. § 105) con renuncia mundial a otros
+derechos y pide atribuir las modificaciones. Es la misma condición de este tramo; no cambia nada de lo decidido. El
+crudo se maneja por ahora como el resto de L0 (almacén privado y manifiesto), aunque este tramo permitiría
+comprometerlo.
+
 ## Enmienda — vencimiento del corte de CEPAL (2026-10-19)
 
 **Hecho.** Sin pronunciamiento de CEPAL al 2026-10-16. Harold lo confirmó el 2026-10-19: no hubo respuesta a la

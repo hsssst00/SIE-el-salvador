@@ -47,7 +47,7 @@ calcular_sha256_norm <- function(contenido_crudo, extension) {
   digest::digest(bytes, algo = "sha256", serialize = FALSE)
 }
 
-# fuente: "BCR", "FMI", "FRED", "BM" - coincide con institucion_id
+# fuente: "BCR", "FMI", "FRED", "BM", "CBO" - coincide con institucion_id
 # publicacion_id: debe existir en 01_publicaciones/*.yaml
 # url: URL exacta consultada
 # descripcion_archivo: snake_case, sin fuente ni fecha

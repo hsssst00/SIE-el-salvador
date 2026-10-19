@@ -54,3 +54,14 @@ notas: |
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
   Pendiente verificación directa de Harold contra la API.
+
+  NOTA (2026-10-19, Fase 6, captura C2). Primera captura a L0:
+  FMI.WEO.v2026-10, extracto G001+USA+SLV.*.A con attributes=all
+  (descargar_fmi_weo() en src/adquisicion/fmi.R). Verificado contra la API:
+  con attributes=all la respuesta trae los atributos del dataset, entre
+  ellos PUBLICATION_DATE (2026-10-13T02:00:00Z) y LICENSE («All Rights
+  Reserved»), y de ahí sale fecha_publicacion; sin ese parámetro no vienen.
+  El updatedAfter bisecado da 2026-10-09, un refresco previo a la
+  publicación. COUNTRY_UPDATE_DATE es atributo de serie (USA y SLV; G001 no).
+  Las observaciones no marcan qué años son proyección. Los datos de las
+  figuras del capítulo 1 son otra publicación: FMI.WEO.CAPITULO1.
