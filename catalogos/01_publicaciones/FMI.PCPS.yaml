@@ -56,3 +56,10 @@ notas: |
 
   Relevamiento externo de Claude vía web (2026-08-12), sin Cowork.
   Pendiente verificación directa de Harold contra la API.
+
+  Nota (2026-10-19, Fase 6, checklist C2b): cuarta ficha por indicador,
+  FMI.PCPS.POILAPSP_USD (G001.POILAPSP.USD.M). Es la primera con unidad USD
+  en vez de INDEX: el código de indicador es el mismo, cambia la
+  transformación de la clave (`.../PCPS/+/G001.<COD>.<UNIDAD>.M`). La captura
+  por indicador acepta ahora la unidad (src/adquisicion/fmi.R); con INDEX
+  todo queda como antes.

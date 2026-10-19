@@ -26,3 +26,9 @@ notas: |
   commodities sin combustible (PALLFNF), alimentos (PFOOD). Los otros
   benchmarks de crudo (POILBRE, POILDUB, POILWTI, POPEC) se dejan fuera por
   redundancia con este; PFANDB/PNFUEL/PVOIL quedan como candidatos futuros.
+
+  Nota (2026-10-19, Fase 6): esta serie es un índice y no el precio en
+  dólares que proyecta el WEO; de 2015 a 2025 su crecimiento anual difiere
+  del de G001.POILAPSP del WEO entre −3,4 y +8,8 pp (decisiones_fase6.md,
+  F6-18). El petróleo del Ejercicio B sale de FMI.PCPS.POILAPSP_USD. Esta
+  ficha y sus vintages no cambian.
