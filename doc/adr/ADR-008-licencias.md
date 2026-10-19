@@ -1,6 +1,6 @@
 # ADR-008: Licencias y condiciones de redistribución
 
-**Estado:** Parcial — BCR (corte 2026-10-12 vencido sin pronunciamiento: default conservador), FMI, FRED, Banco Mundial y BID resueltos; CBO resuelta por dominio público (2026-10-17); ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; política de L0 por fuente (2026-10-14); CEPAL en gestión (corte 2026-10-16)
+**Estado:** Parcial — BCR (corte 2026-10-12 vencido sin pronunciamiento: default conservador), FMI, FRED, Banco Mundial y BID resueltos; CBO resuelta por dominio público (2026-10-17); ISSS, MH, ONEC/DIGESTYC, SECMCA y UT resueltos por decisión de no perseguir esclarecimiento; política de L0 por fuente (2026-10-14); CEPAL (corte 2026-10-16 vencido sin pronunciamiento: default conservador; obras derivadas sin resolver, condición para admitir cualquier serie de CEPAL)
 **Fecha:** 2026-08-06
 **Relacionado con:** ADR-005 (principio de reproducibilidad), ADR-003 (fuente verificada)
 
@@ -336,3 +336,21 @@ capturar nada.
 
 **Alcance.** Como la del 2026-10-14, esta enmienda fija la condición, no la implementación: ningún archivo se captura
 ni se compromete con ella. La captura es el ítem C2 de `doc/checklist_fase6.md`.
+
+## Enmienda — vencimiento del corte de CEPAL (2026-10-19)
+
+**Hecho.** Sin pronunciamiento de CEPAL al 2026-10-16. Harold lo confirmó el 2026-10-19: no hubo respuesta a la
+consulta del 2026-08-17 (ver la enmienda de CEPAL de este ADR, con el registro de la gestión).
+
+**Decisión aplicada (la que la enmienda del 2026-08-17 fijó para este caso).** Para CEPAL se mantiene el default
+conservador: el repositorio publica el *script* de descarga y el *checksum* (SHA-256), no los archivos crudos de L0.
+
+**Obras derivadas: sigue abierto, como lo previó la enmienda del 2026-08-17.** El vencimiento del plazo no resuelve
+si transformar series de CEPALSTAT y publicar el resultado cae en la prohibición de obras derivadas de la cláusula 4.
+Verificado el 2026-10-19: hoy ese riesgo no tiene objeto. Ninguna serie de CEPAL está en `catalogos/03_series.csv`,
+`catalogos/05_series_master.csv`, `catalogos/04_transformaciones.csv` ni `catalogos/08_vintages.csv`, así que el
+proyecto no publica ningún derivado de esta fuente. Queda como **condición de admisión**: ninguna serie de CEPAL entra
+a `03_series` sin resolver antes este punto con la fuente o con una decisión de Harold.
+
+**Alcance.** No cambia catálogos ni `data/L0_raw/`. Con esta enmienda no queda ningún tramo de ADR-008 en gestión. El
+ADR sigue «Parcial» solo por la condición sobre obras derivadas; si se cierra, lo decide Harold.
