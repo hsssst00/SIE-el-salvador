@@ -43,7 +43,8 @@ src/adquisicion/
 ├── bcr.R                      # una funcion por publicacion del BCR (16)
 ├── bcr_sondear_publicacion.R  # sondeo liviano para inventario (Fase 1), no captura
 ├── calendario_bcr_extraer.R   # calendario de divulgacion -> doc/, no L0
-├── fmi.R                      # FMI: dataflow completo (BOP, QNEA) + PCPS por indicador
+├── fmi.R                      # FMI: dataflow completo (BOP, QNEA) + PCPS por indicador + WEO
+├── cbo.R                      # CBO: proyecciones economicas via US-CBO/cbo-data (Fase 6)
 ├── fred.R                     # una funcion generica por serie de FRED
 ├── bm.R                       # una funcion por indicador del Banco Mundial (WDI)
 ├── ut.R                       # registro de la captura manual de UT (sin fetch en vivo)
@@ -197,7 +198,7 @@ Una función principal, que todos los scripts por institución llaman:
 
 ```r
 registrar_descarga(
-  fuente,                  # "BCR", "FMI", "FRED", "BM" — coincide con institucion_id
+  fuente,                  # "BCR", "FMI", "FRED", "BM", "CBO" — coincide con institucion_id
   publicacion_id,          # debe existir en 01_publicaciones/*.yaml
   url,                     # URL exacta consultada, con todos los parametros
   descripcion_archivo,     # snake_case, sin fuente ni fecha

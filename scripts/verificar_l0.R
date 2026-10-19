@@ -84,7 +84,7 @@ source("src/adquisicion/manual_pendiente.R") # estado_manual_pendiente, formatea
 
 # --- Como se vuelve a pedir cada fuente ------------------------------------------------
 # El re-pedido reusa la MISMA funcion que arma la peticion de captura (.fred_refetch,
-# .bm_refetch, .fmi_perform) para que verificacion y captura no puedan divergir: si la
+# .bm_refetch, .fmi_perform, .cbo_refetch) para que verificacion y captura no puedan divergir: si la
 # captura cambia de parametros, la verificacion cambia con ella.
 
 .FORMULA_BASE <- "0"  # representacion base del componente vista-serie; uniforme en bcr.R
@@ -100,8 +100,12 @@ source("src/adquisicion/manual_pendiente.R") # estado_manual_pendiente, formatea
     .fred_refetch(url)
   } else if (fuente == "BM") {
     .bm_refetch(url)
+  } else if (fuente == "FMI" && startsWith(url, "https://www.imf.org/")) {
+    httr2::resp_body_raw(.weo_cap1_perform(url))  # libro del capitulo 1 del WEO (Fase 6)
   } else if (fuente == "FMI") {
     httr2::resp_body_raw(.fmi_perform(url))
+  } else if (fuente == "CBO") {
+    .cbo_refetch(url)  # repositorio US-CBO/cbo-data (Fase 6, 2026-10-19)
   } else {
     stop("FALLO VISIBLE: no hay mecanismo de re-pedido para la fuente '", fuente,
          "'. Agregarlo aca antes de capturar publicaciones nuevas de esa fuente.")
@@ -166,6 +170,7 @@ if (any(trabajo$mecanismo == "bcr")) source("src/adquisicion/bcr.R")
 if (any(trabajo$fuente == "FRED")) source("src/adquisicion/fred.R")
 if (any(trabajo$fuente == "BM"))   source("src/adquisicion/bm.R")
 if (any(trabajo$fuente == "FMI"))  source("src/adquisicion/fmi.R")
+if (any(trabajo$fuente == "CBO"))  source("src/adquisicion/cbo.R")
 
 # --- Verificacion ----------------------------------------------------------------------
 resultados <- data.frame(publicacion_id = character(), fuente = character(),
