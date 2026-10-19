@@ -131,6 +131,27 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 
 ---
 
+## Hechos verificados el 2026-10-19 (captura C2b)
+
+- **Petróleo en USD en L0.** Vintage `FMI.PCPS.POILAPSP_USD.v2026-10`, archivo `FMI_poilapsp_usd_2026-10-19.json`
+  (sha256 `de4a97412b1a60a81734ac2df2546a86f4ae4c74faaf5dfadc914ce81cfa1920`, 25 215 bytes), por
+  `descargar_fmi_pcps_indicador("POILAPSP", "FMI.PCPS.POILAPSP_USD", unidad = "USD")` de `src/adquisicion/fmi.R`.
+  La función acepta ahora la unidad; con `INDEX`, que es el valor por omisión, la url, el nombre del archivo y las
+  notas quedan como en las capturas de 2026-08. Serie de 1992-01 a 2026-09, 417 meses continuos, sin huecos.
+  `fecha_publicacion` = 2026-10-06, la del `updatedAfter` bisecado, como en el resto de PCPS.
+- **Coincide con el WEO.** El promedio simple de los 12 meses de cada año reproduce `G001.POILAPSP` de
+  `FMI.WEO.v2026-10` en los 34 años de 1992 a 2025, con una diferencia máxima de 4,8 × 10⁻⁷ USD por barril (2023).
+  En el WEO, `G001.POILAPSPW` es otra serie: un índice (2016 = 100), no el precio. Para 2026 el WEO da 95,74 USD; los
+  nueve meses observados promedian 88,24, y septiembre de 2026 está en 103,65.
+- **Ficha propia.** `FMI.PCPS.POILAPSP_USD` es una publicación aparte de `FMI.PCPS.POILAPSP` y no un vintage más de
+  ella. Bajo el mismo `publicacion_id`, la url y el contenido distintos romperían la comparación de vintages por
+  `sha256_norm`, y como las dos unidades se refrescan juntas colisionarían en `vintage_id`. Se agregaron notas
+  fechadas en `FMI.PCPS.yaml` y `FMI.PCPS.POILAPSP.yaml`. La serie `INDEX` y sus vintages no cambian.
+- **Copias.** El archivo está en `data/L0_raw/` de la copia de Harold y en el almacén privado `SIE-el-salvador-L0`
+  (commit `c5d8361`; el sha256 del blob coincide con el del manifiesto).
+
+---
+
 ## Acta de decisiones
 
 | Código | Decisión adoptada | Documento enmendado |
