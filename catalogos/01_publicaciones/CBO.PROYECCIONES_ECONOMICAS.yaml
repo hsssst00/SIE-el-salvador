@@ -32,3 +32,7 @@ notas: |
   Desfase con el WEO: el vintage 2026-02 es ocho meses anterior al WEO de
   octubre de 2026. Es una inconsistencia entre fuentes que ADR-002 pide
   declarar (checklist F1).
+
+  Nota (2026-10-19): la ficha F6-15 eligió el PIB de EE. UU. del WEO para
+  la satélite de remesas (decisiones_fase6.md). Esta publicación queda
+  capturada (vintage 2026-02) y sin uso en Fase 6; F6-05-a queda sin efecto.

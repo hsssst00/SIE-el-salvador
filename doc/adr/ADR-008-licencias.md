@@ -344,6 +344,11 @@ derechos y pide atribuir las modificaciones. Es la misma condición de este tram
 crudo se maneja por ahora como el resto de L0 (almacén privado y manifiesto), aunque este tramo permitiría
 comprometerlo.
 
+**Nota (2026-10-19), sin uso en Fase 6.** La ficha F6-15 eligió el PIB de EE. UU. del WEO para la satélite de
+remesas, así que el empleo de la CBO no se usa y F6-05-a queda sin efecto (`doc/metodologia/decisiones_fase6.md`).
+El tramo sigue vigente para el archivo ya capturado (`CBO.PROYECCIONES_ECONOMICAS.v2026-02`) y para cualquier uso
+futuro; no cambia nada de lo decidido.
+
 ## Enmienda — vencimiento del corte de CEPAL (2026-10-19)
 
 **Hecho.** Sin pronunciamiento de CEPAL al 2026-10-16. Harold lo confirmó el 2026-10-19: no hubo respuesta a la
