@@ -7,6 +7,9 @@ abiertas.
 **Nota (2026-10-19).** F6-14 a F6-18 quedaron decididas el 2026-10-19 en la opción recomendada, bajo la misma
 autorización, con los hechos verificados ese día (recuadro 1.2 y fuentes de las satélites).
 
+**Nota (2026-10-20).** F6-19 (fin de lectura de cada vintage) salió de los hechos de C3 y la decidió Harold el
+2026-10-20 en la opción recomendada; su ficha va después de F6-18.
+
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase5.md` para Fase 6: cada ficha lleva la
 línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran como notas
 fechadas; no se reescribe lo registrado. El protocolo que aplica estas decisiones es
@@ -183,6 +186,8 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   retropolada) sigue en `CH`, y los tres libros de `v2026-09` traen 2026-T2 («II (e)») en la columna `CI`. El
   extractor lee hasta `col_fin`, así que la columna nueva queda afuera sin error. El origen de F6-04 (2026-Q2)
   necesita que se corrija antes de C4. No se tocó en C3 (es otro tema).
+  **Nota (2026-10-20).** No se corrigió editando `col_fin`: el problema alcanza también a seis mensuales del BCR y
+  editar `03` rompía `corte_fase5`. Lo resuelve F6-19 (fin de lectura desde `08_vintages.csv`).
 
 ---
 
@@ -208,6 +213,7 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 | F6-16 | Denton-Cholette con los trimestres observados fijos y metas anuales encadenadas con los crecimientos del WEO | protocolo §4 |
 | F6-17 | En el puente manda el dato observado de o+1; desde el primer trimestre sin meses, el agregado de la satélite | protocolo §6 |
 | F6-18 | Series `ESC.*` por escenario en L3 con rol nuevo `escenario`; petróleo en USD (publicación nueva); validación con `stop()` | protocolo §5; checklist (C2b) |
+| F6-19 | Cada vintage de un `.xlsx` se lee hasta el encabezado de su `periodo_referencia_max` de `08`; `col_fin` de `03` queda como la del vintage de registro | `catalogos/README.md` (nota 2026-10-20) |
 
 ---
 
@@ -739,3 +745,54 @@ publica el nivel: se encadena el crecimiento implícito en él).
 la columna `tramo` (`historia` o `sendero`). El tramo histórico lleva el `vintage_id` de su serie histórica y el
 sendero, el de todos sus insumos unidos con « + ». El origen de la validación 4 es el último trimestre de
 `PIB_SA_PROPIO_Q.csv` en la misma L3 (F6-04).
+
+## F6-19 — Fin de lectura de cada vintage en los extractores L0 → L1
+
+**Pregunta (2026-10-20, de los hechos de C3).** ¿Hasta qué columna lee un extractor cada vintage de un libro `.xlsx`,
+si `col_fin` de `03_series.csv` es uno solo para todos los vintages de la publicación?
+
+**Contexto verificado (2026-10-20, `main` = `7d4a63b`, con la L0 de la copia de Harold ya repuesta).**
+
+- **No es solo el PIB.** En las 85 filas de las tres publicaciones trimestrales del PIB y en las seis mensuales del
+  BCR, `col_fin` es la última columna del vintage que fija `corte_fase5.csv`. El vintage vigente `v2026-09` trae uno
+  o dos períodos más, que quedaban afuera sin error: PIB 2026-T2 (`CH` → `CI`); IVAE e IPM 2026-M06 y M07 (`IX` →
+  `IZ`); FOB 2026-M07 y M08 (`OA` → `OC`); ITCER 2026-M07 (`LG` → `LH`); IPP 2026-M08 (`HD` → `HE`); remesas 2026-M08
+  (`PL` → `PM`). En los nueve casos, la última columna con dato es la del `periodo_referencia_max` que
+  `08_vintages.csv` declara para ese vintage. ONEC.IPC y la retropolada ya coincidían.
+- **Editar `03` rompe `corte_fase5`.** El corte fija los vintages anteriores (el PIB `v2026-06` termina en `CH`). Con
+  `col_fin` = `CI`, el extractor del PIB lee en esos libros una columna vacía y hace `stop()` por trimestre no
+  parseable, y `make master` sobre `corte_fase5` deja de reproducirse (F6-18-d).
+
+**Opciones.** (a) Fin desde `08`: el extractor lee cada vintage hasta la columna cuyo encabezado es su
+`periodo_referencia_max`, con `stop()` si no aparece o si hay datos después; `col_fin` de `03` queda como la columna
+del vintage de registro. (b) Campo nuevo `col_fin` en `08_vintages.csv` (por el esquema, regla 2), redundante con
+`periodo_referencia_max` y a llenar en cada captura. (c) Editar `col_fin` en `03`: rompe `corte_fase5` y hay que
+repetirlo en cada captura.
+
+**Recomendación:** (a).
+
+**DECIDIDO (Harold, 2026-10-20, opción recomendada (a)):**
+
+- Los ocho extractores de `.xlsx` con campos estructurados (`extraer_bcr_pib.R`, `extraer_bcr_ivae.R`,
+  `extraer_bcr_remesas.R`, `extraer_onec_ipc.R`, `extraer_bcr_ipp.R`, `extraer_bcr_balanza_comercial.R`,
+  `extraer_bcr_itcer.R` y `extraer_bcr_indices_precios_comercio_exterior.R`) toman la columna final de
+  `columna_fin_lectura()` (`src/transformacion/fin_lectura_lib.R`). Es la columna cuyo encabezado (año + trimestre o
+  mes) es el `periodo_referencia_max` de la fila de `08_vintages.csv` cuyo `archivo_raw` es el archivo leído.
+- **Guardas (`stop()`, regla 7):** el período tiene el formato `AAAA-Tn` o `AAAA-Mnn` de la frecuencia del extractor;
+  aparece exactamente una vez en los encabezados desde `col_inicio`; y en la fila del dato no hay nada después de esa
+  columna, así que un `08` atrasado frente al libro no pasa. Pruebas sintéticas en `tests/test-fin-lectura.R`.
+- `col_fin`, `fin` y el rango que cita `fuente_celda` en `03_series.csv` describen el vintage en que se registró la
+  serie y no se reescriben (nota fechada en `catalogos/README.md`). Una captura nueva es una fila nueva en `08` con su
+  `periodo_referencia_max`, sin tocar `03`.
+- Fuera de alcance: `extraer_escenarios.R` (los rangos del capítulo 1 del WEO son anuales y fijos por vintage) y la UT
+  (CSV).
+
+**Efecto verificado (2026-10-20, sandbox de Windows, R 4.6.1, L0 de la copia de Harold).**
+
+- `make master` sobre `corte_fase5.csv` antes y después del cambio: los 28 CSV de L1, L2 y L3 son idénticos por
+  sha256. Los 9 informes HTML de L2 solo difieren en direcciones de memoria (`<bytecode: 0x…>`).
+- `make master` vigente: la L1 del PIB pasa de 8.057 a 8.142 observaciones (2026-Q2 en las 85 series) y no cambia
+  ningún valor previo. En L3, `PIB_SA_OFICIAL_Q`, `BCR_IVAE_VOL_SA_Q` y `BCR_IPM_IDX_NSA_Q` llegan a 2026-Q2; IVAE,
+  IPM e ITCER mensuales, a 2026-M07; FOB, IPP y remesas nominales y reales, a 2026-M08. Las series mensuales no
+  cambian en los períodos que ya tenían. `PIB_SA_PROPIO_Q` llega a 2026-Q2 y su ajuste estacional propio se reestima
+  (revisión máxima 0,30 %, en 2026-Q1). Las seis validaciones de F6-18 siguen en verde, con origen 2026-Q2 (F6-04).
