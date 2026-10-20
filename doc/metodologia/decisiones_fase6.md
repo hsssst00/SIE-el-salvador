@@ -173,6 +173,8 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   baja a 77,56 USD en 2027-T4. Es el método decidido aplicado a estos datos, no un error; entra a IPM e IPP por sus
   satélites (F6-15) en los tres escenarios, porque el petróleo no cambia entre ellos. Con más meses observados en
   el corte de C4 la cifra cambia. Queda planteado a Harold si se mantiene.
+  **Nota (2026-10-20).** Harold decidió mantener F6-16 el 2026-10-19, en la opción recomendada: el informe declara
+  que 2026-T4 del petróleo sale de la meta anual del WEO y que la cifra se recalcula con el corte de C4.
 - **Con d_2026 = 0 el PIB del adverso se curva dentro de 2026.** Es la propiedad que declara F6-16-b: 2026-T3 queda
   0,15 % sobre la base y 2026-T4, 0,15 % debajo; el promedio del año no cambia.
 - **Copia de L0 de Harold.** En `D:\…\data\L0_raw\` los 17 archivos de los vintages `v2026-09` del BCR (capturas del
@@ -181,6 +183,11 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
   el manifiesto, y con ellos `verificar_fuente_celda.R` pasa. Sin conjunto, la cadena de `make master` no verifica
   sha256, así que la L1 y la L3 de esa copia no lo detectan; con la copia actual, `make trace` da 91 FAIL. Para C4 hay
   que reponer esos archivos desde el almacén. La copia no se tocó.
+  **Nota (2026-10-20).** Con permiso de Harold, el agente repuso en su copia los 17 archivos desde el almacén (HEAD
+  `c5d8361`) y agregó `BCR_panorama_banco_central_2026-10-07.xlsx`, después de comprobar sha256 y tamaño contra el
+  manifiesto. Los 17 anteriores quedaron respaldados fuera del repo, en la máquina de Harold. Con la copia en `main` =
+  `7d4a63b`, los 79 archivos del manifiesto y los 79 de `08_vintages.csv` coinciden en sha256 y `make trace` da 110
+  PASS / 0 FAIL / 6 FUERA_DE_ALCANCE (bitácora, entrada del 2026-10-20).
 - **El PIB de la L3 vigente llega a 2026-Q1 aunque el vintage `v2026-09` trae 2026-Q2.** En `03_series.csv`, el
   `col_fin` de las 85 filas de las tres publicaciones trimestrales vigentes del PIB (`BCR.PIB_T.*`, sin la
   retropolada) sigue en `CH`, y los tres libros de `v2026-09` traen 2026-T2 («II (e)») en la columna `CI`. El

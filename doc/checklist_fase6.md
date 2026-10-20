@@ -62,7 +62,9 @@ se marca.
   de F6-18 en verde en el sandbox; `verificar_fuente_celda.R` asentado en `doc/bitacora_verificaciones.md`
   (entrada del 2026-10-19, 110 PASS / 0 FAIL / 6 FUERA_DE_ALCANCE); detalle en «Hechos verificados el 2026-10-19
   (variables de escenario en L3, C3)» de `decisiones_fase6.md`. Para C4: reponer en la copia de Harold los 17
-  archivos `v2026-09` del BCR desde el almacén y corregir el `col_fin` del PIB (mismos hechos).
+  archivos `v2026-09` del BCR desde el almacén y corregir el `col_fin` del PIB (mismos hechos). — 2026-10-20: los 17
+  archivos repuestos y `BCR_panorama_banco_central_2026-10-07.xlsx` agregado en la copia de Harold; el `col_fin` se
+  resolvió con F6-19 (fin de lectura desde `08_vintages.csv`), sin editar `03`.
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 
 ## D. Implementación (solo datos sintéticos)
