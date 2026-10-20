@@ -49,6 +49,10 @@ Una fila por serie admitida al proyecto — la unidad atómica de dato (ej. `BCR
   columnas, fila de años y fila de trimestres/meses) — lo que permite a un extractor de
   `src/transformacion/` leer la celda sin volver a parsear `fuente_celda` en texto libre. Ver
   cualquier `extraer_bcr_*.R` para el uso real de estos seis campos.
+  **Nota (2026-10-20, F6-19).** `col_fin` (igual que `fin` y el rango que cita `fuente_celda`) es la columna final
+  del vintage en que se registró la serie. Los extractores ya no leen hasta `col_fin`: leen cada vintage hasta la
+  columna cuyo encabezado es su `periodo_referencia_max` en `08_vintages.csv` (`src/transformacion/fin_lectura_lib.R`).
+  Una captura nueva no cambia `03`.
   **`fila_dato` es el índice de fila según `readxl`, no la fila física de Excel.** Cuando una
   hoja tiene filas iniciales sin ninguna celda (`<row/>` vacía), `readxl` las omite y el resto
   queda corrido: hoy difieren en las 13 series `*.RETRO`, con desfase +1, porque las hojas

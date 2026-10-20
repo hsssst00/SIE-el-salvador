@@ -555,3 +555,41 @@ consistentes. **B1 queda cerrado**: los 12 archivos de L0 del lote del 2026-08-2
   Harold), sobre un clon de `main` = `ac13938` con este cambio. No requirió cambios al verificador. Para C4, la copia
   de Harold tiene que reponer los 17 archivos desde el almacén y traer `BCR_panorama_banco_central_2026-10-07.xlsx`,
   que le falta.
+
+## 2026-10-20 — commit del catálogo: `7d4a63b` (`03_series.csv` sin cambios); rama `fase6/c3b-fin-lectura-vintage`
+
+- **Reposición de L0 en la copia de Harold** (con su permiso), desde el almacén privado `SIE-el-salvador-L0` (HEAD
+  `c5d8361`). Los 18 archivos se comprobaron contra el manifiesto (sha256 y tamaño) antes de copiarlos:
+  - `BCR_pib_t_indices_volumen_nsa_2026-10-01.xlsx`: `cdd5b91e29b8a4b9d347ec1ddef7e37bc7830361ca8bf94fb3cc6a448cb6e19d`
+  - `BCR_pib_t_indices_volumen_sa_2026-10-01.xlsx`: `9650dcce7445d28209909ca8e74f0793a6ef73ea6effaf04828ec758ed32845b`
+  - `BCR_pib_t_nominal_2026-10-01.xlsx`: `4e08464bdce795c152f1a51d892d06d0e4fb37f524d571275a699722ea532291`
+  - `BCR_ivae_vigente_2026-10-01.xlsx`: `9c68838f278c287cd95f85a838cd31974c64373b9cd932d87f35fc2d519cb49a`
+  - `BCR_itcer_2026-10-01.xlsx`: `dc0b06bcc5afa67f80377e0a93cfda423834d65f5be922034a0c308b6e676e39`
+  - `BCR_indices_precios_comercio_exterior_2026-10-01.xlsx`: `70b0ea84d5aaaf9c8aa16c2903dda4d93b8ecd0a6567ba4ae57c18ea80e9c3ee`
+  - `BCR_balanza_comercial_2026-10-01.xlsx`: `2179be90d74f73b7e9564df6f28a6f4dbc3052d4796bab699452ef4d568c51dd`
+  - `BCR_remesas_familiares_mensual_2026-10-01.xlsx`: `d5da690eb487b26cfec6f69a821ada84498db4b63648a63ce975d05af7ccd82a`
+  - `BCR_ipp_2026-10-01.xlsx`: `35d75029bd70ac1c108ac3d4776d0445376da24efdade5cac0cde7587d14b29a`
+  - `BCR_isi_2026-10-02.xlsx`: `c5e513f3087b6da0d806cab003b6bf1f35f354282bd682671839d617b97e02d3`
+  - `BCR_reservas_internacionales_netas_2026-10-02.xlsx`: `b2ad96201577673bde3e673874755efe813887f518309e74b3392a1c3d2a0537`
+  - `BCR_gobierno_central_consolidado_2026-10-02.xlsx`: `8e7fd0bd14bfc8eefaf40a3b7b2d6c1a6e8f8af5a7393c842e528451dd7ec9db`
+  - `BCR_panorama_banco_central_2026-10-02.xlsx`: `6aaa49d4b390f8f6954880276f5235178aa823c652aa6e97a954341c68162945`
+  - `BCR_panorama_sociedades_deposito_2026-10-02.xlsx`: `2a5e9dfa4a2cb43cb6590a2d4d97c3efc0702d72f7d802a30fab0a1635db22c7`
+  - `BCR_spnf_vigente_2026-10-02.xlsx`: `34bd092987f99cb56ebb2f036a838816cce01210d1ea28b10a2d99464cb53c0b`
+  - `BCR_ipi_vigente_2026-10-02.xlsx`: `439c7054ff308270b0fa3865378fc7ee8704ee66a57dc9e2f0c3194e0ee43c7b`
+  - `BCR_balanza_pagos_trimestral_2026-10-02.xlsx`: `95932559cc7adadac17d21d61ac81679cc348af766ab3f9c3ec64868093f855f`
+  - `BCR_panorama_banco_central_2026-10-07.xlsx`: `52e2b9c3c4968773ff5b0c731237e8745647240495dbc0a6dbfa8ab269dfafd8`
+- **Primera corrida, copia de Harold en `ac13938` (antes de su `git pull` del PR #77), ya repuesta** → **106 PASS /
+  0 FAIL / 0 NO_VERIFICABLE / 0 FUERA_DE_ALCANCE** (de 106), código de salida 0.
+- **Segunda corrida, copia de Harold en `7d4a63b`** (79/79 archivos del manifiesto y 79/79 de `08_vintages.csv`
+  coinciden en sha256) → **110 PASS / 0 FAIL / 0 NO_VERIFICABLE / 6 FUERA_DE_ALCANCE** (de 116), código de salida 0.
+  `FUERA_DE_ALCANCE`: las mismas seis filas `.json` de la entrada del 2026-10-19.
+- **Tercera corrida, clon de la rama con el cambio de F6-19** y la misma L0 → **110 PASS / 0 FAIL / 0 NO_VERIFICABLE /
+  6 FUERA_DE_ALCANCE** (de 116), código de salida 0. El cambio no toca `03` ni el verificador.
+- `make master` (paso por paso con `Rscript --vanilla`), vigente y sobre `corte_fase5.csv`, antes y después del cambio:
+  detalle en «F6-19» de `decisiones_fase6.md` (corte de Fase 5 idéntico en sus 28 CSV).
+- `testthat::test_dir("tests")` en el clon → 1 FAIL y 1 SKIP. El FAIL es `test-conjunto.R:300`, que espera `stop()` de
+  `validar_salida()` con `data/L0_raw`; en el clon del sandbox ese directorio es un enlace (junction) a la L0 de
+  Harold y `normalizePath()` lo resuelve fuera de `data/`. En un `git worktree` de la misma rama, con `data/L0_raw`
+  como directorio real, `test-conjunto.R` da 0 FAIL (27 pruebas): es un artefacto del montaje, no del cambio. El SKIP
+  es `test-adquisicion.R:263` (no hay `zip` en el sandbox).
+- Notas: corridas del agente en el sandbox de Windows (R 4.6.1, biblioteca de `renv` de la copia de Harold).
