@@ -25,11 +25,14 @@ col_to_idx <- function(s) {
 
 TRIM_ROMANO <- c(I = 1L, II = 2L, III = 3L, IV = 4L)
 
-extraer_serie <- function(path, hoja, fila_dato, col_inicio, col_fin,
+extraer_serie <- function(path, hoja, fila_dato, col_inicio, periodo_max,
                            fila_anios, fila_trimestres, serie_id) {
   raw <- read_excel(path, sheet = hoja, col_names = FALSE, .name_repair = "minimal")
   ci <- col_to_idx(col_inicio)
-  cf <- col_to_idx(col_fin)
+  # Fin de lectura (F6-19, 2026-10-20): la columna cuyo encabezado es el periodo_referencia_max
+  # del vintage leido (08_vintages.csv), no col_fin de 03, que es la del vintage de registro.
+  cf <- columna_fin_lectura(raw, col_inicio, fila_anios, fila_trimestres, fila_dato,
+                            periodo_max, "T", TRIM_ROMANO, serie_id, path)
 
   anios_raw <- as.character(unlist(raw[fila_anios, ci:cf]))
   for (i in seq_along(anios_raw)) {
@@ -91,6 +94,7 @@ series <- series[series$publicacion_id %in% PUBLICACIONES_PIB, ]
 # publicacion (`nrow(fila) != 1`) y se rompia en cuanto se capturaba un segundo vintage del PIB.
 # Ahora toma la ultima fila, como los otros siete extractores; solo cambia el caso que antes fallaba.
 source(here::here("src", "transformacion", "conjunto_lib.R"))
+source(here::here("src", "transformacion", "fin_lectura_lib.R"))
 vintages <- leer_vintages()
 conjunto <- conjunto_activo()
 
@@ -103,7 +107,8 @@ for (i in seq_len(nrow(series))) {
   }
   resultados[[i]] <- extraer_serie(
     path = path, hoja = fila$hoja, fila_dato = as.integer(fila$fila_dato),
-    col_inicio = fila$col_inicio, col_fin = fila$col_fin,
+    col_inicio = fila$col_inicio,
+    periodo_max = periodo_max_de_archivo(path, vintages),
     fila_anios = as.integer(fila$fila_anios),
     fila_trimestres = as.integer(fila$fila_trimestres),
     serie_id = fila$serie_id
