@@ -2,6 +2,12 @@
 
 **Decisión registrada en:** `doc/adr/ADR-002-horizonte-y-diseno.md`
 
+**Estado (2026-10-21): borrador en curso; lo completa F1 del `doc/checklist_fase6.md`.** El «Resumen» y el
+«Pendiente» de abajo son el texto original de ADR-002 y se conservan como registro. Lo vigente está en las notas
+fechadas que siguen, en este orden: la del 2026-10-19 (F6-14 a F6-18) corrige a la del 2026-10-17 (F6-03 y F6-05), y
+esta corrige al «Resumen» en dos puntos: la Fed no se usa, y la CBO quedó capturada pero sin uso en Fase 6 (F6-05-a,
+F6-15).
+
 ## Resumen
 
 Fuente híbrida: FMI WEO para variables globales/regionales; proyecciones de la Reserva Federal / BEA / CBO para variables relacionadas con Estados Unidos (actividad económica, insumo del supuesto de remesas).
@@ -10,9 +16,11 @@ Fuente híbrida: FMI WEO para variables globales/regionales; proyecciones de la 
 
 ## Pendiente (Fase 6, al implementar)
 
-- [ ] Fijar las publicaciones específicas de WEO y Fed/BEA/CBO a usar como fuente para cada escenario.
-- [ ] Definir 2-3 escenarios explícitos con supuestos citados.
-- [ ] Análisis de sensibilidad a los supuestos.
+- [x] Fijar las publicaciones específicas de WEO y Fed/BEA/CBO a usar como fuente para cada escenario. — F6-05 y
+  F6-15; capturadas en L0 con sha256 por C2 y C2b (checklist de Fase 6, 2026-10-19).
+- [x] Definir 2-3 escenarios explícitos con supuestos citados. — base, adverso (C) y favorable (A), F6-05 y F6-14.
+  Los supuestos citados con vintage y sha256 los reúne F1.
+- [ ] Análisis de sensibilidad a los supuestos. — F6-09, aún sin implementar (D6).
 
 ## Nota (2026-10-17, F6-03 y F6-05)
 
