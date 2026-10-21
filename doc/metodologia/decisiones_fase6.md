@@ -361,6 +361,20 @@ pronósticos condicionada a las restricciones lineales del sendero, sobre los mo
 choques. `BVAR:::cond_fcast()` no se usa en producción. Sirve como contraste en una prueba si V22 confirma que
 coincide con el código propio.
 
+**Delegada al agente; se puede reabrir (F6-06-b, 2026-10-21, checklist D1):** cómo comprueba CI que «los
+`F5_REPRO_*` siguen bit a bit». Ningún test lo hacía contra una referencia fija: V21 compara dos corridas entre sí y
+C-7 compara `F5_REPRO_*` con `F4_BENCH_*` en la misma corrida. Se agrega **V21b** a `verificar_motor_sintetico.R`: la
+corrida sintética de V21 (los seis benchmarks, que son los modelos de `F5_REPRO_*`; los 12 modelos de Fase 5 de G2 y
+las cuatro combinaciones), más `MULT.VAR_NIV.G1` y `MULT.VECM.G1` (condicionables según F6-01 y ausentes de G2), da
+un sha256 por `modelo_id` que se compara con `src/evaluacion/referencias/huella_fase5.csv` (`huella_fase5.R`). El
+alcance es mayor que el de la ficha a propósito: D2 toca el código de los modelos elegibles, no solo el de los
+benchmarks. La referencia es por plataforma (sistema, versión de R y BLAS), igual que el redondeo (F5-15, I4): una fila
+por Windows (la máquina de la corrida única) y otra por el Linux del CI con la BLAS de referencia, las dos tomadas
+sobre el código de `main` antes de D2. En una plataforma declarada, una diferencia es `stop()`; en una sin filas,
+`stop()` en CI e informe fuera de CI. Si un cambio posterior tiene que mover la huella a propósito, la referencia se
+regenera en el mismo PR con una nota fechada, como la de paridad del BVAR (V17). `DISENO_FASE6` vive en
+`src/proyeccion/diseno_fase6.R`, carpeta nueva para el código de Fase 6.
+
 ## F6-07 — Intervalos
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** intervalos por modelo y, para la
