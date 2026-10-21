@@ -20,7 +20,7 @@ se marca.
 - [x] **A1** Fase 5 cerrada y su auditoría remediada. — tags `v0.8.0-fase5` (`1156d48`, run #362) y `v0.8.1-fase5`
   (`c4ae7c6`, run #384).
 - [x] **A2** Análisis posteriores AP-1 a AP-4 y residuos de la verificación en `main`. — PR #63 a #69; `main` =
-  `0927b32`.
+  `0927b32` al cerrar A2 (2026-10-16); el HEAD vigente se lee con `git log`, no acá.
 - [ ] **A3** Compuerta de la auditoría de Fase 5: la regla de combinación (F6-02) y la guarda de plausibilidad
   (F6-08) fijadas con commit **antes de la primera proyección**. Decididas en `decisiones_fase6.md`; se cumple
   cuando E1 congela su implementación.
@@ -61,10 +61,13 @@ se marca.
   `l3_escenarios_reglas.R` y pruebas sintéticas en `tests/test-l3-escenarios.R`. `make master` y las seis validaciones
   de F6-18 en verde en el sandbox; `verificar_fuente_celda.R` asentado en `doc/bitacora_verificaciones.md`
   (entrada del 2026-10-19, 110 PASS / 0 FAIL / 6 FUERA_DE_ALCANCE); detalle en «Hechos verificados el 2026-10-19
-  (variables de escenario en L3, C3)» de `decisiones_fase6.md`. Para C4: reponer en la copia de Harold los 17
-  archivos `v2026-09` del BCR desde el almacén y corregir el `col_fin` del PIB (mismos hechos). — 2026-10-20: los 17
-  archivos repuestos y `BCR_panorama_banco_central_2026-10-07.xlsx` agregado en la copia de Harold; el `col_fin` se
-  resolvió con F6-19 (fin de lectura desde `08_vintages.csv`), sin editar `03`.
+  (variables de escenario en L3, C3)» de `decisiones_fase6.md`.
+- [x] **C3b** Insumos de C4 que salieron de los hechos de C3: L0 repuesta en la copia de Harold y fin de lectura de
+  cada vintage (F6-19). — 2026-10-20: los 17 archivos `v2026-09` del BCR repuestos y
+  `BCR_panorama_banco_central_2026-10-07.xlsx` agregado en la copia de Harold; los ocho extractores `.xlsx` leen hasta
+  el `periodo_referencia_max` de `08_vintages.csv` (PR #78, `085f6a0`; pruebas en `tests/test-fin-lectura.R`), sin
+  editar `03`. `make master` sobre `corte_fase5` idéntico por sha256 en los 28 CSV; detalle en «F6-19» de
+  `decisiones_fase6.md`.
 - [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
 
 ## D. Implementación (solo datos sintéticos)
