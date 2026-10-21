@@ -974,15 +974,18 @@ huella21b <- rbind(huella_por_modelo(a21b$p, a21b$d), huella_por_modelo(p21b, p2
 plat21b <- plataforma_huella()
 c21b_h <- comparar_huella(huella21b, leer_referencia_huella(), plat21b)
 filas21b <- paste(filas_huella(huella21b, plat21b), collapse = "\n")
+# Las filas van por cat() y no dentro del mensaje de stop(), que R corta a 1000 caracteres.
 if (c21b_h$estado == "distinta") {
+  cat("V21b huella actual:\n", filas21b, "\n", sep = "")
   stop(sprintf(paste0("V21b: la huella de Fase 5 cambió en la plataforma %s. Distintos: %s; sin correr: %s; sin referencia: %s. ",
-                      "Fase 6 no debe mover ningún byte de Fase 5 (F6-06). Huella actual:\n%s"),
+                      "Fase 6 no debe mover ningún byte de Fase 5 (F6-06). La huella actual está impresa arriba."),
                plat21b, paste(c21b_h$distintos, collapse = ", "), paste(c21b_h$faltan, collapse = ", "),
-               paste(c21b_h$sobran, collapse = ", "), filas21b))
+               paste(c21b_h$sobran, collapse = ", ")))
 }
 if (c21b_h$estado == "sin_referencia") {
-  msg21b <- sprintf("la referencia no tiene filas para la plataforma %s (%d modelos). Filas para agregar:\n%s", plat21b, nrow(huella21b), filas21b)
-  if (nzchar(Sys.getenv("CI"))) stop("V21b: ", msg21b)
+  msg21b <- sprintf("la referencia no tiene filas para la plataforma %s (%d modelos)", plat21b, nrow(huella21b))
+  cat("V21b filas para agregar:\n", filas21b, "\n", sep = "")
+  if (nzchar(Sys.getenv("CI"))) stop("V21b: ", msg21b, "; las filas para agregar están impresas arriba.")
   cat("V21b SKIP  ", msg21b, "\n", sep = "")
   V21B_SKIP <- TRUE
 } else {
