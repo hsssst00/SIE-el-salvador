@@ -375,6 +375,29 @@ sobre el código de `main` antes de D2. En una plataforma declarada, una diferen
 regenera en el mismo PR con una nota fechada, como la de paridad del BVAR (V17). `DISENO_FASE6` vive en
 `src/proyeccion/diseno_fase6.R`, carpeta nueva para el código de Fase 6.
 
+**Delegada al agente; se puede reabrir (F6-06-c, 2026-10-21, checklist D2):** los detalles de implementación de
+`predecir_condicional()` que las fichas no fijaban. El código está en `src/proyeccion/condicional.R`.
+
+- **Insumo.** `senderos_x = list(dlog, cov)`: `dlog` es la matriz de Δlog trimestrales de las predictoras externas,
+  con filas o+1.. y una columna por `series_master_id` `.Q` de `SATELITES_FASE6` (la tabla de F6-15). `cov` es Σ_X en
+  el orden predictora por predictora, o `NULL` si no hay error de satélite. Δlog es la unidad de las satélites y de la
+  ARIMAX. Cada modelo pasa el sendero a sus propias unidades: log-nivel en el VAR en niveles y en el VECM, y log-nivel
+  desestacionalizado con los factores del origen en el BVAR (B2-5). El puente usa la versión `.M` del mismo concepto.
+- **Resultado.** `list(sendero, media, cov, J)`. `J` es la derivada de la media respecto de `dlog` y se usa en
+  Σ_y + J Σ_X J' (F6-15-a). `sendero` es la media, salvo en el BVAR.
+- **ARIMAX.** La densidad es la del sistema de Fase 5 (B1-5) sin las innovaciones de las predictoras externas: queda el
+  error ARMA y, en G2 y G3, el AR de IVAE y UT, con la submatriz de Σ de B1-5. El error del modelo no se condiciona a
+  las innovaciones de las externas, que el protocolo trata como conocidas (§6: «la del error ARMA del modelo»).
+- **Puente.** La regla de F6-17 se aplica por trimestre: cualquier trimestre con al menos un mes observado de una
+  externa sale del dato y del AR mensual, y el sendero rige desde el primer trimestre sin meses. Hoy ese trimestre
+  solo puede ser o+1.
+- **BVAR.** Por cada extracción, la normal condicional de F6-06-a más J_j Σ_X J_j'. La predictiva es la mezcla con
+  pesos iguales de esas normales; la mediana de F6-13 (a) es la raíz de su función de distribución en cada trimestre,
+  y la media y la covarianza se calculan por varianza total con denominador S, como en B2-10.
+- **h = 20 al ajustar.** En el registro de Fase 6, `modelos_fase6()`, el puente proyecta sus AR mensuales hasta o+20
+  y el BVAR calcula sus momentos con H = 20 y guarda las extracciones. Los parámetros nuevos de `modelo_puente()` y
+  `modelo_bvar()` tienen como valor por omisión el de Fase 5, así que V21b no cambia.
+
 ## F6-07 — Intervalos
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** intervalos por modelo y, para la
