@@ -68,7 +68,12 @@ se marca.
   el `periodo_referencia_max` de `08_vintages.csv` (PR #78, `085f6a0`; pruebas en `tests/test-fin-lectura.R`), sin
   editar `03`. `make master` sobre `corte_fase5` idéntico por sha256 en los 28 CSV; detalle en «F6-19» de
   `decisiones_fase6.md`.
-- [ ] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde.
+- [x] **C4** `doc/metodologia/corte_fase6.csv` congelado (F6-04), `make master` sobre el corte y G-6 en verde. —
+  2026-10-21: 41 vintages de 17 publicaciones (sha256 sin CR `f9cea4a4…`), armado con `scripts/armar_corte_fase6.R`;
+  `make master` sobre el corte con código 0 y origen 2026-Q2; G-6 y C-5 en verde con `scripts/verificar_corte_g6.R`.
+  Detalle en «Hechos verificados el 2026-10-21 (corte de Fase 6, C4)» de `decisiones_fase6.md`. El congelamiento
+  formal es el de E1: hasta entonces el corte se refresca con cada captura nueva (F6-04-b), y ya está atrás del
+  calendario del BCR en ITCER, IPP e IPC.
 
 ## D. Implementación (solo datos sintéticos)
 
