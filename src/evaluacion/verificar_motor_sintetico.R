@@ -60,6 +60,9 @@
 #   V21  el registro de Fase 5 de G2 con la configuración de producción (con la variante Q1 de F5-11), los benchmarks y
 #        las cuatro combinaciones sobre insumos sintéticos con los inicios de L3, en un Q1 y el origen siguiente: dos
 #        corridas con el mismo exp_id dan sha256 idéntico; otro exp_id cambia la semilla del BVAR y del RF
+# Bloque de la huella de Fase 5 (checklist de Fase 6, D1; F6-06, F6-12):
+#   V21b la corrida de V21 más el VAR en niveles y el VECM de G1 dan, modelo por modelo, el sha256 de
+#        src/evaluacion/referencias/huella_fase5.csv para esta plataforma: Fase 6 no movió ningún byte de Fase 5
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -72,6 +75,7 @@ source(here::here("src", "evaluacion", "forma_directa.R"))          # V18 (B3)
 source(here::here("src", "evaluacion", "modelos_regularizados.R"))  # V18 (B3)
 source(here::here("src", "evaluacion", "modelos_frecuencia_mixta.R")) # V19 (B3b)
 source(here::here("src", "evaluacion", "modelos_arboles.R"))        # V20 (B4)
+source(here::here("src", "evaluacion", "huella_fase5.R"))           # V21b (Fase 6, D1)
 
 SEMILLA_RAIZ <- 20260924L
 PERIODOS_OBJ <- ind_a_q(q_a_ind("1990-Q1") + 0:144)          # 145 obs, 1990-Q1 a 2026-Q1, como el objetivo
@@ -953,5 +957,39 @@ for (m in estoc21) {
 ok("V21", sprintf("dos corridas de los %d modelos de Fase 5 de G2 + 6 benchmarks + 4 combinaciones en 2015-Q1 y 2015-Q2 (Q1 reutilizado): sha256 idéntico (%s…); otro exp_id cambia %s",
                   length(ids21), substr(c21a$sha, 1, 12), paste(vapply(estoc21, `[[`, character(1), "modelo_id"), collapse = " y ")))
 
-cat(if (exists("V11_SKIP")) "verificación sintética: bloques OK V1-V10 y V12-V21 (V11 SKIP)\n"
-    else "verificación sintética: bloques OK (V1-V21)\n")
+# --- V21b · huella de Fase 5 frente a la referencia (checklist de Fase 6, D1; F6-06, F6-12) ------
+# La corrida de V21 (benchmarks = modelos de F5_REPRO_*, los 12 de Fase 5 de G2 y las cuatro combinaciones) más el VAR
+# en niveles y el VECM de G1, que son condicionables (F6-01) y no existen en G2, en los mismos orígenes. Un sha256 por
+# modelo_id contra src/evaluacion/referencias/huella_fase5.csv, tomada antes de que Fase 6 tocara los modelos
+# (huella_fase5.R). En la plataforma de una fila de la referencia, cualquier diferencia es stop(). Sin filas para la
+# plataforma: stop() en CI e informe fuera de CI; en los dos casos se imprimen las filas para agregar.
+g1_21b <- Filter(function(m) m$modelo_id %in% c("MULT.VAR_NIV.G1", "MULT.VECM.G1"), modelos_multivariados_grupo("G1"))
+if (length(g1_21b) != 2L) stop("V21b: el registro de G1 no tiene MULT.VAR_NIV.G1 y MULT.VECM.G1")
+pred21b <- setdiff(unique(unlist(lapply(g1_21b, `[[`, "requiere"))), "objetivo")
+p21b <- correr_backtest(c(list(objetivo = obj21), pred21_todas[pred21b]), g1_21b, ors21,
+                        rezagos = rezagos_predictoras(pred21b), exp_id = "V21", densidad = TRUE)
+a21b <- sin_attr21(c21a)
+p21b_d <- attr(p21b, "diagnosticos"); attr(p21b, "diagnosticos") <- NULL
+huella21b <- rbind(huella_por_modelo(a21b$p, a21b$d), huella_por_modelo(p21b, p21b_d))
+plat21b <- plataforma_huella()
+c21b_h <- comparar_huella(huella21b, leer_referencia_huella(), plat21b)
+filas21b <- paste(filas_huella(huella21b, plat21b), collapse = "\n")
+if (c21b_h$estado == "distinta") {
+  stop(sprintf(paste0("V21b: la huella de Fase 5 cambió en la plataforma %s. Distintos: %s; sin correr: %s; sin referencia: %s. ",
+                      "Fase 6 no debe mover ningún byte de Fase 5 (F6-06). Huella actual:\n%s"),
+               plat21b, paste(c21b_h$distintos, collapse = ", "), paste(c21b_h$faltan, collapse = ", "),
+               paste(c21b_h$sobran, collapse = ", "), filas21b))
+}
+if (c21b_h$estado == "sin_referencia") {
+  msg21b <- sprintf("la referencia no tiene filas para la plataforma %s (%d modelos). Filas para agregar:\n%s", plat21b, nrow(huella21b), filas21b)
+  if (nzchar(Sys.getenv("CI"))) stop("V21b: ", msg21b)
+  cat("V21b SKIP  ", msg21b, "\n", sep = "")
+  V21B_SKIP <- TRUE
+} else {
+  ok("V21b", sprintf("huella de Fase 5 idéntica a la referencia en %d modelos (benchmarks de F5_REPRO_*, Fase 5 de G2, combinaciones, VAR_NIV y VECM de G1); %s",
+                     nrow(huella21b), plat21b))
+}
+
+omitidos <- c(if (exists("V11_SKIP")) "V11", if (exists("V21B_SKIP")) "V21b")
+cat(if (length(omitidos)) sprintf("verificación sintética: bloques OK V1-V21b salvo %s (SKIP)\n", paste(omitidos, collapse = " y "))
+    else "verificación sintética: bloques OK (V1-V21b)\n")
