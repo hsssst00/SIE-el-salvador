@@ -638,6 +638,31 @@ residuos de la satélite son independientes de las innovaciones del modelo, y el
 sobre el mismo Z. El deflactor implícito (cociente entre ambas) no queda atado. Solo afecta a `MULT.BVAR.G3` y se
 declara.
 
+**Delegada al agente; se puede reabrir (F6-15-c, 2026-10-21, checklist D3):** los detalles de implementación que la
+ficha no fijaba. El código está en `src/proyeccion/satelites.R` y las pruebas sintéticas, en `tests/test-satelites.R`.
+
+- **Reestimación.** El BIC compara los 25 candidatos en la misma muestra, la de los trimestres con cuatro rezagos de X
+  y de Z. El elegido se reestima por MCO con su muestra máxima, como el AR(p)-BIC de las predictoras de Fase 5
+  (`seleccionar_ar_bic_x()`, F5-05). En un empate de BIC gana el candidato con menos rezagos.
+- **Piso de grados de libertad.** Se exige sobre el mayor candidato en la muestra del BIC (1 + 3 + 4 + 5 = 13
+  parámetros), igual que G-8 en Fase 5, y no sobre el elegido.
+- **Raíz.** `stop()` si alguna raíz de 1 − φ_1 B − … − φ_p B^p tiene módulo ≤ 1, es decir, si el polinomio en φ
+  tiene una raíz inversa de módulo ≥ 1.
+- **Σ_e por modelo.** Σ_X depende del conjunto de satélites que usa el modelo («muestra común de las satélites que
+  usa ese modelo», F6-15-a). Por eso `senderos_satelites()` arma `senderos_x` para las predictoras externas de un
+  modelo (`predictoras_externas()`), y no una sola vez para las seis. Σ_e se calcula con `stats::cov` en los
+  trimestres comunes de los residuos, como en B1-5.
+- **Borde.** Las `.Q` de L3 solo traen trimestres completos, porque la agregación trimestral descarta el último si
+  está incompleto. Así, todo trimestre de X posterior a `o` que llegue en la serie entra como dato, con error cero, y
+  la satélite arranca en el siguiente (F6-16-a, F6-17-a). La estimación usa solo hasta `o`.
+- **Variable de escenario.** Se estima con la serie histórica de L3 (`FRED.PIB_EEUU.VOL.SA.Q`,
+  `FRED.IPC_EEUU.IDX.SA.Q`, `FMI.PETROLEO_APSP.USD.NSA.Q`) y se proyecta con la serie `ESC.*` del escenario, cuya
+  historia es bit a bit la misma (validación 2 de F6-18). Un escenario que no publica la variable usa la serie
+  `BASE` (`serie_escenario()`).
+- **Catálogo.** Los seis YAML `SAT.*` de `catalogos/06_modelos/` llevan `familia: "satelite"`, un valor nuevo que se
+  agregó al dominio de `_plantilla.yaml`. `tests/test-catalogo-modelos.R` comprueba que las satélites declaradas son
+  las de `SATELITES_FASE6`, con sus series y su grilla.
+
 **Consecuencias (2026-10-19).** La CBO queda capturada y sin uso en Fase 6, como preveía F6-05-a. Va nota fechada en
 su YAML, en F6-05 y en el tramo CBO de ADR-008. El comercio mundial tampoco se usa (protocolo §4).
 

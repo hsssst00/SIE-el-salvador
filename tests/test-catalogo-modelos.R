@@ -15,6 +15,8 @@
 #      coinciden con las del código (preregistro F5-02); (B2a) también las rejillas de los VAR y del VECM;
 #      (B2b) y los órdenes del BVAR (rezagos, extracciones, quemado); (B3) y las rejillas de ENET y PCR; (B3b) y los órdenes de
 #      U-MIDAS y puente; (B4) y las rejillas del RF y de LightGBM (árboles, mtry por grupo, tamaño de nodo, hojas, tasa, rondas).
+#   6. (Fase 6, D3) las satélites declaradas son las de SATELITES_FASE6, con la predictora, la variable de escenario y las
+#      series ESC.* de VARIABLES_SATELITE y la grilla de ORDENES_SATELITE (F6-15).
 #
 # No lee datos del proyecto: corre en CI. Lee YAML con `yaml`, en Imports desde Fase 4 (F4-12).
 
@@ -23,6 +25,7 @@ source(here::here("src", "evaluacion", "eval_lib.R"))
 source(here::here("src", "evaluacion", "modelos_referencia.R"))
 source(here::here("src", "evaluacion", "modelos_fase5.R"))
 source(here::here("src", "evaluacion", "combinaciones.R"))         # B5
+source(here::here("src", "proyeccion", "satelites.R"))             # Fase 6, D3
 
 .dir_modelos <- here::here("catalogos", "06_modelos")
 .leer_modelo <- function(archivo) yaml::read_yaml(file.path(.dir_modelos, archivo))
@@ -91,7 +94,7 @@ test_that("06_modelos: los modelos de Fase 5 declarados son los de modelos_fase5
   reg <- reg[!duplicated(vapply(reg, `[[`, character(1), "modelo_id"))]
   ids <- vapply(reg, `[[`, character(1), "modelo_id")
   declarados <- vapply(.archivos_modelo(), function(a) .leer_modelo(a)$modelo_id, character(1), USE.NAMES = FALSE)
-  no_bench <- declarados[vapply(.archivos_modelo(), function(a) !.leer_modelo(a)$familia %in% c("benchmark", "combinacion"), logical(1))]
+  no_bench <- declarados[vapply(.archivos_modelo(), function(a) !.leer_modelo(a)$familia %in% c("benchmark", "combinacion", "satelite"), logical(1))]
   expect_setequal(no_bench, ids)
   for (m in reg) {
     v <- unlist(.leer_modelo(paste0(m$modelo_id, ".yaml"))$especificacion$variables)
@@ -218,5 +221,21 @@ test_that("06_modelos: los miembros con representantes de las combinaciones son 
     for (id in ids_combinaciones(g)) {
       expect_identical(as.character(unlist(.leer_modelo(paste0(id, ".yaml"))$especificacion$hiperparametros$miembros_representantes)), esperados, info = id)
     }
+  }
+})
+
+test_that("06_modelos: las satélites declaradas son las de SATELITES_FASE6, con sus series y su grilla (F6-15)", {
+  declarados <- vapply(.archivos_modelo(), function(a) .leer_modelo(a)$modelo_id, character(1), USE.NAMES = FALSE)
+  sat <- declarados[vapply(.archivos_modelo(), function(a) identical(.leer_modelo(a)$familia, "satelite"), logical(1))]
+  expect_setequal(sat, unname(SATELITES_FASE6))
+  for (i in seq_len(nrow(VARIABLES_SATELITE))) {
+    v <- VARIABLES_SATELITE[i, ]
+    e <- .leer_modelo(paste0(v$satelite_id, ".yaml"))$especificacion
+    esc <- unique(paste0(v$z_escenario, ".", c("BASE", "ADVERSO", "FAVORABLE")))
+    esc <- esc[esc %in% unlist(e$variables)]
+    expect_identical(as.character(unlist(e$variables)), c(v$predictora, v$z_historia, esc), info = v$satelite_id)
+    expect_true(paste0(v$z_escenario, ".BASE") %in% esc, info = v$satelite_id)
+    o <- e$ordenes
+    expect_identical(as.integer(c(o$p_min, o$p_max, o$q_min, o$q_max)), c(0L, ORDENES_SATELITE$p_max, 0L, ORDENES_SATELITE$q_max), info = v$satelite_id)
   }
 })

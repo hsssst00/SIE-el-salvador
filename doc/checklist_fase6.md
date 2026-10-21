@@ -80,8 +80,10 @@ se marca.
 - [x] **D1** `DISENO_FASE6` con `h_max = 20`, sin tocar `DISENO_FASE4`; los `F5_REPRO_*` siguen bit a bit en CI. —
   2026-10-21: `src/proyeccion/diseno_fase6.R` y V21b (F6-06-b), PR #81. CI run 39659727352 sobre `babbc79`: 3183 PASS
   y V21b OK en Linux con la BLAS de referencia; V21b OK local en Windows.
-- [ ] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
-  demás de la tabla de F6-01.
+- [x] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
+  demás de la tabla de F6-01. — 2026-10-21: `src/proyeccion/condicional.R` (F6-06-c), PR #82. CI run 39667718223
+  sobre `d8b46c2`: validate-and-test en verde y V21b OK en Linux; V21b OK local en Windows; 176 expectativas en
+  `tests/test-proyeccion-condicional.R`.
 - [ ] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4. (La prueba de Denton frente a
   `tempdisagg` de F6-16 ya está en `tests/test-l3-escenarios.R`, desde C3.)
 - [ ] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07).
