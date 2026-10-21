@@ -298,6 +298,15 @@ Los modelos se reestiman una sola vez, en el origen, con sus YAML de Fase 5 sin 
 (E1 del checklist), el corte lo toma y el origen pasa a 2026-Q3. La regla es «último vintage al congelar», no una
 fecha. En ese caso h = 18 llega a 2031-Q1 y 2030-Q4 queda en h = 17.
 
+**Delegada al agente; se puede reabrir (F6-04-b, 2026-10-21):** C4 arma `corte_fase6.csv` con lo que L0 tiene
+capturado, por `scripts/armar_corte_fase6.R`: el último vintage, por `fecha_publicacion` de `08_vintages.csv`, de
+cada publicación que el pipeline necesita con la etapa de escenario activa (`publicaciones_necesarias()`), y para UT
+el último de cada año. El congelamiento es el de E1: hasta entonces, cada captura nueva (por *script* y al ritmo de
+publicación, regla 9) se sigue de correr de nuevo ese script, `make master` sobre el corte y
+`scripts/verificar_corte_g6.R`. Las publicaciones que no necesita el pipeline (FRED.PAYEMS, la CBO, el BM, etc.) no
+entran, igual que en `corte_fase5.csv`. Razón: con la regla de F6-04, un corte armado en C4 y no refrescado quedaría
+atrás de lo publicado al congelar; el calendario del BCR ya lo muestra (hechos de C4).
+
 ## F6-05 — Escenarios: cuántos y de dónde
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** base, adverso y sensibilidad, todo
@@ -803,3 +812,29 @@ repetirlo en cada captura.
   IPM e ITCER mensuales, a 2026-M07; FOB, IPP y remesas nominales y reales, a 2026-M08. Las series mensuales no
   cambian en los períodos que ya tenían. `PIB_SA_PROPIO_Q` llega a 2026-Q2 y su ajuste estacional propio se reestima
   (revisión máxima 0,30 %, en 2026-Q1). Las seis validaciones de F6-18 siguen en verde, con origen 2026-Q2 (F6-04).
+
+## Hechos verificados el 2026-10-21 (corte de Fase 6, C4)
+
+Sobre `main` = `5a65f71`, en Windows con R 4.6.1.
+
+- **L0 de esta máquina.** Le faltaban los cuatro crudos de C2 y C2b (WEO, capítulo 1 del WEO, CBO y petróleo en USD),
+  porque su copia del almacén privado estaba en `59e4887`, dos commits atrás. Se actualizó por *fast-forward* a
+  `c5d8361` y `make materializar-l0` copió los cuatro; `verificar_l0_fisico.R` da 79 PASS / 0 FAIL / 0 AUSENTE. Una
+  carpeta anidada sin seguimiento dentro de esa copia del almacén no se tocó.
+- **Corte.** `doc/metodologia/corte_fase6.csv`, armado con `scripts/armar_corte_fase6.R` (F6-04-b): 41 vintages de 17
+  publicaciones, sha256 sin CR `f9cea4a47885a877bdf7474d5f65857bc7f63781476d08a8e8055b63ce0ee85f`. PIB NSA, SA y
+  nominal `v2026-09`; retropolado `v2019-03`; IVAE, remesas, IPP, FOB, ITCER, IPM e IPC `v2026-09`; UT `v2002-12` a
+  `v2025-12` y `v2026-08` (25); WEO, capítulo 1 y petróleo en USD `v2026-10`; PIB e IPC de EE. UU. de FRED `v2026-08`.
+- **`make master CONJUNTO=doc/metodologia/corte_fase6.csv SALIDA=data/conjuntos/corte_f6`** sale con código 0: valida
+  el corte contra catálogos y sha256 de L0, corre la etapa de escenario y las seis validaciones de F6-18 (V-ESC-5 con
+  error relativo máximo 3,34e-08), con origen 2026-Q2.
+- **G-6** (`scripts/verificar_corte_g6.R`, guardas de lectura del motor sin estimar): `PIB_SA_PROPIO_Q` 1990-Q1 a
+  2026-Q2 (146 obs) y `PIB_SA_OFICIAL_Q` 2005-Q1 a 2026-Q2 (86 obs) con el vintage del corte; NSA de L1 del mismo
+  vintage que L3 y SA recalculado desde L1 idéntico al de L3 (C-5); G-6 por fila en las 16 series `predictor` y las
+  10 `escenario`. Origen (F6-04): 2026-Q2. `tests/test-corte-motor.R` en verde, con la prueba nueva de la forma del
+  corte.
+- **El corte ya está atrás de lo publicado** (F6-04-b). `make raw-calendario` del mismo día marca como publicados
+  después de la captura ITCER, IPP e IPC (además de RIN, IPI e ISI, que el pipeline no usa); remesas sale el 2026-10-23
+  e IVAE, IPM y FOB el 2026-10-30. FRED no se revisó (su vintage en L0 es del 2026-08). El PIB de 2026-T3 no tiene fecha anunciada en el
+  calendario, así que F6-04-a no se activa por ahora. Antes de E1 corresponde capturar lo publicado y refrescar el
+  corte.

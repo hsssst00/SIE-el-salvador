@@ -201,3 +201,22 @@ test_that("C-1/C-2: el corte congelado de Fase 5 no cambia y es coherente con lo
   expect_identical(vintage_vigente("BCR.PIB_T.SERIE_RETROPOLADA_1990_2005", v, cj), "BCR.PIB_T.SERIE_RETROPOLADA_1990_2005.v2019-03")
   expect_identical(identidad_conjunto(ruta, salida = tempdir())$etiqueta, "corte_fase5@901b0f79")
 })
+
+# Corte de Fase 6 (F6-04, checklist C4). Hasta E1 se refresca con lo último publicado (F6-04-b), así que
+# acá no se fija su sha256: solo su forma. E1 agrega la prueba de que no cambia, como la de arriba.
+test_that("C4 (F6-04): el corte de Fase 6 declara todas las publicaciones, incluidas las de escenario", {
+  ruta <- here::here("doc", "metodologia", "corte_fase6.csv")
+  cj <- leer_conjunto(ruta)
+  series <- utils::read.csv(here::here("catalogos", "03_series.csv"), stringsAsFactors = FALSE, na.strings = "")
+  master <- utils::read.csv(here::here("catalogos", "05_series_master.csv"), stringsAsFactors = FALSE, na.strings = "")
+  esc <- publicaciones_de_escenario(series, master)
+  expect_true(length(esc) > 0)
+  expect_true(etapa_escenario_activa(cj, esc))
+  expect_setequal(unique(cj$publicacion_id), publicaciones_necesarias(series, master, cj))
+  v <- leer_vintages()
+  expect_true(all(cj$vintage_id %in% v$vintage_id))
+  expect_identical(v$publicacion_id[match(cj$vintage_id, v$vintage_id)], cj$publicacion_id)
+  otras <- cj[!cj$publicacion_id %in% PUBLICACIONES_POR_ANIO, ]
+  expect_false(anyDuplicated(otras$publicacion_id) > 0)
+  for (p in intersect(PUBLICACIONES_POR_ANIO, cj$publicacion_id)) mapa_vintage_por_anio(p, v, cj)   # stop() si dos caen en un año
+})
