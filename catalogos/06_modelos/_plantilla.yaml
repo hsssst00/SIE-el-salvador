@@ -1,5 +1,5 @@
 modelo_id: ""
-familia: ""                      # benchmark | univariado | multivariado | midas | regularizado | ml | combinacion
+familia: ""                      # benchmark | univariado | multivariado | midas | regularizado | ml | combinacion | satelite
 especificacion:
   variables: []
   ordenes: {}

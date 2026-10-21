@@ -80,10 +80,14 @@ se marca.
 - [x] **D1** `DISENO_FASE6` con `h_max = 20`, sin tocar `DISENO_FASE4`; los `F5_REPRO_*` siguen bit a bit en CI. —
   2026-10-21: `src/proyeccion/diseno_fase6.R` y V21b (F6-06-b), PR #81. CI run 39659727352 sobre `babbc79`: 3183 PASS
   y V21b OK en Linux con la BLAS de referencia; V21b OK local en Windows.
-- [ ] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
-  demás de la tabla de F6-01.
-- [ ] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4. (La prueba de Denton frente a
-  `tempdisagg` de F6-16 ya está en `tests/test-l3-escenarios.R`, desde C3.)
+- [x] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
+  demás de la tabla de F6-01. — 2026-10-21: `src/proyeccion/condicional.R` (F6-06-c), PR #82. CI run 39667718223
+  sobre `d8b46c2`: validate-and-test en verde y V21b OK en Linux; V21b OK local en Windows; 176 expectativas en
+  `tests/test-proyeccion-condicional.R`.
+- [x] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4. (La prueba de Denton frente a
+  `tempdisagg` de F6-16 ya está en `tests/test-l3-escenarios.R`, desde C3.) — 2026-10-21:
+  `src/proyeccion/satelites.R` y los seis `catalogos/06_modelos/SAT.*.yaml` (F6-15-c), PR #83. CI run 39671942336
+  sobre `f3d68b4`: 3476 PASS / 0 FAIL (48 de ellas en `tests/test-satelites.R`) y V21b OK.
 - [ ] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07).
 - [ ] **D5** Canarios V22 y V23 en `verificar_motor_sintetico.R`, en verde en CI.
 - [ ] **D6** Sensibilidad (F6-09), coherencia (F6-10) y tablas de reporte (F6-11).
