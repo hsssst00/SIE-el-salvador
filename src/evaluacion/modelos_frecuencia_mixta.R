@@ -228,10 +228,16 @@ ajustar_puente <- function(datos, predictoras, modelo_id, H = DISENO_FASE4$h_max
 
 sendero_puente <- function(aj, h) {
   if (h > aj$H) stop(sprintf("%s: el puente se proyectó hasta h = %d y se pidió h = %d", aj$modelo_id, aj$H, h))
+  iterar_puente(aj, aj$dX_fut, h)
+}
+
+#' Itera la ecuación puente h pasos con los Δlog trimestrales `dX` de las predictoras (filas o+1.., una columna por
+#' predictora): los proyectados del ajuste en Fase 5; en Fase 6, con los senderos impuestos (F6-17).
+iterar_puente <- function(aj, dX, h) {
   D <- if (aj$con_dummies) dummies_trimestrales(aj$o + seq_len(h)) else NULL
   d_prev <- aj$dy_o; out <- numeric(h)
   for (j in seq_len(h)) {
-    d_prev <- aj$c0 + sum(aj$beta * aj$dX_fut[j, ]) + aj$phi * d_prev + (if (!is.null(D)) sum(D[j, ] * aj$delta) else 0)
+    d_prev <- aj$c0 + sum(aj$beta * dX[j, ]) + aj$phi * d_prev + (if (!is.null(D)) sum(D[j, ] * aj$delta) else 0)
     out[j] <- d_prev
   }
   aj$y_o + cumsum(out)
@@ -247,14 +253,17 @@ sendero_puente <- function(aj, h) {
 
 #' Covarianza del sendero del sistema puente + AR mensuales (F5-12, B3b-5, B3b-6), con el Δlog trimestral de cada
 #' agregado linealizado en los Δlog mensuales: Δlog X_Q(q) ≈ (Δl_m + 2 Δl_{m−1} + 3 Δl_{m−2} + 2 Δl_{m−3} + Δl_{m−4}) / 3,
-#' con m = último mes de q.
-cov_sistema_puente <- function(aj, h) {
+#' con m = último mes de q. `sendero` (Fase 6, F6-17): matriz lógica h x k, TRUE en los trimestres cuyo Δlog de la
+#' predictora viene impuesto (desde el primero sin meses observados); esos trimestres no dependen de las innovaciones
+#' mensuales y el AR de la predictora solo corre hasta el último trimestre sin sendero. NULL en Fase 5.
+cov_sistema_puente <- function(aj, h, sendero = NULL) {
   k <- length(aj$predictoras)
   Re <- .respuesta_sendero(1, aj$phi, h)                                # innovación del puente
   S <- aj$s2 * Re %*% t(Re)
   w <- c(1, 2, 3, 2, 1) / 3
   m_fin <- ultimo_mes_trimestre(aj$o + h)
   A <- lapply(seq_len(k), function(i) {
+    if (!is.null(sendero) && any(sendero[, i])) m_fin <- ultimo_mes_trimestre(aj$o + sum(!sendero[, i]))
     meses <- (aj$ult[[i]] + 1L):m_fin
     if (!length(meses) || aj$ult[[i]] >= m_fin) return(matrix(0, h, 0))
     psi <- c(1, if (length(meses) > 1L) stats::ARMAtoMA(ar = aj$ars[[i]]$phi, ma = numeric(0), lag.max = length(meses) - 1L) else numeric(0))
@@ -266,6 +275,7 @@ cov_sistema_puente <- function(aj, h) {
         m <- ultimo_mes_trimestre(aj$o + j) - 0:4
         sum(w * ifelse(m >= r, psi[pmax(m - r, 0L) + 1L], 0))
       }, numeric(1))
+      if (!is.null(sendero)) xq[sendero[, i]] <- 0
       Ai[, c_] <- Rx %*% xq
     }
     Ai
@@ -285,9 +295,10 @@ cov_sistema_puente <- function(aj, h) {
   (S + t(S)) / 2
 }
 
-modelo_puente <- function(modelo_id, predictoras) list(
+#' `H`: último trimestre hasta el que se proyectan los AR mensuales (Fase 5, h = 8; Fase 6, h = 20 para IVAE y UT).
+modelo_puente <- function(modelo_id, predictoras, H = DISENO_FASE4$h_max) list(
   modelo_id = modelo_id, requiere = c("objetivo", predictoras), piso_gl = TRUE,
-  ajustar = function(datos, spec) ajustar_puente(datos, predictoras, modelo_id),
+  ajustar = function(datos, spec) ajustar_puente(datos, predictoras, modelo_id, H),
   predecir = function(aj, h) sendero_puente(aj, h),
   predecir_densidad = function(aj, h) list(media = sendero_puente(aj, h), cov = cov_sistema_puente(aj, h)),
   diagnosticar = function(aj) c(n_obs = aj$gl[["n_obs"]], kappa = aj$kappa, phi = aj$phi, sigma_e = sqrt(aj$s2), n_sigma = aj$n_sigma,

@@ -292,20 +292,28 @@ mh_bvar <- function() BVAR::bv_mh(scale_hess = 0.01, adjust_acc = TRUE, adjust_b
 #' Factores estacionales de un log-nivel NSA en la muestra del modelo (B2-5, B2-13, B2-14): MCO de x sobre
 #' constante, tendencia lineal y dummies T2..T4; los factores s_q = (0, b2, b3, b4) − su media suman cero en el año
 #' (dummies centradas). Devuelve s_{q(t)} para cada fila: el ajustado es x − s.
-factores_estacionales <- function(x, iq) {
+factores_estacionales <- function(x, iq) factores_estacionales_q(x, iq)[as.integer(iq) %% 4L + 1L]
+
+#' Los cuatro factores s_q de factores_estacionales(), indexados por iq %% 4 + 1 (Fase 6 los necesita para los
+#' trimestres proyectados).
+factores_estacionales_q <- function(x, iq) {
   D <- dummies_trimestrales(iq)
   X <- cbind(1, seq_along(x), D)
   b <- qr.coef(qr(X), x)
   if (any(!is.finite(b))) stop("factores_estacionales: la regresión auxiliar no tiene solución única")
-  s4 <- c(0, unname(b[3:5])); s4 <- s4 - mean(s4)                    # b: constante, tendencia, T2, T3, T4
-  s4[as.integer(iq) %% 4L + 1L]
+  s4 <- c(0, unname(b[3:5])); s4 - mean(s4)                          # b: constante, tendencia, T2, T3, T4
 }
 
 #' Panel del BVAR: el de panel_var() con cada NSA desestacionalizada dentro del origen; el PIB y las SA no cambian.
+#' `estacional` (4 x columnas, ceros en el PIB y las SA) guarda los factores para los trimestres proyectados.
 panel_bvar <- function(datos, predictoras, modelo_id) {
   pn <- panel_var(datos, predictoras, modelo_id)
   nsa <- c(FALSE, grepl(".NSA.", predictoras, fixed = TRUE))
-  for (j in which(nsa)) pn$Y[, j] <- pn$Y[, j] - factores_estacionales(pn$Y[, j], pn$t)
+  pn$estacional <- matrix(0, 4L, ncol(pn$Y))
+  for (j in which(nsa)) {
+    pn$estacional[, j] <- factores_estacionales_q(pn$Y[, j], pn$t)
+    pn$Y[, j] <- pn$Y[, j] - pn$estacional[as.integer(pn$t) %% 4L + 1L, j]
+  }
   pn$nsa_col <- nsa
   pn
 }
@@ -352,9 +360,10 @@ momentos_predictiva_bvar <- function(beta, sigma, Y, lags, H) {
   list(media = media, cov = (V + t(V)) / 2)
 }
 
-#' Ajuste del BVAR en un origen y momentos de su predictiva para h = 1..H.
+#' Ajuste del BVAR en un origen y momentos de su predictiva para h = 1..H. Con `extracciones` (Fase 6, F6-06-a) el
+#' ajuste guarda además las extracciones retenidas, el panel del modelo y sus factores estacionales.
 ajustar_bvar <- function(datos, predictoras, modelo_id, n_draw = N_DRAW_BVAR, n_burn = N_BURN_BVAR, lags = LAGS_BVAR,
-                         H = H_BVAR) {
+                         H = H_BVAR, extracciones = FALSE) {
   pn <- panel_bvar(datos, predictoras, modelo_id)
   Y <- pn$Y
   if (nrow(Y) <= lags + 1L) stop(modelo_id, " en ", ind_a_q(pn$o), ": muestra insuficiente para p = ", lags)
@@ -370,10 +379,12 @@ ajustar_bvar <- function(datos, predictoras, modelo_id, n_draw = N_DRAW_BVAR, n_
     stop(modelo_id, " en ", ind_a_q(pn$o), ": la covarianza de la predictiva no es definida positiva")
   }
   hyp <- colMeans(fit$hyper)
-  list(modelo_id = modelo_id, o = pn$o, H = H, media = mom$media, cov = mom$cov, n_muestra = nrow(Y), lags = lags,
-       diag = c(n_obs = nrow(Y) - lags, n_series = ncol(Y), aceptacion = fit$meta$accepted / S,
-                lambda = unname(hyp["lambda"]), soc = unname(hyp["soc"]), sur = unname(hyp["sur"]),
-                psi_pib = psi[1]))
+  aj <- list(modelo_id = modelo_id, o = pn$o, H = H, media = mom$media, cov = mom$cov, n_muestra = nrow(Y), lags = lags,
+             diag = c(n_obs = nrow(Y) - lags, n_series = ncol(Y), aceptacion = fit$meta$accepted / S,
+                      lambda = unname(hyp["lambda"]), soc = unname(hyp["soc"]), sur = unname(hyp["sur"]),
+                      psi_pib = psi[1]))
+  if (extracciones) aj <- c(aj, list(beta = fit$beta, sigma = fit$sigma, Y = Y, estacional = pn$estacional))
+  aj
 }
 
 .h_bvar <- function(aj, h) {
@@ -382,10 +393,12 @@ ajustar_bvar <- function(datos, predictoras, modelo_id, n_draw = N_DRAW_BVAR, n_
 }
 
 #' Fábrica de un BVAR bajo el contrato del motor. Sin piso de grados de libertad (B2-7): la penalización del prior
-#' hace estimable el modelo con más parámetros que observaciones por ecuación (G3: 37 con 40 observaciones).
-modelo_bvar <- function(modelo_id, predictoras, n_draw = N_DRAW_BVAR, n_burn = N_BURN_BVAR, lags = LAGS_BVAR) list(
+#' hace estimable el modelo con más parámetros que observaciones por ecuación (G3: 37 con 40 observaciones). `H` y
+#' `extracciones`: los de ajustar_bvar(); Fase 5 usa los valores por omisión y Fase 6 pide h = 20 con extracciones.
+modelo_bvar <- function(modelo_id, predictoras, n_draw = N_DRAW_BVAR, n_burn = N_BURN_BVAR, lags = LAGS_BVAR, H = H_BVAR,
+                        extracciones = FALSE) list(
   modelo_id = modelo_id, requiere = c("objetivo", predictoras), piso_gl = FALSE, lags = lags, n_draw = n_draw, n_burn = n_burn,
-  ajustar = function(datos, spec) ajustar_bvar(datos, predictoras, modelo_id, n_draw, n_burn, lags),
+  ajustar = function(datos, spec) ajustar_bvar(datos, predictoras, modelo_id, n_draw, n_burn, lags, H, extracciones),
   predecir = function(aj, h) .h_bvar(aj, h)$media,
   predecir_densidad = function(aj, h) .h_bvar(aj, h),
   diagnosticar = function(aj) aj$diag

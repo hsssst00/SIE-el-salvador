@@ -269,12 +269,13 @@ ajustar_arimax <- function(datos, predictoras, rezagos_x, grilla, modelo_id, p_m
        gl = c(n_obs = n, n_par = 1L + ncol(X) + max(grilla$p + grilla$q)))                             # el mayor candidato
 }
 
-#' Regresores futuros (o+1..o+h) con las predictoras proyectadas por sus AR.
-.xreg_futuro <- function(aj, h) {
+#' Regresores futuros (o+1..o+h) con las predictoras proyectadas por sus AR. `fijos` (Fase 6, F6-06): matriz h x k
+#' de Δlog con colnames = predictoras cuyo sendero se impone en lugar de su AR; NULL en Fase 5.
+.xreg_futuro <- function(aj, h, fijos = NULL) {
   t_ <- aj$o + seq_len(h)
   cols <- list()
   for (id in aj$predictoras) {
-    v <- c(aj$dx[[id]], .proyectar_ar_x(aj$ars[[id]], h))
+    v <- c(aj$dx[[id]], if (!is.null(fijos) && id %in% colnames(fijos)) stats::setNames(fijos[seq_len(h), id], t_) else .proyectar_ar_x(aj$ars[[id]], h))
     for (L in aj$rezagos_x) cols[[length(cols) + 1L]] <- unname(v[as.character(t_ - L)])
   }
   X <- matrix(unlist(cols), nrow = h)

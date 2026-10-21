@@ -77,7 +77,9 @@ se marca.
 
 ## D. Implementación (solo datos sintéticos)
 
-- [ ] **D1** `DISENO_FASE6` con `h_max = 20`, sin tocar `DISENO_FASE4`; los `F5_REPRO_*` siguen bit a bit en CI.
+- [x] **D1** `DISENO_FASE6` con `h_max = 20`, sin tocar `DISENO_FASE4`; los `F5_REPRO_*` siguen bit a bit en CI. —
+  2026-10-21: `src/proyeccion/diseno_fase6.R` y V21b (F6-06-b), PR #81. CI run 39659727352 sobre `babbc79`: 3183 PASS
+  y V21b OK en Linux con la BLAS de referencia; V21b OK local en Windows.
 - [ ] **D2** `predecir_condicional()` en los 14 modelos elegibles y la trayectoria sin escenario con h = 20 en los
   demás de la tabla de F6-01.
 - [ ] **D3** Satélites con sus YAML y pruebas sintéticas. Depende de B4. (La prueba de Denton frente a

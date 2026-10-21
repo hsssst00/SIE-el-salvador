@@ -196,6 +196,8 @@ semilla_de <- function(exp_id, modelo_id, origen) {
   if (length(faltan)) stop("modelo sin campos del contrato: ", paste(faltan, collapse = ", "))
   if (!is.function(m$ajustar) || !is.function(m$predecir)) stop("modelo ", m$modelo_id, ": ajustar/predecir deben ser funciones")
   if (!is.null(m$predecir_densidad) && !is.function(m$predecir_densidad)) stop("modelo ", m$modelo_id, ": predecir_densidad debe ser una función")
+  # Fase 6 (F6-06, protocolo de proyección §6): campo opcional; un modelo sin él no es condicionable.
+  if (!is.null(m$predecir_condicional) && !is.function(m$predecir_condicional)) stop("modelo ", m$modelo_id, ": predecir_condicional debe ser una función")
   if (!is.null(m$piso_gl) && !(is.logical(m$piso_gl) && length(m$piso_gl) == 1L && !is.na(m$piso_gl))) stop("modelo ", m$modelo_id, ": piso_gl debe ser TRUE o FALSE")
   if (!is.null(m$diagnosticar) && !is.function(m$diagnosticar)) stop("modelo ", m$modelo_id, ": diagnosticar debe ser una función")
   invisible(TRUE)

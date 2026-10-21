@@ -19,6 +19,18 @@ DISENO_FASE6 <- list(
   escenarios   = c("BASE", "ADVERSO", "FAVORABLE")     # F6-05, F6-14: base, escenario C y escenario A del recuadro 1.2
 )
 
+# Predictoras externas (F6-03, F6-15): la predictora trimestral de L3 y su satélite. Son las únicas que reciben un
+# sendero de escenario; IVAE y UT son internas y las proyecta el propio modelo. Un modelo es condicionable si al
+# menos una de sus predictoras está aquí (F6-01-b); el puente usa la versión mensual (.M) del mismo concepto.
+SATELITES_FASE6 <- c(
+  "BCR.REMESAS.NOM.NSA.Q"    = "SAT.REMESAS_NOM",
+  "BCR.REMESAS.REAL.NSA.Q"   = "SAT.REMESAS_REAL",
+  "BCR.EXPORT_FOB.NOM.NSA.Q" = "SAT.EXPORT_FOB",
+  "BCR.ITCER.IDX.NSA.Q"      = "SAT.ITCER",
+  "BCR.IPM.IDX.NSA.Q"        = "SAT.IPM",
+  "BCR.IPP.IDX.NSA.Q"        = "SAT.IPP"
+)
+
 #' Origen de Fase 6 (F6-04): último trimestre del objetivo observado (data.frame con `periodo`). Falla visible si
 #' el objetivo viene vacío o desordenado.
 origen_fase6 <- function(objetivo) {
