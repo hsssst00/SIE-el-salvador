@@ -122,7 +122,7 @@ ajustar_satelite <- function(x, z, o, satelite_id, p_max = ORDENES_SATELITE$p_ma
   if (qr(X)$rank < ncol(X)) stop(satelite_id, " en ", ind_a_q(o), ": la matriz de regresores pierde rango (F6-15)")
   f <- stats::lm.fit(X, yv)
   b <- stats::setNames(unname(f$coefficients), colnames(X))
-  phi <- unname(b[paste0("x_L", seq_len(p))])
+  phi <- if (p > 0L) unname(b[paste0("x_L", seq_len(p))]) else numeric(0)   # paste0("x_L", integer(0)) es "x_L", no vacío
   raiz_min <- if (p > 0L) min(Mod(polyroot(c(1, -phi)))) else Inf
   if (raiz_min <= 1) stop(sprintf("%s en %s: el polinomio en φ tiene una raíz de módulo %.4f <= 1 (F6-15)", satelite_id, ind_a_q(o), raiz_min))
   list(satelite_id = satelite_id, o = o, p = p, q = q, c0 = unname(b["c"]), gamma = unname(b[c("T2", "T3", "T4")]),
@@ -155,6 +155,7 @@ proyectar_satelite <- function(sat, x, z, h = DISENO_FASE6$h_max) {
   }
   dl <- unname(v[as.character(t_)])
   if (any(!is.finite(dl))) stop(id, ": el sendero de la satélite no es finito")
+  if (anyNA(sat$phi)) stop(id, ": coeficientes φ ausentes en la satélite")
   list(dlog = stats::setNames(dl, ind_a_q(t_)), desde = min(h + 1L, max(1L, u - sat$o + 1L)),
        psi = c(1, if (h > 1L) stats::ARMAtoMA(ar = sat$phi, ma = numeric(0), lag.max = h - 1L) else numeric(0)))
 }

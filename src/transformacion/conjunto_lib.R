@@ -52,11 +52,12 @@ leer_conjunto <- function(ruta) {
 }
 
 #' Publicaciones de catalogos/03_series.csv que solo alimentan series maestras de rol `escenario`
-#' (Fase 6, F6-18): todas sus series aparecen en `series_insumo_ids` de filas `escenario` de
-#' 05_series_master.csv y en ninguna de otro rol. Pura.
+#' (Fase 6, F6-18) o `referencia` (2026-10-22, F6-10): todas sus series aparecen en
+#' `series_insumo_ids` de filas de esos dos roles de 05_series_master.csv y en ninguna de otro rol.
+#' La referencia comparte la publicacion FMI.WEO con las variables de escenario y la misma etapa. Pura.
 publicaciones_de_escenario <- function(catalogo_series, catalogo_master) {
   tokens <- function(x) unique(trimws(unlist(strsplit(x[!is.na(x)], ",", fixed = TRUE))))
-  es_esc <- !is.na(catalogo_master$rol) & catalogo_master$rol == "escenario"
+  es_esc <- !is.na(catalogo_master$rol) & catalogo_master$rol %in% c("escenario", "referencia")
   solo_esc <- setdiff(tokens(catalogo_master$series_insumo_ids[es_esc]),
                       tokens(catalogo_master$series_insumo_ids[!es_esc]))
   en_esc <- catalogo_series$serie_id %in% solo_esc

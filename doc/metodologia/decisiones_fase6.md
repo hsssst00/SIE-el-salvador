@@ -572,6 +572,50 @@ anual. El código está en `src/proyeccion/reporte.R`.
   corrida en 1e-6, una guarda que deja pasar todo y un mínimo de 2. En cada caso falló el canario que correspondía.
 - El código de Fase 6 se carga en el verificador después de V21b, para que no pueda tocar nada de lo que corre antes.
 
+**Delegada al agente; se puede reabrir (F6-12-b, 2026-10-22, checklist D7):** cómo queda `make fase6`. El código
+está en `src/proyeccion/correr_fase6.R` y la prueba sintética de punta a punta, en `tests/test-correr-fase6.R`.
+
+- **Orden única.** `make fase6` corre, en este orden: `make master` con `corte_fase6.csv`, la verificación sintética
+  (V1-V23) y la proyección.
+- **Qué exige la proyección antes de correr.** Si falta cualquiera de estas condiciones, se detiene:
+  - el corte es `corte_fase6.csv`;
+  - el árbol está limpio;
+  - existe el preregistro `doc/metodologia/preregistro_fase6.yaml`, en estado `congelado`, con las mismas constantes
+    del código (regla, intervalos, sensibilidad y coherencia), el mismo corte (sha256 sin CR) y el mismo origen;
+  - la guarda recalculada sobre la L3 del corte es igual a la congelada (1e-10);
+  - C-5 sobre el objetivo, como en Fase 5.
+
+  El preregistro lo escribe `make preregistro-fase6` (`scripts/armar_preregistro_fase6.R`) una sola vez, en E1. Se
+  escribe con 17 dígitos y se niega a sobrescribirse.
+- **Ajustes.**
+  - Cada modelo se ajusta una vez en `o`, con `semilla_de(F6_<grupo>, modelo_id, o)`, la regla del motor (F5-15).
+  - Los modelos trimestrales ven sus `.Q` hasta `o`.
+  - El puente ve todos los meses que trae la L3 del corte (F6-17): en Fase 6 no hay calendario de publicación que
+    simular.
+  - Las satélites se ajustan una vez, comunes a los tres grupos (F6-15).
+- **Corridas.**
+  - Son nueve: BASE, ADVERSO, FAVORABLE y las seis de sensibilidad.
+  - La guarda y el mínimo de miembros rigen en las nueve: una corrida de sensibilidad con menos de 3 miembros también
+    detiene la corrida.
+  - Las tablas con bandas y la coherencia son de las tres principales. La sensibilidad se reporta solo como cambio
+    frente a la base (F6-09).
+  - La trayectoria sin escenario va como corrida `SIN_ESCENARIO`.
+- **Salidas.**
+  - `data/L4_experiments/F6_COMUN/`: satélites, senderos de sensibilidad (F6-18-c) y sus desviaciones estándar.
+  - `data/L4_experiments/F6_G1/`, `F6_G2/` y `F6_G3/`: tablas trimestral y anual, guarda, sensibilidad, coherencia y
+    diagnósticos.
+  - Cada directorio lleva su manifiesto, con los insumos (sha256 sin CR) y las salidas.
+  - En `catalogos/07_experimentos.csv`, una fila por (grupo, modelo), más la de `COMBINACION`, con
+    `esquema_validacion` = `proyeccion_condicional|origen=…|grupo=…|conjunto=…|corridas=…` y `horizontes` 1 a 20.
+- **Medición previa del BVAR (E2).** `make fase6-medicion-bvar` ajusta solo el BVAR de cada grupo, con las mismas
+  semillas de la corrida, y escribe las dos cifras de F6-13 (d) en `data/L4_experiments/F6_MEDICION_BVAR/`. La
+  predictiva del interanual es la mezcla de las normales de cada extracción, como en F6-13 (a). No exige preregistro:
+  sus cifras van a él.
+- **Referencia del WEO (F6-10, decisión de Harold del 2026-10-22).** `SLV.NGDP_RPCH` entra al catálogo como
+  `FMI.PIB_SLV_VAR.PCT.NSA.A`, con el rol nuevo `referencia` (agregado primero a `datapackage.json`, regla 2):
+  pass-through anual por `extraer_escenarios.R` y `l3_escenarios.R`, en la misma etapa que las variables de
+  escenario. Es una serie JSON, fuera del alcance de `verificar_fuente_celda.R`, como las demás del WEO.
+
 ## F6-13 — Pronóstico puntual del BVAR con h = 20
 
 **DECIDIDO (opción recomendada (d) seguida de (a), autorización de Harold del 2026-10-17).**
@@ -750,6 +794,11 @@ ficha no fijaba. El código está en `src/proyeccion/satelites.R` y las pruebas 
 - **Catálogo.** Los seis YAML `SAT.*` de `catalogos/06_modelos/` llevan `familia: "satelite"`, un valor nuevo que se
   agregó al dominio de `_plantilla.yaml`. `tests/test-catalogo-modelos.R` comprueba que las satélites declaradas son
   las de `SATELITES_FASE6`, con sus series y su grilla.
+- **Corrección (2026-10-22, D7).** Cuando el BIC elegía p = 0, `ajustar_satelite()` guardaba φ = NA, porque
+  `paste0("x_L", seq_len(0))` devuelve `"x_L"` y no un vector vacío. El sendero no se veía afectado, porque la
+  recursión ya miraba p > 0. Sí se afectaban los pesos ψ, y Σ_X salía no finita. Lo detectó la prueba de punta a
+  punta de D7. Ahora φ es `numeric(0)` con p = 0, `proyectar_satelite()` se detiene si φ trae NA, y
+  `tests/test-satelites.R` tiene el caso. Ninguna corrida sobre datos reales había usado la satélite.
 
 **Consecuencias (2026-10-19).** La CBO queda capturada y sin uso en Fase 6, como preveía F6-05-a. Va nota fechada en
 su YAML, en F6-05 y en el tramo CBO de ADR-008. El comercio mundial tampoco se usa (protocolo §4).

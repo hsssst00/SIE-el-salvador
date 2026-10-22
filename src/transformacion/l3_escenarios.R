@@ -6,7 +6,8 @@
 # cuyo script_path es este archivo, en orden, y resuelve `funcion` con match.fun(). El primer insumo
 # de cada fila es una serie de L1 (ESCENARIOS_series_largo.csv) o el producto de una fila anterior;
 # los demas son series anuales de L1. Ademas materializa las series maestras de rol `escenario` sin
-# transf_id (pass-through, hoy FRED.PIB_EEUU.VOL.SA.Q).
+# transf_id (pass-through, hoy FRED.PIB_EEUU.VOL.SA.Q) y las de rol `referencia` (pass-through anual,
+# hoy FMI.PIB_SLV_VAR.PCT.NSA.A, la comparacion informativa de F6-10; nota del 2026-10-22).
 #
 # Salidas en data/L3_master/ (capa generada, no versionada), un CSV por serie maestra con el punto
 # cambiado por guion bajo: periodo, valor, vintage_id y, en las ESC.*, tramo (historia | sendero).
@@ -92,6 +93,18 @@ for (i in which(is.na(maestras$transf_id))) {
   }
   s <- resolver(id)
   .exigir_trimestral_contigua(s, id)
+  escribir(id, s, vintage_de(id))
+}
+
+# --- Referencias (rol `referencia`, 2026-10-22, F6-10): pass-through anual, sin transf_id ---------
+referencias <- master_catalogo[!is.na(master_catalogo$rol) & master_catalogo$rol == "referencia", ]
+for (i in seq_len(nrow(referencias))) {
+  id <- referencias$series_master_id[i]
+  if (!is.na(referencias$transf_id[i]) || !identical(trimws(referencias$series_insumo_ids[i]), id) || referencias$freq[i] != "A") {
+    stop("FALLO VISIBLE [", id, "]: una referencia es un pass-through anual sin transf_id cuyo unico insumo es ella misma.")
+  }
+  s <- resolver(id)
+  serie_anual_a_vector(s, id)
   escribir(id, s, vintage_de(id))
 }
 
