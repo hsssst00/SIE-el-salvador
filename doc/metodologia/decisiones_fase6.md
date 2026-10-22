@@ -407,6 +407,26 @@ del 95 %. Toda banda con h > 8 lleva la marca «sin calibrar» en la tabla, como
 **Delegada al agente; se puede reabrir (F6-07-a):** la mezcla no está centrada en la mediana de F6-02. El informe
 reporta las dos cosas tal cual, sin recentrar la mezcla, y lo declara.
 
+**Delegada al agente; se puede reabrir (F6-07-b, 2026-10-22, checklist D4):** los detalles de la guarda, la mediana
+y la mezcla que las fichas F6-02, F6-07 y F6-08 no fijaban. El código está en `src/proyeccion/combinacion.R`.
+
+- **Densidad de cada miembro.** La normal N(media, cov) que devuelve su `predecir_condicional()` (F6-06-c), también
+  en el BVAR: su predictiva es una mezcla sobre extracciones, pero el contrato guarda solo sus momentos por varianza
+  total, como en B2-10. La mezcla de la combinación es la de esas normales, con pesos iguales.
+- **Unidades de las bandas.** Log-nivel, interanual y trimestral (las de F4-04). Cada miembro pasa a cada unidad con
+  su media y su desviación marginal (`sd_unidades_densidad()`, con las bases observadas con h <= 4 en el interanual
+  y con h = 1 en el trimestral). La banda del nivel q son los cuantiles (1 − q)/2 y (1 + q)/2 de la mezcla de esas
+  marginales, por raíz de su función de distribución, como la mediana del BVAR (F6-13 a). El crecimiento anual de
+  F6-11 no es lineal en el log-nivel; sus bandas son de D6.
+- **Bandas por modelo.** Las de su normal, con la misma función y un solo miembro. Se calculan también para los
+  modelos que la guarda excluye, que se reportan marcados.
+- **Guarda.** Mira el interanual del `sendero` de cada modelo (la mediana en el BVAR, F6-13 a), con las bases
+  observadas con h <= 4 como `derivar_unidades()`. Los bordes del rango están permitidos. El año de un interanual
+  histórico es el de su período, no el de su base. Sobre la L3 local del corte de Fase 5 (`PIB_SA_PROPIO_Q.csv`,
+  1990-Q1 a 2026-Q1), `rango_guarda()` da [−5,158, 13,074]: lo que anticipaba F6-08-a.
+- **Mediana con un número par de miembros** (G2 y G3 tienen 4 elegibles): la de `stats::median`, el promedio de los
+  dos Δy centrales.
+
 ## F6-08 — Guarda de plausibilidad (compuerta de la auditoría de Fase 5)
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** exclusión registrada. Un modelo cuyo
