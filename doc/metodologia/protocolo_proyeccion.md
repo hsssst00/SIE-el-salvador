@@ -110,10 +110,14 @@ del PIB de 2030 y en el crecimiento promedio 2026-2030, por grupo, para la combi
 
 ## 9. Coherencia interna (F6-10)
 
-1. **Con `stop()`:** agregación trimestral → anual consistente; remesas reales = nominales / deflactor de ADR-010
-   cuando se condicionan las dos.
+1. **Con `stop()`:** agregación trimestral → anual consistente (F6-10-a).
 2. **Informativas:** crecimiento anual de la base frente al del PIB de El Salvador en el WEO; promedio 2026-2030
-   frente al histórico con y sin 2020; signo de la respuesta a cada variable de escenario en §8.
+   frente al histórico con y sin 2020; signo de la respuesta a cada variable de escenario en §8; deflactor implícito
+   de las remesas (nominales / reales) en el sendero frente a su rango histórico.
+
+*Nota (2026-10-22, decisión de Harold):* la identidad de las remesas (reales = nominales / deflactor de ADR-010)
+estaba en las de `stop()`. Pasó a las informativas porque las dos remesas tienen satélites independientes
+(F6-15-b) y el deflactor no tiene sendero de escenario. Detalle en la nota de F6-10.
 
 ## 10. Reporte (F6-11)
 

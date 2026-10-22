@@ -63,6 +63,10 @@
 # Bloque de la huella de Fase 5 (checklist de Fase 6, D1; F6-06, F6-12):
 #   V21b la corrida de V21 más el VAR en niveles y el VECM de G1 dan, modelo por modelo, el sha256 de
 #        src/evaluacion/referencias/huella_fase5.csv para esta plataforma: Fase 6 no movió ningún byte de Fase 5
+# Canarios de la proyección condicional (checklist de Fase 6, D5; F6-12):
+#   V22  en un VAR conocido, el condicional reproduce el sendero impuesto y coincide con la normal apilada armada por
+#        otra vía; el estimado recupera la condicional analítica; el BVAR con extracciones idénticas es el VAR
+#   V23  la guarda excluye un modelo explosivo sintético y solo a él, y el mínimo de miembros dispara stop()
 #
 # Uso: Rscript src/evaluacion/verificar_motor_sintetico.R   (make eval-sintetico)
 
@@ -993,6 +997,107 @@ if (c21b_h$estado == "sin_referencia") {
                      nrow(huella21b), plat21b))
 }
 
+# --- V22 · condicional en un DGP conocido (checklist de Fase 6, D5; F6-06, F6-06-a, F6-12) -------
+# Un VAR(1) en Δ de (PIB, remesas) con parámetros conocidos y 1 200 trimestres. (a) Con los parámetros estimados,
+# predecir_condicional() del VAR en diferencias de Fase 6 coincide con la normal condicional del vector apilado de
+# TODAS las variables, armada aquí por otra vía (covarianzas bloque a bloque, sin Cholesky ni la matriz G de
+# condicionar_var()), y en esa normal la predictora reproduce el sendero impuesto con varianza nula. (b) La media y la
+# covarianza condicionales estimadas recuperan las analíticas de los parámetros verdaderos: la media dentro de 0,5
+# desviaciones condicionales y las varianzas en [0,8, 1,25] (tolerancia declarada: error de estimación, no de MC).
+# (c) Con extracciones idénticas de un VAR(2) en niveles, la predictiva del BVAR es esa normal y su mediana, la media.
+# El código de Fase 6 se carga aquí, después de V21b, para que no pueda tocar nada de lo que corre antes.
+source(here::here("src", "proyeccion", "combinacion.R"))
+
+#' Normal condicional del vector apilado (variable, a), orden variable por variable, dado que las variables `cols`
+#' igualan `vx` (h x length(cols)). `m` (h x K): media incondicional. Cov(e_a, e_b) = Σ_{s<=min(a,b)} Φ_{a-s} Σ Φ_{b-s}'.
+cond_apilada22 <- function(m, A, Sigma, cols, vx) {
+  h <- nrow(m); K <- ncol(m); Phi <- pesos_ma_var(A, h); V <- matrix(0, K * h, K * h)
+  for (a in seq_len(h)) for (b in seq_len(h)) for (s in seq_len(min(a, b))) {
+    V[(seq_len(K) - 1L) * h + a, (seq_len(K) - 1L) * h + b] <- V[(seq_len(K) - 1L) * h + a, (seq_len(K) - 1L) * h + b] +
+      Phi[, , a - s + 1L] %*% Sigma %*% t(Phi[, , b - s + 1L])
+  }
+  ix <- unlist(lapply(cols, function(k) (k - 1L) * h + seq_len(h)))
+  W <- V[, ix] %*% solve(V[ix, ix])
+  list(media = matrix(as.vector(m) + W %*% (as.vector(vx) - as.vector(m)[ix]), h), cov = V - W %*% V[ix, ])
+}
+
+set.seed(SEMILLA_RAIZ + 22L)
+A22 <- matrix(c(0.30, 0.10, 0.15, 0.40), 2); c22 <- c(0.004, 0.003)
+S22 <- matrix(c(1e-4, 0.4 * 1e-2 * 2e-2, 0.4 * 1e-2 * 2e-2, 4e-4), 2)
+n22 <- 1200L; o22 <- q_a_ind("2026-Q2"); per22 <- ind_a_q(o22 - (n22 - 1L):0)
+dz22 <- matrix(0, n22, 2); u22 <- matrix(stats::rnorm(2 * n22), n22) %*% chol(S22)
+for (t_ in 2:n22) dz22[t_, ] <- c22 + A22 %*% dz22[t_ - 1L, ] + u22[t_, ]
+x22_id <- "BCR.REMESAS.NOM.NSA.Q"
+datos22 <- list(objetivo = data.frame(periodo = per22, y = log(100) + cumsum(dz22[, 1]), stringsAsFactors = FALSE))
+datos22[[x22_id]] <- data.frame(periodo = per22, valor = 100 * exp(cumsum(dz22[, 2])), stringsAsFactors = FALSE)
+m22 <- modelo_var("V22.VAR_DIF", x22_id, 4L, "dif")
+aj22 <- m22$ajustar(datos22, NULL)
+h22 <- DISENO_FASE6$h_max; L22 <- lower.tri(diag(h22), diag = TRUE) * 1
+dx22 <- matrix(0.002 + 0.01 * sin(seq_len(h22) / 2), h22, dimnames = list(NULL, x22_id))
+r22 <- condicional_var(aj22, h22, list(dlog = dx22, cov = NULL), x22_id)
+validar_condicional(r22, h22, "V22")
+# (a) contra la normal apilada con los parámetros estimados.
+mu22 <- vapply(stats::predict(aj22$fit, n.ahead = h22)$fcst, function(f) unname(f[, "fcst"]), numeric(h22))
+ca22 <- cond_apilada22(mu22, aj22$A, aj22$Sigma, 2L, dx22)
+if (max(abs(ca22$media[, 2] - dx22)) > 1e-10) stop("V22: la predictora no reproduce el sendero impuesto en la normal condicional")
+if (max(abs(ca22$cov[h22 + seq_len(h22), ])) > 1e-12) stop("V22: la predictora condicionada conserva varianza")
+iy22 <- seq_len(h22)
+med_a22 <- aj22$y_o + cumsum(ca22$media[, 1]); cov_a22 <- L22 %*% ca22$cov[iy22, iy22] %*% t(L22)
+if (max(abs(r22$media - med_a22)) > 1e-10 || max(abs(r22$cov - cov_a22)) > 1e-10 * max(abs(cov_a22))) {
+  stop(sprintf("V22: predecir_condicional del VAR no coincide con la normal apilada (media %.2e, cov %.2e)",
+               max(abs(r22$media - med_a22)), max(abs(r22$cov - cov_a22))))
+}
+# (b) contra la analítica de los parámetros verdaderos.
+mv22 <- matrix(0, h22, 2); z_ <- dz22[n22, ]
+for (a in seq_len(h22)) { z_ <- c22 + A22 %*% z_; mv22[a, ] <- z_ }
+cv22 <- cond_apilada22(mv22, list(A22), S22, 2L, dx22)
+med_v22 <- aj22$y_o + cumsum(cv22$media[, 1]); cov_v22 <- L22 %*% cv22$cov[iy22, iy22] %*% t(L22)
+dist22 <- max(abs(r22$media - med_v22) / sqrt(diag(cov_v22)))
+razon22 <- range(diag(r22$cov) / diag(cov_v22))
+if (dist22 > 0.5 || razon22[1] < 0.8 || razon22[2] > 1.25) {
+  stop(sprintf("V22: el VAR estimado no recupera la condicional analítica (distancia %.3f sd; razón de varianzas %.3f a %.3f)",
+               dist22, razon22[1], razon22[2]))
+}
+# (c) BVAR: extracciones idénticas de un VAR(2) en niveles.
+A22c <- list(matrix(c(0.9, 0.1, 0.05, 0.7), 2), matrix(c(-0.1, 0, 0, 0.1), 2)); c22c <- c(0.4, 0.8)
+Y22c <- matrix(0, 200, 2); Y22c[1:2, ] <- 4
+for (t_ in 3:200) Y22c[t_, ] <- c22c + A22c[[1]] %*% Y22c[t_ - 1L, ] + A22c[[2]] %*% Y22c[t_ - 2L, ] + drop(stats::rnorm(2) %*% chol(S22))
+B22c <- rbind(c22c, t(A22c[[1]]), t(A22c[[2]])); S_ext <- 3L
+r22c <- condicional_extracciones_var(aperm(array(B22c, c(dim(B22c), S_ext)), c(3, 1, 2)), aperm(array(S22, c(2, 2, S_ext)), c(3, 1, 2)),
+                                     Y22c, 2L, h22, 2L, Y22c[200, 2] + L22 %*% dx22, matrix(0, h22, h22), "V22.BVAR")
+mc22 <- matrix(0, h22, 2); x_ <- c(Y22c[200, ], Y22c[199, ])
+for (a in seq_len(h22)) { yn <- c22c + A22c[[1]] %*% x_[1:2] + A22c[[2]] %*% x_[3:4]; mc22[a, ] <- yn; x_ <- c(yn, x_[1:2]) }
+cc22 <- cond_apilada22(mc22, A22c, S22, 2L, Y22c[200, 2] + L22 %*% dx22)
+if (max(abs(r22c$media - cc22$media[, 1])) > 1e-9 || max(abs(r22c$cov - cc22$cov[iy22, iy22])) > 1e-9 * max(abs(cc22$cov)) ||
+    max(abs(r22c$sendero - r22c$media)) > 1e-8) stop("V22: el BVAR con extracciones idénticas no es el VAR condicional")
+ok("V22", sprintf("VAR(1) conocido, n = %d, h = %d: el sendero impuesto se reproduce y el condicional coincide con la normal apilada (<1e-10); con los parámetros verdaderos, distancia %.3f sd y razón de varianzas %.3f a %.3f; BVAR con extracciones idénticas = VAR condicional",
+                  n22, h22, dist22, razon22[1], razon22[2]))
+
+# --- V23 · guarda y mínimo de miembros (checklist de Fase 6, D5; F6-02, F6-08, F6-12) -------------
+# Cuatro modelos sintéticos sobre el objetivo de V3: tres con crecimiento estable y uno explosivo (Δy AR(1) con
+# φ = 1,15). La guarda, con el rango calculado en ese objetivo, excluye al explosivo y solo a él; la combinación es la
+# mediana de los otros tres y la mezcla usa solo a esos. Sin uno de los estables quedan 2 miembros y combinar_grupo()
+# debe detenerse: si no lo hace, V23 falla.
+set.seed(SEMILLA_RAIZ + 23L)
+obj23 <- simular_objetivo(146L, 0.3, 0.008, c0 = 0.004)
+o23 <- q_a_ind(utils::tail(obj23$periodo, 1)); y_o23 <- utils::tail(obj23$y, 1)
+rango23 <- rango_guarda(obj23)
+res23 <- function(dy, s2 = 1e-4) {
+  s <- y_o23 + cumsum(dy); C <- s2 * outer(seq_along(dy), seq_along(dy), pmin)
+  list(sendero = s, media = s, cov = C, J = matrix(0, length(dy), 1))
+}
+dy_exp23 <- 0.006 * 1.15^(seq_len(h22) - 1L)
+mods23 <- list(E1 = res23(rep(0.004, h22)), E2 = res23(rep(0.005, h22)), E3 = res23(rep(0.007, h22)), EXPLOSIVO = res23(dy_exp23))
+cg23 <- combinar_grupo(mods23, obj23, o23, rango23, etiqueta = "V23")
+if (!identical(cg23$guarda$pasa, c(TRUE, TRUE, TRUE, FALSE))) stop("V23: la guarda no excluyó solo al modelo explosivo")
+if (max(abs(cg23$sendero$log_nivel - (y_o23 + cumsum(rep(0.005, h22))))) > 1e-12) stop("V23: la combinación no es la mediana de los tres que pasan")
+if (!isTRUE(all.equal(cg23$bandas, bandas_mezcla(lapply(mods23[1:3], `[`, c("media", "cov")), obj23, o23)))) stop("V23: la mezcla incluye al excluido")
+corto23 <- tryCatch({ combinar_grupo(mods23[c("E1", "E2", "EXPLOSIVO")], obj23, o23, rango23, etiqueta = "V23"); NULL },
+                    error = function(e) conditionMessage(e))
+if (is.null(corto23) || !grepl("mínimo es 3", corto23, fixed = TRUE)) stop("V23: con 2 miembros después de la guarda, combinar_grupo() no se detuvo por el mínimo (F6-02)")
+ok("V23", sprintf("rango [%.2f, %.2f]: la guarda excluye al explosivo en h = %d y deja 3 miembros; con 2, stop() por el mínimo",
+                  rango23$inferior, rango23$superior, cg23$guarda$h_fuera[4]))
+
 omitidos <- c(if (exists("V11_SKIP")) "V11", if (exists("V21B_SKIP")) "V21b")
-cat(if (length(omitidos)) sprintf("verificación sintética: bloques OK V1-V21b salvo %s (SKIP)\n", paste(omitidos, collapse = " y "))
-    else "verificación sintética: bloques OK (V1-V21b)\n")
+cat(if (length(omitidos)) sprintf("verificación sintética: bloques OK V1-V23 salvo %s (SKIP)\n", paste(omitidos, collapse = " y "))
+    else "verificación sintética: bloques OK (V1-V23)\n")

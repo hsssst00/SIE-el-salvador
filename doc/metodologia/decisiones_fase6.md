@@ -211,7 +211,7 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 | F6-07 | Intervalos por modelo y mezcla con pesos iguales para la combinación; 80 y 95 %; marca «sin calibrar» para h > 8 | ninguno |
 | F6-08 | Exclusión registrada fuera del rango histórico sin 2020-2021 ampliado en 1 desviación estándar | ninguno |
 | F6-09 | Sensibilidad uno a la vez, ±1 desviación estándar del crecimiento anual de cada variable de escenario | ninguno |
-| F6-10 | Lista de coherencia: identidades con `stop()` y tres informativas | ninguno |
+| F6-10 | Lista de coherencia: identidades con `stop()` y tres informativas; desde la nota del 2026-10-22, la de remesas es informativa | protocolo §9 (nota 2026-10-22) |
 | F6-11 | Cifra principal: crecimiento anual 2026-2030 (promedio del año de los niveles SA); además interanual trimestral y nivel | ninguno |
 | F6-12 | Preregistro y reproducibilidad con el esquema de Fase 5; protocolo propio; canarios V22 y V23; `make fase6` | protocolo de proyección (nuevo) |
 | F6-13 | Medir raíces y distancia media-mediana del BVAR antes de proyectar, con lo que se mira fijado aquí; luego mediana de la predictiva como sendero | ninguno |
@@ -464,6 +464,19 @@ escenario se mueve ±1 desviación estándar histórica de su crecimiento anual,
 **Nota (2026-10-19).** Con F6-15, las variables de escenario son tres: PIB de EE. UU., IPC de EE. UU. y petróleo.
 La sensibilidad son seis corridas (±1 desviación estándar de cada una), con sus senderos armados como dice F6-18-c.
 
+**Delegada al agente; se puede reabrir (F6-09-b, 2026-10-22, checklist D6):** los detalles de implementación que la
+ficha no fijaba. El código está en `src/proyeccion/sensibilidad.R` y `src/proyeccion/reporte.R`.
+
+- **Metas de la base.** Se leen como los promedios anuales de la serie `ESC.*.BASE` de L3, del último año completo de
+  su historia a 2031. La validación 1 de F6-18 ya las ató a sus metas con 1e-10, así que no se vuelve al WEO.
+- **Años desplazados.** Todos los años con meta, desde el año del origen hasta 2031. El año del origen, con trimestres
+  observados fijos, se desplaza en su promedio como los demás, y Denton reparte el ajuste en sus trimestres libres.
+- **Desviación estándar.** Sobre el tramo `historia` de la serie `ESC.*` (bit a bit la serie histórica, validación 2 de
+  F6-18), con los crecimientos anuales de los años completos y sin los de 2020 y 2021.
+- **Medidas.** El cambio del nivel del PIB de 2030 es el cambio porcentual del promedio anual del índice; el del
+  crecimiento promedio 2026-2030 es la diferencia en pp de la media de F6-11-b. Se calculan para la combinación y para
+  cada miembro presente en la base y en la corrida.
+
 ## F6-10 — Coherencia interna (lo que reemplaza a la validación)
 
 **DECIDIDO (opción recomendada, autorización de Harold del 2026-10-17):** la lista tal cual. Cualquier ítem nuevo
@@ -480,6 +493,25 @@ entra con nota fechada antes de la corrida.
    - signo de la respuesta a cada variable de escenario en la sensibilidad (por ejemplo, más PIB de EE. UU. da más
      PIB de El Salvador).
 
+**Nota (2026-10-22, decisión de Harold en el chat, checklist D6): la identidad de las remesas pasa a informativa.**
+Un hecho contradecía lo que suponía el ítem: con F6-15-b, las remesas nominales y las reales tienen cada una su
+satélite sobre el PIB de EE. UU., y el deflactor de ADR-010 (`ONEC.IPC.IDX.NSA.M`, T004) no tiene sendero de
+escenario. Así, la identidad no se cumple por construcción y no hay deflactor proyectado con el cual verificarla.
+Harold eligió la opción recomendada: el ítem sale de las identidades con `stop()` y pasa a las informativas. Se
+reporta el deflactor implícito del sendero, Δlog nominal − Δlog real, como interanual en pp, frente al rango
+histórico del mismo cociente en L3 sin 2020-2021 (`coherencia_deflactor()`). Las satélites no se reabren. Queda una
+sola identidad con `stop()`: la agregación.
+
+**Delegada al agente; se puede reabrir (F6-10-a, 2026-10-22, checklist D6):** la identidad de agregación se comprueba
+sobre las tablas que se publican, no sobre el cálculo interno. La tabla trimestral debe ser un único sendero: el
+trimestral acumula al log-nivel desde el origen, el interanual sale de ese log-nivel y de la historia, y el nivel
+índice es su exponencial. La tabla anual debe ser la agregación de ese sendero sobre la historia, y su promedio, la
+media de sus crecimientos. Tolerancia: 1e-10. En las informativas, el promedio histórico usa los años completos
+anteriores al año del origen, y «sin 2020» quita solo el crecimiento de 2020, como dice el ítem. El único signo
+esperado es el del PIB de EE. UU. (positivo); los del IPC y el petróleo se reportan sin esperado. El crecimiento
+del PIB de El Salvador en el WEO (`SLV.NGDP_RPCH`, en el archivo del vintage `FMI.WEO.v2026-10` de L0) entra como
+argumento; de dónde lo lee la corrida se fija en D7.
+
 ## F6-11 — Unidad de reporte
 
 **DECIDIDO (opción recomendada (a), autorización de Harold del 2026-10-17):** la cifra principal es el crecimiento
@@ -489,6 +521,24 @@ cambia (ADR-001).
 
 **Delegada al agente; se puede reabrir (F6-11-a):** 2031 se reporta solo en trimestres (h = 20 llega a 2031-Q2) y
 no tiene cifra anual.
+
+**Delegada al agente; se puede reabrir (F6-11-b, 2026-10-22, checklist D6):** lo que la ficha no fijaba de la cifra
+anual. El código está en `src/proyeccion/reporte.R`.
+
+- **Crecimiento promedio 2026-2030:** la media aritmética de los cinco crecimientos anuales. La misma media se usa
+  en la sensibilidad (F6-09) y en la comparación con el histórico (F6-10).
+- **Bandas de la cifra anual.** Son las de la mezcla de F6-07, en la unidad de F6-11. Esa unidad no es lineal en el
+  log-nivel (promedio de niveles), así que se calculan por simulación:
+  - 10 000 extracciones de la normal de cada miembro, juntas, con pesos iguales;
+  - cuantiles muestrales (`stats::quantile`, tipo 7);
+  - la semilla la fija quien corre, por grupo, escenario y modelo, como el motor de Fase 5 (F5-15).
+
+  Una banda anual lleva la marca «sin calibrar» si algún trimestre proyectado de ese año tiene h > 8. El promedio
+  2026-2030 la lleva siempre.
+- **Tablas.** La trimestral trae nivel índice (exp del log-nivel), log-nivel, interanual y trimestral, con las
+  bandas del 80 y del 95 % de cada unidad. La anual trae el promedio del índice, el crecimiento, los trimestres
+  observados de cada año y la fila del promedio. Cada fila de las dos lleva la nota de condicionalidad. La fila de
+  la mediana de F6-02 se llama `COMBINACION`.
 
 ## F6-12 — Preregistro y reproducibilidad
 
@@ -503,6 +553,24 @@ no tiene cifra anual.
 - `make fase6` como orden única.
 - Fase 6 tiene su propio protocolo, `doc/metodologia/protocolo_proyeccion.md`, porque el §7 del protocolo de
   evaluación deja fuera el Ejercicio B.
+
+**Delegada al agente; se puede reabrir (F6-12-a, 2026-10-22, checklist D5):** cómo quedan V22 y V23 en
+`verificar_motor_sintetico.R`.
+
+- **V22.** DGP: un VAR(1) en Δ de (PIB, remesas) con 1 200 trimestres. Comprueba tres cosas:
+  - el condicional del VAR en diferencias de Fase 6 coincide, a 1e-10, con la normal condicional del vector apilado
+    de todas las variables, que se arma por otra vía (covarianzas bloque a bloque, sin la matriz G ni Cholesky); en
+    esa normal, la predictora reproduce el sendero impuesto y no conserva varianza;
+  - el condicional estimado recupera el analítico de los parámetros verdaderos: la media dentro de 0,5 desviaciones
+    condicionales y las varianzas en [0,8, 1,25]. Es una tolerancia declarada por error de estimación, no de Monte
+    Carlo;
+  - con extracciones idénticas de un VAR(2) en niveles, la predictiva del BVAR es esa normal y su mediana es la media.
+- **V23.** Tres modelos estables y uno explosivo (Δy con φ = 1,15). La guarda, con el rango calculado sobre ese
+  objetivo, excluye solo al explosivo; la combinación es la mediana de los otros tres y la mezcla no lo incluye. Con
+  dos estables, `combinar_grupo()` tiene que detenerse por el mínimo.
+- **Comprobación de que muerden.** Antes de integrarlos se saboteó el código tres veces: una media condicional
+  corrida en 1e-6, una guarda que deja pasar todo y un mínimo de 2. En cada caso falló el canario que correspondía.
+- El código de Fase 6 se carga en el verificador después de V21b, para que no pueda tocar nada de lo que corre antes.
 
 ## F6-13 — Pronóstico puntual del BVAR con h = 20
 
