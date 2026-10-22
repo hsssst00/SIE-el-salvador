@@ -91,8 +91,13 @@ se marca.
 - [x] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07). — 2026-10-22:
   `src/proyeccion/combinacion.R` (F6-07-b), PR #84. CI run 39838609663 sobre `a0436a5`: 3528 PASS / 0 FAIL (52 de
   ellas en `tests/test-combinacion-fase6.R`) y V21b OK. El rango de la guarda se calcula sobre `corte_fase6` en E1.
-- [ ] **D5** Canarios V22 y V23 en `verificar_motor_sintetico.R`, en verde en CI.
-- [ ] **D6** Sensibilidad (F6-09), coherencia (F6-10) y tablas de reporte (F6-11).
+- [x] **D5** Canarios V22 y V23 en `verificar_motor_sintetico.R`, en verde en CI. — 2026-10-22: F6-12-a, PR #85. CI
+  run 39848082625 sobre `fbd63ac`: «verificación sintética: bloques OK (V1-V23)» en Linux con la BLAS de referencia y
+  V21b OK; V1-V23 OK local en Windows. Se comprobó que fallan ante tres sabotajes.
+- [x] **D6** Sensibilidad (F6-09), coherencia (F6-10) y tablas de reporte (F6-11). — 2026-10-22:
+  `src/proyeccion/sensibilidad.R` y `src/proyeccion/reporte.R` (F6-09-b, F6-10-a, F6-11-b), PR #85. Misma corrida de CI:
+  3598 PASS / 0 FAIL (70 de ellas en `tests/test-reporte-fase6.R`). La identidad de las remesas pasó a informativa
+  (decisión de Harold, nota del 2026-10-22 en F6-10).
 - [ ] **D7** `make fase6` como orden única.
 
 ## E. Preregistro y corrida
