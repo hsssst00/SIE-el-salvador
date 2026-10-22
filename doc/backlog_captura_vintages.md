@@ -281,3 +281,16 @@ período (M08 → M09): no se perdió ningún vintage intermedio. `verificar_l0_
 Los dos primeros intentos de captura fallaron en la navegación y no escribieron nada (latencia del
 portal frente al timeout por defecto de `chromote`; ver `doc/bitacora_fuentes_fragiles.md`, entrada
 2026-10-07). No cuentan como pasada de la regla 9: la captura efectiva fue una sola.
+
+## Nota del 2026-10-22 — capturas previas al congelamiento de Fase 6 (ADR-007 D3)
+
+`make raw-rapido` (una pasada) marcó `NUEVO_PERIODO` en IPP, IPC de ONEC, IPI, ISI y RIN; el calendario anunciaba los
+cinco para el 2026-10-07 o el 2026-10-09. Se capturaron solo los dos que usa el pipeline, una vez cada uno:
+`BCR.IPP.v2026-10` y `ONEC.IPC.BASE_2009.v2026-10`, los dos hasta 2026-M09 (M08 → M09, sin vintages intermedios
+perdidos). IPI, ISI y RIN quedan para la ventana de noviembre. ITCER salió `SIN_NUEVO`: el portal sigue en M07 pese
+al anuncio del 2026-09-30.
+
+FRED, fuera del portal del BCR: `FRED.BEA_PIB_EEUU.v2026-10` y `FRED.CPIAUCSL.v2026-10` (`realtime_start`
+2026-10-21), una llamada cada una. `verificar_l0_fisico` 83/83. Crudos en el almacén privado de L0 (commit
+`5d0942b`). Detalle en `doc/metodologia/decisiones_fase6.md`, «Hechos verificados el 2026-10-22 (capturas previas al
+congelamiento, E1)».

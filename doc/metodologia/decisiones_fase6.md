@@ -1037,3 +1037,38 @@ Sobre `main` = `5a65f71`, en Windows con R 4.6.1.
   e IVAE, IPM y FOB el 2026-10-30. FRED no se revisó (su vintage en L0 es del 2026-08). El PIB de 2026-T3 no tiene fecha anunciada en el
   calendario, así que F6-04-a no se activa por ahora. Antes de E1 corresponde capturar lo publicado y refrescar el
   corte.
+
+## Hechos verificados el 2026-10-22 (capturas previas al congelamiento, E1)
+
+Sobre `main` = `5aa09eb`, en Windows con R 4.6.1. Capturas por la vía de ADR-007 D3 (captura posterior a la
+publicación), una pasada cada una (regla 9), solo de lo que el pipeline usa.
+
+- **Precheck.** `make raw-rapido` (una pasada) dio 5 `NUEVO_PERIODO`: IPP, IPC de ONEC, IPI, ISI y RIN. El
+  pipeline usa solo dos: el IPP (predictora) y el IPC (deflactor de las remesas reales, T004). IPI, ISI y RIN no se
+  capturan: quedan para la ventana mensual. Además salieron 8 `NO_TOCA` (remesas el 2026-10-23; IVAE, IPM, FOB y
+  otras el 2026-10-30) y 5 `SIN_NUEVO`.
+- **ITCER.** Salió `SIN_NUEVO`: el portal sigue en 2026-M07, aunque el calendario lo anunciaba para el 2026-09-30.
+  Falla la condición (a) de D3 y no se captura. Corrige lo que C4 suponía («ITCER publicado después de la captura»):
+  lo que había visto `make raw-calendario` era solo el anuncio.
+- **Capturados** (sha256 crudo; crudos en el almacén privado de L0, commit `5d0942b`):
+  - `BCR.IPP.v2026-10`, hasta 2026-M09: `BCR_ipp_2026-10-22.xlsx`, `c37c8021…`. Calendario: 2026-10-09.
+  - `ONEC.IPC.BASE_2009.v2026-10`, hasta 2026-M09: `ONEC_ipc_base_2009_2026-10-22.xlsx`, `b9860662…`. Calendario:
+    2026-10-07.
+  - Los dos avanzan un solo mes (M08 → M09), así que no se perdió ningún vintage intermedio. Su `fecha_publicacion`
+    es 2026-10-01, por la convención de `bcr.R`.
+  - `FRED.BEA_PIB_EEUU.v2026-10` (GDPC1, hasta 2026-T2, `realtime_start` 2026-10-21): `FRED_gdpc1_2026-10-22.json`,
+    `31f8d6a3…`.
+  - `FRED.CPIAUCSL.v2026-10` (hasta 2026-M09, `realtime_start` 2026-10-21): `FRED_cpiaucsl_2026-10-22.json`,
+    `ff2d6cef…`.
+  - El vintage anterior de FRED era del 2026-08. Si hubo vintages intermedios, no se capturaron; para el corte
+    manda el último.
+- **L0 y corte.** `verificar_l0_fisico.R`: 83/83. `scripts/armar_corte_fase6.R` cambió cuatro filas (IPP, IPC y las
+  dos de FRED): 41 vintages de 17 publicaciones, sha256 sin CR
+  `cef1c939c772d15a8ab45745375e6816ac4acd05b26ce599c578d441ebaa4a1e`.
+- **`make master` sobre el corte refrescado.** Código 0, con origen 2026-Q2 y las seis validaciones de F6-18 en
+  verde. El crecimiento anual de GDPC1 ahora coincide con `NGDP_RPCH` del WEO (diferencia máxima 0,000 pp; con el
+  vintage de agosto era 0,238 pp en 2025).
+- **G-6 y pruebas.** `scripts/verificar_corte_g6.R`: G-6, NSA/C-5 y las 26 series `predictor` y `escenario` en verde.
+  `tests/test-corte-motor.R` en verde.
+- **Lo que falta antes de E1.** Remesas (2026-10-23) e IVAE, IPM y FOB (2026-10-30), por la misma vía. ITCER, cuando
+  el portal pase de M07. El PIB de 2026-T3 sigue sin fecha anunciada, así que F6-04-a no se activa.
