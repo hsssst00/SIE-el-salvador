@@ -136,6 +136,10 @@ estaba en las de `stop()`. Pasó a las informativas porque las dos remesas tiene
   sintético y el mínimo de miembros dispara `stop()`). CI comprueba además que los `F5_REPRO_*` siguen bit a bit.
 - Una sola corrida, con `make fase6`, sobre un árbol limpio. Si se detiene, se asienta qué escribió, como en el
   protocolo de evaluación §6.
+- El preregistro de la regla, la guarda, los intervalos, la sensibilidad y la coherencia es
+  `doc/metodologia/preregistro_fase6.yaml`. Lo escribe `make preregistro-fase6` al congelar. `make fase6` no corre
+  sin él y se detiene si la guarda recalculada difiere de la congelada (F6-12-b). La medición previa del BVAR es
+  `make fase6-medicion-bvar`.
 - Reproducción bit a bit en la máquina de Harold con la BLAS de referencia; fuera de Windows rige lo declarado para
   el BVAR en F1-3 de Fase 5.
 - Salidas en `data/L4_experiments/F6_*/` con manifiesto, y una fila por (experimento, modelo) en

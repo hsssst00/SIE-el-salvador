@@ -97,6 +97,12 @@ por serie producto). Una publicación de `03_series.csv` que solo alimenta serie
 es «publicación de escenario» (`publicaciones_de_escenario()` en `conjunto_lib.R`): un conjunto de
 vintages las declara todas o ninguna (F6-18-d), y `corte_fase5.csv` no declara ninguna.
 
+**Nota (2026-10-22, Fase 6, F6-10).** `rol` admite además `referencia`, por decisión de Harold: una cifra
+publicada que solo sirve de comparación informativa en la coherencia de Fase 6 y no entra a ningún modelo ni
+sendero. Hoy es una: `FMI.PIB_SLV_VAR.PCT.NSA.A` (`SLV.NGDP_RPCH` del WEO), un pass-through anual que
+materializa `src/transformacion/l3_escenarios.R`. Para `publicaciones_de_escenario()` cuenta como `escenario`:
+comparte la publicación `FMI.WEO` y la misma etapa.
+
 ## `06_modelos/`
 
 Un archivo `<modelo_id>.yaml` por modelo, con las claves de `_plantilla.yaml`. Es el registro que

@@ -251,8 +251,9 @@ condicional_bvar <- function(aj, h, senderos_x, predictoras) {
 #' Modelos de Fase 6 de un grupo: `condicionables` (los elegibles de F6-01, con predecir_condicional) y
 #' `sin_escenario` (benchmarks, UNI.ARIMA, UNI.UC_LLT y, en G2, UNI.ARIMAX_IVAE.G2: su trayectoria con h = 20 se
 #' reporta aparte). Los de forma directa y las combinaciones de Fase 5 quedan fuera. Cada modelo es el de Fase 5; el
-#' BVAR y el puente se construyen con h = 20 y el BVAR guarda sus extracciones.
-modelos_fase6 <- function(grupo) {
+#' BVAR y el puente se construyen con h = 20 y el BVAR guarda sus extracciones. `n_draw` y `n_burn` son los de Fase 5
+#' (B2-7); solo las pruebas sintéticas los achican, para correr rápido.
+modelos_fase6 <- function(grupo, n_draw = N_DRAW_BVAR, n_burn = N_BURN_BVAR) {
   if (length(grupo) != 1L || !grupo %in% DISENO_FASE6$grupos) stop("modelos_fase6: grupo no declarado: ", paste(grupo, collapse = ", "))
   h_max <- DISENO_FASE6$h_max
   arimax <- modelo_arimax_grupo(grupo)
@@ -263,7 +264,7 @@ modelos_fase6 <- function(grupo) {
     m
   })
   pr_b <- predictoras_grupo(grupo)
-  bvar <- modelo_bvar(paste0("MULT.BVAR.", grupo), pr_b, H = h_max, extracciones = TRUE)
+  bvar <- modelo_bvar(paste0("MULT.BVAR.", grupo), pr_b, n_draw = n_draw, n_burn = n_burn, H = h_max, extracciones = TRUE)
   bvar$predecir_condicional <- function(aj, h, senderos_x) condicional_bvar(aj, h, senderos_x, pr_b)
   puente <- modelo_puente(paste0("MIX.PUENTE.", grupo), predictoras_no_penalizadas(grupo, "M"), H = h_max)
   puente$predecir_condicional <- function(aj, h, senderos_x) condicional_puente(aj, h, senderos_x)

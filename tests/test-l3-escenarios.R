@@ -181,4 +181,18 @@ test_that("catalogos: las publicaciones de escenario son las cinco de F6-18 y T0
   propias <- transf[transf$script_path == "src/transformacion/l3_escenarios.R", ]
   expect_setequal(propias$serie_producto, esc$series_master_id[!is.na(esc$transf_id)])
   for (f in unique(sub("\\(\\)$", "", propias$funcion))) expect_true(exists(f, mode = "function"), info = f)
+  # Rol referencia (2026-10-22, F6-10): un pass-through anual del WEO; FMI.WEO sigue siendo de escenario.
+  ref <- master[master$rol == "referencia", ]
+  expect_identical(ref$series_master_id, "FMI.PIB_SLV_VAR.PCT.NSA.A")
+  expect_true(is.na(ref$transf_id) && ref$series_insumo_ids == ref$series_master_id && ref$freq == "A")
+  expect_identical(series$publicacion_id[series$serie_id == ref$series_master_id], "FMI.WEO")
+})
+
+test_that("una publicación que alimenta escenario y referencia sigue siendo de escenario (2026-10-22)", {
+  series <- data.frame(serie_id = c("A.M", "E1.A", "R1.A"), publicacion_id = c("PUB_A", "PUB_E", "PUB_E"), stringsAsFactors = FALSE)
+  master <- data.frame(series_master_id = c("A.Q", "ESC.X.BASE", "R1.A"), rol = c("predictor", "escenario", "referencia"),
+                       series_insumo_ids = c("A.M", "E1.A", "R1.A"), stringsAsFactors = FALSE)
+  expect_identical(publicaciones_de_escenario(series, master), "PUB_E")
+  master$rol[3] <- "predictor"
+  expect_identical(publicaciones_de_escenario(series, master), character(0))
 })

@@ -44,6 +44,19 @@ test_that("ajustar_satelite recupera el DGP y elige (p, q) = (1, 1) por BIC", {
   expect_identical(s$grilla$bic[which.min(s$grilla$bic)], min(s$grilla$bic))
 })
 
+test_that("con p = 0 φ queda vacío y ψ y Σ_X son finitos (corrección del 2026-10-22, D7)", {
+  # Sin rezagos propios en el DGP el BIC elige p = 0. paste0("x_L", integer(0)) es "x_L": φ salía NA y Σ_X no finita.
+  d <- .dgp(7, desde = "1960-Q1", phi = 0, beta = c(0.8, 0))
+  s <- ajustar_satelite(d$x, d$z, .O_SAT, "SAT.PRUEBA")
+  expect_identical(s$p, 0L)
+  expect_identical(s$phi, numeric(0))
+  pr <- proyectar_satelite(s, .hasta(d$x, .O_SAT), d$z, 20L)
+  expect_identical(pr$psi, c(1, rep(0, 19)))
+  sx <- senderos_satelites(list(X = s), list(X = pr), "X")
+  expect_true(all(is.finite(sx$cov)))
+  expect_equal(diag(sx$cov), rep(sx$Sigma_e[1, 1], 20))
+})
+
 test_that("el BIC de cada candidato se calcula en la misma muestra y el elegido se reestima con su muestra máxima", {
   d <- .dgp(2)
   s <- ajustar_satelite(d$x, d$z, .O_SAT, "SAT.PRUEBA")

@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5 proyeccion proyeccion-medicion fase6 fase6-medicion-bvar preregistro-fase6 preregistro-escribir
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -158,6 +158,37 @@ tabla-fase4:
 fase5:
 	$(MAKE) master CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
 	$(MAKE) eval CONJUNTO=doc/metodologia/corte_fase5.csv SALIDA=data/conjuntos/corte_f5
+
+# Fase 6 — proyección condicional (Ejercicio B; checklist de Fase 6, D7; protocolo_proyeccion.md §11). La orden única es
+# `make fase6`: master con el corte congelado de F6-04, la verificación sintética (V1-V23) y la proyección. LOCAL: exige
+# L0 materializada y X-13 (C-5). src/proyeccion/correr_fase6.R se detiene sin el preregistro de E1
+# (doc/metodologia/preregistro_fase6.yaml, que escribe `make preregistro-fase6`), si la guarda recalculada difiere de
+# la congelada o si el árbol no está limpio: antes de correr, `git status --short` debe salir vacío. Escribe
+# data/L4_experiments/F6_COMUN/ y F6_G1..G3/ con manifiesto y las filas F6_* de catalogos/07_experimentos.csv.
+# `make fase6-medicion-bvar` es la medición previa del BVAR (F6-13 d, ítem E2): solo las dos cifras de la ficha, sin
+# senderos; escribe data/L4_experiments/F6_MEDICION_BVAR/.
+FASE6_CORTE := CONJUNTO=doc/metodologia/corte_fase6.csv SALIDA=data/conjuntos/corte_f6
+proyeccion:
+	Rscript src/proyeccion/correr_fase6.R
+
+fase6:
+	$(MAKE) master $(FASE6_CORTE)
+	$(MAKE) eval-sintetico
+	$(MAKE) proyeccion $(FASE6_CORTE)
+
+fase6-medicion-bvar:
+	$(MAKE) master $(FASE6_CORTE)
+	$(MAKE) proyeccion-medicion $(FASE6_CORTE)
+
+proyeccion-medicion:
+	Rscript src/proyeccion/correr_fase6.R medicion
+
+preregistro-fase6:
+	$(MAKE) master $(FASE6_CORTE)
+	$(MAKE) preregistro-escribir $(FASE6_CORTE)
+
+preregistro-escribir:
+	Rscript scripts/armar_preregistro_fase6.R
 
 # Fase 7 — sitio de documentación.
 report:

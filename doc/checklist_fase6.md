@@ -98,7 +98,12 @@ se marca.
   `src/proyeccion/sensibilidad.R` y `src/proyeccion/reporte.R` (F6-09-b, F6-10-a, F6-11-b), PR #85. Misma corrida de CI:
   3598 PASS / 0 FAIL (70 de ellas en `tests/test-reporte-fase6.R`). La identidad de las remesas pasó a informativa
   (decisión de Harold, nota del 2026-10-22 en F6-10).
-- [ ] **D7** `make fase6` como orden única.
+- [x] **D7** `make fase6` como orden única. — 2026-10-22: `src/proyeccion/correr_fase6.R`, `make fase6`,
+  `make fase6-medicion-bvar` (E2) y `make preregistro-fase6` (E1) (F6-12-b), PR #86. CI run 39851525307 sobre
+  `53e7ecb`: 3670 PASS / 0 FAIL (62 de ellas en `tests/test-correr-fase6.R`, G1 y G3 de punta a punta con datos
+  sintéticos) y V1-V23 OK. La proyección exige el preregistro de E1 y árbol limpio; no se proyectó sobre datos reales.
+  Incluye la referencia `FMI.PIB_SLV_VAR.PCT.NSA.A` (rol `referencia`, decisión de Harold) y la corrección de las
+  satélites con p = 0 (F6-15-c).
 
 ## E. Preregistro y corrida
 
