@@ -88,7 +88,9 @@ se marca.
   `tempdisagg` de F6-16 ya está en `tests/test-l3-escenarios.R`, desde C3.) — 2026-10-21:
   `src/proyeccion/satelites.R` y los seis `catalogos/06_modelos/SAT.*.yaml` (F6-15-c), PR #83. CI run 39671942336
   sobre `f3d68b4`: 3476 PASS / 0 FAIL (48 de ellas en `tests/test-satelites.R`) y V21b OK.
-- [ ] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07).
+- [x] **D4** Guarda (F6-08), combinación por mediana (F6-02) y mezcla de densidades (F6-07). — 2026-10-22:
+  `src/proyeccion/combinacion.R` (F6-07-b), PR #84. CI run 39838609663 sobre `a0436a5`: 3528 PASS / 0 FAIL (52 de
+  ellas en `tests/test-combinacion-fase6.R`) y V21b OK. El rango de la guarda se calcula sobre `corte_fase6` en E1.
 - [ ] **D5** Canarios V22 y V23 en `verificar_motor_sintetico.R`, en verde en CI.
 - [ ] **D6** Sensibilidad (F6-09), coherencia (F6-10) y tablas de reporte (F6-11).
 - [ ] **D7** `make fase6` como orden única.
