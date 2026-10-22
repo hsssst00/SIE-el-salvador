@@ -110,13 +110,17 @@ condicionar_var <- function(mu, Phi, Sigma, cols, vx, modelo_id = "VAR") {
   list(media = m[iy] + drop(K %*% (as.vector(vx) - m[ix])), cov = (C + t(C)) / 2, K = K)
 }
 
-#' Mediana por trimestre de una mezcla con pesos iguales de normales N(mu[j, t], sd[j, t]²) (F6-13 a).
-mediana_mezcla_normal <- function(mu, sd) {
+#' Cuantil `p` por columna de una mezcla con pesos iguales de normales N(mu[j, t], sd[j, t]²): la raíz de su
+#' función de distribución (F6-13 a; F6-07 para las bandas de la combinación).
+cuantil_mezcla_normal <- function(mu, sd, p) {
   vapply(seq_len(ncol(mu)), function(t_) {
-    f <- function(x) mean(stats::pnorm(x, mu[, t_], sd[, t_])) - 0.5
+    f <- function(x) mean(stats::pnorm(x, mu[, t_], sd[, t_])) - p
     stats::uniroot(f, c(min(mu[, t_] - 10 * sd[, t_]), max(mu[, t_] + 10 * sd[, t_])), tol = 1e-12)$root
   }, numeric(1))
 }
+
+#' Mediana por trimestre de una mezcla con pesos iguales de normales (F6-13 a).
+mediana_mezcla_normal <- function(mu, sd) cuantil_mezcla_normal(mu, sd, 0.5)
 
 # ---------------------------------------------------------------------------------------------
 # ARIMAX
