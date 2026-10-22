@@ -72,8 +72,10 @@ se marca.
   2026-10-21: 41 vintages de 17 publicaciones (sha256 sin CR `f9cea4a4…`), armado con `scripts/armar_corte_fase6.R`;
   `make master` sobre el corte con código 0 y origen 2026-Q2; G-6 y C-5 en verde con `scripts/verificar_corte_g6.R`.
   Detalle en «Hechos verificados el 2026-10-21 (corte de Fase 6, C4)» de `decisiones_fase6.md`. El congelamiento
-  formal es el de E1: hasta entonces el corte se refresca con cada captura nueva (F6-04-b), y ya está atrás del
-  calendario del BCR en ITCER, IPP e IPC.
+  formal es el de E1: hasta entonces el corte se refresca con cada captura nueva (F6-04-b). Refrescado el 2026-10-22
+  con IPP, IPC y las dos series de FRED (sha256 sin CR `cef1c939…`); detalle en «Hechos verificados el 2026-10-22
+  (capturas previas al congelamiento, E1)» de `decisiones_fase6.md`. Faltan remesas (2026-10-23) e IVAE, IPM y FOB
+  (2026-10-30).
 
 ## D. Implementación (solo datos sintéticos)
 
