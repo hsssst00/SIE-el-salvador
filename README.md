@@ -62,3 +62,10 @@ Próxima ventana: **1–3 de noviembre de 2026**.
 ## Licencia
 
 Código bajo MIT (`LICENSE`). Documentación bajo CC-BY-4.0 (`LICENSE-docs`). Ver ADR-008 para la política de datos no redistribuibles.
+
+### Aviso de FRED
+
+This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.
+
+Términos de uso de la API de FRED: <https://fred.stlouisfed.org/docs/api/terms_of_use.html>. Quien reproduzca la
+captura de L0 necesita su propia clave de la API (ADR-008).
