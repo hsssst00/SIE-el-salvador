@@ -119,7 +119,8 @@ se marca.
 ## F. Cierre
 
 - [ ] **F1** `supuestos_escenarios.md` completo: cada supuesto con su fuente citada (vintage y sha256 en L0) y la
-  nota de inconsistencia entre fuentes de ADR-002.
+  nota de inconsistencia entre fuentes de ADR-002. — 2026-10-23: borrador completo antes de E1 (fuentes con vintage
+  y sha256, supuestos por escenario y nota de inconsistencia). Queda pendiente lo que enumera su sección 9.
 - [ ] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
   cifras.
 - [ ] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
