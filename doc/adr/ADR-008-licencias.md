@@ -366,3 +366,19 @@ a `03_series` sin resolver antes este punto con la fuente o con una decisión de
 
 **Alcance.** No cambia catálogos ni `data/L0_raw/`. Con esta enmienda no queda ningún tramo de ADR-008 en gestión. El
 ADR sigue «Parcial» solo por la condición sobre obras derivadas; si se cierra, lo decide Harold.
+
+## Nota — aviso de no-aval de FRED en el `README.md` (2026-10-23)
+
+**Hecho.** La enmienda de FRED del 2026-08-12 dejó el aviso de no-aval para cuando un *script* de
+`src/adquisicion/` consumiera la API. `src/adquisicion/fred.R` la consume desde Fase 2, pero el aviso no se había
+puesto. Lo detectó la redacción de `doc/metodologia/supuestos_escenarios.md` (F1 de Fase 6).
+
+**Aplicado.** El `README.md` lleva, en «Licencia», el texto exacto que exigen los Términos de Uso de la API de FRED,
+consultados el 2026-10-23 en `https://fred.stlouisfed.org/docs/api/terms_of_use.html` (la página no declara fecha de
+vigencia): «This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St.
+Louis.» Además lleva el enlace a esos términos.
+
+**Alcance.** Los requisitos de los términos para aplicaciones con usuarios (mostrar el enlace a los términos y
+declarar en los términos propios que el usuario acepta los de FRED) suponen una aplicación que terceros usan. El
+repositorio no lo es; el enlace ya queda en el `README.md`. La revisión serie por serie de la marca de derechos
+reservados no cambia: GDPC1 y CPIAUCSL son series de BEA y BLS. No cambia el estado del ADR.
