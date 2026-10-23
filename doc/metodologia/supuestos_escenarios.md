@@ -48,8 +48,9 @@ verificador: `extraer_escenarios.R` exige la clave citada y falla de forma visib
 
 **Condiciones de uso (ADR-008).** El FMI y FRED están en tramos resueltos (*script* y *checksum*). El tramo de FRED
 exige además dos cosas. Primero, el aviso de no-aval de la API de FRED en el `README.md`, con el texto exacto de
-los Términos de Uso vigentes: al 2026-10-23 el `README.md` no lo tiene, aunque `src/adquisicion/fred.R` consume la
-API desde Fase 2. Segundo, la revisión, serie por serie, de la marca de derechos reservados. GDPC1 y CPIAUCSL son
+los Términos de Uso vigentes. Está en el `README.md` desde el 2026-10-23 (nota fechada en ADR-008), aunque
+`src/adquisicion/fred.R` consume la API desde Fase 2. Segundo, la revisión, serie por serie, de la marca de derechos
+reservados. GDPC1 y CPIAUCSL son
 series de agencias federales de EE. UU. (BEA y BLS). El informe de proyección (F2) debería repetir el aviso.
 
 ## 3. Supuestos por escenario
@@ -197,8 +198,8 @@ quedó implementada, la combinación tiene estas costuras:
 - [ ] **E1.** Confirmar que los vintages de la sección 2 son los que congela el preregistro. Si alguno cambia, se
   actualizan en el mismo PR sus filas y las cifras de las secciones 3 y 4.
 - [ ] **E3.** Citar, desde la evidencia de la corrida, las desviaciones estándar de la sensibilidad (sección 3.5).
-- [ ] **ADR-008, FRED.** Aviso de no-aval en el `README.md`, con el texto exacto de los Términos de Uso vigentes
-  (sección 2). Va antes de publicar el informe (F2).
+- [x] **ADR-008, FRED.** Aviso de no-aval en el `README.md`, con el texto exacto de los Términos de Uso vigentes
+  (sección 2). — 2026-10-23, nota fechada en ADR-008.
 - [ ] **F1.** Revisión final y marca en el checklist.
 
 ## Registro
