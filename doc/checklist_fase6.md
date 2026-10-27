@@ -74,8 +74,9 @@ se marca.
   Detalle en «Hechos verificados el 2026-10-21 (corte de Fase 6, C4)» de `decisiones_fase6.md`. El congelamiento
   formal es el de E1: hasta entonces el corte se refresca con cada captura nueva (F6-04-b). Refrescado el 2026-10-22
   con IPP, IPC y las dos series de FRED (sha256 sin CR `cef1c939…`); detalle en «Hechos verificados el 2026-10-22
-  (capturas previas al congelamiento, E1)» de `decisiones_fase6.md`. Faltan remesas (2026-10-23) e IVAE, IPM y FOB
-  (2026-10-30).
+  (capturas previas al congelamiento, E1)» de `decisiones_fase6.md`. Refrescado el 2026-10-26 con remesas y balanza
+  comercial (FOB), ambas ya publicadas el 2026-10-23 (sha256 sin CR `8488af31…`; «Hechos verificados el 2026-10-26»).
+  Faltan IVAE e IPM (2026-10-30).
 
 ## D. Implementación (solo datos sintéticos)
 
@@ -110,7 +111,9 @@ se marca.
 ## E. Preregistro y corrida
 
 - [ ] **E1** Congelamiento con commit: corte, supuestos en L0, YAML de satélites y de Fase 6, regla, guarda (con su
-  rango calculado en `corte_fase6`) y lista de coherencia. El protocolo deja de ser borrador.
+  rango calculado en `corte_fase6`) y lista de coherencia. El protocolo deja de ser borrador. — Decisión de Harold,
+  2026-10-26: se congela el 2026-10-30, con IVAE e IPM capturados (regla «último vintage al congelar», F6-04). Antes,
+  el 2026-10-26, se capturaron remesas y balanza comercial y se refrescó el corte.
 - [ ] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
   preregistro.
 - [ ] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`.
