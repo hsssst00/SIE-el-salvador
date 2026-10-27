@@ -294,3 +294,11 @@ FRED, fuera del portal del BCR: `FRED.BEA_PIB_EEUU.v2026-10` y `FRED.CPIAUCSL.v2
 2026-10-21), una llamada cada una. `verificar_l0_fisico` 83/83. Crudos en el almacén privado de L0 (commit
 `5d0942b`). Detalle en `doc/metodologia/decisiones_fase6.md`, «Hechos verificados el 2026-10-22 (capturas previas al
 congelamiento, E1)».
+
+## Nota del 2026-10-26 — remesas y balanza comercial (ADR-007 D3)
+
+`make raw-rapido` (una pasada) marcó `NUEVO_PERIODO` en remesas, balanza comercial, IPI, ISI y RIN; el calendario
+anunciaba remesas y balanza comercial para el 2026-10-23. Se capturaron solo esas dos, que usa el pipeline, una vez
+cada una: `BCR.REMESAS_FAMILIARES_MENSUAL.v2026-10` y `BCR.BALANZA_COMERCIAL.v2026-10`, hasta 2026-M09 (M08 → M09, sin
+vintages intermedios perdidos). IPI, ISI y RIN quedan para la ventana de noviembre. `verificar_l0_fisico` 85/85.
+Detalle en `doc/metodologia/decisiones_fase6.md`, «Hechos verificados el 2026-10-26».

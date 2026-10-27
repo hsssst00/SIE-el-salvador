@@ -1072,3 +1072,29 @@ publicación), una pasada cada una (regla 9), solo de lo que el pipeline usa.
   `tests/test-corte-motor.R` en verde.
 - **Lo que falta antes de E1.** Remesas (2026-10-23) e IVAE, IPM y FOB (2026-10-30), por la misma vía. ITCER, cuando
   el portal pase de M07. El PIB de 2026-T3 sigue sin fecha anunciada, así que F6-04-a no se activa.
+
+## Hechos verificados el 2026-10-26 (capturas de remesas y balanza comercial, E1)
+
+Sobre `main` = `b7f0be8`, en Windows con R 4.6.1. Capturas por la vía de ADR-007 D3, una pasada cada una (regla 9).
+
+- **Condiciones de D3.** `make raw-rapido` dio `NUEVO_PERIODO` en `BCR.REMESAS_FAMILIARES_MENSUAL` y en
+  `BCR.BALANZA_COMERCIAL` (fuente 2026-M09, vigente 2026-M08); el calendario anunciaba las dos para el 2026-10-23; en
+  ambas era la primera captura del período. Corrige lo que C4 y los hechos del 2026-10-22 suponían: el FOB sale de
+  `BCR.BALANZA_COMERCIAL`, que ya estaba publicada, no del 2026-10-30. Para esa fecha quedan IVAE e IPM
+  (`BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR`). El mismo precheck marcó IPI, ISI y RIN, que el pipeline no usa y no se
+  capturan.
+- **Capturados** (sha256 crudo; crudos en el almacén privado de L0), los dos hasta 2026-M09, M08 → M09 (sin vintage
+  intermedio perdido), `fecha_publicacion` 2026-10-01 por la convención de `bcr.R`:
+  - `BCR.REMESAS_FAMILIARES_MENSUAL.v2026-10`: `BCR_remesas_familiares_mensual_2026-10-26.xlsx`, `cf4c0aaf…`.
+  - `BCR.BALANZA_COMERCIAL.v2026-10`: `BCR_balanza_comercial_2026-10-26.xlsx`, `963df3a0…`.
+- **L0 y corte.** `verificar_l0_fisico.R`: 85/85; `check_l0_integrity.R`: 85 vintages consistentes.
+  `scripts/armar_corte_fase6.R` cambió dos filas (remesas y balanza comercial, `v2026-09` → `v2026-10`): 41 vintages de
+  17 publicaciones, sha256 sin CR `8488af31278aa2f2d599f94678e877a705005299138bc2ac8bfd2df53c57ecf2`.
+- **`make master` sobre el corte.** Los 18 pasos de `master` (en esta máquina no hay `make`: uno por uno, con
+  `SIE_CONJUNTO` y `SIE_SALIDA`) con código 0 y origen 2026-Q2. Remesas y FOB llegan a 2026-M09.
+- **G-6 y pruebas.** `scripts/verificar_corte_g6.R`: G-6, NSA/C-5 y las 26 series en verde. `tests/test-corte-motor.R`
+  en verde.
+- **Decisión de Harold, 2026-10-26: E1 espera al 2026-10-30.** Se congela con IVAE e IPM capturados, por la regla
+  «último vintage al congelar» (F6-04). No se congeló.
+- **Lo que falta antes de E1.** IVAE e IPM (2026-10-30), por la misma vía. ITCER, cuando el portal pase de M07. El PIB
+  de 2026-T3 sigue sin fecha anunciada, así que F6-04-a no se activa.
