@@ -1098,3 +1098,36 @@ Sobre `main` = `b7f0be8`, en Windows con R 4.6.1. Capturas por la vía de ADR-00
   «último vintage al congelar» (F6-04). No se congeló.
 - **Lo que falta antes de E1.** IVAE e IPM (2026-10-30), por la misma vía. ITCER, cuando el portal pase de M07. El PIB
   de 2026-T3 sigue sin fecha anunciada, así que F6-04-a no se activa.
+
+## Hechos verificados el 2026-11-02 (capturas de la ventana mensual de noviembre, E1)
+
+Sobre `main` = `c3657b4`, en Windows con R 4.6.1. Capturas por la vía de ADR-007 D3, a pedido de Harold («captura de
+todas»), con `fecha_publicacion` 2026-10-01 (ciclo del 2026-10-30 del calendario) y por tanto `vintage_id` `v2026-10`.
+
+- **Precheck.** `make raw-rapido` (una pasada; en esta máquina, `Rscript scripts/verificar_l0_rapido.R`) dio 9
+  `NUEVO_PERIODO`: IVAE, IPM, ITCER, IPI, ISI, RIN, SPNF, Gobierno Central Consolidado y Panorama de las sociedades de
+  depósito. `NO_TOCA`: balanza comercial, IPP, Panorama del Banco Central, remesas e IPC (ya capturados).
+- **Capturados** (una llamada cada una; sha256 crudo; archivos `*_2026-11-02.xlsx`):
+  - `BCR.IVAE.VIGENTE.v2026-10`, hasta 2026-M08 (vigente M07): `283a10f3…`.
+  - `BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR.v2026-10` (IPM), hasta 2026-M08 (vigente M07): `61fbced1…`.
+  - `BCR.ITCER.v2026-10`, hasta 2026-M09: `29416968…`. **Salta un mes:** el vintage anterior llegaba a M07, así que
+    no hay vintage de M08 (el portal no lo sirvió en ningún momento observado). Para el corte manda el último.
+  - `BCR.IPI.VIGENTE.v2026-10`, hasta 2026-M08: `e23385a3…`.
+  - `BCR.ISI.v2026-10`, hasta 2026-M09: `b7d00f10…`.
+  - `BCR.RESERVAS_INTERNACIONALES_NETAS.v2026-10`, hasta 2026-M09: `eee13ff7…`.
+  - `BCR.SPNF_VIGENTE.v2026-10`, hasta 2026-M09: `a3fa31c0…`.
+- **No capturados.** `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` y `BCR.PANORAMA_SOCIEDADES_DEPOSITO` fallaron de forma
+  visible («FALLO VISIBLE: timeout (240s) esperando: filtrar() / matriz completa»), en la pasada y en un único
+  reintento pedido por Harold, que dio el mismo error. No se registró nada. El pipeline no las usa (no están en
+  `03_series.csv` ni en los YAML de modelos). Quedan para la ventana de diciembre; si el timeout persiste, es un
+  hallazgo de `doc/bitacora_fuentes_fragiles.md`. Para la regla 9: 9 capturas en la pasada más 2 reintentos fallidos,
+  sin descargas exitosas repetidas.
+- **L0 y corte.** `verificar_l0_fisico.R`: 92/92; `check_l0_integrity.R`: 92 vintages consistentes.
+  `scripts/armar_corte_fase6.R` cambió tres filas (IVAE, IPM, ITCER, `v2026-09` → `v2026-10`): 41 vintages de 17
+  publicaciones, sha256 sin CR `4aaa33fe…` (`4aaa33fea3d89c0806f611780b368b730a3f8ebe1f1b4d3c761a9bd7c604c440`).
+- **`make master` sobre el corte.** Los 16 pasos de `master` posteriores a `validate` (uno por uno, con `SIE_CONJUNTO`
+  y `SIE_SALIDA`) con código 0.
+- **G-6 y pruebas.** `scripts/verificar_corte_g6.R`: G-6, NSA/C-5 y las 26 series en verde, origen 2026-Q2.
+  `tests/test-corte-motor.R` en verde.
+- **Lo que falta antes de E1.** Nada en captura: IVAE e IPM, que eran lo que esperaba E1, ya están. El PIB de 2026-T3
+  sigue sin fecha anunciada, así que F6-04-a no se activa. Los crudos nuevos aún no están en el almacén privado de L0.
