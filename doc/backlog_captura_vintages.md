@@ -302,3 +302,11 @@ anunciaba remesas y balanza comercial para el 2026-10-23. Se capturaron solo esa
 cada una: `BCR.REMESAS_FAMILIARES_MENSUAL.v2026-10` y `BCR.BALANZA_COMERCIAL.v2026-10`, hasta 2026-M09 (M08 → M09, sin
 vintages intermedios perdidos). IPI, ISI y RIN quedan para la ventana de noviembre. `verificar_l0_fisico` 85/85.
 Detalle en `doc/metodologia/decisiones_fase6.md`, «Hechos verificados el 2026-10-26».
+
+## Nota del 2026-11-02 — ventana mensual de noviembre (ADR-007 D3)
+
+`verificar_l0_rapido.R` (una pasada) marcó 9 `NUEVO_PERIODO`. Se capturaron 7, una vez cada una, con `v2026-10`: IVAE
+y IPM (hasta M08), IPI (M08), ITCER, ISI, RIN y SPNF (hasta M09). ITCER salta de M07 a M09: no hay vintage de M08.
+Gobierno Central Consolidado y Panorama de las sociedades de depósito dieron timeout visible (también en un reintento) y
+quedan para la ventana de diciembre. `verificar_l0_fisico` 92/92. Detalle en `doc/metodologia/decisiones_fase6.md`,
+«Hechos verificados el 2026-11-02».
