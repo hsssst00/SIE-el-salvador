@@ -127,7 +127,7 @@ se marca.
   nota de inconsistencia entre fuentes de ADR-002. — 2026-10-23: borrador completo antes de E1 (fuentes con vintage
   y sha256, supuestos por escenario y nota de inconsistencia). Queda pendiente lo que enumera su sección 9.
 - [ ] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
-  cifras.
+  cifras. — 2026-11-04: borrador en `doc/informe_proyeccion_fase6.md`, hecho sobre las salidas de la corrida única (E3); sin marcar hasta que Harold lo revise.
 - [ ] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
   senda.
 - [ ] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.
