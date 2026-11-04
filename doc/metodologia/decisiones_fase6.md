@@ -1131,3 +1131,21 @@ todas»), con `fecha_publicacion` 2026-10-01 (ciclo del 2026-10-30 del calendari
   `tests/test-corte-motor.R` en verde.
 - **Lo que falta antes de E1.** Nada en captura: IVAE e IPM, que eran lo que esperaba E1, ya están. El PIB de 2026-T3
   sigue sin fecha anunciada, así que F6-04-a no se activa. Los crudos nuevos aún no están en el almacén privado de L0.
+
+## Hechos verificados el 2026-11-04 (restauración de los siete crudos del 2026-11-02, E1)
+
+Sobre `main` = `e9c42e7`, en Windows con R 4.6.1.
+
+- **Hallazgo.** Los siete crudos `*_2026-11-02.xlsx` (IVAE, IPM, ITCER, IPI, ISI, RIN y SPNF) tenían fila en el
+  manifiesto y en `08_vintages.csv`, pero no estaban en `data/L0_raw/` de esta máquina ni en el almacén privado de L0:
+  la captura del 2026-11-02 no los subió. `verificar_l0_fisico.R` daba 85/92 y `materializar_l0.R` los reportaba
+  `FALTA_EN_ALMACEN`. Sin ellos no corre `make master` sobre el corte, así que E1 y E2 no podían arrancar.
+- **Decisión de Harold, 2026-11-04: recapturar.** Su respuesta («la captura de esas 7 falló») es la comprobación que
+  pide la nota del 2026-09-07 de ADR-007 antes de recapturar: no hay otra copia.
+- **Vía.** `scripts/restaurar_l0_perdido.R aplicar` (ADR-007, nota del 2026-08-30), una sola pasada de siete capturas
+  (regla 9). Los siete `sha256_norm` recapturados **coinciden** con los registrados: es el mismo dato del 2026-11-02, no
+  un vintage nuevo. Archivos con su nombre registrado; cambiaron `sha256` y `tamano_bytes` de las siete filas del
+  manifiesto y `sha256` de las de `08_vintages.csv` (el histórico queda en `notas`). El corte no cambia: solo lista
+  `publicacion_id` y `vintage_id`; sigue en `4aaa33fe…`.
+- **L0.** `verificar_l0_fisico.R`: 92/92; `check_l0_integrity.R`: 92 vintages consistentes. Crudos subidos al almacén
+  privado de L0 (commit `596bf9f`).
