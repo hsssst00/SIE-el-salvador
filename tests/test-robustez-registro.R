@@ -142,10 +142,16 @@ test_that("07: las filas registradas resuelven contra 06_modelos y 08_vintages",
   } else {
     modelos <- sub("\\.yaml$", "", list.files(here::here("catalogos", "06_modelos"), pattern = "^[^_].*\\.yaml$"))
     vint <- utils::read.csv(here::here("catalogos", "08_vintages.csv"), colClasses = "character")$vintage_id
-    expect_true(all(reg$modelo_id %in% modelos))
+    # Fase 6 (F6-12-b): una fila por (grupo, modelo) y la de la mezcla, COMBINACION, que no es un modelo con YAML; su
+    # esquema_validacion tiene gramática propia (proyeccion_condicional|origen|grupo|conjunto|corridas), no la de F4/F5.
+    f6 <- startsWith(reg$exp_id, "F6_")
+    token_f6 <- "^proyeccion_condicional\\|origen=[0-9]{4}-Q[1-4]\\|grupo=G[1-3]\\|conjunto=[A-Za-z0-9_.-]+@[0-9a-f]{8}\\|corridas=[A-Z0-9_]+(\\+[A-Z0-9_]+)*$"
+    expect_true(all(reg$modelo_id[!f6] %in% modelos))
+    expect_true(all(reg$modelo_id[f6] %in% c(modelos, "COMBINACION")))
     expect_identical(reg$exp_id, paste0(sub("__.*$", "", reg$exp_id), "__", reg$modelo_id))
     expect_false(anyDuplicated(reg$exp_id) > 0L)
-    for (tk in unique(reg$esquema_validacion)) expect_silent(validar_token(tk))
+    for (tk in unique(reg$esquema_validacion[!f6])) expect_silent(validar_token(tk))
+    for (tk in unique(reg$esquema_validacion[f6])) expect_match(tk, token_f6)
     expect_true(all(unlist(strsplit(reg$vintage_id, " + ", fixed = TRUE)) %in% vint))
     expect_true(all(grepl("^[0-9a-f]{40}$", reg$commit_hash)))
     expect_identical(reg$ruta_resultados, paste0("data/L4_experiments/", sub("__.*$", "", reg$exp_id), "/"))

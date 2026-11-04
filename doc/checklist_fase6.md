@@ -21,9 +21,9 @@ se marca.
   (`c4ae7c6`, run #384).
 - [x] **A2** Análisis posteriores AP-1 a AP-4 y residuos de la verificación en `main`. — PR #63 a #69; `main` =
   `0927b32` al cerrar A2 (2026-10-16); el HEAD vigente se lee con `git log`, no acá.
-- [ ] **A3** Compuerta de la auditoría de Fase 5: la regla de combinación (F6-02) y la guarda de plausibilidad
+- [x] **A3** Compuerta de la auditoría de Fase 5: la regla de combinación (F6-02) y la guarda de plausibilidad
   (F6-08) fijadas con commit **antes de la primera proyección**. Decididas en `decisiones_fase6.md`; se cumple
-  cuando E1 congela su implementación.
+  cuando E1 congela su implementación. — 2026-11-04: cumplida con E1 (PR #93, `b1376df`).
 
 ## B. Decisiones
 
@@ -111,14 +111,14 @@ se marca.
 
 ## E. Preregistro y corrida
 
-- [ ] **E1** Congelamiento con commit: corte, supuestos en L0, YAML de satélites y de Fase 6, regla, guarda (con su
+- [x] **E1** Congelamiento con commit: corte, supuestos en L0, YAML de satélites y de Fase 6, regla, guarda (con su
   rango calculado en `corte_fase6`) y lista de coherencia. El protocolo deja de ser borrador. — Decisión de Harold,
   2026-10-26: se congela el 2026-10-30, con IVAE e IPM capturados (regla «último vintage al congelar», F6-04). Antes,
   el 2026-10-26, se capturaron remesas y balanza comercial y se refrescó el corte; el 2026-11-02 se capturaron IVAE
-  e IPM (más ITCER) y se refrescó otra vez: E1 queda sin bloqueo de captura.
+  e IPM (más ITCER) y se refrescó otra vez: E1 queda sin bloqueo de captura. — 2026-11-04: congelado en el PR #93 (`b1376df`; CI runs 41888086194 y 41888096601 en verde sobre `b9e7327`): `doc/metodologia/preregistro_fase6.yaml`, corte `4aaa33fe…`, origen 2026-Q2, guarda [-5,146; 13,070] pp (n = 134); protocolo v0.3 congelado. Antes, el PR #92 repuso los siete crudos del 2026-11-02 (L0 92/92).
 - [x] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
   preregistro. — 2026-11-04: `make fase6-medicion-bvar` sobre `corte_fase6` (`4aaa33fe…`), código 0; mayoría de extracciones con raíz > 1 en los tres grupos (78 %, 99,9 %, 99,98 %), casi ninguna > 1,05; media-mediana < 0,04 pp. Harold decidió congelar sin cambios y con tres precauciones (nota del 2026-11-04 en `decisiones_fase6.md`; evidencia en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv`).
-- [ ] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`.
+- [x] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`. — 2026-11-04: `make fase6` sobre `b1376df` con árbol limpio, 01:03 a 01:21; V1-V23 OK, F6_G1 a G3 escritos, 0 exclusiones de la guarda, 42 filas en `07_experimentos.csv`.
 - [ ] **E4** Reproducción bit a bit en la máquina de Harold.
 
 ## F. Cierre

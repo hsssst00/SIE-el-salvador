@@ -1,0 +1,225 @@
+Evidencia de la corrida única de Fase 6 (checklist E3; insumo de F2)
+====================================================================
+
+Máquina: PC de Harold (Windows), R 4.6.1, entorno renv del repositorio.
+Commit: b1376df (main, merge del PR #93, congelamiento E1). Árbol limpio: los manifiestos de
+data/L4_experiments/F6_G1, F6_G2, F6_G3 y F6_COMUN registran «commit_hash: b1376dfeba96…» y «arbol: limpio».
+Corte: SIE_CONJUNTO=doc/metodologia/corte_fase6.csv, SIE_SALIDA=data/conjuntos/corte_f6
+(sha256 sin CR 4aaa33fea3d89c0806f611780b368b730a3f8ebe1f1b4d3c761a9bd7c604c440, el mismo del preregistro).
+Preregistro: doc/metodologia/preregistro_fase6.yaml (congelado el 2026-11-04); guarda [-5,145594; 13,070089] pp.
+Orden: `make fase6` (validación y maestro sobre el corte, verificación sintética V1-V23, proyección), una sola
+vez; hora local (UTC-6).
+
+Inicio 2026-11-04T01:03:39. Fin 2026-11-04T01:21:27. Salida completa de `make fase6` (stdout y stderr) abajo, sin
+editar. Resultado: V1-V23 OK; F6_G1 580 filas trimestrales y 174 anuales, F6_G2 480 y 144, F6_G3 460 y 138;
+0 exclusiones de la guarda en los tres grupos; 42 filas de Fase 6 en catalogos/07_experimentos.csv.
+
+Un primer intento de lanzar la corrida, ese mismo día, no llegó a ejecutar `make` (falló el entrecomillado del
+comando de captura de la salida): no escribió nada en data/L4_experiments/F6_G*/ ni en el catálogo. Esta es la
+única corrida.
+
+--------------------------------------------------------------------------------------------------------------
+make master CONJUNTO=doc/metodologia/corte_fase6.csv SALIDA=data/conjuntos/corte_f6
+make[1]: Entering directory '/c/Users/INVE/Documents/SIE-el-salvador'
+Rscript src/validacion/validate_catalogs.R
+✓ Validación de catálogos OK: todos los esquemas cumplen datapackage.json.
+Rscript src/validacion/validar_integridad_catalogos.R
+Integridad referencial entre catálogos OK (03_series, 04_transformaciones, 05_series_master, 08_vintages, 09_rupturas).
+Rscript src/transformacion/validar_conjunto.R
+OK conjunto: 41 vintage(s) de 17 publicacion(es); las 17 que el pipeline necesita estan cubiertas.
+Salida: C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6
+Rscript src/transformacion/extraer_bcr_pib.R
+OK: 8142 observaciones, 98 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_PIB_series_largo.csv 
+Rscript src/transformacion/ut_demanda_serie.R
+
+Adjuntando el paquete: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+OK: 296 filas, 2002 - 2026 -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/UT_DEMANDA_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_ivae.R
+OK: 260 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_IVAE_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_remesas.R
+OK: 429 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_REMESAS_series_largo.csv 
+Rscript src/transformacion/extraer_onec_ipc.R
+OK: 202 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/ONEC_IPC_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_ipp.R
+OK: 202 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_IPP_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_balanza_comercial.R
+OK: 393 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_BALANZA_COMERCIAL_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_itcer.R
+OK: 321 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_ITCER_series_largo.csv 
+Rscript src/transformacion/extraer_bcr_indices_precios_comercio_exterior.R
+OK: 260 observaciones, 1 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/BCR_INDICES_PRECIOS_COMERCIO_EXTERIOR_series_largo.csv 
+Rscript src/validacion/validar_l2_pib.R
+Validación L2 OK: esquema, integridad referencial, duplicados, continuidad e identidad contable cumplen.
+Reporte de calidad de datos: data/L2_validated/reporte_calidad_l2_pib.html
+Rscript src/validacion/validar_l2_predictores.R
+Validación L2 OK: BCR.IVAE.VIGENTE (260 observaciones).
+Validación L2 OK: BCR.REMESAS_FAMILIARES_MENSUAL (429 observaciones).
+Validación L2 OK: ONEC.IPC.BASE_2009 (202 observaciones).
+Validación L2 OK: BCR.IPP (202 observaciones).
+Validación L2 OK: BCR.BALANZA_COMERCIAL (393 observaciones).
+Validación L2 OK: BCR.ITCER (321 observaciones).
+Validación L2 OK: BCR.INDICES_PRECIOS_COMERCIO_EXTERIOR (260 observaciones).
+Validación L2 OK: UT.DEMANDA_TOTAL_MENSUAL (296 observaciones).
+Validación L2 (predictores) OK para las 8 series: esquema, integridad referencial, duplicados y continuidad cumplen.
+Rscript src/transformacion/l3_pib_objetivo.R
+OK: PIB.SA.PROPIO.Q (146 obs, 2 outlier(es) declarado(s)) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/PIB_SA_PROPIO_Q.csv
+OK: PIB.SA.OFICIAL.Q (86 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/PIB_SA_OFICIAL_Q.csv
+Rscript src/transformacion/l3_predictores.R
+OK: BCR.IVAE.VOL.SA.M (260 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IVAE_VOL_SA_M.csv
+OK: BCR.IVAE.VOL.SA.Q (86 obs, T003_AGREGACION_TRIMESTRAL_IVAE) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IVAE_VOL_SA_Q.csv
+OK: BCR.REMESAS.NOM.NSA.M (429 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_REMESAS_NOM_NSA_M.csv
+OK: BCR.REMESAS.REAL.NSA.M (202 obs, T004_DEFLACTAR_REMESAS) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_REMESAS_REAL_NSA_M.csv
+OK: BCR.REMESAS.NOM.NSA.Q (143 obs, T005_AGREGACION_TRIMESTRAL_REMESAS_NOM) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_REMESAS_NOM_NSA_Q.csv
+OK: BCR.REMESAS.REAL.NSA.Q (67 obs, T006_AGREGACION_TRIMESTRAL_REMESAS_REAL) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_REMESAS_REAL_NSA_Q.csv
+OK: BCR.IPP.IDX.NSA.M (202 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IPP_IDX_NSA_M.csv
+OK: BCR.IPP.IDX.NSA.Q (67 obs, T007_AGREGACION_TRIMESTRAL_IPP) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IPP_IDX_NSA_Q.csv
+OK: BCR.EXPORT_FOB.NOM.NSA.M (393 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_EXPORT_FOB_NOM_NSA_M.csv
+OK: BCR.EXPORT_FOB.NOM.NSA.Q (131 obs, T008_AGREGACION_TRIMESTRAL_EXPORT_FOB) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_EXPORT_FOB_NOM_NSA_Q.csv
+OK: BCR.ITCER.IDX.NSA.M (321 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_ITCER_IDX_NSA_M.csv
+OK: BCR.ITCER.IDX.NSA.Q (107 obs, T009_AGREGACION_TRIMESTRAL_ITCER) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_ITCER_IDX_NSA_Q.csv
+OK: BCR.IPM.IDX.NSA.M (260 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IPM_IDX_NSA_M.csv
+OK: BCR.IPM.IDX.NSA.Q (86 obs, T010_AGREGACION_TRIMESTRAL_IPM) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/BCR_IPM_IDX_NSA_Q.csv
+OK: UT.DEMANDA_ELEC.GWH.NSA.M (296 obs, pass-through) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/UT_DEMANDA_ELEC_GWH_NSA_M.csv
+OK: UT.DEMANDA_ELEC.GWH.NSA.Q (98 obs, T011_AGREGACION_TRIMESTRAL_UT_DEMANDA) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/UT_DEMANDA_ELEC_GWH_NSA_Q.csv
+Rscript src/transformacion/extraer_escenarios.R
+OK: FRED.PIB_EEUU.VOL.SA.Q (318 obs, 1947-Q1 a 2026-Q2, 0 sin dato) <- FRED_gdpc1_2026-10-22.json
+OK: FRED.IPC_EEUU.IDX.SA.M (957 obs, 1947-M01 a 2026-M09, 1 sin dato) <- FRED_cpiaucsl_2026-10-22.json
+OK: FMI.PETROLEO_APSP.USD.NSA.M (417 obs, 1992-M01 a 2026-M09, 0 sin dato) <- FMI_poilapsp_usd_2026-10-19.json
+OK: FMI.PIB_SLV_VAR.PCT.NSA.A (52 obs, 1980 a 2031, 0 sin dato) <- FMI_weo_2026-10-19.json
+OK: FMI.PIB_EEUU_VAR.PCT.NSA.A (52 obs, 1980 a 2031, 0 sin dato) <- FMI_weo_2026-10-19.json
+OK: FMI.IPC_EEUU_VAR.PCT.NSA.A (52 obs, 1980 a 2031, 0 sin dato) <- FMI_weo_2026-10-19.json
+OK: FMI.PETROLEO_APSP.USD.NSA.A (52 obs, 1980 a 2031, 0 sin dato) <- FMI_weo_2026-10-19.json
+OK: FMI.DESV_PIB_EEUU_ESC_A.PCT.NSA.A (6 obs, 2026 a 2031, 0 sin dato) <- FMI_weo_capitulo1_2026_october_2026-10-19.xlsx
+OK: FMI.DESV_PIB_EEUU_ESC_C.PCT.NSA.A (6 obs, 2026 a 2031, 0 sin dato) <- FMI_weo_capitulo1_2026_october_2026-10-19.xlsx
+OK: FMI.DESV_INFL_EEUU_ESC_A.PP.NSA.A (6 obs, 2026 a 2031, 0 sin dato) <- FMI_weo_capitulo1_2026_october_2026-10-19.xlsx
+OK: FMI.DESV_INFL_EEUU_ESC_C.PP.NSA.A (6 obs, 2026 a 2031, 0 sin dato) <- FMI_weo_capitulo1_2026_october_2026-10-19.xlsx
+OK: 1924 observaciones, 11 series -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L1_staging/ESCENARIOS_series_largo.csv 
+Rscript src/transformacion/l3_escenarios.R
+OK: FRED.PIB_EEUU.VOL.SA.Q (318 obs, 1947-Q1 a 2026-Q2) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/FRED_PIB_EEUU_VOL_SA_Q.csv
+OK: FMI.PIB_SLV_VAR.PCT.NSA.A (52 obs, 1980 a 2031) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/FMI_PIB_SLV_VAR_PCT_NSA_A.csv
+OK: FRED.IPC_EEUU.IDX.SA.Q (319 obs, 1947-Q1 a 2026-Q3) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/FRED_IPC_EEUU_IDX_SA_Q.csv
+   T012_AGREGACION_TRIMESTRAL_IPC_EEUU: mes(es) sin dato interpolado(s) log-linealmente (F6-18-b): 2025-M10
+OK: FMI.PETROLEO_APSP.USD.NSA.Q (139 obs, 1992-Q1 a 2026-Q3) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/FMI_PETROLEO_APSP_USD_NSA_Q.csv
+OK: ESC.PIB_EEUU.VOL.SA.Q.BASE (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_PIB_EEUU_VOL_SA_Q_BASE.csv
+OK: ESC.PIB_EEUU.VOL.SA.Q.ADVERSO (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_PIB_EEUU_VOL_SA_Q_ADVERSO.csv
+OK: ESC.PIB_EEUU.VOL.SA.Q.FAVORABLE (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_PIB_EEUU_VOL_SA_Q_FAVORABLE.csv
+OK: ESC.IPC_EEUU.IDX.SA.Q.BASE (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_IPC_EEUU_IDX_SA_Q_BASE.csv
+OK: ESC.IPC_EEUU.IDX.SA.Q.ADVERSO (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_IPC_EEUU_IDX_SA_Q_ADVERSO.csv
+OK: ESC.IPC_EEUU.IDX.SA.Q.FAVORABLE (340 obs, 1947-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_IPC_EEUU_IDX_SA_Q_FAVORABLE.csv
+OK: ESC.PETROLEO_APSP.USD.NSA.Q.BASE (160 obs, 1992-Q1 a 2031-Q4) -> C:/Users/INVE/Documents/SIE-el-salvador/data/conjuntos/corte_f6/L3_master/ESC_PETROLEO_APSP_USD_NSA_Q_BASE.csv
+V-ESC-3 ESC.PIB_EEUU.VOL.SA.Q.ADVERSO: desvio contra la base reproducido (dif. max. 1.18e-16)
+V-ESC-3 ESC.PIB_EEUU.VOL.SA.Q.FAVORABLE: desvio contra la base reproducido (dif. max. 5.45e-16)
+V-ESC-3 ESC.IPC_EEUU.IDX.SA.Q.ADVERSO: desvio contra la base reproducido (dif. max. 4.44e-14)
+V-ESC-3 ESC.IPC_EEUU.IDX.SA.Q.FAVORABLE: desvio contra la base reproducido (dif. max. 3.34e-14)
+V-ESC-1, V-ESC-2 y V-ESC-4: OK en 7 series ESC.* (origen 2026-Q2, fin >= o + 20).
+V-ESC-5: promedio anual del petroleo en USD = POILAPSP del WEO en 1992-2025 (error relativo max. 3.34e-08)
+V-ESC-6: inflacion anual de CPIAUCSL frente a PCPIPCH del WEO en 1980-2024 (dif. max. 4.98e-07 pp)
+Informativo: crecimiento anual de GDPC1 frente a NGDP_RPCH del WEO en 1980-2025, dif. max. 0.000 pp (1991); difiere por vintage.
+OK: variables de escenario en L3 validadas (F6-18).
+Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS/IPP/EXPORT_FOB/ITCER/IPM (ADR-010) (Fase 3)
+make[1]: Leaving directory '/c/Users/INVE/Documents/SIE-el-salvador'
+make eval-sintetico
+make[1]: Entering directory '/c/Users/INVE/Documents/SIE-el-salvador'
+Rscript src/evaluacion/verificar_motor_sintetico.R
+V1   OK  52 orígenes 2013-Q1..2025-Q4; pares h=1/2/4/8 = 52/51/49/45; primera muestra 93 obs
+V2   OK  AR(1) φ=0.6: |motor - fórmula cerrada| máx = 8.9e-16 en h=1..8
+V3   OK  AR(1) φ=0,6: RMSE simulado dentro de ±3 EE de Monte Carlo del teórico en h=1/2/4/8 (2000 réplicas)
+V3   OK  paseo aleatorio: RMSE simulado dentro de ±3 EE de Monte Carlo del teórico en h=1/2/4/8 (2000 réplicas)
+V4   OK  DGP AR(1): AR(p)-BIC gana en 96% de 50 réplicas (RMSE relativo medio 0.820); DGP paseo: RMSE relativo medio 1.0068
+V5   OK  el canario que busca el futuro no lo encuentra y G-3 detiene el motor; G-1 rechaza una serie sin recortar
+V6   OK  un modelo que modifica su insumo no altera el estado maestro ni lo que ven los modelos siguientes
+V10  OK  dos corridas con los 6 benchmarks + un modelo estocástico: sha256 idéntico (f3bdc2c613bf…); otro exp_id cambia la semilla
+ grupo h  n tamano respaldo
+    G1 1 52 0.0440   0.0000
+    G1 2 51 0.0495   0.0000
+    G1 4 49 0.0805   0.0005
+    G1 8 45 0.1165   0.0220
+    G2 1 45 0.0470   0.0000
+    G2 2 44 0.0565   0.0000
+    G2 4 42 0.0720   0.0005
+    G2 8 38 0.1195   0.0305
+    G3 1 25 0.0395   0.0000
+    G3 2 24 0.0565   0.0005
+    G3 4 22 0.1140   0.0205
+    G3 8 18 0.1525   0.1485
+V7   OK  tamaño DM/HLN <= 0.0630 en h=1,2; h=4,8 reportado (máx 0.152): distorsión documentada
+V8   OK  potencia ante pérdida 20% menor, rango 0.069-0.161 (solo reporte)
+V9   OK  n=52 h=1: P(dominante en MCS)=0.995; P(MCS completo | equivalentes)=0.905
+V9   OK  n=45 h=8: P(dominante en MCS)=0.975; P(MCS completo | equivalentes)=0.775 (reportado)
+V9   OK  n=18 h=8: P(dominante en MCS)=0.880; P(MCS completo | equivalentes)=0.490 (reportado)
+V11  OK  6 modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| 0)
+V11  OK  4 modelos: p-valores MCS idénticos a MCS::MCSprocedure con las mismas remuestras (máx |dif| 0)
+Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG IEEE_DIVIDE_BY_ZERO
+V12  OK  F4_BENCH_G2     pares 45/44/42/38; 45 ajustes X-13 por origen; token válido
+V12  OK  F4_BENCH_G3_R1  pares 25/24/22/18; 25 ajustes X-13 por origen; token válido
+Note: The following floating-point exceptions are signalling: IEEE_INVALID_FLAG IEEE_DIVIDE_BY_ZERO
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+Note: The following floating-point exceptions are signalling: IEEE_UNDERFLOW_FLAG IEEE_DENORMAL
+V12  OK  F4_BENCH_G3_R2  pares 25/24/22/18; 25 ajustes X-13 por origen; token válido
+V12  OK  F4_BENCH_G3_R5  pares 25/24/22/18; sa=l3_unico; token válido
+V12  OK  F4_BENCH_G3_R6  pares 25/24/22/18; sa=l3_unico; token válido
+V12  OK  canarios: LS 2020-Q2 detiene el ajuste (F4-09b) y una NSA más allá del origen lo detiene con G-1; 70 ajustes X-13 en caché
+V13  OK  h=1: cobertura 80% 0.806 y 95% 0.952 (±3 ee de MC); CRPS verdadero 0.562 < paseo 0.737
+V13  OK  h=2: cobertura 80% 0.803 y 95% 0.954 (±3 ee de MC); CRPS verdadero 1.013 < paseo 1.342
+V13  OK  h=4: cobertura 80% 0.803 y 95% 0.954 (±3 ee de MC); CRPS verdadero 1.755 < paseo 2.439
+V13  OK  h=8: cobertura 80% 0.802 y 95% 0.954 (±3 ee de MC); CRPS verdadero 1.857 < paseo 2.454
+V13  OK  CRPS gaussiano propio idéntico a scoringRules::crps_norm en 500 casos (máx |dif| 2e-15)
+V5   OK  canario anual (F4-34, rama retenida): la predictora anual no trae el año del origen y G-3 detiene el motor; G-1 rechaza el año en curso
+V14  OK  h=1: RMSE ARIMAX / AR(p)-BIC 0.573 (< 0,8); cobertura 80% 0.792 y 95% 0.949
+V14  OK  h=2: RMSE ARIMAX / AR(p)-BIC 0.646 (< 0,8); cobertura 80% 0.770 y 95% 0.944
+V14  OK  h=4: RMSE ARIMAX / AR(p)-BIC 0.795; cobertura 80% 0.759 y 95% 0.922
+V14  OK  placebo (β = 0): RMSE ARIMAX / AR(p)-BIC en h=1 1.007 (< 1,10)
+V15  OK  DGP VAR, h=1: RMSE VAR_DIF / AR(p)-BIC 0.580 (< 0,8)
+V15  OK  DGP VAR, h=2: RMSE VAR_DIF / AR(p)-BIC 0.669 (< 0,8)
+V15  OK  DGP VAR: cobertura del VAR_DIF 80% 0.796/0.795/0.797 y 95% 0.946/0.945/0.947 en h = 1, 2, 4
+V15  OK  DGP cointegrado: r = 1 en 99% de los orígenes; RMSE VECM / VAR_DIF 0.817 (h=2) y 0.799 (h=4) (< 0,9); cobertura del VECM en h = 1, 2, 4 dentro de tolerancia
+V15  OK  DGP sin cointegración: r = 0 (VECM anidado en diferencias, B2-4) en 100% de los orígenes
+V16  OK  DGP VAR + NSA placebo, h=1: RMSE BVAR / AR(p)-BIC 0.643 (< 0,85)
+V16  OK  DGP VAR + NSA placebo, h=2: RMSE BVAR / AR(p)-BIC 0.768 (< 0,85)
+V16  OK  cobertura de la predictiva posterior del BVAR 80% 0.744/0.705/0.731 y 95% 0.949/0.949/0.885 en h = 1, 2, 4
+V16  OK  reejecutar dos orígenes reproduce bit a bit sendero y densidad del BVAR (semilla del motor, F5-15)
+V17  OK  paridad del BVAR (G1 y G3, producción, primer origen): 158 valores idénticos byte a byte a la referencia de Windows (sha256 27ec46c02193…)
+V18  OK  DGP disperso, h=1: RMSE elastic net / AR(p)-BIC 0.595 (< 0,8)
+V18  OK  DGP disperso, h=2: RMSE elastic net / AR(p)-BIC 0.745 (< 0,8)
+V18  OK  DGP disperso: cobertura de la densidad de errores internos de PRUEBA.ENET 80% 0.731/0.731/0.641 y 95% 0.962/0.897/0.885 en h = 1, 2, 4
+V18  OK  DGP de factor, h=1: RMSE PCR / AR(p)-BIC 0.650 (< 0,9)
+V18  OK  DGP de factor, h=2: RMSE PCR / AR(p)-BIC 0.793 (< 0,9)
+V18  OK  DGP de factor: cobertura de la densidad de errores internos de PRUEBA.PCR 80% 0.808/0.782/0.692 y 95% 0.923/0.936/0.859 en h = 1, 2, 4
+V18  OK  placebo (β = 0): RMSE elastic net / AR(p)-BIC en h=1 1.044 (< 1,10)
+V18  OK  reejecutar dos orígenes reproduce bit a bit sendero, densidad y diagnósticos del elastic net (F5-15)
+V19  OK  borde irregular, h=1: RMSE PRUEBA.UMIDAS / AR(p)-BIC 0.548 (< 0,7); h=2 0.813
+V19  OK  borde irregular, h=1: RMSE PRUEBA.PUENTE / AR(p)-BIC 0.599 (< 0,7); h=2 0.754
+V19  OK  cobertura de PRUEBA.PUENTE 80% 0.774/0.841/0.765 y 95% 0.957/0.976/0.940 en h = 1, 2, 4
+V19  OK  cobertura de PRUEBA.UMIDAS 80% 0.769/0.779/0.765 y 95% 0.928/0.938/0.905 en h = 1, 2, 4
+V19  OK  placebo (β = 0): RMSE PRUEBA.UMIDAS / AR(p)-BIC en h=1 1.010 (< 1,10)
+V19  OK  placebo (β = 0): RMSE PRUEBA.PUENTE / AR(p)-BIC en h=1 1.017 (< 1,10)
+V19  OK  reejecutar dos orígenes reproduce bit a bit sendero y densidad del U-MIDAS y del puente (F5-15)
+V20  OK  DGP no lineal (|x|), h=1: RMSE RF / AR(p)-BIC 0.626 (< 0,8); h=2 0.835 y h=4 0.955, informativas
+V20  OK  cobertura de la densidad de errores internos del RF 80% 0.846/0.731/0.615 y 95% 0.962/0.808/0.885 en h = 1, 2, 4 (ee de MC de 0.043 a 0.154)
+V20  OK  placebo (β = 0): RMSE RF / AR(p)-BIC en h=1 0.997 (< 1,10)
+V20  OK  reejecutar reproduce bit a bit sendero, densidad y diagnósticos del RF (dos orígenes) y del LightGBM (uno) (F5-15)
+V21  OK  dos corridas de los 12 modelos de Fase 5 de G2 + 6 benchmarks + 4 combinaciones en 2015-Q1 y 2015-Q2 (Q1 reutilizado): sha256 idéntico (730c39bebd99…); otro exp_id cambia MULT.BVAR.G2 y ML.RF.G2
+V21b OK  huella de Fase 5 idéntica a la referencia en 24 modelos (benchmarks de F5_REPRO_*, Fase 5 de G2, combinaciones, VAR_NIV y VECM de G1); Windows|R 4.6.1|Rblas
+V22  OK  VAR(1) conocido, n = 1200, h = 20: el sendero impuesto se reproduce y el condicional coincide con la normal apilada (<1e-10); con los parámetros verdaderos, distancia 0.115 sd y razón de varianzas 0.986 a 1.135; BVAR con extracciones idénticas = VAR condicional
+V23  OK  rango [-6.07, 8.03]: la guarda excluye al explosivo en h = 12 y deja 3 miembros; con 2, stop() por el mínimo
+verificación sintética: bloques OK (V1-V23)
+make[1]: Leaving directory '/c/Users/INVE/Documents/SIE-el-salvador'
+make proyeccion CONJUNTO=doc/metodologia/corte_fase6.csv SALIDA=data/conjuntos/corte_f6
+make[1]: Entering directory '/c/Users/INVE/Documents/SIE-el-salvador'
+Rscript src/proyeccion/correr_fase6.R
+OK F6_G1  580 filas trimestrales, 174 anuales, 0 exclusiones de la guarda
+OK F6_G2  480 filas trimestrales, 144 anuales, 0 exclusiones de la guarda
+OK F6_G3  460 filas trimestrales, 138 anuales, 0 exclusiones de la guarda
+07_experimentos.csv: 42 filas de Fase 6
+make[1]: Leaving directory '/c/Users/INVE/Documents/SIE-el-salvador'
