@@ -1149,3 +1149,29 @@ Sobre `main` = `e9c42e7`, en Windows con R 4.6.1.
   `publicacion_id` y `vintage_id`; sigue en `4aaa33fe…`.
 - **L0.** `verificar_l0_fisico.R`: 92/92; `check_l0_integrity.R`: 92 vintages consistentes. Crudos subidos al almacén
   privado de L0 (commit `596bf9f`).
+
+## Hechos verificados el 2026-11-04 (medición previa del BVAR, E2) y decisión sobre F6-13-a
+
+Sobre `main` = `07526a8`, en Windows con R 4.6.1. `make fase6-medicion-bvar` (código 0) sobre `corte_fase6`
+(sha256 sin CR `4aaa33fe…`), origen 2026-Q2, 5 000 extracciones por BVAR, las semillas de la corrida y sin escenario.
+Salida completa en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv` (copia de
+`data/L4_experiments/F6_MEDICION_BVAR/medicion_bvar.csv`, que está en `.gitignore`).
+
+| Grupo | Raíz > 1 | Raíz > 1,05 | Media − mediana, h = 8 (pp) | h = 20 (pp) |
+|---|---|---|---|---|
+| G1 | 0,7764 | 0 | 0,0037 | 0,0102 |
+| G2 | 0,9992 | 0,0002 | 0,0058 | 0,0279 |
+| G3 | 0,9998 | 0,0008 | 0,0179 | 0,0346 |
+
+- **Lo que la ficha no anticipaba.** En los tres grupos la mayoría de las extracciones tiene módulo máximo mayor que
+  1: el ejemplo que F6-13-a nombra como motivo para preguntar. Por eso se le preguntó a Harold antes de congelar.
+- **Lectura del agente.** El BVAR es un VAR(4) en log-niveles con Minnesota y los dummies sum-of-coefficients y
+  single-unit-root jerárquicos, que empujan hacia raíces unitarias: una posterior centrada en 1 o apenas por encima
+  deja sobre 1 la mitad o más de las extracciones. Casi ninguna pasa de 1,05 (a h = 20 una raíz de 1,05 amplifica 2,65
+  veces; una de 1,01, 1,22) y la mediana difiere de la media en menos de 0,04 pp. La medición no distingue si el
+  exceso viene del prior o de los datos, y no se miraron bandas (F6-13 d).
+- **Decisión de Harold, 2026-11-04: congelar con la especificación de Fase 5 sin cambios y con tres precauciones.**
+  (1) Las cifras de E2 quedan asentadas con el preregistro (esta nota y el CSV de evidencia). (2) El informe declara
+  que las bandas del BVAR con h > 8 se leen con cautela (protocolo §10). (3) Se deja dicho que F6-13-a presuponía que
+  «explosivo» era anormal y que, con estos priors, no lo es (protocolo §3). No se abre ficha para truncar ni descartar
+  extracciones: eso cambiaría la especificación declarada en `MULT.BVAR.G*.yaml`.

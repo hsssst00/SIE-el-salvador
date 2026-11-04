@@ -1,8 +1,8 @@
 # Protocolo de proyección condicional (Ejercicio B)
 
-**Estado:** borrador v0.2 del 2026-10-19 (v0.1 del 2026-10-17). Aplica las decisiones F6-01 a F6-18 de
+**Estado:** congelado el 2026-11-04 en el ítem E1 (v0.3; borrador v0.2 del 2026-10-19, v0.1 del 2026-10-17). Aplica las decisiones F6-01 a F6-18 de
 `doc/metodologia/decisiones_fase6.md`; la v0.2 cerró las secciones que la v0.1 marcaba **[abierto]** (F6-14 a
-F6-18). El protocolo se congela con commit en el ítem E1 de `doc/checklist_fase6.md`, antes de la primera
+F6-18). El protocolo se congeló con commit en el ítem E1 de `doc/checklist_fase6.md`, antes de la primera
 proyección sobre datos reales; después, cualquier cambio entra como nota fechada.
 **Alcance:** Ejercicio B de la senda metodológica §1.3, proyección condicional del PIB trimestral de El Salvador a
 2030, con h = 1 a 20. El Ejercicio A se rige por `protocolo_evaluacion.md`, cuyo §7 lo deja fuera.
@@ -37,6 +37,11 @@ reemplaza a la validación es la coherencia interna (§9).
 El sendero puntual de cada modelo es su media de pronóstico, salvo en el BVAR, que usa la mediana de la predictiva
 posterior (F6-13). Antes de proyectar se mide el BVAR como dice F6-13 (d) y las cifras van a la evidencia del
 preregistro.
+
+Medición previa (E2, 2026-11-04; `evidencia_e2_medicion_bvar_fase6.csv`): la mayoría de las extracciones de los tres BVAR
+tiene módulo máximo mayor que 1 (78 %, 99,9 % y 99,98 %), pero casi ninguna pasa de 1,05 (0 a 0,08 %) y la media y la
+mediana difieren en menos de 0,04 pp. F6-13-a presuponía que «explosivo» era anormal; con los priors sum-of-coefficients
+y single-unit-root no lo es. Decisión de Harold: se congela con la especificación de Fase 5 sin cambios.
 
 ## 4. Escenarios y fuentes (F6-05)
 
@@ -126,6 +131,9 @@ estaba en las de `stop()`. Pasó a las informativas porque las dos remesas tiene
 - Además: interanual trimestral y nivel índice, por grupo, escenario y modelo; la trayectoria sin escenario aparte.
 - Toda tabla lleva «condicional a los supuestos de `supuestos_escenarios.md`» y, para h > 8, la marca «sin
   calibrar».
+- Las bandas del BVAR con h > 8 se declaran de lectura cautelosa: más de la mitad de sus extracciones tiene una raíz
+  mayor que 1 (E2, §3), lo que puede ensanchar la mezcla a horizontes largos. Se dice en el informe, junto a cada
+  tabla con bandas de ese modelo.
 
 ## 11. Preregistro, corrida y reproducibilidad (F6-12)
 
