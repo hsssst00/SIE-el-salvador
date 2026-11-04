@@ -116,8 +116,8 @@ se marca.
   2026-10-26: se congela el 2026-10-30, con IVAE e IPM capturados (regla «último vintage al congelar», F6-04). Antes,
   el 2026-10-26, se capturaron remesas y balanza comercial y se refrescó el corte; el 2026-11-02 se capturaron IVAE
   e IPM (más ITCER) y se refrescó otra vez: E1 queda sin bloqueo de captura.
-- [ ] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
-  preregistro.
+- [x] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
+  preregistro. — 2026-11-04: `make fase6-medicion-bvar` sobre `corte_fase6` (`4aaa33fe…`), código 0; mayoría de extracciones con raíz > 1 en los tres grupos (78 %, 99,9 %, 99,98 %), casi ninguna > 1,05; media-mediana < 0,04 pp. Harold decidió congelar sin cambios y con tres precauciones (nota del 2026-11-04 en `decisiones_fase6.md`; evidencia en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv`).
 - [ ] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`.
 - [ ] **E4** Reproducción bit a bit en la máquina de Harold.
 
