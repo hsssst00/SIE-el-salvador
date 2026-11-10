@@ -119,7 +119,11 @@ se marca.
 - [x] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
   preregistro. — 2026-11-04: `make fase6-medicion-bvar` sobre `corte_fase6` (`4aaa33fe…`), código 0; mayoría de extracciones con raíz > 1 en los tres grupos (78 %, 99,9 %, 99,98 %), casi ninguna > 1,05; media-mediana < 0,04 pp. Harold decidió congelar sin cambios y con tres precauciones (nota del 2026-11-04 en `decisiones_fase6.md`; evidencia en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv`).
 - [x] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`. — 2026-11-04: `make fase6` sobre `b1376df` con árbol limpio, 01:03 a 01:21; V1-V23 OK, F6_G1 a G3 escritos, 0 exclusiones de la guarda, 42 filas en `07_experimentos.csv`.
-- [ ] **E4** Reproducción bit a bit en la máquina de Harold.
+- [ ] **E4** Reproducción bit a bit en la máquina de Harold. — 2026-11-10: `make fase6` corrido en la PC `D:\harold`
+  sobre `f3a691f` (código 0; V1-V23 OK; mismos conteos que E3; `doc/evidencia_reproduccion_fase6.txt`). Falta comparar
+  los sha256 reales de los 28 archivos con los de E3 en la PC INVE (en mantenimiento): los sha256 de «salidas» de los
+  manifiestos de Fase 6 no eran los de los archivos (bug corregido; «Hechos verificados el 2026-11-10» de
+  `decisiones_fase6.md`).
 
 ## F. Cierre
 
