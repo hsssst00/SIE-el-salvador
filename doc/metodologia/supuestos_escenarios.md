@@ -51,7 +51,8 @@ exige además dos cosas. Primero, el aviso de no-aval de la API de FRED en el `R
 los Términos de Uso vigentes. Está en el `README.md` desde el 2026-10-23 (nota fechada en ADR-008), aunque
 `src/adquisicion/fred.R` consume la API desde Fase 2. Segundo, la revisión, serie por serie, de la marca de derechos
 reservados. GDPC1 y CPIAUCSL son
-series de agencias federales de EE. UU. (BEA y BLS). El informe de proyección (F2) debería repetir el aviso.
+series de agencias federales de EE. UU. (BEA y BLS). El informe de proyección (F2) repite el aviso
+(`doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, «Fuentes y avisos»).
 
 ## 3. Supuestos por escenario
 
@@ -107,7 +108,18 @@ Sobre el escenario base se mueve una variable a la vez (PIB de EE. UU., IPC de E
 estándar histórica de su crecimiento anual, sumada al crecimiento de cada año proyectado, de modo que el
 desplazamiento es permanente. Son seis corridas. La desviación estándar se calcula sobre la historia de cada
 variable en L3, con los años completos y sin 2020 ni 2021 (F6-09-a, F6-09-b). Sus valores salen de la corrida y se
-citan desde su evidencia (sección 9).
+citan desde su evidencia (sección 9):
+
+| Variable | Desviación estándar del crecimiento anual (pp) |
+|---|---|
+| PIB real de EE. UU. | 2,233 |
+| IPC de EE. UU. | 2,795 |
+| Petróleo APSP en USD | 25,055 |
+
+Fuente: `doc/metodologia/reportes_fase6/sd_sensibilidad_fase6.csv`, copia verificada por sha256 de
+`data/L4_experiments/F6_COMUN/sd_sensibilidad.csv` de la reproducción del 2026-11-10. Se confirma con la comparación
+de E4 contra la corrida única. Las desviaciones salen de la historia del corte, así que no dependen de ninguna
+semilla.
 
 ## 4. Del supuesto anual al sendero trimestral (F6-16)
 
@@ -118,10 +130,11 @@ Consecuencias que el informe declara:
 
 - **El año del origen está observado en parte**, así que la meta de 2026 se reparte solo entre los trimestres que
   faltan. En el petróleo, el promedio del WEO para 2026 (95,74 USD) con tres trimestres observados obliga a un
-  2026-T4 alto. Con el corte vigente (sha256 sin CR `cef1c939…`), la L3 da 118,22 USD en 2026-T4, un 31 % más que
-  el promedio de 2026-T3 (90,17), y el sendero baja a 77,56 USD en 2027-T4. Ese petróleo entra a IPM e IPP en los
-  tres escenarios. Harold decidió mantener el método el 2026-10-19. Las capturas del BCR pendientes no cambian estas
-  cifras; solo las cambiaría un vintage nuevo de PCPS o del WEO.
+  2026-T4 alto. Con el corte congelado en E1 (sha256 sin CR `4aaa33fe…`), la L3 da 118,22 USD en 2026-T4, un 31 % más
+  que el promedio de 2026-T3 (90,17), y el sendero baja a 77,56 USD en 2027-T4: las mismas cifras que con el corte
+  `cef1c939…`, porque las capturas posteriores fueron del BCR y no de PCPS ni del WEO (verificado el 2026-11-10 sobre
+  `data/conjuntos/corte_f6/L3_master/ESC_PETROLEO_APSP_USD_NSA_Q_BASE.csv`). Ese petróleo entra a IPM e IPP en los
+  tres escenarios. Harold decidió mantener el método el 2026-10-19.
 - **Con d = 0 en 2026 y d ≠ 0 en 2027** (A y C), el suavizado curva también los trimestres libres de 2026 sin cambiar
   su promedio (F6-16-b).
 
@@ -195,9 +208,12 @@ quedó implementada, la combinación tiene estas costuras:
 
 ## 9. Pendiente
 
-- [ ] **E1.** Confirmar que los vintages de la sección 2 son los que congela el preregistro. Si alguno cambia, se
-  actualizan en el mismo PR sus filas y las cifras de las secciones 3 y 4.
-- [ ] **E3.** Citar, desde la evidencia de la corrida, las desviaciones estándar de la sensibilidad (sección 3.5).
+- [x] **E1.** Confirmar que los vintages de la sección 2 son los que congela el preregistro. Si alguno cambia, se
+  actualizan en el mismo PR sus filas y las cifras de las secciones 3 y 4. — 2026-11-10: los cinco están en el
+  corte congelado (`4aaa33fe…`) con el sha256 de la sección 2, igual al de `08_vintages.csv`. Las cifras de la
+  sección 4 no cambian.
+- [x] **E3.** Citar, desde la evidencia de la corrida, las desviaciones estándar de la sensibilidad (sección 3.5). —
+  2026-11-10: citadas desde la reproducción de E4, con la reserva que dice la sección 3.5.
 - [x] **ADR-008, FRED.** Aviso de no-aval en el `README.md`, con el texto exacto de los Términos de Uso vigentes
   (sección 2). — 2026-10-23, nota fechada en ADR-008.
 - [ ] **F1.** Revisión final y marca en el checklist.
@@ -216,8 +232,9 @@ Fuente híbrida: FMI WEO para variables globales/regionales; proyecciones de la 
   F6-15; capturadas en L0 con sha256 por C2 y C2b (checklist de Fase 6, 2026-10-19).
 - [x] Definir 2-3 escenarios explícitos con supuestos citados. — base, adverso (C) y favorable (A), F6-05 y F6-14.
   Los supuestos citados con vintage y sha256 los reúne F1.
-- [ ] Análisis de sensibilidad a los supuestos. — F6-09; implementado en D6 (PR #85), sus cifras salen de la corrida
-  (E3).
+- [x] Análisis de sensibilidad a los supuestos. — F6-09; implementado en D6 (PR #85), sus cifras salen de la corrida
+  (E3). — 2026-11-10: reportado en `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, sección 5, con las
+  cifras de la reproducción de E4.
 
 ## Nota (2026-10-17, F6-03 y F6-05)
 
