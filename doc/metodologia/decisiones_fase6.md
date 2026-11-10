@@ -1175,3 +1175,32 @@ Salida completa en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv` (copia
   que las bandas del BVAR con h > 8 se leen con cautela (protocolo §10). (3) Se deja dicho que F6-13-a presuponía que
   «explosivo» era anormal y que, con estos priors, no lo es (protocolo §3). No se abre ficha para truncar ni descartar
   extracciones: eso cambiaría la especificación declarada en `MULT.BVAR.G*.yaml`.
+
+## Hechos verificados el 2026-11-10 (reproducción, E4)
+
+Sobre `main` = `f3a691f`, en la PC de Harold `D:\harold` (host `malo`), Windows 11 con R 4.6.1 y la BLAS de referencia.
+No es la máquina de E3 (PC INVE). Evidencia en `doc/evidencia_reproduccion_fase6.txt`.
+
+- **Los siete crudos del 2026-11-02 no se habían perdido.** Estaban intactos en `data/L0_raw/` de esta PC, con el
+  sha256 que registró `0d37c43` y el mismo `sha256_norm` que el manifiesto. Esto corrige la nota del 2026-11-04 («no
+  hay otra copia»): no la había en la PC INVE ni en el almacén, pero sí en esta. La recaptura no cambió el dato.
+  `verificar_l0_fisico.R` daba aquí 85 PASS y 7 FAIL, porque el manifiesto registra los bytes recapturados.
+- **Decisión de Harold, 2026-11-10: el manifiesto queda como está y los originales se resguardan.** Los siete pasaron
+  a `resguardo/originales_2026-11-02/` del almacén privado de L0 (commit `6956bed`, con un README que lista los dos
+  sha256 de cada archivo). Se sacaron de `data/L0_raw/` de esta PC y se materializaron los recapturados: 92/92.
+  `materializar_l0.R` ya no reporta `resguardo` como huérfano.
+- **Los sha256 de «salidas» de los manifiestos de Fase 6 no eran los de los archivos.** `.escribir_csv_lf()` hasheaba
+  antes de cerrar la conexión: daba vacío (`e3b0c442…`) en los archivos chicos y truncado en los grandes. Afecta a los
+  manifiestos de E2 (`F6_MEDICION_BVAR`), E3 y esta corrida. No afecta a los CSV (están completos), ni a los sha256
+  de insumos, ni al motor de Fase 4 y 5, que cierra antes de hashear. Corregido, con prueba en
+  `tests/test-correr-fase6.R` (falla con la versión anterior). La evidencia de E2 está en
+  `evidencia_e2_medicion_bvar_fase6.csv`, que es copia del archivo y no del manifiesto.
+- **La reproducción corrió completa.** `make fase6`, código 0, de 08:50 a 09:38: V1-V23 OK, mismos conteos de filas y
+  0 exclusiones de la guarda que E3, y las 42 filas del catálogo 07 idénticas salvo `commit_hash` y `fecha_corrida`
+  (se restauró el catálogo). Los sha256 reales de los 28 archivos están en la evidencia.
+- **E4 sigue abierto.** Por el hallazgo anterior, la referencia no son los manifiestos de E3 sino los sha256 de sus
+  archivos, con `sha256sum data/L4_experiments/F6_*/*.csv` en la PC INVE, que está en mantenimiento. Mientras tanto
+  no se puede afirmar la igualdad bit a bit con E3.
+- **Entorno.** En esta PC, bajo Git Bash, todo Rscript que carga `rlang` muere con *segmentation fault* al salir
+  cuando lo lanza `make` de Rtools. Desde PowerShell o cmd no pasa. Un primer intento se detuvo así en `make
+  validate` sin escribir nada. Es del entorno, no del código: no se cambió el Makefile.

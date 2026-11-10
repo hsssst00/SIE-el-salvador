@@ -111,8 +111,10 @@ message(sprintf("Resumen: %d ya presente(s), %d copiado(s), %d falta(n) en el al
 # Aviso -no fatal- sobre archivos del almacen que el manifiesto no menciona: pueden ser
 # capturas nuevas todavia sin registrar, o basura. No es asunto de este script resolverlo.
 archivos_almacen <- list.files(almacen, recursive = FALSE)
+# `resguardo/` guarda crudos que no son L0 vigente (p. ej. los originales del 2026-11-02, hallados tras su
+# recaptura; decisiones_fase6.md, hechos del 2026-11-10). Este script no los lee ni los copia.
 huerfanos <- setdiff(archivos_almacen, c(manifiesto$archivo, "manifiesto.csv", "README.md",
-                                         ".git", ".gitignore", ".gitkeep"))
+                                         ".git", ".gitignore", ".gitkeep", "resguardo"))
 if (length(huerfanos) > 0) {
   message("AVISO: ", length(huerfanos), " archivo(s) en el almacen sin fila en el manifiesto: ",
           paste(huerfanos, collapse = ", "),

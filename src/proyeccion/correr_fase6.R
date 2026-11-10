@@ -313,9 +313,11 @@ leer_insumos_fase6 <- function(vintages, conjunto) {
   list(ins = ins, archivos = unname(archivos))
 }
 
+#' Escribe un CSV con LF y devuelve el sha256 del archivo ya cerrado. Antes cerraba con on.exit(), que corre después
+#' del return: el sha256 se calculaba sobre el búfer sin vaciar (vacío o truncado). Hallazgo de E4, 2026-11-10.
 .escribir_csv_lf <- function(df, ruta) {
-  con <- file(ruta, open = "wb"); on.exit(close(con))
-  utils::write.csv(df, con, row.names = FALSE, na = "", eol = "\n")
+  con <- file(ruta, open = "wb")
+  tryCatch(utils::write.csv(df, con, row.names = FALSE, na = "", eol = "\n"), finally = close(con))
   .sha256(ruta)
 }
 

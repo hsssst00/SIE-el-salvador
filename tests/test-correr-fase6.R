@@ -115,6 +115,15 @@ test_that("D7: reejecutar el núcleo reproduce bit a bit (F5-15)", {
   expect_identical(r2$satelites, s1)
 })
 
+test_that("E4: el sha256 de cada salida que va al manifiesto es el del archivo cerrado", {
+  for (n in c(2L, 5000L)) {                     # chica (cabe en el búfer) y grande (lo desborda)
+    tmp <- tempfile(fileext = ".csv")
+    sha <- .escribir_csv_lf(data.frame(a = seq_len(n), b = sqrt(seq_len(n))), tmp)
+    expect_identical(sha, digest::digest(file = tmp, algo = "sha256"))
+    expect_false(identical(sha, digest::digest("", algo = "sha256", serialize = FALSE)))
+  }
+})
+
 test_that("D7: el núcleo se detiene si la guarda deja menos de 3 miembros (F6-02)", {
   angosto <- list(inferior = .rango_c6$superior - 0.01, superior = .rango_c6$superior)
   expect_error(correr_fase6_nucleo(.ins_c6, angosto, grupos = "G3", n_draw = 400L, n_burn = 200L), "mínimo es 3")
