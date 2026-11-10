@@ -23,6 +23,13 @@ notas: |
   Pendiente: confirmar cobertura de indicadores adicionales relevantes
   (comercio exterior con más detalle, cuentas nacionales si CEPALSTAT
   las publica para El Salvador) — solo se probaron 2 de 1,957.
+  Atendido el 2026-11-10 (decisión de Harold): inventario de los 322
+  indicadores de los temas económicos y de los subsectores eléctrico e
+  hidrocarburos, 160 con datos de El Salvador, en
+  doc/inventario_cepalstat/ (script scripts/inventario_cepalstat.R).
+  Vive fuera de catalogos/ por la condición de admisión de ADR-008
+  (enmienda 2026-10-19): ninguna serie de CEPAL entra a 03_series.
+  Hallazgo: CEPALSTAT no publica PIB trimestral de El Salvador.
 
   Este catálogo entra como parte del criterio de inventario completo de
   Fase 1 (senda §3.3). No implica decisión de uso en la modelación.
