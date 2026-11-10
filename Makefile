@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5 proyeccion proyeccion-medicion fase6 fase6-medicion-bvar preregistro-fase6 preregistro-escribir
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5 proyeccion proyeccion-medicion fase6 fase6-medicion-bvar preregistro-fase6 preregistro-escribir tablas-fase6
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -189,6 +189,11 @@ preregistro-fase6:
 
 preregistro-escribir:
 	Rscript scripts/armar_preregistro_fase6.R
+
+# Tablas del informe de Fase 6 (F2): copia las salidas de data/L4_experiments/F6_*/ a doc/metodologia/reportes_fase6/,
+# después de comprobar su sha256 contra reportes_fase6/sha256_salidas_fase6.csv. No corre modelos.
+tablas-fase6:
+	Rscript src/proyeccion/tablas_informe_fase6.R
 
 # Fase 7 — sitio de documentación.
 report:

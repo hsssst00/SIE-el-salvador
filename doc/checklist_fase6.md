@@ -130,8 +130,14 @@ se marca.
 - [ ] **F1** `supuestos_escenarios.md` completo: cada supuesto con su fuente citada (vintage y sha256 en L0) y la
   nota de inconsistencia entre fuentes de ADR-002. — 2026-10-23: borrador completo antes de E1 (fuentes con vintage
   y sha256, supuestos por escenario y nota de inconsistencia). Queda pendiente lo que enumera su sección 9.
+  2026-11-10: sección 9 resuelta salvo la revisión final. Vintages confirmados contra el corte congelado, desviaciones
+  de la sensibilidad citadas (desde la reproducción de E4) y cifra del petróleo verificada con el corte final. No se
+  marca hasta que E4 confirme las cifras de la corrida.
 - [ ] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
-  cifras.
+  cifras. — 2026-11-10: borrador en `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, sobre las tablas
+  versionadas de la misma carpeta. Las escribe `make tablas-fase6` (`src/proyeccion/tablas_informe_fase6.R`, pruebas
+  en `tests/test-tablas-informe-fase6.R`), que comprueba el sha256 real de cada salida de L4. Las cifras son las de la
+  reproducción de E4: deja de ser borrador cuando E4 confirme la igualdad con la corrida única.
 - [ ] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
   senda.
 - [ ] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.

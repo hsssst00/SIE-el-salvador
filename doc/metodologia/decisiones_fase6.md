@@ -540,6 +540,14 @@ anual. El código está en `src/proyeccion/reporte.R`.
   observados de cada año y la fila del promedio. Cada fila de las dos lleva la nota de condicionalidad. La fila de
   la mediana de F6-02 se llama `COMBINACION`.
 
+**Delegada al agente; se puede reabrir (F6-11-c, 2026-11-10, checklist F2):** dónde viven las tablas del informe y
+de qué corrida salen. `make tablas-fase6` copia las salidas de `data/L4_experiments/F6_*/` a
+`doc/metodologia/reportes_fase6/`, línea a línea y sin recalcular. Antes comprueba el sha256 real de cada archivo
+contra `sha256_salidas_fase6.csv` y no contra los manifiestos, por el hallazgo del 2026-11-10. Con la PC INVE en
+mantenimiento (pedido de Harold de avanzar sin ella), el borrador del informe usa las salidas de la reproducción de
+E4. Es la misma especificación, corte y semillas, pero la igualdad bit a bit con E3 no está comprobada. Si E4 la
+confirma, el borrador pasa a definitivo sin cambios; si no, las tablas y el informe se rehacen con los archivos de E3.
+
 ## F6-12 — Preregistro y reproducibilidad
 
 **DECIDIDO (opción recomendada, autorización de Harold del 2026-10-17):** el esquema de Fase 5.
