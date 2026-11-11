@@ -19,6 +19,9 @@ TABLAS_GRUPO_F6 <- c("trimestral", "anual", "guarda", "sensibilidad", "coherenci
 TABLAS_COMUN_F6 <- c("satelites", "sd_sensibilidad", "senderos_sensibilidad")
 GRUPOS_F6 <- c("G1", "G2", "G3")
 NOMBRE_SALIDA_F6 <- c(trimestral = "proyeccion_trimestral", anual = "proyeccion_anual")
+# Preregistro vigente: el mismo archivo que PREREGISTRO_FASE6 de correr_fase6.R (tests/test-tablas-informe-fase6.R lo
+# comprueba). Este script no carga correr_fase6.R para no cargar los modelos.
+PREREGISTRO_TABLAS_F6 <- here::here("doc", "metodologia", "preregistro_fase6_2026-11-11.yaml")
 
 .leer_lineas_lf <- function(ruta) {
   lin <- readLines(ruta, encoding = "UTF-8", warn = FALSE)
@@ -92,7 +95,7 @@ escribir_tablas_fase6 <- function(dir_l4 = here::here("data", "L4_experiments"),
 }
 
 main <- function() {
-  prereg <- yaml::read_yaml(here::here("doc", "metodologia", "preregistro_fase6.yaml"))
+  prereg <- yaml::read_yaml(PREREGISTRO_TABLAS_F6)
   escritos <- escribir_tablas_fase6(corte_sha256 = prereg$corte_sha256_sin_cr)
   for (r in escritos) cat(sprintf("OK %s  %d filas\n", basename(r), length(readLines(r)) - 1L))
 }
