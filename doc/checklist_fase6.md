@@ -118,12 +118,12 @@ se marca.
   e IPM (más ITCER) y se refrescó otra vez: E1 queda sin bloqueo de captura. — 2026-11-04: congelado en el PR #93 (`b1376df`; CI runs 41888086194 y 41888096601 en verde sobre `b9e7327`): `doc/metodologia/preregistro_fase6.yaml`, corte `4aaa33fe…`, origen 2026-Q2, guarda [-5,146; 13,070] pp (n = 134); protocolo v0.3 congelado. Antes, el PR #92 repuso los siete crudos del 2026-11-02 (L0 92/92).
 - [x] **E2** Medición previa del BVAR (F6-13 d), con las dos cifras que fija la ficha, en la evidencia del
   preregistro. — 2026-11-04: `make fase6-medicion-bvar` sobre `corte_fase6` (`4aaa33fe…`), código 0; mayoría de extracciones con raíz > 1 en los tres grupos (78 %, 99,9 %, 99,98 %), casi ninguna > 1,05; media-mediana < 0,04 pp. Harold decidió congelar sin cambios y con tres precauciones (nota del 2026-11-04 en `decisiones_fase6.md`; evidencia en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv`).
-- [x] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`. — 2026-11-04: `make fase6` sobre `b1376df` con árbol limpio, 01:03 a 01:21; V1-V23 OK, F6_G1 a G3 escritos, 0 exclusiones de la guarda, 42 filas en `07_experimentos.csv`.
+- [ ] **E3** Corrida única con `make fase6` sobre árbol limpio; evidencia textual en `doc/evidencia_corrida_fase6.txt`. — 2026-11-04: `make fase6` sobre `b1376df` con árbol limpio, 01:03 a 01:21; V1-V23 OK, F6_G1 a G3 escritos, 0 exclusiones de la guarda, 42 filas en `07_experimentos.csv`. — **2026-11-10: reabierta por decisión de Harold.** La corrida del 2026-11-04 queda como *reemplazada* (F6-09-a/b sustituidas por F6-09-c: ±1 DE solo al crecimiento de 2027, desvío de nivel persistente), con su evidencia sin borrar. El preregistro vigente es `doc/metodologia/preregistro_fase6_2026-11-11.yaml`, que reemplaza a `preregistro_fase6.yaml` (conservado sin editar). La E3 nueva corre en la PC `D:\harold`; su evidencia irá en `doc/evidencia_corrida_fase6_2026-11-11.txt`.
 - [ ] **E4** Reproducción bit a bit en la máquina de Harold. — 2026-11-10: `make fase6` corrido en la PC `D:\harold`
   sobre `f3a691f` (código 0; V1-V23 OK; mismos conteos que E3; `doc/evidencia_reproduccion_fase6.txt`). Falta comparar
   los sha256 reales de los 28 archivos con los de E3 en la PC INVE (en mantenimiento): los sha256 de «salidas» de los
   manifiestos de Fase 6 no eran los de los archivos (bug corregido; «Hechos verificados el 2026-11-10» de
-  `decisiones_fase6.md`).
+  `decisiones_fase6.md`). — 2026-11-10: con E3 reabierta, E4 reproduce la E3 nueva en la PC INVE cuando vuelva.
 
 ## F. Cierre
 
