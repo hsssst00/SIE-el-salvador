@@ -10,6 +10,10 @@ autorización, con los hechos verificados ese día (recuadro 1.2 y fuentes de la
 **Nota (2026-10-20).** F6-19 (fin de lectura de cada vintage) salió de los hechos de C3 y la decidió Harold el
 2026-10-20 en la opción recomendada; su ficha va después de F6-18.
 
+**Nota (2026-11-10).** Harold reabrió E3. F6-09-a (en la forma de la perturbación) y F6-09-b (en los años
+desplazados) quedan reemplazadas por F6-09-c, y el preregistro del 2026-11-04 por uno nuevo con fecha. Ver F6-09 y
+F6-12.
+
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase5.md` para Fase 6: cada ficha lleva la
 línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran como notas
 fechadas; no se reescribe lo registrado. El protocolo que aplica estas decisiones es
@@ -477,6 +481,39 @@ ficha no fijaba. El código está en `src/proyeccion/sensibilidad.R` y `src/proy
   crecimiento promedio 2026-2030 es la diferencia en pp de la media de F6-11-b. Se calculan para la combinación y para
   cada miembro presente en la base y en la corrida.
 
+**Reemplazadas (nota del 2026-11-10, decisión de Harold): la perturbación de F6-09-a y los «años desplazados» de
+F6-09-b.** El texto de arriba queda como registro. Siguen vigentes la desviación estándar (F6-09-a, sin 2020-2021),
+las metas de la base, la desviación estándar sobre el tramo `historia` y las medidas (F6-09-b).
+
+- **Motivo.** La regla vieja (desplazamiento permanente desde 2026) daba senderos implausibles en
+  `F6_COMUN/senderos_sensibilidad.csv`. El petróleo terminaba en 2031-T4 entre 11,48 USD (−1 DE) y 280,26 USD (+1 DE)
+  y ya llegaba a 186,11 USD en 2026-T4 (+1 DE). Según la revisión de Harold, el IPC de EE. UU. con +1 DE caía 4,5 %
+  en 2027, y el PIB de EE. UU. tenía un pico en 2026-T3/T4 que se revertía en 2027-T1. El efecto venía de que el
+  2026, que tenía trimestres observados, absorbía todo el ajuste en sus trimestres libres.
+
+**DECIDIDO (F6-09-c, decisión de Harold del 2026-11-10):** se suma ±1 desviación estándar solo al crecimiento anual de
+2027. Desde 2028 la variable crece como en la base, así que el desvío de nivel es persistente. La forma se llama
+`un_anio_nivel_persistente`.
+
+- **Implementación** (`src/proyeccion/sensibilidad.R`). `ANIO_CHOQUE_SENSIBILIDAD <- 2027L`. `sendero_sensibilidad()`
+  le suma `signo · sd` al crecimiento de las metas de la base solo en ese año y encadena con `metas_anuales()`. Desde
+  2027, el nivel anual queda multiplicado por (1 + (g₂₀₂₇ + signo · sd) / 100) / (1 + g₂₀₂₇ / 100). Se detiene con
+  `stop()` si 2027 tiene trimestres observados o si no es un año con meta de la base. En el corte, la historia llega
+  a 2026-T2 (PIB de EE. UU.) y a 2026-T3 (IPC y petróleo).
+- **Reparto trimestral (detalle que la decisión no fijaba; lo eligió Harold el 2026-11-10 entre tres variantes medidas
+  sobre el corte, regla 4).** Los trimestres de la base anteriores a 2027 quedan fijos, como si fueran historia, y la
+  función de T014 (Denton) reparte desde 2027-T1. 2026 queda bit a bit en la base.
+  - Desde 2028, el desvío es exacto en promedios anuales. En trimestres converge poco a poco: con +1 DE, el PIB de
+    EE. UU. pasa de 2,40 % en 2028-T1 a 2,19 % en 2031-T4, y el petróleo, de 31,6 % a 27,5 %.
+  - Hay un sobrepico en 2027-T3/T4, porque el promedio de 2027 está anclado y 2026-T4 está fijo.
+  - Se descartaron dos variantes. Una era T014 sin fijar 2026, que movía el PIB de EE. UU. −0,23 % en 2026-T3 y
+    +0,23 % en 2026-T4, aunque su promedio anual no cambiaba. La otra era la base × (1 + δ) exacta desde 2028-T1, que
+    deja un quiebre en 2028-T1: el PIB de EE. UU. crecía 0,10 % t/t, contra 0,52 % en la base.
+- **Medición previa en el corte (antes de la E3 nueva).** Desviación estándar del crecimiento anual: PIB de EE. UU.
+  2,233 pp, IPC 2,795 pp y petróleo 25,05 pp. Desvío de nivel anual con +1 DE, desde 2027: 2,18 %, 2,72 % y 27,4 %.
+- **Preregistro.** El bloque `sensibilidad` agrega `forma: un_anio_nivel_persistente` y `anio_choque: 2027`. La
+  corrida los compara con el código (F6-12, nota del 2026-11-10).
+
 ## F6-10 — Coherencia interna (lo que reemplaza a la validación)
 
 **DECIDIDO (opción recomendada, autorización de Harold del 2026-10-17):** la lista tal cual. Cualquier ítem nuevo
@@ -623,6 +660,18 @@ está en `src/proyeccion/correr_fase6.R` y la prueba sintética de punta a punta
   `FMI.PIB_SLV_VAR.PCT.NSA.A`, con el rol nuevo `referencia` (agregado primero a `datapackage.json`, regla 2):
   pass-through anual por `extraer_escenarios.R` y `l3_escenarios.R`, en la misma etapa que las variables de
   escenario. Es una serie JSON, fuera del alcance de `verificar_fuente_celda.R`, como las demás del WEO.
+
+**Nota (2026-11-10), E3 reabierta (decisión de Harold).** La E3 del 2026-11-04 (PC INVE, `b1376df`) queda como
+corrida reemplazada por F6-09-c. No se borra nada: siguen su evidencia (`doc/evidencia_corrida_fase6.txt`) y la de
+su reproducción E4 (`doc/evidencia_reproduccion_fase6.txt`).
+
+- **Preregistro.** El del 2026-11-04 (`doc/metodologia/preregistro_fase6.yaml`) no se edita, porque su sha256 está
+  en los manifiestos de la E3 reemplazada. `make preregistro-fase6` escribió el vigente,
+  `doc/metodologia/preregistro_fase6_2026-11-11.yaml`, que tiene el mismo corte, el mismo origen y la misma guarda (la corrida la recalcula a
+  1e-10). Lo nombra en `reemplaza` con su ruta, su sha256 sin CR, su fecha y el motivo.
+- **Controles de la corrida.** Se detiene si el vigente no nombra al reemplazado, si el reemplazado falta o cambió de
+  bytes, o si el bloque `sensibilidad` no trae `forma` y `anio_choque` iguales a las del código.
+- **Dónde corre.** La E3 nueva corre en la PC de Harold `D:\harold`. E4 se reproduce en la PC INVE cuando vuelva.
 
 ## F6-13 — Pronóstico puntual del BVAR con h = 20
 
@@ -1212,3 +1261,21 @@ No es la máquina de E3 (PC INVE). Evidencia en `doc/evidencia_reproduccion_fase
 - **Entorno.** En esta PC, bajo Git Bash, todo Rscript que carga `rlang` muere con *segmentation fault* al salir
   cuando lo lanza `make` de Rtools. Desde PowerShell o cmd no pasa. Un primer intento se detuvo así en `make
   validate` sin escribir nada. Es del entorno, no del código: no se cambió el Makefile.
+
+## Hechos verificados el 2026-11-12 (E3 reabierta, F6-09-c)
+
+Sobre `1528483` (rama `fase6/sensibilidad-2027`), en la PC de Harold `D:\harold`, R 4.6.1 y la BLAS de referencia.
+Evidencia en `doc/evidencia_corrida_fase6_2026-11-12.txt`.
+
+- **La corrida.** `make fase6`, código 0, de 12:56 a 13:38. Resultado: V1-V23 OK, los mismos conteos de filas que la
+  corrida anterior y 0 exclusiones de la guarda. Las 42 filas del catálogo 07 cambian solo en `commit_hash` y
+  `fecha_corrida`. Los 28 sha256 de salidas de los manifiestos coinciden con los archivos.
+- **El control pasó.** Contra la copia de las salidas de E4 del 2026-11-10, son idénticos bit a bit 19 de los 32
+  archivos, entre ellos todas las tablas trimestrales y anuales, las coherencias WEO, histórica y del deflactor, los
+  diagnósticos, las satélites y `sd_sensibilidad.csv`. En `guarda.csv` y `coherencia_signos.csv` solo cambian filas
+  de las seis corridas de sensibilidad. BASE, ADVERSO, FAVORABLE y SIN_ESCENARIO no se movieron.
+- **La sensibilidad es mucho menor.** Con ±1 DE del PIB de EE. UU., el nivel de 2030 de la combinación cambia
+  +1,7 / −1,8 % en G1, +0,9 / −0,5 % en G2 y +0,5 / −0,5 % en G3. Con la regla reemplazada era +8,3 / −7,0 %,
+  +2,7 / −3,4 % y +2,2 / −2,8 %. El IPC y el petróleo mueven la combinación 0,03 pp o menos.
+- **E4 sigue abierto.** Ahora la referencia son los sha256 de esta corrida (`sha256_salidas_fase6.csv`), y se
+  reproduce en la PC INVE.

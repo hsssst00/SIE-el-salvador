@@ -1,0 +1,63 @@
+# Preregistro de Fase 6 (F6-12, ítem E1 del checklist). Lo escribe scripts/armar_preregistro_fase6.R; no se edita a mano.
+preregistro: fase6
+estado: congelado
+fecha_congelamiento: '2026-11-11'
+corte: doc/metodologia/corte_fase6.csv
+corte_sha256_sin_cr: 4aaa33fea3d89c0806f611780b368b730a3f8ebe1f1b4d3c761a9bd7c604c440
+origen: 2026-Q2
+h_max: 20
+grupos:
+- G1
+- G2
+- G3
+escenarios:
+- BASE
+- ADVERSO
+- FAVORABLE
+regla:
+  combinacion: mediana_dy
+  min_miembros: 3
+guarda:
+  objetivo: PIB_SA_PROPIO_Q
+  anios_fuera:
+  - 2020
+  - 2021
+  minimo: -3.06760347229992902
+  maximo: 10.99209832681653509
+  X: 2.07799024533882504
+  'n': 134
+  inferior: -5.14559371763875362
+  superior: 13.07008857215535969
+intervalos:
+  niveles:
+  - 0.80000000000000004
+  - 0.94999999999999996
+  h_calibrado: 8
+  mezcla: pesos_iguales
+  n_sim_anual: 10000
+sensibilidad:
+  variables:
+  - PIB_EEUU
+  - IPC_EEUU
+  - PETROLEO
+  desviaciones: 1.0
+  anios_fuera:
+  - 2020
+  - 2021
+  forma: un_anio_nivel_persistente
+  anio_choque: 2027
+coherencia:
+  stop: agregacion
+  informativas:
+  - weo_slv
+  - historico
+  - signos
+  - deflactor_remesas
+reemplaza:
+  ruta: doc/metodologia/preregistro_fase6.yaml
+  sha256_sin_cr: 355190091f6a181bb054d4213ac0d0bac9bb415fc72df03c6c6af2296e69d97e
+  fecha_congelamiento: '2026-11-04'
+  motivo: 'F6-09-a/b reemplazadas por F6-09-c (decisión de Harold del 2026-11-10):
+    la sensibilidad suma ±1 DE solo al crecimiento de 2027 y desde 2028 la variable
+    crece como en la base. La regla anterior (desplazamiento permanente desde 2026)
+    daba senderos implausibles. Se reabre E3.'

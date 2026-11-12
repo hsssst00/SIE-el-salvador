@@ -1,10 +1,12 @@
 # Informe de proyección condicional del PIB de El Salvador, 2026-2030 (Fase 6, Ejercicio B)
 
-**Estado:** borrador del 2026-11-10 (checklist F2). Las cifras salen de la reproducción del 2026-11-10 (E4), no de los
-archivos de la corrida única (E3), que están en la PC INVE. Es la misma especificación, el mismo corte y las mismas
-semillas, y salieron los mismos conteos y los mismos registros de `07_experimentos.csv`. Pero la igualdad bit a bit
-con E3 no está comprobada todavía (`doc/checklist_fase6.md`, E4). El borrador deja de serlo cuando E4 lo confirme. Si
-E4 encuentra diferencias, este informe se rehace con los archivos de E3.
+**Estado:** borrador del 2026-11-12 (checklist F2). Las cifras salen de la corrida única vigente: la E3 del 2026-11-12,
+en la PC `D:\harold`, sobre `1528483` (`doc/evidencia_corrida_fase6_2026-11-12.txt`). Esa corrida reemplazó a la del
+2026-11-04 cuando se corrigió la sensibilidad (F6-09-c; `decisiones_fase6.md`, nota del 2026-11-10). BASE, ADVERSO,
+FAVORABLE y la trayectoria sin escenario salieron bit a bit iguales a las de la corrida anterior, así que las
+secciones 2, 3, 4 y 7 no cambian. Cambian la sección 5, el rango del interanual de la sección 1 y las cifras de la
+sensibilidad que cita la sección 6. Falta la reproducción en la PC INVE (E4); el borrador deja de serlo cuando E4 lo
+confirme.
 
 > **Todas las cifras de este informe son condicionales.** Dicen cuánto crecería el PIB de El Salvador **si** la
 > economía de EE. UU. y el petróleo siguieran los supuestos de `doc/metodologia/supuestos_escenarios.md`, y con los
@@ -13,8 +15,9 @@ E4 encuentra diferencias, este informe se rehace con los archivos de E3.
 
 ## 1. Qué se corrió
 
-- **Corte:** `doc/metodologia/corte_fase6.csv` (sha256 sin CR `4aaa33fe…`), congelado el 2026-11-04 con el
-  preregistro `doc/metodologia/preregistro_fase6.yaml`. Último trimestre observado del PIB: **2026-T2**. Horizonte:
+- **Corte:** `doc/metodologia/corte_fase6.csv` (sha256 sin CR `4aaa33fe…`), congelado el 2026-11-04. Preregistro
+  vigente: `doc/metodologia/preregistro_fase6_2026-11-11.yaml`. Reemplaza al del 2026-11-04 con el mismo corte, el
+  mismo origen y la misma guarda, y solo cambia la sensibilidad (F6-09-c). Último trimestre observado del PIB: **2026-T2**. Horizonte:
   h = 1 a 20, de 2026-T3 a 2031-T2.
 - **Objetivo:** PIB trimestral SA con el ajuste estacional propio, en log-nivel (ADR-001). La cifra principal es el
   crecimiento anual del promedio de los cuatro trimestres SA de cada año (F6-11).
@@ -28,7 +31,8 @@ E4 encuentra diferencias, este informe se rehace con los archivos de E3.
   benchmarks y los univariados sin predictoras externas, que no dependen del escenario (sección 4).
 - **Guarda de plausibilidad (F6-08):** los 126 senderos de los miembros (los seis o cuatro miembros de cada grupo en
   las nueve corridas) quedan dentro del rango congelado, de −5,15 a 13,07 pp de interanual. **Ningún modelo quedó
-  fuera** (`guarda_fase6.csv`). El interanual de los miembros va de −2,2 a 8,7 pp.
+  fuera** (`guarda_fase6.csv`). El interanual de los miembros va de −0,7 a 5,9 pp en las nueve corridas, y de 0,0 a
+  5,2 pp en las tres principales.
 - **Verificación previa:** V1-V23 OK en la misma corrida, incluidos V22 (el condicional reproduce el sendero impuesto
   en un DGP conocido) y V23 (la guarda excluye un modelo explosivo sintético).
 
@@ -134,24 +138,38 @@ Salvo el paseo aleatorio sin deriva, que congela el nivel de 2026-T2, los modelo
 
 ## 5. Sensibilidad (F6-09)
 
-Sobre la base se desplaza una variable a la vez en ±1 desviación estándar histórica de su crecimiento anual, de
-forma permanente. Desviaciones (de la historia en L3, años completos, sin 2020 ni 2021): **PIB de EE. UU. 2,23 pp,
-IPC de EE. UU. 2,80 pp, petróleo 25,05 pp** (`sd_sensibilidad_fase6.csv`).
+Sobre la base se mueve una variable a la vez: se suma ±1 desviación estándar histórica de su crecimiento anual **solo
+al crecimiento de 2027**. Desde 2028 la variable crece como en la base, así que su nivel queda desviado de forma
+persistente, y 2026 queda igual a la base (F6-09-c).
 
-Efecto sobre el crecimiento promedio 2026-2030 de la combinación, en pp, y entre paréntesis sobre el nivel de 2030,
-en %:
+- **Desviaciones estándar** (historia en L3, años completos, sin 2020 ni 2021): PIB de EE. UU. 2,23 pp, IPC de
+  EE. UU. 2,80 pp y petróleo 25,05 pp (`sd_sensibilidad_fase6.csv`).
+- **Desvío de nivel resultante, desde 2027:** ±2,18 % en el PIB de EE. UU., ±2,72 % en el IPC y ±27,4 % en el
+  petróleo (`senderos_sensibilidad_fase6.csv`).
+
+Efecto sobre la combinación: cambio del crecimiento promedio 2026-2030, en pp, y, entre paréntesis, cambio del nivel
+de 2030, en %:
 
 | Grupo | PIB EE. UU. +1 de | PIB EE. UU. −1 de | IPC EE. UU. +1 de | IPC EE. UU. −1 de | Petróleo +1 de | Petróleo −1 de |
 |---|---|---|---|---|---|---|
-| G1 | 1,64 (8,3) | −1,47 (−7,0) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) |
-| G2 | 0,55 (2,7) | −0,71 (−3,4) | 0,09 (0,4) | −0,05 (−0,2) | 0,03 (0,2) | −0,02 (−0,1) |
-| G3 | 0,44 (2,2) | −0,58 (−2,8) | 0,09 (0,5) | −0,08 (−0,4) | 0,00 (0,0) | −0,00 (−0,0) |
+| G1 | 0,35 (1,7) | −0,37 (−1,8) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) |
+| G2 | 0,18 (0,9) | −0,09 (−0,5) | 0,01 (0,1) | −0,01 (−0,1) | 0,02 (0,1) | −0,03 (−0,1) |
+| G3 | 0,10 (0,5) | −0,10 (−0,5) | 0,02 (0,1) | −0,02 (−0,1) | −0,00 (−0,0) | 0,00 (0,0) |
 
-- El PIB de EE. UU. es el único supuesto que mueve las cifras. Una desviación estándar sostenida cambia el promedio
-  de G1 en unos 1,5 pp, y el de G2 y G3 entre 0,4 y 0,7 pp. Es bastante más que la distancia entre A, C y la base,
-  porque esos escenarios se apartan de la base mucho menos que una desviación estándar y por poco tiempo.
-- En G1 el IPC y el petróleo no tienen efecto: ningún modelo de G1 tiene ITCER, IPM ni IPP entre sus predictoras.
-- El riesgo del petróleo, que los escenarios A y C no mueven (sección 7), se ve solo aquí, y es pequeño.
+- **El PIB de EE. UU. es el único supuesto que mueve las cifras.**
+  - Un año de +1 de deja su nivel 2,2 % más alto desde 2027. Eso sube el promedio 2026-2030 de G1 en 0,35 pp y su
+    nivel de 2030 en 1,7 %. En G2 y G3 el efecto es de 0,1 a 0,2 pp.
+  - En G1 es el doble de la distancia entre A, C y la base (−0,15 y +0,17 pp), cuyos desvíos del PIB de EE. UU.
+    llegan a 1,8 %.
+  - En G2 la respuesta es asimétrica: +0,18 pp con +1 de y −0,09 pp con −1 de.
+- **En G1 el IPC y el petróleo no tienen efecto:** ningún modelo de G1 tiene ITCER, IPM ni IPP entre sus predictoras.
+- **Los modelos casi no transmiten el petróleo.** Un desvío de ±27 % en su nivel desde 2027 mueve el promedio de la
+  combinación a lo sumo 0,03 pp. En ningún miembro pasa de 0,04 pp ni de 0,19 % del nivel de 2030. A y C no mueven
+  el petróleo (sección 7), así que solo aparece aquí. Que casi no pese describe a los modelos; no mide el riesgo
+  (sección 8).
+- **La regla anterior no se reporta.** La corrida del 2026-11-04 aplicaba un desplazamiento permanente desde 2026, y
+  daba senderos implausibles (el petróleo terminaba entre 11,5 y 280 USD en 2031-T4). Sus cifras quedan como evidencia
+  de la corrida reemplazada, no como resultado (`decisiones_fase6.md`, F6-09, nota del 2026-11-10).
 
 ## 6. Coherencia interna (F6-10)
 
@@ -184,7 +202,8 @@ corrida no se detuvo.
 - **Signo de la respuesta** (`coherencia_signos_fase6.csv`). Más PIB de EE. UU. da más PIB de El Salvador en la
   combinación de los tres grupos. De las 34 filas con signo esperado (cada miembro y la combinación, con +1 y −1 de),
   coinciden 30. Las cuatro que no coinciden son de **`MIX.PUENTE.G2` y `MIX.PUENTE.G3`**: responden con el signo
-  contrario, aunque con un efecto mínimo (−0,05 y −0,07 pp en el promedio ante +1 de). El puente de G1 responde con el signo esperado y con fuerza (+1,55 pp). El IPC
+  contrario, aunque con un efecto mínimo (−0,01 y −0,02 pp en el promedio ante +1 de). El puente de G1 responde con el
+  signo esperado (+0,34 pp). El IPC
   y el petróleo se reportan sin signo esperado.
 - **Deflactor implícito de las remesas** (solo `MULT.BVAR.G3`, que recibe las nominales y las reales;
   `coherencia_deflactor_fase6.csv`). Los 20 trimestres proyectados quedan dentro del rango histórico (de −1,9 a
@@ -230,6 +249,11 @@ esencial:
   evaluación de Fase 5 tomó a G1 y G2 como resultado principal y a G3 con advertencia de potencia (F4-05); aquí G2 y
   G3 dan casi lo mismo.
 - No corrige ni recentra ninguna cifra para acercarla al WEO, al histórico o a otra referencia.
+- No mide el riesgo del petróleo. Los modelos casi no lo transmiten (sección 5) y A y C no lo mueven (sección 7). Que
+  la proyección casi no cambie con él dice cómo son los modelos, no que el riesgo sea pequeño.
+- No deja 2020-2021 fuera de todo. Esos años quedan fuera de la guarda (F6-08-a), de la desviación estándar de la
+  sensibilidad (F6-09-a) y de la estimación de las satélites (F6-15). Pero están dentro de los residuos de los modelos,
+  que dan las bandas (sección 2, punto 4).
 
 ## Fuentes y avisos
 

@@ -2,8 +2,8 @@
 #
 # Sensibilidad, reporte y coherencia de Fase 6 (checklist D6; F6-09, F6-09-a, F6-10, F6-11, F6-11-a, F6-11-b, F6-18-c de
 # doc/metodologia/decisiones_fase6.md), con datos SINTÉTICOS: no se lee data/. Comprueba la desviación estándar del
-# crecimiento anual sin 2020-2021, que el sendero de sensibilidad desplaza el crecimiento anual de las metas en ±1 sd y
-# deja la historia intacta, la cifra anual contra el cálculo a mano, las bandas anuales (reproducibles con la semilla y
+# crecimiento anual sin 2020-2021, que el sendero de sensibilidad desplaza ±1 sd solo el crecimiento de 2027 (F6-09-c),
+# con desvío de nivel constante desde 2028 y la historia y 2026 intactos, la cifra anual contra el cálculo a mano, las bandas anuales (reproducibles con la semilla y
 # degeneradas sin varianza), las identidades de F6-10 y que fallan si se adultera una tabla, y las informativas.
 
 library(testthat)
@@ -40,17 +40,40 @@ test_that("metas_desde_sendero recupera las metas de T014 de la serie base", {
   expect_equal(names(m), names(attr(e, "metas")))
 })
 
-test_that("sendero_sensibilidad desplaza el crecimiento anual de cada año proyectado y deja la historia intacta", {
+test_that("sendero_sensibilidad (F6-09-c): el crecimiento cambia solo en 2027, el desvío de nivel es constante desde 2028 y el resto queda en la base", {
   e <- .esc_base(4); base <- attr(e, "metas")
+  gb <- 100 * (base[-1] / base[-length(base)] - 1)
+  anio_e <- q_a_ind(e$periodo) %/% 4L
   for (sg in c(1, -1)) {
     s <- sendero_sensibilidad(e, 0.7, sg, "p")
-    m <- attr(s, "metas")
-    expect_equal(unname(100 * (m[-1] / m[-length(m)] - 1)), unname(100 * (base[-1] / base[-length(base)] - 1) + sg * 0.7), tolerance = 1e-10)
-    for (col in c("periodo", "valor")) expect_identical(s[[col]][s$tramo == "historia"], e[[col]][e$tramo == "historia"])
+    expect_identical(attr(s, "anio_choque"), 2027L)
+    expect_identical(s$periodo, e$periodo)
+    expect_identical(s$tramo, e$tramo)
+    # Crecimiento anual de las metas: + sg · sd en 2027 y el de la base en los demás años.
+    m <- attr(s, "metas"); gm <- 100 * (m[-1] / m[-length(m)] - 1)
+    expect_equal(names(gm), names(gb))
+    expect_equal(unname(gm["2027"] - gb["2027"]), sg * 0.7, tolerance = 1e-10)
+    otros <- names(gb) != "2027"
+    expect_equal(unname(gm[otros]), unname(gb[otros]), tolerance = 1e-10)
+    # Lo mismo en los promedios anuales del sendero trimestral, y desvío de nivel constante de 2027 a 2031.
+    pa <- promedio_anual_q(s); pb <- promedio_anual_q(e)
+    an <- as.character(2027:2031)
+    r <- pa[an] / pb[an]
+    delta <- (1 + (gb[["2027"]] + sg * 0.7) / 100) / (1 + gb[["2027"]] / 100)
+    expect_equal(unname(r), rep(delta, 5), tolerance = 1e-10)
+    expect_equal(unname(pa[as.character(2025:2026)]), unname(pb[as.character(2025:2026)]))
+    # Antes de 2027 todo es bit a bit la base: la historia y los trimestres proyectados de 2026.
+    expect_identical(s$valor[anio_e < 2027L], e$valor[anio_e < 2027L])
+    expect_true(any(e$tramo == "sendero" & anio_e == 2026L))
+    expect_true(all(s$valor[anio_e == 2027L] != e$valor[anio_e == 2027L]))
     expect_equal(utils::tail(s$periodo, 1), "2031-Q4")
   }
   expect_error(sendero_sensibilidad(e, 0, 1, "p"), "positiva")
   expect_error(sendero_sensibilidad(e, 0.7, 2, "p"), "signo")
+  expect_error(sendero_sensibilidad(e, 0.7, 1, "p", anio = 2032L), "no está entre los años con meta")
+  # stop() si 2027 tiene trimestres observados.
+  e27 <- sendero_escenario_crecimiento(.hist_q(4, hasta = "2027-Q1"), .weo(), "prueba")
+  expect_error(sendero_sensibilidad(e27, 0.7, 1, "p"), "trimestres observados")
 })
 
 test_that("escenarios_sensibilidad arma seis corridas y en cada una mueve una sola variable", {
