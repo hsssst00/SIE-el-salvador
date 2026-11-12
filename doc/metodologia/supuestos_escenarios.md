@@ -104,11 +104,12 @@ tempranas.
 
 ### 3.5 Sensibilidad (F6-09)
 
-Sobre el escenario base se mueve una variable a la vez (PIB de EE. UU., IPC de EE. UU. y petróleo) en ±1 desviación
-estándar histórica de su crecimiento anual, sumada al crecimiento de cada año proyectado, de modo que el
-desplazamiento es permanente. Son seis corridas. La desviación estándar se calcula sobre la historia de cada
-variable en L3, con los años completos y sin 2020 ni 2021 (F6-09-a, F6-09-b). Sus valores salen de la corrida y se
-citan desde su evidencia (sección 9):
+Sobre el escenario base se mueve una variable a la vez (PIB de EE. UU., IPC de EE. UU. y petróleo): se suma ±1
+desviación estándar histórica de su crecimiento anual **solo al crecimiento de 2027**. Desde 2028 la variable crece
+como en la base, así que su nivel queda desviado de forma persistente, y los trimestres de 2026 quedan en la base
+(F6-09-c, decisión de Harold del 2026-11-10). Son seis corridas. La desviación estándar se calcula sobre la historia
+de cada variable en L3, con los años completos y sin 2020 ni 2021 (F6-09-a, F6-09-b). Sus valores salen de la corrida
+y se citan desde su evidencia (sección 9):
 
 | Variable | Desviación estándar del crecimiento anual (pp) |
 |---|---|
@@ -117,9 +118,14 @@ citan desde su evidencia (sección 9):
 | Petróleo APSP en USD | 25,055 |
 
 Fuente: `doc/metodologia/reportes_fase6/sd_sensibilidad_fase6.csv`, copia verificada por sha256 de
-`data/L4_experiments/F6_COMUN/sd_sensibilidad.csv` de la reproducción del 2026-11-10. Se confirma con la comparación
-de E4 contra la corrida única. Las desviaciones salen de la historia del corte, así que no dependen de ninguna
-semilla.
+`data/L4_experiments/F6_COMUN/sd_sensibilidad.csv` de la corrida única vigente, la E3 del 2026-11-12
+(`doc/evidencia_corrida_fase6_2026-11-12.txt`). El archivo es idéntico bit a bit al de la reproducción del 2026-11-10
+de la corrida reemplazada: las desviaciones salen de la historia del corte, no de la forma del choque, y no dependen de
+ninguna semilla.
+
+Con la forma F6-09-c, el desvío de nivel desde 2027, constante en promedios anuales, es de ±2,183 % en el PIB de
+EE. UU., ±2,718 % en el IPC y ±27,447 % en el petróleo (`senderos_sensibilidad_fase6.csv`). En trimestres converge a
+ese valor: el sendero hace un sobrepico en 2027-T3/T4, porque el promedio de 2027 está anclado y 2026-T4 está fijo.
 
 ## 4. Del supuesto anual al sendero trimestral (F6-16)
 
@@ -169,8 +175,8 @@ quedó implementada, la combinación tiene estas costuras:
    y se publican solo como desvíos de esa base. Aplicarlos sobre la base supone que los desvíos se trasladan sin
    cambio, cuando el FMI no publica los niveles de A y C.
 3. **El petróleo no se mueve en A ni en C.** El recuadro no publica el petróleo de esos escenarios. Una caída de la
-   actividad de EE. UU. con el petróleo fijo no es, en general, lo que daría un modelo global. El riesgo del petróleo
-   se ve solo en la sensibilidad.
+   actividad de EE. UU. con el petróleo fijo no es, en general, lo que daría un modelo global. El petróleo se mueve
+   solo en la sensibilidad, y ahí los modelos casi no lo transmiten (informe, secciones 5 y 8).
 4. **Remesas nominales y reales con satélites separadas** sobre el mismo PIB de EE. UU. (F6-15-b). El deflactor
    implícito entre ambas no queda atado. Solo afecta a `MULT.BVAR.G3`. La coherencia lo reporta como informativo
    (F6-10, nota del 2026-10-22).
@@ -213,7 +219,9 @@ quedó implementada, la combinación tiene estas costuras:
   corte congelado (`4aaa33fe…`) con el sha256 de la sección 2, igual al de `08_vintages.csv`. Las cifras de la
   sección 4 no cambian.
 - [x] **E3.** Citar, desde la evidencia de la corrida, las desviaciones estándar de la sensibilidad (sección 3.5). —
-  2026-11-10: citadas desde la reproducción de E4, con la reserva que dice la sección 3.5.
+  2026-11-10: citadas desde la reproducción de E4, con la reserva que dice la sección 3.5. — 2026-11-12: E3
+  reabierta por F6-09-c; ahora se citan desde la E3 vigente (las desviaciones no cambiaron) y se agrega el desvío de
+  nivel de la forma nueva.
 - [x] **ADR-008, FRED.** Aviso de no-aval en el `README.md`, con el texto exacto de los Términos de Uso vigentes
   (sección 2). — 2026-10-23, nota fechada en ADR-008.
 - [ ] **F1.** Revisión final y marca en el checklist.
@@ -234,7 +242,8 @@ Fuente híbrida: FMI WEO para variables globales/regionales; proyecciones de la 
   Los supuestos citados con vintage y sha256 los reúne F1.
 - [x] Análisis de sensibilidad a los supuestos. — F6-09; implementado en D6 (PR #85), sus cifras salen de la corrida
   (E3). — 2026-11-10: reportado en `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, sección 5, con las
-  cifras de la reproducción de E4.
+  cifras de la reproducción de E4. — 2026-11-12: con F6-09-c (choque solo en 2027), la sección 5 del informe se
+  rehízo con la E3 vigente.
 
 ## Nota (2026-10-17, F6-03 y F6-05)
 

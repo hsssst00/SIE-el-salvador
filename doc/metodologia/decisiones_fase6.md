@@ -1261,3 +1261,21 @@ No es la máquina de E3 (PC INVE). Evidencia en `doc/evidencia_reproduccion_fase
 - **Entorno.** En esta PC, bajo Git Bash, todo Rscript que carga `rlang` muere con *segmentation fault* al salir
   cuando lo lanza `make` de Rtools. Desde PowerShell o cmd no pasa. Un primer intento se detuvo así en `make
   validate` sin escribir nada. Es del entorno, no del código: no se cambió el Makefile.
+
+## Hechos verificados el 2026-11-12 (E3 reabierta, F6-09-c)
+
+Sobre `1528483` (rama `fase6/sensibilidad-2027`), en la PC de Harold `D:\harold`, R 4.6.1 y la BLAS de referencia.
+Evidencia en `doc/evidencia_corrida_fase6_2026-11-12.txt`.
+
+- **La corrida.** `make fase6`, código 0, de 12:56 a 13:38. Resultado: V1-V23 OK, los mismos conteos de filas que la
+  corrida anterior y 0 exclusiones de la guarda. Las 42 filas del catálogo 07 cambian solo en `commit_hash` y
+  `fecha_corrida`. Los 28 sha256 de salidas de los manifiestos coinciden con los archivos.
+- **El control pasó.** Contra la copia de las salidas de E4 del 2026-11-10, son idénticos bit a bit 19 de los 32
+  archivos, entre ellos todas las tablas trimestrales y anuales, las coherencias WEO, histórica y del deflactor, los
+  diagnósticos, las satélites y `sd_sensibilidad.csv`. En `guarda.csv` y `coherencia_signos.csv` solo cambian filas
+  de las seis corridas de sensibilidad. BASE, ADVERSO, FAVORABLE y SIN_ESCENARIO no se movieron.
+- **La sensibilidad es mucho menor.** Con ±1 DE del PIB de EE. UU., el nivel de 2030 de la combinación cambia
+  +1,7 / −1,8 % en G1, +0,9 / −0,5 % en G2 y +0,5 / −0,5 % en G3. Con la regla reemplazada era +8,3 / −7,0 %,
+  +2,7 / −3,4 % y +2,2 / −2,8 %. El IPC y el petróleo mueven la combinación 0,03 pp o menos.
+- **E4 sigue abierto.** Ahora la referencia son los sha256 de esta corrida (`sha256_salidas_fase6.csv`), y se
+  reproduce en la PC INVE.
