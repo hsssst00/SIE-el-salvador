@@ -8,7 +8,8 @@
 # Antes de leer, comprueba el sha256 de cada archivo (los bytes tal cual) contra
 # doc/metodologia/reportes_fase6/sha256_salidas_fase6.csv. No usa las líneas «salidas (sha256)» de los manifiestos:
 # hasta el 2026-11-10 no eran los sha256 de los archivos (decisiones_fase6.md, hechos del 2026-11-10). La lista
-# versionada es la de la reproducción de E4 (doc/evidencia_reproduccion_fase6.txt). De los manifiestos solo exige
+# versionada es la de la E3 vigente, la del 2026-11-12 (doc/evidencia_corrida_fase6_2026-11-12.txt). Hasta esa fecha era
+# la de la reproducción E4 de la E3 reemplazada (doc/evidencia_reproduccion_fase6.txt). De los manifiestos solo exige
 # «arbol: limpio» y el corte del preregistro.
 #
 # Uso:  Rscript src/proyeccion/tablas_informe_fase6.R   (o `make tablas-fase6`)
