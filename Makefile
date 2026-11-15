@@ -162,7 +162,7 @@ fase5:
 # Fase 6 — proyección condicional (Ejercicio B; checklist de Fase 6, D7; protocolo_proyeccion.md §11). La orden única es
 # `make fase6`: master con el corte congelado de F6-04, la verificación sintética (V1-V23) y la proyección. LOCAL: exige
 # L0 materializada y X-13 (C-5). src/proyeccion/correr_fase6.R se detiene sin el preregistro de E1
-# (doc/metodologia/preregistro_fase6.yaml, que escribe `make preregistro-fase6`), si la guarda recalculada difiere de
+# (doc/metodologia/preregistro_fase6_2026-11-11.yaml, que escribe `make preregistro-fase6` y reemplaza al del 2026-11-04), si la guarda recalculada difiere de
 # la congelada o si el árbol no está limpio: antes de correr, `git status --short` debe salir vacío. Escribe
 # data/L4_experiments/F6_COMUN/ y F6_G1..G3/ con manifiesto y las filas F6_* de catalogos/07_experimentos.csv.
 # `make fase6-medicion-bvar` es la medición previa del BVAR (F6-13 d, ítem E2): solo las dos cifras de la ficha, sin

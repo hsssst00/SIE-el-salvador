@@ -1,20 +1,27 @@
 # sensibilidad.R
 #
-# Senderos del análisis de sensibilidad del Ejercicio B (checklist de Fase 6, D6; F6-09, F6-09-a, F6-18-c de
+# Senderos del análisis de sensibilidad del Ejercicio B (checklist de Fase 6, D6; F6-09, F6-09-c, F6-18-c de
 # doc/metodologia/decisiones_fase6.md; protocolo_proyeccion.md §8). Uno a la vez, sobre la base: cada variable de
-# escenario se desplaza ±1 desviación estándar de su crecimiento anual en cada año proyectado, con las demás en la
-# base. Tres variables (PIB e IPC de EE. UU. y petróleo, F6-15) dan seis corridas.
+# escenario recibe ±1 desviación estándar de su crecimiento anual SOLO en ANIO_CHOQUE_SENSIBILIDAD (2027), con las
+# demás en la base. Desde el año siguiente crece como en la base, así que queda un desvío de nivel persistente
+# (forma `un_anio_nivel_persistente`, decisión de Harold del 2026-11-10, que reemplaza a F6-09-a/b: el desplazamiento
+# permanente desde el año del origen daba senderos implausibles). Tres variables (PIB e IPC de EE. UU. y petróleo,
+# F6-15) dan seis corridas.
 #
 # Los senderos no van a L3 (F6-18-c): se arman aquí, en tiempo de corrida, con la misma función de T014
 # (.sendero_desde_metas() de l3_escenarios_reglas.R) y las metas anuales de la serie ESC.*.BASE de L3, y quien corre
 # los deja en el manifiesto de L4. Las metas de la base se leen como los promedios anuales de su sendero, que la
-# validación 1 de F6-18 ya ató a sus metas con error relativo de 1e-10; así no hace falta volver al WEO.
+# validación 1 de F6-18 ya ató a sus metas con error relativo de 1e-10; así no hace falta volver al WEO. Los
+# trimestres de la base anteriores al año del choque quedan fijos (F6-09-c): el sendero es bit a bit la base hasta el
+# último trimestre del año anterior al choque, y Denton solo reparte desde el primer trimestre del año del choque.
 # Sin I/O y sin estado global.
 
 source(here::here("src", "transformacion", "l3_escenarios_reglas.R"))   # .sendero_desde_metas(), metas_anuales()
 
 ANIOS_FUERA_SENSIBILIDAD <- c(2020L, 2021L)   # F6-09-a: sin 2020-2021, con el criterio de F6-08
 SIGNOS_SENSIBILIDAD <- c(MAS = 1, MENOS = -1)  # F6-09: ±1 desviación estándar
+ANIO_CHOQUE_SENSIBILIDAD <- 2027L              # F6-09-c (2026-11-10): único año cuyo crecimiento se desplaza
+FORMA_SENSIBILIDAD <- "un_anio_nivel_persistente"   # F6-09-c: desde 2028 crece como la base
 
 # Variables de escenario de la sensibilidad (F6-09, nota del 2026-10-19): prefijo de su serie ESC.* de L3 (F6-18).
 VARIABLES_SENSIBILIDAD <- c(PIB_EEUU = "ESC.PIB_EEUU.VOL.SA.Q", IPC_EEUU = "ESC.IPC_EEUU.IDX.SA.Q",
@@ -52,20 +59,38 @@ metas_desde_sendero <- function(esc, etiqueta) {
   .exigir_anios(pa, y0:ANIO_FIN_SENDERO, etiqueta, "el sendero base")
 }
 
-#' Sendero de sensibilidad de una variable (F6-09-a): el crecimiento anual de la base más `signo` · `sd` en cada año
-#' proyectado (Y0 + 1 .. ANIO_FIN_SENDERO), encadenado sobre la historia y desagregado con la función de T014. Devuelve
-#' el data.frame de la serie ESC.* (historia + sendero) con atributo "metas"; validar_metas() con stop().
-sendero_sensibilidad <- function(esc_base, sd, signo, etiqueta) {
+#' Sendero de sensibilidad de una variable (F6-09-c): el crecimiento anual de la base más `signo` · `sd` solo en
+#' `anio` (ANIO_CHOQUE_SENSIBILIDAD); los demás años, el crecimiento de la base. Las metas se encadenan sobre la historia
+#' con metas_anuales(), así que desde `anio` + 1 el nivel anual queda desviado en la proporción constante
+#' (1 + (g_anio + signo · sd) / 100) / (1 + g_anio / 100). Los trimestres del sendero base anteriores a `anio` se fijan
+#' como si fueran historia, y .sendero_desde_metas() reparte con Denton desde `anio`-Q1. stop() si `anio` tiene
+#' trimestres observados o no es un año con meta de la base. Devuelve el data.frame de la serie ESC.* (historia +
+#' sendero) con atributos "metas" y "anio_choque"; validar_metas() con stop().
+sendero_sensibilidad <- function(esc_base, sd, signo, etiqueta, anio = ANIO_CHOQUE_SENSIBILIDAD) {
   esc_base <- .serie_esc(esc_base, etiqueta)
   if (length(sd) != 1L || !is.finite(sd) || sd <= 0) stop("sensibilidad [", etiqueta, "]: la desviación estándar debe ser positiva")
   if (!signo %in% SIGNOS_SENSIBILIDAD) stop("sensibilidad [", etiqueta, "]: signo no declarado")
+  if (length(anio) != 1L || is.na(anio)) stop("sensibilidad [", etiqueta, "]: el año del choque debe ser uno")
   hist <- esc_base[esc_base$tramo == "historia", c("periodo", "valor")]
+  if (any(.anio_q(hist$periodo) >= anio)) {
+    stop("sensibilidad [", etiqueta, "]: el año del choque (", anio, ") tiene trimestres observados (la historia llega a ",
+         hist$periodo[nrow(hist)], ")")
+  }
   base <- metas_desde_sendero(esc_base, etiqueta)
-  g <- 100 * (base[-1] / base[-length(base)] - 1) + signo * sd
+  g <- 100 * (base[-1] / base[-length(base)] - 1)
+  if (!as.character(anio) %in% names(g)) {
+    stop("sensibilidad [", etiqueta, "]: el año del choque (", anio, ") no está entre los años con meta de la base (",
+         names(g)[1], "-", names(g)[length(g)], ")")
+  }
+  g[[as.character(anio)]] <- g[[as.character(anio)]] + signo * sd
   metas <- metas_anuales(hist, g, etiqueta)
-  s <- .sendero_desde_metas(hist, metas, etiqueta)
+  sb <- esc_base[esc_base$tramo == "sendero", c("periodo", "valor")]
+  fijos <- rbind(hist, sb[.anio_q(sb$periodo) < anio, ])                      # F6-09-c: la base antes del choque
+  s <- .sendero_desde_metas(fijos, metas[as.integer(names(metas)) >= anio - 1L], etiqueta)
+  s$tramo[seq_len(nrow(hist))] <- "historia"; s$tramo[-seq_len(nrow(hist))] <- "sendero"
   validar_metas(s, metas, etiqueta)
   attr(s, "metas") <- metas
+  attr(s, "anio_choque") <- as.integer(anio)
   s
 }
 

@@ -24,7 +24,14 @@
 source(here::here("src", "proyeccion", "reporte.R"))      # combinacion, condicional, motor_backtesting, sensibilidad
 source(here::here("src", "proyeccion", "satelites.R"))
 
-PREREGISTRO_FASE6 <- here::here("doc", "metodologia", "preregistro_fase6.yaml")   # F6-12: lo escribe E1
+# F6-12: el preregistro vigente es el del 2026-11-11 (E3 reabierta, F6-09-c). El del 2026-11-04 queda reemplazado y se
+# conserva sin editar (su sha256 está en los manifiestos de la E3 reemplazada); el vigente lo nombra en `reemplaza`.
+PREREGISTRO_FASE6 <- here::here("doc", "metodologia", "preregistro_fase6_2026-11-11.yaml")
+PREREGISTRO_FASE6_REEMPLAZADO <- here::here("doc", "metodologia", "preregistro_fase6.yaml")
+MOTIVO_REEMPLAZO_FASE6 <- paste(
+  "F6-09-a/b reemplazadas por F6-09-c (decisión de Harold del 2026-11-10): la sensibilidad suma ±1 DE solo al",
+  "crecimiento de 2027 y desde 2028 la variable crece como en la base. La regla anterior (desplazamiento permanente",
+  "desde 2026) daba senderos implausibles. Se reabre E3.")
 CORTE_FASE6 <- "corte_fase6.csv"                                                   # F6-04
 TOL_PREREGISTRO <- 1e-10
 exp_fase6 <- function(grupo) paste0("F6_", grupo)
@@ -34,10 +41,11 @@ exp_fase6 <- function(grupo) paste0("F6_", grupo)
 # ---------------------------------------------------------------------------------------------
 
 #' Contenido del preregistro de Fase 6: las constantes del código que la corrida usa y la guarda calculada sobre el
-#' objetivo del corte (F6-08-a). Lo escribe scripts/armar_preregistro_fase6.R al congelar (E1).
-armar_preregistro_fase6 <- function(objetivo, o, corte_sha256, fecha = Sys.Date()) {
+#' objetivo del corte (F6-08-a). Lo escribe scripts/armar_preregistro_fase6.R al congelar (E1). `reemplaza`
+#' (opcional, de reemplazo_preregistro_fase6()) identifica el preregistro congelado que este reemplaza.
+armar_preregistro_fase6 <- function(objetivo, o, corte_sha256, fecha = Sys.Date(), reemplaza = NULL) {
   r <- rango_guarda(objetivo)
-  list(
+  p <- list(
     preregistro = "fase6", estado = "congelado", fecha_congelamiento = format(as.Date(fecha)),
     corte = paste0("doc/metodologia/", CORTE_FASE6), corte_sha256_sin_cr = corte_sha256, origen = ind_a_q(o),
     h_max = DISENO_FASE6$h_max, grupos = DISENO_FASE6$grupos, escenarios = DISENO_FASE6$escenarios,
@@ -47,9 +55,21 @@ armar_preregistro_fase6 <- function(objetivo, o, corte_sha256, fecha = Sys.Date(
     intervalos = list(niveles = DISENO_FASE6$niveles, h_calibrado = DISENO_FASE6$h_calibrado,               # F6-07
                       mezcla = "pesos_iguales", n_sim_anual = N_SIM_ANUAL),
     sensibilidad = list(variables = names(VARIABLES_SENSIBILIDAD), desviaciones = 1,                        # F6-09
-                        anios_fuera = ANIOS_FUERA_SENSIBILIDAD),
+                        anios_fuera = ANIOS_FUERA_SENSIBILIDAD,
+                        forma = FORMA_SENSIBILIDAD, anio_choque = ANIO_CHOQUE_SENSIBILIDAD),                 # F6-09-c
     coherencia = list(stop = "agregacion", informativas = c("weo_slv", "historico", "signos", "deflactor_remesas"))  # F6-10
   )
+  if (!is.null(reemplaza)) p$reemplaza <- reemplaza
+  p
+}
+
+#' Identidad del preregistro que el vigente reemplaza (F6-12): ruta relativa, sha256 sin CR, fecha de congelamiento y
+#' motivo. stop() si no existe o no está congelado: el reemplazado se conserva, no se borra.
+reemplazo_preregistro_fase6 <- function(ruta = PREREGISTRO_FASE6_REEMPLAZADO, motivo = MOTIVO_REEMPLAZO_FASE6) {
+  if (!file.exists(ruta)) stop("F6-12: no existe el preregistro reemplazado ", ruta_relativa(ruta), "; se conserva, no se borra")
+  v <- yaml::read_yaml(ruta)
+  if (!identical(v$preregistro, "fase6") || !identical(v$estado, "congelado")) stop("F6-12: ", ruta_relativa(ruta), " no es un preregistro de Fase 6 congelado")
+  list(ruta = ruta_relativa(ruta), sha256_sin_cr = .sha256_lf(ruta), fecha_congelamiento = v$fecha_congelamiento, motivo = motivo)
 }
 
 #' Escribe el preregistro con 17 dígitos significativos (yaml usa 7 por omisión y la guarda se compara a 1e-10) y LF.
@@ -67,10 +87,17 @@ leer_preregistro_fase6 <- function(ruta = PREREGISTRO_FASE6) {
   p <- yaml::read_yaml(ruta)
   if (!identical(p$preregistro, "fase6") || !identical(p$estado, "congelado")) stop("F6-12: ", ruta_relativa(ruta), " no es un preregistro de Fase 6 congelado")
   ref <- armar_preregistro_fase6(data.frame(periodo = ind_a_q(0:5 + 8000L), y = c(0, 1, 3, 2, 5, 4)), 8005L, "x")
+  falta <- setdiff(names(ref$sensibilidad), names(p$sensibilidad))                                     # F6-09-c
+  if (length(falta)) stop("F6-12: el preregistro no declara sensibilidad$", paste(falta, collapse = ", sensibilidad$"), " (F6-09-c)")
   for (k in c("h_max", "grupos", "escenarios", "regla", "intervalos", "sensibilidad", "coherencia")) {
     if (!isTRUE(all.equal(p[[k]], ref[[k]]))) stop("F6-12: el preregistro y el código difieren en `", k, "`")
   }
   if (!isTRUE(all.equal(p$guarda$anios_fuera, ref$guarda$anios_fuera))) stop("F6-12: el preregistro y el código difieren en guarda$anios_fuera")
+  if (!is.null(p$reemplaza)) {                                     # el reemplazado sigue ahí y con los mismos bytes
+    rr <- if (file.exists(p$reemplaza$ruta)) p$reemplaza$ruta else here::here(p$reemplaza$ruta)
+    if (!file.exists(rr)) stop("F6-12: falta el preregistro reemplazado ", p$reemplaza$ruta, "; se conserva, no se borra")
+    if (!identical(.sha256_lf(rr), p$reemplaza$sha256_sin_cr)) stop("F6-12: el preregistro reemplazado ", p$reemplaza$ruta, " cambió; no se edita")
+  }
   p
 }
 
@@ -366,13 +393,15 @@ main <- function(args = character(0)) {
   }
   if (!identical(commit$arbol, "limpio")) stop("F6-12: la corrida única de Fase 6 exige un árbol limpio (", commit$arbol, ")")
   prereg <- leer_preregistro_fase6()
+  if (is.null(prereg$reemplaza)) stop("F6-12: el preregistro vigente debe nombrar en `reemplaza` al del 2026-11-04 (E3 reabierta, F6-09-c)")
   rango <- verificar_preregistro(prereg, ins$objetivo, o, ident$sha256)                      # F6-08 congelada
   res <- correr_fase6_nucleo(ins, rango)
   archivos <- c(normalizePath(Sys.getenv("SIE_CONJUNTO"), winslash = "/"), PREREGISTRO_FASE6, li$archivos,
                 here::here("catalogos", c("03_series.csv", "05_series_master.csv", "08_vintages.csv")),
                 here::here("catalogos", "06_modelos", paste0(unique(c(unlist(lapply(res$grupos, `[[`, "modelos")), SATELITES_FASE6)), ".yaml")))
   insumos_sha <- stats::setNames(vapply(unique(archivos), .sha256_lf, character(1)), ruta_relativa(unique(archivos)))
-  comun <- c(cabecera, paste0("preregistro: ", ruta_relativa(PREREGISTRO_FASE6), "  (F6-12)"),
+  comun <- c(cabecera, paste0("preregistro: ", ruta_relativa(PREREGISTRO_FASE6), "  (F6-12; reemplaza a ",
+                              prereg$reemplaza$ruta, ")"),
              sprintf("guarda: [%.6f, %.6f] pp del interanual (F6-08, congelada)", rango$inferior, rango$superior),
              "condicional: todas las cifras son condicionales a los supuestos de doc/metodologia/supuestos_escenarios.md (F6-11)")
   escribir_l4_fase6("F6_COMUN", list(satelites = res$satelites, senderos_sensibilidad = res$senderos_sensibilidad,

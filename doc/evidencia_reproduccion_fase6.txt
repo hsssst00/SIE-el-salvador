@@ -442,3 +442,10 @@ OK F6_G3  460 filas trimestrales, 138 anuales, 0 exclusiones de la guarda
 07_experimentos.csv: 42 filas de Fase 6
 make[1]: Leaving directory '/d/harold/Documents/SIE-el-salvador'
 Fin Tue 11/10/2026  9:38:44.05 rc=0 
+
+Nota (2026-11-12): comparación hecha
+------------------------------------
+Los sha256 de los 28 archivos de la E3 del 2026-11-04 que había en la PC INVE se tomaron el 2026-11-12, antes de
+sobrescribirlos, y coinciden 28/28 con los de esta reproducción (lista sha256_salidas_fase6.csv de b084c1b). La
+igualdad bit a bit con E3 queda confirmada. Para entonces esa E3 ya había sido reemplazada (F6-09-c); la reproducción
+de la E3 vigente está en doc/evidencia_reproduccion_fase6_2026-11-12.txt.

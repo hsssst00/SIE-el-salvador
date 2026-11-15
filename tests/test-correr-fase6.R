@@ -144,6 +144,37 @@ test_that("D7 (F6-12): el preregistro se arma, se lee y detiene la corrida ante 
   p3 <- p; p3$estado <- "borrador"; escribir_preregistro_fase6(p3, tmp)
   expect_error(leer_preregistro_fase6(tmp), "congelado")
   expect_error(leer_preregistro_fase6(tempfile()), "E1")
+  # F6-09-c: los campos nuevos de la sensibilidad se comparan con el código.
+  expect_identical(p$sensibilidad$forma, "un_anio_nivel_persistente")
+  expect_identical(p$sensibilidad$anio_choque, 2027L)
+  p4 <- p; p4$sensibilidad$anio_choque <- NULL; escribir_preregistro_fase6(p4, tmp)
+  expect_error(leer_preregistro_fase6(tmp), "anio_choque")
+  p5 <- p; p5$sensibilidad$anio_choque <- 2026L; escribir_preregistro_fase6(p5, tmp)
+  expect_error(leer_preregistro_fase6(tmp), "sensibilidad")
+  p6 <- p; p6$sensibilidad$forma <- "permanente"; escribir_preregistro_fase6(p6, tmp)
+  expect_error(leer_preregistro_fase6(tmp), "sensibilidad")
+  # Reemplazo: el vigente nombra al reemplazado con su sha256 y la lectura falla si este falta o cambia.
+  viejo <- tempfile(fileext = ".yaml")
+  pv <- p; pv$sensibilidad <- pv$sensibilidad[c("variables", "desviaciones", "anios_fuera")]
+  escribir_preregistro_fase6(pv, viejo)
+  expect_error(leer_preregistro_fase6(viejo), "anio_choque")
+  rep <- reemplazo_preregistro_fase6(viejo, motivo = "prueba")
+  expect_identical(rep$sha256_sin_cr, .sha256_lf(viejo))
+  pn <- armar_preregistro_fase6(.ins_c6$objetivo, .O_C6, "abc", fecha = "2026-11-11", reemplaza = rep)
+  escribir_preregistro_fase6(pn, tmp)
+  expect_identical(leer_preregistro_fase6(tmp)$reemplaza$sha256_sin_cr, rep$sha256_sin_cr)
+  cat("# editado\n", file = viejo, append = TRUE)
+  expect_error(leer_preregistro_fase6(tmp), "cambió")
+  unlink(viejo)
+  expect_error(leer_preregistro_fase6(tmp), "falta el preregistro reemplazado")
+  expect_error(reemplazo_preregistro_fase6(viejo), "no se borra")
+})
+
+test_that("F6-12: tablas_informe_fase6.R lee el mismo preregistro vigente que la corrida", {
+  en <- new.env()
+  sys.source(here::here("src", "proyeccion", "tablas_informe_fase6.R"), envir = en)
+  expect_identical(en$PREREGISTRO_TABLAS_F6, PREREGISTRO_FASE6)
+  expect_false(identical(PREREGISTRO_FASE6, PREREGISTRO_FASE6_REEMPLAZADO))
 })
 
 test_that("D7 (F6-13 d): medicion_bvar cuenta raíces explosivas y mide media contra mediana", {
