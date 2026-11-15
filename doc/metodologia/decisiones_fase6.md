@@ -1279,3 +1279,17 @@ Evidencia en `doc/evidencia_corrida_fase6_2026-11-12.txt`.
   +2,7 / −3,4 % y +2,2 / −2,8 %. El IPC y el petróleo mueven la combinación 0,03 pp o menos.
 - **E4 sigue abierto.** Ahora la referencia son los sha256 de esta corrida (`sha256_salidas_fase6.csv`), y se
   reproduce en la PC INVE.
+
+## Hechos verificados el 2026-11-12 (reproducción en la PC INVE, E4)
+
+Sobre `1528483`, en la PC INVE (Windows 11, R 4.6.1, BLAS de referencia), con `make fase6`. Lo corrió Claude Code a
+partir de un procedimiento que no confirma, no sube y se detiene ante lo inesperado. Evidencia en
+`doc/evidencia_reproduccion_fase6_2026-11-12.txt`. El agente recalculó todas las cifras desde los archivos.
+
+- **E4 queda cerrado.** Los 28 archivos de salida son idénticos bit a bit a los de la E3 vigente. La lista de
+  referencia difiere de la de la regla vieja en 9 archivos, así que la igualdad no podía salir reproduciendo la
+  corrida reemplazada. En el catálogo 07 solo cambian `commit_hash` y `fecha_corrida`, y L0 da 92/92.
+- **La corrida reemplazada también se reprodujo.** Antes de correr se tomó la huella de los archivos de la E3 del
+  2026-11-04 que había en la PC INVE y se respaldaron. Coinciden 28/28 con los de su reproducción del 2026-11-10.
+  Eso cierra la comparación pendiente de `evidencia_reproduccion_fase6.txt`: las dos corridas, la reemplazada y la
+  vigente, son reproducibles bit a bit entre las dos PC.

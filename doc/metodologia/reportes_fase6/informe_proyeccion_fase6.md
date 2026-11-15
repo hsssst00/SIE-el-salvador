@@ -5,8 +5,8 @@ en la PC `D:\harold`, sobre `1528483` (`doc/evidencia_corrida_fase6_2026-11-12.t
 2026-11-04 cuando se corrigió la sensibilidad (F6-09-c; `decisiones_fase6.md`, nota del 2026-11-10). BASE, ADVERSO,
 FAVORABLE y la trayectoria sin escenario salieron bit a bit iguales a las de la corrida anterior, así que las
 secciones 2, 3, 4 y 7 no cambian. Cambian la sección 5, el rango del interanual de la sección 1 y las cifras de la
-sensibilidad que cita la sección 6. Falta la reproducción en la PC INVE (E4); el borrador deja de serlo cuando E4 lo
-confirme.
+sensibilidad que cita la sección 6. La reproducción en la PC INVE (E4, 2026-11-12) dio los 28 archivos de salida
+idénticos bit a bit (`doc/evidencia_reproduccion_fase6_2026-11-12.txt`). Queda pendiente la revisión de F2.
 
 > **Todas las cifras de este informe son condicionales.** Dicen cuánto crecería el PIB de El Salvador **si** la
 > economía de EE. UU. y el petróleo siguieran los supuestos de `doc/metodologia/supuestos_escenarios.md`, y con los
