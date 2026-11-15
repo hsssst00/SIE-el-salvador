@@ -131,12 +131,15 @@ por uno los 15 metodológicos. El detalle está en `decisiones_fase6.md`, «Rati
 
 ## F. Cierre
 
-- [ ] **F1** `supuestos_escenarios.md` completo: cada supuesto con su fuente citada (vintage y sha256 en L0) y la
+- [x] **F1** `supuestos_escenarios.md` completo: cada supuesto con su fuente citada (vintage y sha256 en L0) y la
   nota de inconsistencia entre fuentes de ADR-002. — 2026-10-23: borrador completo antes de E1 (fuentes con vintage
   y sha256, supuestos por escenario y nota de inconsistencia). Queda pendiente lo que enumera su sección 9.
   2026-11-10: sección 9 resuelta salvo la revisión final. Vintages confirmados contra el corte congelado, desviaciones
   de la sensibilidad citadas (desde la reproducción de E4) y cifra del petróleo verificada con el corte final. No se
   marca hasta que E4 confirme las cifras de la corrida.
+  2026-11-15: hecho. Revisión final en `supuestos_escenarios.md`, sección 9: vintages y sha256 de la sección 2
+  iguales en `08_vintages.csv`, `manifiesto.csv`, L0 y el corte congelado; cifras de las secciones 3 a 6 iguales a su
+  archivo y a las tablas de la E3 vigente, que E4 reprodujo el 2026-11-12. Sin cambios de cifras ni de decisiones.
 - [ ] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
   cifras. — 2026-11-10: borrador en `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, sobre las tablas
   versionadas de la misma carpeta. Las escribe `make tablas-fase6` (`src/proyeccion/tablas_informe_fase6.R`, pruebas
