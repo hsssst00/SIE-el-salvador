@@ -140,11 +140,17 @@ por uno los 15 metodológicos. El detalle está en `decisiones_fase6.md`, «Rati
   2026-11-15: hecho. Revisión final en `supuestos_escenarios.md`, sección 9: vintages y sha256 de la sección 2
   iguales en `08_vintages.csv`, `manifiesto.csv`, L0 y el corte congelado; cifras de las secciones 3 a 6 iguales a su
   archivo y a las tablas de la E3 vigente, que E4 reprodujo el 2026-11-12. Sin cambios de cifras ni de decisiones.
-- [ ] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
+- [x] **F2** Informe de proyección por escenario, con sensibilidad y coherencia, que declara condicionales todas las
   cifras. — 2026-11-10: borrador en `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, sobre las tablas
   versionadas de la misma carpeta. Las escribe `make tablas-fase6` (`src/proyeccion/tablas_informe_fase6.R`, pruebas
   en `tests/test-tablas-informe-fase6.R`), que comprueba el sha256 real de cada salida de L4. Las cifras son las de la
   reproducción de E4: deja de ser borrador cuando E4 confirme la igualdad con la corrida única.
+  2026-11-15: hecho. E4 confirmó la igualdad (28/28, 2026-11-12) y el informe deja de ser borrador. Revisión: cada
+  cifra contrastada con las tablas versionadas, con los senderos del corte congelado y con el preregistro vigente;
+  salidas de L4 con los 28 sha256 de `sha256_salidas_fase6.csv`. Se corrigió un redondeo (sección 6, deflactor: 2,1
+  y no 2,0) y se precisaron dos frases (el aviso de condicionalidad vale para todas las tablas y solo las de proyección
+  llevan columna `nota`; el desvío máximo de 1,8 % del PIB de EE. UU. en A y C es en promedio anual). Sin cambios de
+  cifras de las tablas ni de decisiones.
 - [ ] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
   senda.
 - [ ] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.

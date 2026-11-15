@@ -1,17 +1,20 @@
 # Informe de proyección condicional del PIB de El Salvador, 2026-2030 (Fase 6, Ejercicio B)
 
-**Estado:** borrador del 2026-11-12 (checklist F2). Las cifras salen de la corrida única vigente: la E3 del 2026-11-12,
+**Estado:** versión revisada del 2026-11-15 (checklist F2; borrador del 2026-11-12). Las cifras salen de la corrida única vigente: la E3 del 2026-11-12,
 en la PC `D:\harold`, sobre `1528483` (`doc/evidencia_corrida_fase6_2026-11-12.txt`). Esa corrida reemplazó a la del
 2026-11-04 cuando se corrigió la sensibilidad (F6-09-c; `decisiones_fase6.md`, nota del 2026-11-10). BASE, ADVERSO,
 FAVORABLE y la trayectoria sin escenario salieron bit a bit iguales a las de la corrida anterior, así que las
 secciones 2, 3, 4 y 7 no cambian. Cambian la sección 5, el rango del interanual de la sección 1 y las cifras de la
 sensibilidad que cita la sección 6. La reproducción en la PC INVE (E4, 2026-11-12) dio los 28 archivos de salida
-idénticos bit a bit (`doc/evidencia_reproduccion_fase6_2026-11-12.txt`). Queda pendiente la revisión de F2.
+idénticos bit a bit (`doc/evidencia_reproduccion_fase6_2026-11-12.txt`). La revisión de F2 (2026-11-15) contrastó
+cada cifra con las tablas versionadas de esta carpeta y con los senderos del corte: corrigió un redondeo (sección 6,
+deflactor) y precisó dos frases (el aviso de condicionalidad y la sección 2, punto 2).
 
 > **Todas las cifras de este informe son condicionales.** Dicen cuánto crecería el PIB de El Salvador **si** la
 > economía de EE. UU. y el petróleo siguieran los supuestos de `doc/metodologia/supuestos_escenarios.md`, y con los
-> modelos de Fase 5 tal como se estimaron. No son pronósticos incondicionales ni una previsión oficial. Cada tabla
-> versionada lleva esa nota en su columna `nota`.
+> modelos de Fase 5 tal como se estimaron. No son pronósticos incondicionales ni una previsión oficial. El aviso
+> vale para todas las tablas de esta carpeta; las de proyección anual y trimestral, además, lo repiten en su
+> columna `nota`.
 
 ## 1. Qué se corrió
 
@@ -70,7 +73,8 @@ cobertura.
 2. **Los escenarios mueven poco la mediana.** Frente a la base, el adverso resta 0,15 pp al promedio en G1, 0,05 en
    G2 y 0,03 en G3. El favorable suma 0,17, 0,03 y 0,01. La mayor diferencia en un año es la del adverso en G1 en
    2027: −0,94 pp, el año en que el PIB de EE. UU. cae 1,5 % bajo su base. Los desvíos A y C son moderados (el PIB de
-   EE. UU. se aparta a lo sumo 1,8 % de la base) y de corta duración.
+   EE. UU. se aparta a lo sumo 1,8 % de la base en promedio anual y 1,9 % en el trimestre de
+   mayor desvío) y de corta duración.
 3. **En G1, el adverso crece más que la base en 2029 y 2030.** En el escenario C, el nivel del PIB de EE. UU. vuelve
    hacia la base desde 2029 (de −1,8 % en 2028 a −0,5 % en 2031), así que su crecimiento supera al de la base esos
    años, y G1 lo transmite. Es la forma del supuesto, no un error.
@@ -160,7 +164,7 @@ de 2030, en %:
   - Un año de +1 de deja su nivel 2,2 % más alto desde 2027. Eso sube el promedio 2026-2030 de G1 en 0,35 pp y su
     nivel de 2030 en 1,7 %. En G2 y G3 el efecto es de 0,1 a 0,2 pp.
   - En G1 es el doble de la distancia entre A, C y la base (−0,15 y +0,17 pp), cuyos desvíos del PIB de EE. UU.
-    llegan a 1,8 %.
+    llegan a 1,8 % en promedio anual.
   - En G2 la respuesta es asimétrica: +0,18 pp con +1 de y −0,09 pp con −1 de.
 - **En G1 el IPC y el petróleo no tienen efecto:** ningún modelo de G1 tiene ITCER, IPM ni IPP entre sus predictoras.
 - **Los modelos casi no transmiten el petróleo.** Un desvío de ±27 % en su nivel desde 2027 mueve el promedio de la
@@ -207,7 +211,7 @@ corrida no se detuvo.
   y el petróleo se reportan sin signo esperado.
 - **Deflactor implícito de las remesas** (solo `MULT.BVAR.G3`, que recibe las nominales y las reales;
   `coherencia_deflactor_fase6.csv`). Los 20 trimestres proyectados quedan dentro del rango histórico (de −1,9 a
-  7,3 pp sin 2020-2021). El sendero va de 2,0 a 3,8 pp.
+  7,3 pp sin 2020-2021). El sendero va de 2,1 a 3,8 pp.
 
 ## 7. Supuestos e inconsistencias que el lector debe tener presentes
 
