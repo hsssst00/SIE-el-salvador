@@ -36,6 +36,10 @@ se marca.
 - [x] **B4 · F6-15 a F6-18** Satélites, paso de anual a trimestral, puente con senderos trimestrales y variables de
   escenario en L3. — 2026-10-19, en la opción recomendada (delegación del 2026-10-17).
 
+**Nota (2026-11-15).** Harold ratificó los 38 detalles delegados de B1 a B4, sin reabrir ninguno. Antes revisó uno
+por uno los 15 metodológicos. El detalle está en `decisiones_fase6.md`, «Ratificación de los detalles delegados
+(2026-11-15)».
+
 ## C. Insumos
 
 - [x] **C1** Tramo de la CBO en ADR-008. — enmienda del 2026-10-17. La Fed no se usa (F6-05-a).

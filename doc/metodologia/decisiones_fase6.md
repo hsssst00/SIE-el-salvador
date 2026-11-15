@@ -14,6 +14,10 @@ autorización, con los hechos verificados ese día (recuadro 1.2 y fuentes de la
 desplazados) quedan reemplazadas por F6-09-c, y el preregistro del 2026-11-04 por uno nuevo con fecha. Ver F6-09 y
 F6-12.
 
+**Nota (2026-11-15).** Harold ratificó los 38 detalles «delegada al agente; se puede reabrir» de F6-01 a F6-18,
+después de revisar uno por uno los 15 metodológicos. Ninguno se reabrió. Ver «Ratificación de los detalles delegados
+(2026-11-15)», al final.
+
 **Para qué sirve este documento.** Es el equivalente de `decisiones_fase5.md` para Fase 6: cada ficha lleva la
 línea **DECIDIDO** con el texto operativo, y el Acta es el índice. Las correcciones posteriores entran como notas
 fechadas; no se reescribe lo registrado. El protocolo que aplica estas decisiones es
@@ -1293,3 +1297,38 @@ partir de un procedimiento que no confirma, no sube y se detiene ante lo inesper
   2026-11-04 que había en la PC INVE y se respaldaron. Coinciden 28/28 con los de su reproducción del 2026-11-10.
   Eso cierra la comparación pendiente de `evidencia_reproduccion_fase6.txt`: las dos corridas, la reemplazada y la
   vigente, son reproducibles bit a bit entre las dos PC.
+
+## Ratificación de los detalles delegados (2026-11-15)
+
+Harold ratificó, el 2026-11-15, los 38 detalles rotulados «delegada al agente; se puede reabrir» en F6-01 a F6-18,
+en el chat con el agente y después de fusionar el PR #98. Desde esta fecha son decisiones de Harold. E1 los congeló y
+E3 y E4 corrieron con ellos, así que la ratificación no cambia ninguna cifra. F6-09-c no entra en la lista, porque
+la decidió él el 2026-11-10.
+
+- **Revisados uno por uno y ratificados en la opción de la ficha (15).** Harold pidió verlos primero, con su
+  alternativa y lo que implicaba cada una:
+  - F6-02-a: la mediana sobre Δy.
+  - F6-05-b: el favorable es A.
+  - F6-07-a: la mezcla sin recentrar.
+  - F6-08-a: guarda sin 2020-2021 y X = 1 DE.
+  - F6-11-a: 2031 solo en trimestres.
+  - F6-13-a: la medición del BVAR no reabre por sí sola; ya aplicada el 2026-11-04.
+  - F6-14-a: «Inflation» = `PCPIPCH`.
+  - F6-14-b: el decimal de la hoja.
+  - F6-15-a: error de la satélite por varianza total, plug-in y con residuos independientes.
+  - F6-15-b: satélites separadas para remesas nominales y reales.
+  - F6-16-a: solo trimestres completos.
+  - F6-16-b: sendero hasta 2031-T4, con la curvatura de 2026 en A y C declarada.
+  - F6-17-a: un trimestre completo posterior al origen entra como dato.
+  - F6-17-b: con o+1 incompleto, el puente usa su AR mensual.
+  - F6-18-b: el mes aislado sin dato se interpola log-linealmente; un hueco de dos meses o más da `stop()`. Es
+    tratamiento de faltantes (regla 4 de `CLAUDE.md`).
+- **Ratificados en bloque: implementación e infraestructura (19).** F6-01-a, F6-01-b y F6-01-c; F6-04-b; F6-06-a,
+  F6-06-b y F6-06-c; F6-07-b; F6-10-a; F6-11-b y F6-11-c; F6-12-a y F6-12-b; F6-15-c; y F6-18-a, F6-18-c, F6-18-d,
+  F6-18-e y F6-18-f.
+- **Ratificados en lo que sigue vigente después de F6-09-c (2).** De F6-09-a, la desviación estándar sin 2020-2021.
+  De F6-09-b, las metas leídas del sendero base, la desviación estándar sobre el tramo `historia` y las medidas: nivel
+  de 2030 y crecimiento promedio 2026-2030. La perturbación de F6-09-a y los años desplazados de F6-09-b siguen
+  reemplazados (nota del 2026-11-10 en F6-09).
+- **Registrados como sin efecto (2).** F6-04-a: el PIB de 2026-T3 no se publicó antes de congelar y el origen quedó
+  en 2026-Q2. F6-05-a: la CBO no se usó, porque F6-15 tomó el PIB de EE. UU. para la satélite de remesas.
