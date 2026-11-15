@@ -2,6 +2,14 @@
 
 **Decisión registrada en:** `doc/adr/ADR-002-horizonte-y-diseno.md`
 
+**Estado (2026-11-15): versión final; F1 de `doc/checklist_fase6.md` marcado.** La revisión final cotejó cada vintage
+y sha256 de la sección 2 con `catalogos/08_vintages.csv`, `data/L0_raw/manifiesto.csv`, el archivo de L0 y el corte
+congelado (sha256 sin CR `4aaa33fe…`), y cada cifra de las secciones 3 a 6 con el archivo que cita (sección 9, F1).
+Rigen el preregistro `doc/metodologia/preregistro_fase6_2026-11-11.yaml`, la E3 del 2026-11-12
+(`doc/evidencia_corrida_fase6_2026-11-12.txt`) y su reproducción en la PC INVE (E4,
+`doc/evidencia_reproduccion_fase6_2026-11-12.txt`). El párrafo siguiente es el estado del 2026-10-23 y queda como
+registro: E1 no renovó ningún vintage de la sección 2 y la corrida que menciona es hoy la E3 vigente.
+
 **Estado (2026-10-23): borrador completo antes del congelamiento; F1 de `doc/checklist_fase6.md` se marca después
 de la corrida (E3).** Las secciones 1 a 8 son lo vigente. Los supuestos citados en ellas no dependen de las
 capturas del BCR que faltan antes de E1. Si E1 renueva alguno de los vintages de la sección 2, esa sección se
@@ -123,6 +131,10 @@ Fuente: `doc/metodologia/reportes_fase6/sd_sensibilidad_fase6.csv`, copia verifi
 de la corrida reemplazada: las desviaciones salen de la historia del corte, no de la forma del choque, y no dependen de
 ninguna semilla.
 
+Nota (2026-11-15, F1): la reproducción vigente de esa E3, en la PC INVE (E4 del 2026-11-12), dio el mismo sha256
+(`6df22fb1…`; `doc/evidencia_reproduccion_fase6_2026-11-12.txt`). El de la reproducción del 2026-11-10 de la corrida
+reemplazada es también `6df22fb1…` (`doc/evidencia_reproduccion_fase6.txt`).
+
 Con la forma F6-09-c, el desvío de nivel desde 2027, constante en promedios anuales, es de ±2,183 % en el PIB de
 EE. UU., ±2,718 % en el IPC y ±27,447 % en el petróleo (`senderos_sensibilidad_fase6.csv`). En trimestres converge a
 ese valor: el sendero hace un sobrepico en 2027-T3/T4, porque el promedio de 2027 está anclado y 2026-T4 está fijo.
@@ -171,6 +183,8 @@ quedó implementada, la combinación tiene estas costuras:
    cerró los datos de EE. UU. el 2026-09-30, y los trimestres de 2026 que se fijan como observados vienen de FRED. Si
    la BEA o el BLS revisaron esos trimestres después de ese cierre, la meta del WEO se aplica sobre datos que el FMI
    no vio.
+   Nota (2026-11-15, F1): la fecha de cierre es el atributo `COUNTRY_UPDATE_DATE` (9/30/2026) de las series `USA.*`
+   en `FMI_weo_2026-10-19.json`.
 2. **Base y escenarios de modelos distintos.** La base es el pronóstico central del WEO. A y C salen del modelo GIMF
    y se publican solo como desvíos de esa base. Aplicarlos sobre la base supone que los desvíos se trasladan sin
    cambio, cuando el FMI no publica los niveles de A y C.
@@ -196,6 +210,8 @@ quedó implementada, la combinación tiene estas costuras:
   sha256 `eda9f9eb6607461621504a973ff7609ef627ccfd02d8096219843efccf55ca7f`) y no se usa en Fase 6. Las remesas
   usan el PIB de EE. UU. y no el empleo, así que la base no mezcla dos fuentes con ocho meses de diferencia (el
   pronóstico de la CBO cerró el 2025-12-03) (F6-15).
+  Nota (2026-11-15, F1): F6-05-a, que la elegía para el empleo de EE. UU., quedó sin efecto (F6-05, nota del
+  2026-10-19).
 - **SEP de la Reserva Federal.** No proyecta el empleo asalariado, llega a tres años más el largo plazo y no tiene una
   declaración de uso verificada equivalente a la de la CBO (F6-05-a).
 - **Escenario de materias primas y bonos del recuadro 1.2** (modelo G20). No publica cifras de EE. UU. ni un sendero
@@ -224,7 +240,17 @@ quedó implementada, la combinación tiene estas costuras:
   nivel de la forma nueva.
 - [x] **ADR-008, FRED.** Aviso de no-aval en el `README.md`, con el texto exacto de los Términos de Uso vigentes
   (sección 2). — 2026-10-23, nota fechada en ADR-008.
-- [ ] **F1.** Revisión final y marca en el checklist.
+- [x] **F1.** Revisión final y marca en el checklist. — 2026-11-15: hecha sobre `main` `ce78780`. (1) Sección 2: los
+  cinco vintages tienen el mismo archivo y sha256 en `08_vintages.csv`, en `manifiesto.csv`, en el archivo de L0 y en
+  el corte congelado (sha256 sin CR `4aaa33fe…`, el que fija el preregistro del 2026-11-11); la CBO de la sección 7
+  también coincide y no está en el corte. Los rangos de GDPC1, CPIAUCSL y PCPS son los del archivo. (2) Secciones 3 y
+  4: las 21 cifras de la base reproducen el WEO de L0 al redondeo citado y los 24 desvíos de A y C, las celdas
+  citadas del capítulo 1. Las desviaciones estándar y los desvíos de nivel de la sección 3.5 coinciden con
+  `sd_sensibilidad_fase6.csv` y `senderos_sensibilidad_fase6.csv`, y el petróleo de la sección 4 (90,17, 118,22 y
+  77,56 USD), con `data/conjuntos/corte_f6/L3_master/` y con el informe, sección 7. (3) Sección 6: las diferencias de
+  la costura 1 se recalcularon desde L0 (PIB 0,0003 pp; 0,24 pp en 2025 con el vintage de agosto; IPC y petróleo,
+  menos de 1e-6) y cubre lo que pide ADR-002, con las fuentes no usadas en la sección 7. (4) Notas fechadas en el
+  encabezado y en las secciones 3.5, 6 y 7. Ninguna cifra ni decisión cambió.
 
 ## Registro
 
