@@ -151,6 +151,9 @@ por uno los 15 metodológicos. El detalle está en `decisiones_fase6.md`, «Rati
   y no 2,0) y se precisaron dos frases (el aviso de condicionalidad vale para todas las tablas y solo las de proyección
   llevan columna `nota`; el desvío máximo de 1,8 % del PIB de EE. UU. en A y C es en promedio anual). Sin cambios de
   cifras de las tablas ni de decisiones.
-- [ ] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
-  senda.
+- [x] **F3** Nota «Cierre de Fase 6» en `doc/adr/README.md` y, si el criterio admite lecturas, nota fechada en la
+  senda. — 2026-11-19: hecho. Registro «Cierre de Fase 6» en `doc/adr/README.md` y nota de cierre en la senda §4
+  (v0.12), con las lecturas de «supuesto exógeno», «fuente citada», «el resultado» y «se declara explícitamente como
+  condicional». `CLAUDE.md`, `README.md` y `CITATION.cff` (0.9.0, 2026-11-19) declaran el cierre; la delegación del
+  2026-10-17 termina con él.
 - [ ] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.

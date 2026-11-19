@@ -587,3 +587,89 @@ lecturas del criterio (A1) y de E2-1 y E2-2 (A2); régimen de delegación (A3 = 
 ruta del tag (A4 = a, `v0.8.0-fase5` sobre el merge del PR-1); CI (A5: R 4.6.1, `ubuntu-24.04` y BLAS de referencia);
 ADR-008 (A6: BCR sin pronunciamiento, política de L0 por fuente, Banco Mundial y BID resueltos). Ningún resultado de
 Fase 5 cambió: no se volvió a correr el motor. `v0.8.0-fase5` no se mueve.
+
+## Cierre de Fase 6 (2026-11-19)
+
+**Criterio de cierre de Fase 6 (senda metodológica §4): SATISFECHO.** «Cada supuesto exógeno tiene fuente citada y
+el resultado se declara explícitamente como condicional». Las lecturas de «supuesto exógeno», «fuente citada», «el
+resultado» y «se declara explícitamente como condicional» están en `doc/senda_metodologica.md`, nota de cierre de
+Fase 6 (v0.12). Las tres primeras las tomó el agente bajo la delegación del 2026-10-17: son **delegadas al agente y se
+pueden reabrir**. La cuarta, en lo que dice sobre qué tablas repiten el aviso, es decisión de Harold del 2026-11-15
+(revisión de F2).
+
+**Evidencia.**
+
+- **Supuestos con fuente (F1):** `doc/metodologia/supuestos_escenarios.md`, versión final del 2026-11-15 (PR #100,
+  `caffc14`). La sección 2 cita los cinco vintages de los que salen los supuestos (`FMI.WEO.v2026-10`,
+  `FMI.WEO.CAPITULO1.v2026-10`, `FRED.BEA_PIB_EEUU.v2026-10`, `FRED.CPIAUCSL.v2026-10` y
+  `FMI.PCPS.POILAPSP_USD.v2026-10`), cada uno con publicación, archivo de L0, sha256 y clave o celda. La revisión
+  final los cotejó con `catalogos/08_vintages.csv`, `data/L0_raw/manifiesto.csv`, L0 y el corte congelado. Las
+  secciones 3 a 5 dan el valor de cada supuesto por escenario, la sensibilidad y el paso a trimestres; la sección 6
+  es la nota de inconsistencia entre fuentes que pide ADR-002.
+- **Preregistro (E1):** congelado el 2026-11-04 en el PR #93 (`b1376df`), con el corte `corte_fase6` (sha256 sin CR
+  `4aaa33fe…`), origen 2026-Q2 y el protocolo de proyección v0.3. El 2026-11-11 lo reemplazó
+  `doc/metodologia/preregistro_fase6_2026-11-11.yaml` (`1528483`), con el mismo corte, el mismo origen y la misma
+  guarda; solo cambia la sensibilidad (F6-09-c, decisión de Harold del 2026-11-10). El preregistro del 2026-11-04 se
+  conserva sin editar.
+- **Medición previa del BVAR (E2):** `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv`. Harold decidió congelar
+  con la especificación de Fase 5 y tres precauciones (nota del 2026-11-04 en `decisiones_fase6.md`).
+- **Corrida única (E3):** `make fase6` sobre `1528483`, árbol limpio, en la PC `D:\harold` (R 4.6.1, BLAS de
+  referencia), el 2026-11-12, código 0. V1-V23 OK, 0 exclusiones de la guarda en los 126 senderos de los miembros y
+  42 filas en `catalogos/07_experimentos.csv`. Detalle en `doc/evidencia_corrida_fase6_2026-11-12.txt`. La corrida del
+  2026-11-04 (`b1376df`) queda como *reemplazada*, con su evidencia sin borrar (`doc/evidencia_corrida_fase6.txt`).
+- **Reproducción (E4):** `make fase6` sobre `1528483` en la PC INVE, el 2026-11-12: los 28 archivos de salida de
+  `sha256_salidas_fase6.csv` son idénticos bit a bit a los de E3. La corrida reemplazada también se reproduce 28/28
+  entre las dos PC. Detalle en `doc/evidencia_reproduccion_fase6_2026-11-12.txt` (PR #98, `5c7df0e`).
+- **Resultado declarado condicional (F2):** `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, versión
+  revisada del 2026-11-15 (PR #101, `73f6855`). Abre con el aviso de que todas sus cifras son condicionales, que vale
+  para todas las tablas de `reportes_fase6/`; las de proyección anual y trimestral lo repiten en su columna `nota`.
+  El protocolo de proyección (§1) y `supuestos_escenarios.md` lo dicen también.
+- **Decisiones:** F6-01 a F6-19 en `doc/metodologia/decisiones_fase6.md`. Harold ratificó el 2026-11-15 los 38
+  detalles rotulados «delegada al agente» de F6-01 a F6-18, sin reabrir ninguno (PR #99, `ce78780`).
+- **CI:** run [44583854346](https://github.com/hsssst00/SIE-el-salvador/actions/runs/44583854346) en verde sobre `73f6855`
+  (merge del PR #101), el último commit de `main` antes de este registro.
+
+**Entregables (senda §4, Fase 6).** Proyecciones por escenario: `proyeccion_anual_fase6.csv` y
+`proyeccion_trimestral_fase6.csv` en `doc/metodologia/reportes_fase6/`, sobre las salidas de
+`data/L4_experiments/F6_*/`, que no se versionan. Documento de supuestos: `doc/metodologia/supuestos_escenarios.md`.
+Análisis de sensibilidad: `sensibilidad_fase6.csv`, `senderos_sensibilidad_fase6.csv` y `sd_sensibilidad_fase6.csv`.
+Además, la coherencia interna que reemplaza a la validación (`coherencia_*_fase6.csv`), la guarda, las satélites y
+los diagnósticos, todo leído en el informe.
+
+**Lo que dicen los modelos (condicional a los supuestos de cada escenario).**
+- Crecimiento promedio 2026-2030 de la combinación en la base: 2,3 % en G1, 3,0 % en G2 y 3,1 % en G3. Los
+  escenarios adverso (C) y favorable (A) mueven ese promedio a lo sumo 0,17 pp, en G1 (2,2 y 2,5 %). La diferencia
+  entre grupos pesa más que la diferencia entre escenarios.
+- Las bandas del 80 % del promedio en la base (G1 [0,8; 4,4], G2 [0,5; 5,7], G3 [0,4; 5,8]) contienen los tres
+  escenarios.
+- Con ±1 desviación estándar del crecimiento del PIB de EE. UU. en 2027, el nivel de 2030 de la combinación cambia
+  +1,7 / −1,8 % en G1, +0,9 / −0,5 % en G2 y +0,5 / −0,5 % en G3. El IPC de EE. UU. y el petróleo mueven el crecimiento
+  promedio de cualquier miembro 0,04 pp o menos.
+- El WEO da para El Salvador 4,0 % en 2027 y 3,3 % de 2028 a 2030: entre 0,7 y 1,7 pp por encima de la combinación en
+  los tres grupos. Es una referencia de coherencia, no un objetivo (F6-10); ninguna cifra se recentró.
+
+**Lo que queda abierto y NO bloquea este cierre** (declarado, no silenciado):
+
+- **ADR-002 y la fuente «híbrida».** El ADR prevé proyecciones de la Fed, la BEA o la CBO para las variables de
+  EE. UU. En la implementación, las proyecciones de EE. UU. vienen del WEO y de la BEA y el BLS solo la historia
+  (F6-05 y F6-15; `supuestos_escenarios.md`, sección 6, punto 6, y sección 7). Está declarado en la nota de
+  inconsistencia, pero ADR-002 no tiene una nota fechada que lo registre. No cambia ninguna cifra ni el criterio, que
+  pide fuente citada y no una fuente determinada. Si se agrega, la decide Harold.
+- **BVAR:** en los tres grupos, la mayoría de las extracciones tiene raíz mayor que 1 (E2). Sus bandas con h > 8 se
+  leen con cautela, como fijaron las precauciones del 2026-11-04.
+- **Petróleo:** A y C no lo mueven, porque el recuadro 1.2 no lo publica, y los modelos casi no lo transmiten. El
+  informe no mide el riesgo del petróleo (§8).
+- **Satélites:** son modelos nuevos que el Ejercicio A no evaluó, con residuos supuestos independientes de los de cada
+  modelo del PIB (F6-15-a).
+- **Bandas con h > 8** marcadas `sin_calibrar` (F6-07): ningún error fuera de muestra las respalda.
+- **2020-2021** quedan fuera de la guarda, de la desviación estándar de la sensibilidad y de las satélites, pero
+  dentro de los residuos que dan las bandas.
+- **La precisión de estas proyecciones** no se evalúa aquí: es la prospectiva de AP-2 (protocolo de proyección §12).
+- **Higiene:** el PR #95 (borrador del informe sobre la corrida reemplazada) sigue abierto y no se fusiona.
+
+**Delegación.** La autorización del 2026-10-17 y su ampliación del 2026-10-19 (`CLAUDE.md`, regla 4) terminan con
+este cierre. Desde aquí la regla 4 rige sin excepciones.
+
+**Tag: `v0.9.0-fase6` (propuesto),** sobre el commit que ya contiene este registro, nunca antes. Antes de tagear hay
+que confirmar que el run de CI sobre ese commit queda en verde. `CITATION.cff` pasa a la versión 0.9.0 con fecha
+2026-11-19 en el mismo commit. La revisión independiente en `doc/auditorias/` y el tag (F4) quedan a cargo de Harold.

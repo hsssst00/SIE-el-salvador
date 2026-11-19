@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.11 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9); 2026-10-14 (v0.10); 2026-10-14 (v0.11)
+**Versión:** 0.12 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9); 2026-10-14 (v0.10); 2026-10-14 (v0.11); 2026-11-19 (v0.12)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -43,6 +43,9 @@ maestra bitemporal" — cada archivo
   auditoría independiente de Fase 5). Sin otros cambios de contenido.
 - **0.11** (2026-10-14): añade a la nota de cierre de Fase 5 la precisión sobre BLAS/LAPACK y el alcance de la
   paridad entre sistemas (hallazgo I4 de la auditoría independiente de Fase 5). Sin otros cambios de contenido.
+- **0.12** (2026-11-19): añade a §4 la nota de cierre de Fase 6, que fija las lecturas de «supuesto exógeno», «fuente
+  citada», «el resultado» y «se declara explícitamente como condicional». El registro del cierre está en
+  `doc/adr/README.md`, "Cierre de Fase 6". Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -599,6 +602,38 @@ Actividades: definición y documentación de escenarios exógenos con fuentes ci
 Entregables: proyecciones por escenario; documento de supuestos; análisis de sensibilidad.
 
 **Criterio de cierre:** cada supuesto exógeno tiene fuente citada y el resultado se declara explícitamente como condicional.
+
+**Nota de cierre — lecturas de «supuesto exógeno», «fuente citada», «el resultado» y «se declara explícitamente
+como condicional» (2026-11-19).** El criterio admite más de una lectura en sus cuatro frases. Esta nota las fija con
+la misma disciplina que las de Fase 1 a 5: la lectura se declara, no se infiere. Las tres primeras las tomó el agente
+bajo la autorización de Harold del 2026-10-17 (`CLAUDE.md`, regla 4); son **delegadas al agente y se pueden
+reabrir**. La cuarta recoge, en lo que dice sobre qué tablas repiten el aviso, la decisión de Harold del 2026-11-15
+(revisión de F2).
+
+- **«Supuesto exógeno».** Es todo valor que entra a la proyección desde fuera de los modelos y de los datos de El
+  Salvador: los senderos del PIB real de EE. UU., del IPC de EE. UU. y del petróleo en la base, los desvíos de los
+  escenarios A y C, y la magnitud de la sensibilidad (±1 desviación estándar, calculada sobre la historia de esas
+  variables en L3). Que el petróleo no se mueva en A ni en C también es un supuesto: su valor es el de la base y su
+  razón, que el recuadro 1.2 del WEO no lo publica. No son supuestos exógenos las decisiones de método (satélites,
+  paso a trimestres, guarda, combinación), que se registran como decisiones en `doc/metodologia/decisiones_fase6.md`
+  y en el protocolo de proyección, ni los datos de El Salvador, cuya procedencia certificaron las Fases 1 a 3.
+- **«Fuente citada».** Para cada supuesto, la publicación (productor, título y fecha), su `vintage_id`, el archivo
+  en L0 con su sha256 y su fila en `data/L0_raw/manifiesto.csv` y en `catalogos/08_vintages.csv`, y la clave o celda
+  dentro del archivo. Un valor derivado, como la desviación estándar de la sensibilidad, cita el archivo de la
+  corrida del que sale. Se cumple cuando la cita coincide con L0 y con el corte congelado, no solo cuando está
+  escrita (`doc/metodologia/supuestos_escenarios.md`, sección 9, revisión de F1 del 2026-11-15).
+- **«El resultado».** Es el informe `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md`, las tablas de esa
+  carpeta y las 28 salidas de `data/L4_experiments/F6_COMUN/` y `F6_G1/` a `F6_G3/` que lista
+  `sha256_salidas_fase6.csv`. La medición previa del BVAR (`F6_MEDICION_BVAR/`) es evidencia del preregistro, no un
+  resultado de proyección.
+- **«Se declara explícitamente como condicional».** El informe abre con un aviso de que todas sus cifras son
+  condicionales a los supuestos de `supuestos_escenarios.md`, y el aviso vale para todas las tablas de su carpeta.
+  Las de proyección anual y trimestral lo repiten, además, en su columna `nota`. Las otras tablas y las salidas de L4
+  no llevan esa columna: Harold decidió el 2026-11-15 corregir el texto del informe y no tocar las tablas
+  versionadas. El protocolo de proyección (§1) pedía que cada tabla y figura del informe lo dijera. El informe no
+  tiene figuras y sus tablas quedan bajo el aviso.
+
+El registro del cierre, con su evidencia, está en `doc/adr/README.md`, «Cierre de Fase 6».
 
 ### Fase 7 — Documentación, publicación y sostenibilidad
 
