@@ -1,8 +1,8 @@
 # Senda metodológica
 
 **Proyecto:** Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador
-**Versión:** 0.12 — documento de trabajo, enmendado
-**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9); 2026-10-14 (v0.10); 2026-10-14 (v0.11); 2026-11-19 (v0.12)
+**Versión:** 0.13 — documento de trabajo, enmendado
+**Fecha:** julio 2026 (v0.1); 2026-08-08 (v0.2); 2026-08-17 (v0.3); 2026-08-24 (v0.4); 2026-09-09 (v0.5); 2026-09-22 (v0.6); 2026-09-29 (v0.7); 2026-09-29 (v0.8); 2026-10-13 (v0.9); 2026-10-14 (v0.10); 2026-10-14 (v0.11); 2026-11-19 (v0.12); 2026-11-19 (v0.13)
 
 **Historial de versiones:**
 - **0.1** (julio 2026): versión original.
@@ -46,6 +46,8 @@ maestra bitemporal" — cada archivo
 - **0.12** (2026-11-19): añade a §4 la nota de cierre de Fase 6, que fija las lecturas de «supuesto exógeno», «fuente
   citada», «el resultado» y «se declara explícitamente como condicional». El registro del cierre está en
   `doc/adr/README.md`, "Cierre de Fase 6". Sin otros cambios de contenido.
+- **0.13** (2026-11-19): añade a la nota de cierre de Fase 6 la adopción de sus lecturas por Harold (hallazgo I2 de la
+  auditoría independiente de Fase 6). Sin otros cambios de contenido.
 - **Nota de publicación** (2026-08-08): el cambio de encabezado a 0.2 (este bloque de historial) se publicó en el commit `df02e43a`, posterior al tag `v0.2.0-fase0-enmendado` (que apunta a `58e6efce`). El snapshot certificado por ese tag ya contiene el contenido de §3.4 con `.RETRO`, pero conserva el encabezado rotulado como v0.1 — ver doc/adr/README.md, "Corrección de alcance del tag". No es un cambio de versión ni de contenido, solo el registro del desfase de publicación.
 
 ---
@@ -632,6 +634,11 @@ reabrir**. La cuarta recoge, en lo que dice sobre qué tablas repiten el aviso, 
   no llevan esa columna: Harold decidió el 2026-11-15 corregir el texto del informe y no tocar las tablas
   versionadas. El protocolo de proyección (§1) pedía que cada tabla y figura del informe lo dijera. El informe no
   tiene figuras y sus tablas quedan bajo el aviso.
+
+**Adopción de las lecturas (2026-11-19, Harold; auditoría independiente de Fase 6, hallazgo I2).** Las tres lecturas
+que esta nota rotula como delegadas («supuesto exógeno», «fuente citada» y «el resultado») dejan de serlo: Harold las
+adopta tal como están escritas. Con eso, el criterio de cierre de Fase 6 queda leído por quien declara el avance de
+fase, como en las Fases 1 a 5.
 
 El registro del cierre, con su evidencia, está en `doc/adr/README.md`, «Cierre de Fase 6».
 

@@ -37,6 +37,11 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
    mismo a `main`. El agente fusiona solo con el CI en verde sobre la cabeza del PR y sin apilar. Por criterio propio
    (no por condición de Harold), los PR de congelamiento (E1) y de corrida única (E3) se le consultan antes de
    fusionarlos. Rige igual que la delegación del 2026-10-17.
+
+   **Delegaciones futuras (2026-11-19, auditoría independiente de Fase 6, hallazgo I2).** Si Harold vuelve a delegar,
+   la autorización se registra aquí antes de usarse y nombra por código las fichas que cubre. Nunca cubre: las
+   lecturas de un criterio de cierre, los cambios posteriores a un congelamiento de preregistro, los desvíos de un
+   ADR cerrado ni las fichas que Harold no haya visto redactadas. Esas decisiones se preguntan siempre.
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.

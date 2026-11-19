@@ -673,3 +673,26 @@ este cierre. Desde aquí la regla 4 rige sin excepciones.
 **Tag: `v0.9.0-fase6` (propuesto),** sobre el commit que ya contiene este registro, nunca antes. Antes de tagear hay
 que confirmar que el run de CI sobre ese commit queda en verde. `CITATION.cff` pasa a la versión 0.9.0 con fecha
 2026-11-19 en el mismo commit. La revisión independiente en `doc/auditorias/` y el tag (F4) quedan a cargo de Harold.
+
+### Nota de corrección (2026-11-19) — auditoría independiente de Fase 6, hallazgo I1
+
+La evidencia «Preregistro (E1)» de este registro dice que el preregistro del 2026-11-11 solo cambia la sensibilidad.
+Es cierto, y falta lo que importa para leerlo: el cambio (F6-09-c) se decidió el 2026-11-10 con la sensibilidad de
+la regla congelada ya calculada (E3 del 2026-11-04), reproducida (E4 del 2026-11-10) y fusionada a `main` en el
+borrador del informe (`b084c1b`). Es un desvío del preregistro decidido con resultados escritos. Con la regla
+congelada, ±1 DE del PIB de EE. UU. movía el nivel de 2030 de la combinación +8,3 / −7,0 % en G1; con la vigente,
++1,7 / −1,8 %. Ver la nota de corrección de F6-09 y la nota del §8 del protocolo de proyección (2026-11-19). El
+texto de este registro se conserva sin editar.
+
+### Adopción de las lecturas y de F6-14 a F6-18 (2026-11-19) — auditoría independiente de Fase 6, hallazgo I2
+
+Harold adopta las tres lecturas del criterio de cierre que este registro y la nota de la senda rotulaban como
+delegadas (senda §4, nota de adopción de la v0.13) y las decisiones principales de F6-14 a F6-18
+(`doc/metodologia/decisiones_fase6.md`, nota del 2026-11-19). Dejan de ser decisiones delegadas al agente y de estar
+abiertas a reapertura por esa razón.
+
+### ADR-002 (2026-11-19) — auditoría independiente de Fase 6, hallazgo I3
+
+El primer punto de «Lo que queda abierto» (ADR-002 y la fuente «híbrida») se resuelve con la enmienda del
+2026-11-19 de ADR-002: para el Ejercicio B, el WEO es también la fuente de las proyecciones de EE. UU. El texto de
+arriba se conserva sin editar.
