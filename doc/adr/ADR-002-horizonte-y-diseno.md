@@ -68,3 +68,22 @@ potencia de las pruebas, que motivó el corte, es el mismo con 93 que con 92 obs
 **Consecuencia.** El motor de evaluación (`src/evaluacion/`) codifica esta convención y la
 prueba contra las cuatro combinaciones de la tabla, como regresión: si alguien cambia la
 aritmética de orígenes, los conteos dejan de coincidir y la prueba falla.
+
+## Enmienda — fuente de los supuestos de Estados Unidos en el Ejercicio B (2026-11-19)
+
+**Hecho (Fase 6).** La «Decisión» fija una fuente híbrida: el WEO para las variables globales y regionales y
+proyecciones de la Reserva Federal, la BEA o la CBO para las variables de actividad de Estados Unidos, insumo del
+supuesto de remesas. En Fase 6, las proyecciones del PIB y del IPC de Estados Unidos vinieron del WEO de octubre de
+2026 (F6-05); de la BEA y el BLS solo salió la historia. La CBO se capturó (`CBO.PROYECCIONES_ECONOMICAS.v2026-02`) y
+quedó sin uso cuando F6-15 tomó el PIB de Estados Unidos, y no el empleo, como predictora de las remesas. Lo declara
+`doc/metodologia/supuestos_escenarios.md` (sección 6, punto 6, y sección 7). Este ADR no lo registraba (auditoría
+independiente de Fase 6, hallazgo I3).
+
+**Decisión de Harold (2026-11-19).** Para el Ejercicio B, el WEO es también la fuente de las proyecciones de Estados
+Unidos, por las razones de `supuestos_escenarios.md`, sección 7. La alternativa que este ADR descartó («FMI WEO
+exclusivo») queda adoptada solo para eso.
+
+**Consecuencia.** La razón de fondo de este ADR —que Estados Unidos es el factor dominante de incertidumbre a
+horizonte largo para El Salvador— sigue en pie; en Fase 6 la tratan los escenarios A y C y la sensibilidad al PIB de
+Estados Unidos (informe de proyección, secciones 2 y 5). La nota de inconsistencia entre fuentes sigue vigente
+(`supuestos_escenarios.md`, sección 6).

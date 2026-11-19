@@ -264,6 +264,9 @@ Fuente híbrida: FMI WEO para variables globales/regionales; proyecciones de la 
 
 - [x] Fijar las publicaciones específicas de WEO y Fed/BEA/CBO a usar como fuente para cada escenario. — F6-05 y
   F6-15; capturadas en L0 con sha256 por C2 y C2b (checklist de Fase 6, 2026-10-19).
+  — Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo I3): de la Fed, la BEA y la CBO no entra ninguna
+  proyección a la corrida; la BEA y el BLS dan solo la historia y la CBO quedó sin uso (F6-15). Ver la
+  enmienda del 2026-11-19 de ADR-002.
 - [x] Definir 2-3 escenarios explícitos con supuestos citados. — base, adverso (C) y favorable (A), F6-05 y F6-14.
   Los supuestos citados con vintage y sha256 los reúne F1.
 - [x] Análisis de sensibilidad a los supuestos. — F6-09; implementado en D6 (PR #85), sus cifras salen de la corrida

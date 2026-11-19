@@ -230,6 +230,10 @@ que en Fase 5, y la regla 4 de `CLAUDE.md` registra la delegación.
 | F6-18 | Series `ESC.*` por escenario en L3 con rol nuevo `escenario`; petróleo en USD (publicación nueva); validación con `stop()` | protocolo §5; checklist (C2b) |
 | F6-19 | Cada vintage de un `.xlsx` se lee hasta el encabezado de su `periodo_referencia_max` de `08`; `col_fin` de `03` queda como la del vintage de registro | `catalogos/README.md` (nota 2026-10-20) |
 
+**Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo I3).** F6-05 (PIB de EE. UU. del WEO) y F6-15 (la
+CBO sin uso) afectan también a ADR-002: ver su enmienda del 2026-11-19. La columna «Documento enmendado» de esas
+dos filas se conserva sin editar.
+
 ---
 
 ## F6-01 — Qué modelos son elegibles para proyectar condicionalmente
@@ -517,6 +521,22 @@ las metas de la base, la desviación estándar sobre el tramo `historia` y las m
   2,233 pp, IPC 2,795 pp y petróleo 25,05 pp. Desvío de nivel anual con +1 DE, desde 2027: 2,18 %, 2,72 % y 27,4 %.
 - **Preregistro.** El bloque `sensibilidad` agrega `forma: un_anio_nivel_persistente` y `anio_choque: 2027`. La
   corrida los compara con el código (F6-12, nota del 2026-11-10).
+
+**Nota de corrección (2026-11-19, auditoría independiente de Fase 6, hallazgo I1).** La nota del 2026-11-10
+justifica F6-09-c por los senderos de insumo, y no dice con qué resultados se tomó. Se tomó con la sensibilidad de
+la regla congelada el 2026-11-04 ya calculada y escrita: la E3 de ese día (`0b1ca5a`) la produjo, el borrador del
+informe del PR #95 la usó, la E4 del 2026-11-10 la reprodujo y el PR #97 (`b084c1b`) la fusionó a `main` esa
+mañana, en `sensibilidad_fase6.csv` y en el §5 del borrador. Con la regla congelada, ±1 DE del PIB de EE. UU. movía
+el crecimiento promedio 2026-2030 de la combinación +1,64 / −1,47 pp en G1, +0,55 / −0,71 en G2 y +0,44 / −0,58
+en G3; con la vigente, +0,35 / −0,37, +0,18 / −0,09 y +0,10 / −0,10. La perturbación reemplazada era un detalle
+delegado al agente (F6-09-a). F6-09-c es, por tanto, un desvío del preregistro del 2026-11-04 decidido con
+resultados escritos. No consta que se haya medido la variante que solo corregía el defecto de 2026 (choque en cada
+año desde 2027, con 2026 en la base). Las cifras de la regla congelada están en el historial de git (`a4c16d3`).
+El texto de arriba se conserva sin editar.
+
+**Decisión de Harold (2026-11-19, auditoría independiente de Fase 6, hallazgo I1).** F6-09-c sigue siendo la regla
+principal. La sensibilidad de la regla congelada se reporta junto a ella en el §5 del informe, como resultado de la
+regla preregistrada, y F6-09-c se rotula allí como desvío del preregistro.
 
 ## F6-10 — Coherencia interna (lo que reemplaza a la validación)
 
@@ -1237,6 +1257,14 @@ Salida completa en `doc/metodologia/evidencia_e2_medicion_bvar_fase6.csv` (copia
   «explosivo» era anormal y que, con estos priors, no lo es (protocolo §3). No se abre ficha para truncar ni descartar
   extracciones: eso cambiaría la especificación declarada en `MULT.BVAR.G*.yaml`.
 
+**Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo M2).** F6-13 (d) fijaba que la medición reporta
+solo dos cifras (proporción de raíces mayores que 1 y distancia entre media y mediana) y que no se miran el sendero
+ni las bandas. `evidencia_e2_medicion_bvar_fase6.csv` versionó además `media_yoy_pp` y `mediana_yoy_pp`: el
+interanual central del BVAR sin escenario con h = 8 y 20 en cada grupo. La decisión de congelar se tomó con ese
+archivo. La lectura del agente de arriba dice que no se miraron bandas y no menciona esos niveles. Como la decisión
+fue no cambiar la especificación, no hubo efecto sobre resultados. El texto de arriba y el CSV se conservan sin
+editar.
+
 ## Hechos verificados el 2026-11-10 (reproducción, E4)
 
 Sobre `main` = `f3a691f`, en la PC de Harold `D:\harold` (host `malo`), Windows 11 con R 4.6.1 y la BLAS de referencia.
@@ -1332,3 +1360,9 @@ la decidió él el 2026-11-10.
   reemplazados (nota del 2026-11-10 en F6-09).
 - **Registrados como sin efecto (2).** F6-04-a: el PIB de 2026-T3 no se publicó antes de congelar y el origen quedó
   en 2026-Q2. F6-05-a: la CBO no se usó, porque F6-15 tomó el PIB de EE. UU. para la satélite de remesas.
+
+## Adopción de las decisiones principales de F6-14 a F6-18 (2026-11-19, auditoría independiente de Fase 6, hallazgo I2)
+
+El agente redactó y decidió F6-14 a F6-18 el 2026-10-19, en la opción recomendada de cada una, bajo la delegación del
+2026-10-17, cuyo texto en `CLAUDE.md` cubría las fichas F6-01 a F6-13. La ratificación del 2026-11-15 cubrió sus
+detalles, no las cinco decisiones principales. Harold las adopta tal como están. Dejan de ser decisiones delegadas.

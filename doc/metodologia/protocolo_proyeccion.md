@@ -113,6 +113,13 @@ Uno a la vez, sobre la base: cada variable de escenario se desplaza ±1 desviaci
 (calculada en L3 sin 2020-2021) en cada año proyectado, con las demás en la base. Se reporta el cambio en el nivel
 del PIB de 2030 y en el crecimiento promedio 2026-2030, por grupo, para la combinación y para cada miembro.
 
+*Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo I1):* este párrafo describe la regla congelada el
+2026-11-04 (F6-09-a/b). Desde el preregistro `preregistro_fase6_2026-11-11.yaml` (`1528483`) rige F6-09-c: ±1
+desviación estándar solo al crecimiento de 2027, con el nivel desviado de forma persistente desde 2028 y 2026 en la
+base. Harold decidió el cambio el 2026-11-10, con la sensibilidad de la regla congelada ya calculada y fusionada a
+`main` (`b084c1b`). Es un desvío del preregistro, y el informe reporta las dos reglas (§5). Detalle en F6-09,
+nota del 2026-11-10 y nota de corrección del 2026-11-19.
+
 ## 9. Coherencia interna (F6-10)
 
 1. **Con `stop()`:** agregación trimestral → anual consistente (F6-10-a).
