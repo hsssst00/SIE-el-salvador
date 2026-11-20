@@ -175,6 +175,26 @@ de 2030, en %:
   daba senderos implausibles (el petróleo terminaba entre 11,5 y 280 USD en 2031-T4). Sus cifras quedan como evidencia
   de la corrida reemplazada, no como resultado (`decisiones_fase6.md`, F6-09, nota del 2026-11-10).
 
+**Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo I1).** La viñeta anterior se conserva sin editar,
+pero no basta. La regla de esta sección (F6-09-c) no es la que se congeló el 2026-11-04: Harold la decidió el
+2026-11-10, con la sensibilidad de la regla congelada ya calculada y fusionada a `main` en el borrador de este
+informe (`b084c1b`). Es un desvío del preregistro. La regla congelada (F6-09-a/b) sumaba ±1 desviación estándar al
+crecimiento de cada año proyectado, desde 2026. Su efecto sobre la combinación, en el formato de la tabla de arriba:
+
+| Grupo | PIB EE. UU. +1 de | PIB EE. UU. −1 de | IPC EE. UU. +1 de | IPC EE. UU. −1 de | Petróleo +1 de | Petróleo −1 de |
+|---|---|---|---|---|---|---|
+| G1 | 1,64 (8,3) | −1,47 (−7,0) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) | 0,00 (0,0) |
+| G2 | 0,55 (2,7) | −0,71 (−3,4) | 0,09 (0,4) | −0,05 (−0,2) | 0,03 (0,2) | −0,02 (−0,1) |
+| G3 | 0,44 (2,2) | −0,58 (−2,8) | 0,09 (0,5) | −0,08 (−0,4) | 0,00 (0,0) | −0,00 (−0,0) |
+
+Con esa regla, el PIB de EE. UU. movía el promedio de G1 de cuatro a cinco veces más que con la vigente, y el IPC
+hasta 0,09 pp en la combinación de G2 y G3. Tenía además un defecto de implementación: 2026, con trimestres
+observados, cargaba el ajuste en sus trimestres libres (con +1 DE, el petróleo saltaba a 186,11 USD en 2026-T4,
+contra 118,22 en la base). La base y los escenarios A y C son idénticos con las dos reglas. Las cifras salen de
+`sensibilidad_reemplazada_fase6.csv` (sha256 sin CR `9053944034…`) y `senderos_sensibilidad_reemplazada_fase6.csv`
+(`4bd5451948…`), en esta carpeta: copias de las salidas de la corrida reemplazada que
+`tests/test-tablas-fase6-reconstruccion.R` contrasta con sus sha256 certificados.
+
 ## 6. Coherencia interna (F6-10)
 
 El ejercicio no se puede validar: no hay datos futuros contra los cuales medir. Lo que reemplaza a la validación es
