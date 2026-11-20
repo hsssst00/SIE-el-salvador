@@ -101,6 +101,13 @@ catálogos: qué hay, cómo se lee la base bitemporal, cómo se cita y qué es c
 para quien opera el sistema; el criterio de cierre se juzga solo contra este. Se agrega `manual_usuario.md` al árbol
 de §7 de la senda.
 
+**Nota (2026-11-20).** Primer borrador de `doc/manual_actualizacion.md` para el ensayo (checklist C1). Detalles fijados
+por el agente, **delegada al agente; se puede reabrir** (F7-12): la estructura de once secciones y cuatro anexos, la
+huella de L3 por sha256 guardada fuera del repo (sección 4) y el anexo D con la situación de partida del ensayo.
+Hecho verificado al redactarlo: `src/transformacion/extraer_bcr_pib.R` lee hasta el `periodo_referencia_max` del
+vintage (F6-19), así que un trimestre nuevo del PIB no exige editar `fin` ni `col_fin` en `03_series.csv`. Sí lo exige
+un año nuevo de UT, como ya decía el backlog.
+
 ### F7-06. Sitio de documentación
 
 **DECIDIDO (Harold, 2026-11-20).** Sitio Quarto que reúne los `.md` de `doc/` sin duplicarlos, publicado en GitHub

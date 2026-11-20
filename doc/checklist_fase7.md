@@ -26,7 +26,8 @@ de una ficha todavía no decidida lo dice y no se marca.
 
 ## C. Ensayo con el 2026-T2 (F7-02, primer tiempo)
 
-- [ ] **C1** Borrador de `doc/manual_actualizacion.md` con las secciones del esqueleto de apertura.
+- [x] **C1** Borrador de `doc/manual_actualizacion.md` con las secciones del esqueleto de apertura. — este commit; no
+  congelado (el congelamiento es G1).
 - [ ] **C2** Llevar la L3 vigente de 2026-Q1 a 2026-Q2 siguiendo solo el borrador (`make validate`, `make master`,
   `make trace` con su entrada en la bitácora, pruebas). Lo corre Harold en su PC, con L0 materializada.
 - [ ] **C3** Referencia versionada del sha256 de cada archivo de `data/L3_master/` vigente, para que la sección 4 del
