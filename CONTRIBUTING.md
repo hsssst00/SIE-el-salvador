@@ -10,9 +10,9 @@ Este es actualmente un proyecto de un solo investigador con asistencia de agente
 
 ## Flujo de trabajo
 
-- Commits directos a `main`, siempre que CI pase en verde — es el flujo real usado en este proyecto de un solo investigador; no hay revisión por pares que una rama/PR pudiera sustituir.
-- PR contra `main` reservado para un caso específico: reabrir una decisión ya cerrada en un ADR. La discusión del PR documenta el motivo de la reapertura antes de enmendar el ADR correspondiente.
-- CI debe pasar en verde antes de integrar, en ambos casos.
+- Todo cambio entra por PR contra `main`, desde una rama propia y sin apilar PR (decisión F7-12, 2026-11-20). Es el flujo que se usa desde Fase 4 y el que sigue cualquier tercero. Hasta Fase 3 se usaron commits directos a `main`.
+- Un PR que reabre una decisión ya cerrada en un ADR documenta el motivo de la reapertura en su descripción antes de enmendar el ADR correspondiente.
+- CI debe pasar en verde sobre la cabeza del PR antes de fusionar.
 - Ningún dato en `data/L1`–`L4` se edita a mano; si el resultado está mal, se corrige el código que lo genera.
 - Sujeto del commit ≤ ~72 caracteres, resumiendo el qué; el detalle (por qué, alcance, hallazgos) va al cuerpo del mensaje, sin límite de largo. Aplica hacia adelante — no se reescribe historia existente para cumplirlo (M4, auditoría de Fase 1, 2026-08-17).
 
