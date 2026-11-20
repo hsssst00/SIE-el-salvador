@@ -1,9 +1,32 @@
 cff-version: 1.2.0
 message: "Si usa este software o los datos derivados, favor citar como se indica a continuación."
+type: software
 title: "Sistema de Información Estadística y modelos de proyección del PIB trimestral de El Salvador"
+abstract: >-
+  Sistema de información estadística macroeconómica para El Salvador, documentado, trazable,
+  versionado y reproducible, con registro de versiones de publicación (vintages). Los datos pasan
+  por capas generadas por código, desde los archivos tal como se publicaron (L0, con checksum
+  SHA-256) hasta las series maestras bitemporales (L3), con validación que falla y no advierte, y
+  trazabilidad de cada valor hasta la celda del archivo de origen. Como demostración de uso, el
+  repositorio compara modelos econométricos y de aprendizaje automático para pronosticar el PIB
+  trimestral (h = 1, 2, 4 y 8, con DM/HLN y Model Confidence Set) y proyecta el PIB de 2026 a 2031 de
+  forma condicional a escenarios exógenos citados. Código en R (renv); código bajo MIT y
+  documentación bajo CC-BY-4.0. Los archivos crudos de fuentes que no permiten redistribución no
+  se incluyen: se publican su script de descarga y su checksum.
 authors:
   - family-names: "Montano"
     given-names: "Harold"
+    orcid: "https://orcid.org/0009-0001-1041-0260"
+keywords:
+  - El Salvador
+  - PIB trimestral
+  - sistema de información estadística
+  - vintages
+  - datos en tiempo real
+  - pronóstico macroeconómico
+  - proyección condicional
+  - reproducibilidad
+  - R
 date-released: 2026-11-19
 version: 0.9.0
 repository-code: "https://github.com/hsssst00/SIE-el-salvador"
