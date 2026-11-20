@@ -52,8 +52,10 @@ de una ficha todavía no decidida lo dice y no se marca.
 
 ## F. DOI y versión (F7-08, F7-09)
 
-- [ ] **F1** Harold conecta Zenodo con su cuenta de GitHub y activa el repo.
-- [ ] **F2** `CITATION.cff` con `abstract` y `keywords` (y ORCID y afiliación si Harold los da).
+- [x] **F1** Harold conecta Zenodo con su cuenta de GitHub y activa el repo. — 2026-11-20: *webhook* de `zenodo.org`
+  activo para `release` (API de GitHub).
+- [x] **F2** `CITATION.cff` con `abstract` y `keywords` (y ORCID y afiliación si Harold los da). — este commit: ORCID,
+  `abstract`, `keywords` y `type`, validado contra el esquema de CFF 1.2.0; sin afiliación (Harold no la dio).
 
 ## G. Prueba del criterio (F7-01, F7-02, F7-04)
 

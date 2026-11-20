@@ -126,6 +126,13 @@ serie de CEPAL está admitida.
 `CITATION.cff` cuando hay uno. El DOI de concepto entra al `README.md` y a `CITATION.cff` en un commit posterior al
 *release*. El archivo que guarda Zenodo no incluye L0, que no está en el repo (ADR-008).
 
+**Nota (2026-11-20).** Harold conectó Zenodo con su cuenta de GitHub: el repo tiene un *webhook* activo de
+`zenodo.org` para el evento `release` (API de GitHub). Dio su ORCID, que entra a `CITATION.cff`; no dio afiliación, así
+que no se agrega. Detalles fijados por el agente, **delegada al agente; se puede reabrir** (F7-12): `type: software`;
+el texto de `abstract`; la lista de `keywords`; y `license` sigue en `MIT` sola, porque el campo describe el código y
+la licencia de la documentación (CC-BY-4.0) ya consta en `LICENSE-docs` y en el resumen. `version` y `date-released`
+no cambian hasta el cierre (F7-09). El archivo se validó contra el esquema JSON de CFF 1.2.0.
+
 ### F7-09. Versión de cierre
 
 **DECIDIDO (Harold, 2026-11-20).** `v1.0.0-fase7`. En el commit de cierre, `CITATION.cff` pasa a 1.0.0 con la fecha del
