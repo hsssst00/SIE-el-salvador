@@ -24,6 +24,8 @@ vez de que se transcriban a mano aquí (hallazgo M5 de la revisión independient
 
 **Fase 6 — cerrada.** Proyección condicional (Ejercicio B). El criterio de cierre (senda §4) se satisface con las lecturas que fija la nota de cierre de Fase 6 de la senda (v0.12). Cada supuesto exógeno (PIB real e IPC de EE. UU. y petróleo, en la base del WEO de octubre de 2026 y en los escenarios A y C de su recuadro 1.2, más la sensibilidad de ±1 desviación estándar) tiene en `doc/metodologia/supuestos_escenarios.md` su publicación, vintage y sha256 en L0. La corrida única sobre el preregistro `doc/metodologia/preregistro_fase6_2026-11-11.yaml` proyecta el PIB trimestral de 2026-T3 a 2031-T2 en los grupos G1 a G3, y sus 28 archivos de salida se reproducen bit a bit en una segunda PC. El informe `doc/metodologia/reportes_fase6/informe_proyeccion_fase6.md` declara condicionales todas sus cifras: en la base, la combinación crece en promedio 2,3 % (G1), 3,0 % (G2) y 3,1 % (G3) en 2026-2030, y los escenarios mueven ese promedio 0,17 pp o menos. Las decisiones F6-01 a F6-19 están en `doc/metodologia/decisiones_fase6.md` y el método en `doc/metodologia/protocolo_proyeccion.md`. Ver el registro "Cierre de Fase 6" en [`doc/adr/README.md`](doc/adr/README.md). Tag `v0.9.0-fase6`; revisión independiente en `doc/auditorias/`.
 
+**Fase 7 — abierta el 2026-11-20.** Documentación, publicación y sostenibilidad. Criterio de cierre (senda §4): un investigador externo actualiza el sistema con la publicación del trimestre siguiente siguiendo únicamente el manual. Decisiones en `doc/metodologia/decisiones_fase7.md` y tablero en `doc/checklist_fase7.md`.
+
 ## Estructura
 
 ```
@@ -57,7 +59,7 @@ Eso reproduce el entorno exacto en cualquier máquina limpia — confirmado en C
 
 `make raw-rapido` es un precheck barato del portal del BCR (calendario + sondeo del último período); no reemplaza a `make raw`, porque no ve revisiones de valores viejos.
 
-Próxima ventana: **1–3 de noviembre de 2026**.
+Próxima ventana: **1–3 de diciembre de 2026**.
 
 ## Licencia
 

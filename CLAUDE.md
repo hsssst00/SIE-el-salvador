@@ -8,7 +8,7 @@ Sistema de Información Estadística (SIE) para variables macroeconómicas de El
 
 ## Estado del proyecto
 
-Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación y comparación— cerrada el 2026-10-13 (tag `v0.8.0-fase5`; revisión independiente en `doc/auditorias/`). Fase 6 —proyección condicional— cerrada el 2026-11-19 (tag `v0.9.0-fase6`; revisión independiente en `doc/auditorias/`; decisiones en `doc/metodologia/decisiones_fase6.md`, tablero en `doc/checklist_fase6.md`). Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial: el corte de CEPAL venció el 2026-10-16 sin pronunciamiento y queda abierta solo la condición sobre obras derivadas — el estado por fuente vive en ADR-008, no acá.
+Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1`); Fase 2 —adquisición— cerrada (tag `v0.5.0-fase2`); Fase 3 —normalización/validación— cerrada (tag `v0.6.0-fase3`); Fase 4 —protocolo de evaluación— cerrada el 2026-09-29 (tag `v0.7.0-fase4` sobre el commit de cierre). Fase 5 —estimación y comparación— cerrada el 2026-10-13 (tag `v0.8.0-fase5`; revisión independiente en `doc/auditorias/`). Fase 6 —proyección condicional— cerrada el 2026-11-19 (tag `v0.9.0-fase6`; revisión independiente en `doc/auditorias/`; decisiones en `doc/metodologia/decisiones_fase6.md`, tablero en `doc/checklist_fase6.md`). Fase 7 —documentación, publicación y sostenibilidad— abierta el 2026-11-20 (decisiones en `doc/metodologia/decisiones_fase7.md`, tablero en `doc/checklist_fase7.md`). Ver `doc/adr/README.md` para el estado exacto de cada decisión. A la fecha de este archivo: nueve de diez ADR cerrados; ADR-008 sigue parcial: el corte de CEPAL venció el 2026-10-16 sin pronunciamiento y queda abierta solo la condición sobre obras derivadas — el estado por fuente vive en ADR-008, no acá.
 
 **Antes de escribir cualquier código de estimación o transformación, lee los ADR relevantes en `doc/adr/`.** Son la especificación. No hay decisión metodológica de las diez que debas tomar tú — ya están tomadas y documentadas.
 
@@ -42,6 +42,17 @@ Fase 0 cerrada (tag `v0.2.1-fase0-enmendado`); Fase 1 cerrada (tag `v0.4.0-fase1
    la autorización se registra aquí antes de usarse y nombra por código las fichas que cubre. Nunca cubre: las
    lecturas de un criterio de cierre, los cambios posteriores a un congelamiento de preregistro, los desvíos de un
    ADR cerrado ni las fichas que Harold no haya visto redactadas. Esas decisiones se preguntan siempre.
+
+   **Delegación al agente en Fase 7 (2026-11-20, ficha F7-12 de `doc/metodologia/decisiones_fase7.md`).** Harold
+   delega al agente los detalles de implementación de F7-05, F7-06, F7-07, F7-08 y F7-09: redacción de los dos
+   manuales, del diccionario de datos y de la puerta de entrada técnica; configuración de Quarto, del *workflow* de
+   GitHub Pages y de las *vignettes*; y los campos de `CITATION.cff` y `DESCRIPTION`. Los detalles que fije el agente
+   se rotulan «delegada al agente; se puede reabrir». Incluye fusionar a `main` los PR que solo implementan esas
+   fichas, con el CI en verde sobre la cabeza del PR y sin apilar. No cubre: las lecturas del criterio de cierre
+   (F7-01 a F7-04), ninguna lectura o enmienda de ADR-008, la versión de Quarto que fija la nota de ADR-009 (se
+   pregunta), el congelamiento del manual (`manual-v1`), el cierre de la fase ni la prospectiva AP-2. Tampoco cubre
+   los actos que solo puede hacer Harold: conectar Zenodo, dar acceso a L0 y correr lo que exige L0 en su PC. Rige
+   hasta que Harold la retire o hasta el cierre de Fase 7.
 5. **El stack es R, cerrado (ADR-009).** No introduzcas Python u otro lenguaje salvo que exista un ADR posterior que lo autorice explícitamente.
 6. **Todo script de descarga (`src/adquisicion/`) debe fallar de forma visible, no silenciosa**, ante cambios de estructura de la fuente — conforme al principio de inmutabilidad de L0.
 7. **La validación falla, no advierte** (§3.5 de la senda metodológica). Un catálogo que no cumple su esquema detiene el pipeline.

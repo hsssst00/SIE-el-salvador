@@ -40,7 +40,7 @@ detecta `make raw` completo, que sigue siendo lo que cierra cada ventana. Una pa
 | Ventana | Fechas | Alcance |
 |---|---|---|
 | 2026-10 | 1–3 oct | **Cumplida.** 2026-10-01: 9 series BCR. 2026-10-02: pasada completa de `make raw` (incluidas `BALANZA_PAGOS_TRIMESTRAL` e `IPI.VIGENTE`) y captura trimestral de UT. Pendientes de captura solo 8 publicaciones de FRED y FMI (recuperables a demanda; ver el backlog). Fuera de ventana, 2026-10-07: Panorama del Banco Central M09 (D3) |
-| 2026-11 | 1–3 nov | `make raw` completo |
+| 2026-11 | 1–3 nov | **Parcial.** 2026-11-02: una pasada de `make raw-rapido` (ADR-007 D3), 9 `NUEVO_PERIODO` y 7 capturas `v2026-10` (IVAE, IPM, IPI, ITCER, ISI, RIN y SPNF). Gobierno Central Consolidado y Panorama de las sociedades de depósito dieron timeout y pasan a diciembre. No se corrió `make raw` completo. Detalle en `doc/backlog_captura_vintages.md`, nota del 2026-11-02 |
 | 2026-12 | 1–3 dic | `make raw` completo |
 | 2027-01 | 1–3 ene | `make raw` completo + captura trimestral UT |
 | 2027-02 | 1–3 feb | `make raw` completo |
@@ -53,6 +53,6 @@ detecta `make raw` completo, que sigue siendo lo que cierra cada ventana. Una pa
 | 2027-09 | 1–3 sep | `make raw` completo |
 | 2027-10 | 1–3 oct | `make raw` completo + captura trimestral UT |
 
-Última ventana cumplida: 2026-10-02 (`make raw` completo y UT; antes, el 2026-10-01, 9 series BCR,
+Última pasada: 2026-11-02, parcial (`make raw-rapido`; ver la fila de 2026-11). Última ventana cumplida completa: 2026-10-02 (`make raw` completo y UT; antes, el 2026-10-01, 9 series BCR,
 commit `1c08c66`; BCR del 10-02, commit `7c460bc`).
 Al cerrar cada ventana, mover esta línea a la fecha real de la corrida.

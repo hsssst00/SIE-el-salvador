@@ -79,7 +79,6 @@ master: validate
 	Rscript src/transformacion/l3_predictores.R
 	Rscript src/transformacion/extraer_escenarios.R
 	Rscript src/transformacion/l3_escenarios.R
-	@echo "Pendiente: matriz de predictores mas alla de BCR.IVAE/REMESAS/IPP/EXPORT_FOB/ITCER/IPM (ADR-010) (Fase 3)"
 
 # Fase 3 — análisis exploratorio de la base maestra (senda §4), en el orden en que se leen:
 # primero descriptivos y gráficos, después las pruebas formales de estacionariedad. Depende de
