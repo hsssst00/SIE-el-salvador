@@ -159,4 +159,5 @@ por uno los 15 metodológicos. El detalle está en `decisiones_fase6.md`, «Rati
   (v0.12), con las lecturas de «supuesto exógeno», «fuente citada», «el resultado» y «se declara explícitamente como
   condicional». `CLAUDE.md`, `README.md` y `CITATION.cff` (0.9.0, 2026-11-19) declaran el cierre; la delegación del
   2026-10-17 termina con él.
-- [ ] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.
+- [x] **F4** Revisión independiente en `doc/auditorias/` y tag de cierre.
+  — 2026-11-20: revisión independiente depositada (`5c22229`) e indexada; tag `v0.9.0-fase6` → `04dbc3c` (run 541).
