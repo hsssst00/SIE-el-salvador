@@ -159,6 +159,15 @@ directorio de la principal de cada grupo. `tests/test-robustez-registro.R` compr
 resuelva contra `06_modelos/`, que `vintage_id` resuelva contra `08_vintages.csv`, que el token sea
 válido y que `exp_id` y `ruta_resultados` sigan la regla.
 
+**Filas de Fase 6 (F6-12-b; nota del 2026-11-19, auditoría independiente de Fase 6, hallazgo M4).** Desde Fase 6 la
+tabla tiene también filas del Ejercicio B, con otro escritor y otro contrato. Las escribe
+`src/proyeccion/correr_fase6.R` al final de `make fase6`: una por (grupo, modelo), más una por grupo con
+`modelo_id` = `COMBINACION`, la mediana de F6-02, que no tiene YAML en `06_modelos/`. En esas filas, `exp_id` es
+`F6_<grupo>__<modelo_id>`; `vintage_id`, los vintages del corte unidos con « + »; `esquema_validacion` sigue la
+gramática `proyeccion_condicional|origen=…|grupo=…|conjunto=<corte>@<8 caracteres del sha256 sin CR>|corridas=…`,
+no el token de F4-11; `horizontes` es `1` a `20`, y `ruta_resultados`, `data/L4_experiments/F6_<grupo>/`.
+`tests/test-robustez-registro.R` valida esa gramática y acepta `COMBINACION` sin YAML desde `337abb2`.
+
 ## `08_vintages.csv`
 
 Una fila por captura (vintage) de una publicación en un momento dado — la unidad que hace

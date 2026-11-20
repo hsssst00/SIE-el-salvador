@@ -223,3 +223,15 @@ OK F6_G2  480 filas trimestrales, 144 anuales, 0 exclusiones de la guarda
 OK F6_G3  460 filas trimestrales, 138 anuales, 0 exclusiones de la guarda
 07_experimentos.csv: 42 filas de Fase 6
 make[1]: Leaving directory '/c/Users/INVE/Documents/SIE-el-salvador'
+
+Nota 2026-11-19 (auditoría independiente de Fase 6, hallazgos M1 y M3).
+Esta corrida fue REEMPLAZADA. El 2026-11-10 Harold sustituyó F6-09-a/b por F6-09-c; la corrida vigente es la del
+2026-11-12 sobre 1528483 (doc/evidencia_corrida_fase6_2026-11-12.txt). «Esta es la única corrida» se conserva sin
+editar: era cierto cuando se escribió. Sus salidas de sensibilidad están versionadas en
+doc/metodologia/reportes_fase6/sensibilidad_reemplazada_fase6.csv y senderos_sensibilidad_reemplazada_fase6.csv.
+Horas: las de este archivo (inicio 01:03:39, fin 01:21:27) y la fecha_corrida de sus manifiestos (01:16:58-0600)
+no son la hora real. GitHub creó b1376df el 2026-11-04 a las 13:04:04 -0600, y esta corrida se hizo sobre él. El
+reloj de la PC INVE estaba atrasado unas 12 horas. Los commits b9e7327 y 0b1ca5a,
+hechos en esa PC, tienen fechas anteriores a las de sus padres (07526a8 y b1376df). El contenido no cambia:
+b1376df y b9e7327 tienen el mismo árbol. Para afirmar que algo fue «antes de» otra cosa rige la ancestría de
+commits (git merge-base --is-ancestor), no la hora.
