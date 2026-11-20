@@ -701,3 +701,12 @@ arriba se conserva sin editar.
 
 El PR #95 se cerró sin fusionar el 2026-11-19, después de este registro, que en «Higiene» lo da por abierto.
 El texto de arriba se conserva sin editar.
+
+## Remediación de la auditoría independiente de Fase 6 (2026-11-20)
+
+La auditoría independiente del cierre de Fase 6 (`doc/auditorias/auditoria_independiente_fase6_SIE-el-salvador.md`,
+commit auditado `c898723`) encontró I1–I3 y M1–M5, sin críticos. Resolución por hallazgo y commits: ver la nota de
+remediación al final del propio informe. Decisiones de Harold registradas en esta remediación: adopción de las
+lecturas (A1) y de F6-14 a F6-18 (A2); delegaciones futuras (A3 = a); F6-09-c como regla principal, con la
+preregistrada reportada al lado (A4 = a); ADR-002 (A5 = a); ruta del tag (A6 = a). Ninguna cifra de la
+proyección cambió: no se volvió a correr `make fase6`.

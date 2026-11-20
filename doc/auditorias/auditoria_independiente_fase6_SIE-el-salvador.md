@@ -290,3 +290,24 @@ Al preparar el prompt de remediación, el propio auditor releyó contra el repos
 1. **M4.** Dice que *«las 42 filas de Fase 6 no cumplen ninguna de las cuatro cosas»*. No es exacto para `modelo_id`: 39 de las 42 filas resuelven contra `06_modelos/`; solo las tres `COMBINACION` no lo hacen. Las 42 sí difieren del diccionario en las otras tres cosas (quién las escribe, la gramática de `esquema_validacion` y `horizontes`).
 2. **M1.** Cita *«sobre b1376df»* como texto de la evidencia de la corrida reemplazada. Esa evidencia dice *«Commit: b1376df (main, merge del PR #93, congelamiento E1)»*; «sobre `b1376df`» es la redacción del ítem E3 del checklist. El hecho no cambia.
 3. **M5.** Señala `ubuntu-latest` solo en `CLAUDE.md`. `README.md` (línea 52) dice lo mismo: *«confirmado en CI sobre `ubuntu-latest`»*.
+
+---
+
+### Nota de remediación (2026-11-20)
+
+Agregada por quien remedió; el informe de arriba se conserva sin editar.
+
+| Hallazgo | Resolución | Commit (merge) |
+|---|---|---|
+| I1 | Nota de corrección en F6-09, en el §8 del protocolo y en el registro; sensibilidad de la regla preregistrada versionada y reportada en el §5 del informe; prueba de reconstrucción de las tablas | `5c22229` (PR #103), `04dbc3c` (PR #104) |
+| I2 | Adopción por Harold de las tres lecturas (senda v0.13) y de F6-14 a F6-18; delegaciones futuras en la regla 4 de `CLAUDE.md` | `5c22229` (PR #103) |
+| I3 | Enmienda de ADR-002 (A5 = a), con notas en el «Registro» de los supuestos y en el acta | `5c22229` (PR #103) |
+| M1 | Nota sobre las horas de la PC INVE en la evidencia reemplazada y en el checklist | `8b20b5a` (PR #105) |
+| M2 | Nota en la medición previa del BVAR | `5c22229` (PR #103) |
+| M3 | Notas en el protocolo (§10, §11) y en la evidencia reemplazada; decisión del 2026-11-15 en el acta | `8b20b5a` (PR #105) |
+| M4 | Diccionario de `07` para Fase 6; nota en F6-12 | `8b20b5a` (PR #105) |
+| M5 | `README.md`, «Estado general» del índice de ADR, `ubuntu-24.04`, nota en el §4 del informe, nota del PR #95 | `8b20b5a` (PR #105) |
+
+CI verde: run 541 sobre `04dbc3c` y run 544 sobre `8b20b5a`. Tags: `v0.9.0-fase6` → `04dbc3c`; `v0.9.1-fase6`, aún no creado: lo crea Harold después del merge de este depósito.
+
+Pendiente declarado: el reloj de la PC INVE (M1) no se ha revisado todavía (A7).
