@@ -140,6 +140,12 @@ comprobó sobre las tablas) y sirve de contraste.
 Salvo el paseo aleatorio sin deriva, que congela el nivel de 2026-T2, los modelos sin escenario dan entre 2,7 y
 3,1 %. Es el rango de G2 y G3, y está por encima de G1.
 
+**Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo M5).** Las bandas de esta tabla son las de G1. El
+sendero trimestral de estos modelos es idéntico en los tres grupos, pero las bandas del promedio se simulan con una
+semilla que depende del grupo y difieren hasta 0,12 pp: `UNI.UC_LLT` da [1,1; 4,9] en G1, [1,0; 5,0] en G2 y
+[1,0; 4,9] en G3. Las de cada grupo están en `proyeccion_anual_fase6.csv`. Es un error de Monte Carlo de ese orden
+en las bandas anuales.
+
 ## 5. Sensibilidad (F6-09)
 
 Sobre la base se mueve una variable a la vez: se suma ±1 desviación estándar histórica de su crecimiento anual **solo

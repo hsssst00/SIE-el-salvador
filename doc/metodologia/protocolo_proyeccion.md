@@ -142,6 +142,12 @@ estaba en las de `stop()`. Pasó a las informativas porque las dos remesas tiene
   mayor que 1 (E2, §3), lo que puede ensanchar la mezcla a horizontes largos. Se dice en el informe, junto a cada
   tabla con bandas de ese modelo.
 
+*Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo M3):* §1 dice que «cada tabla y figura del informe»
+lo declara condicional, y la primera viñeta de esta sección, que toda tabla lleva la leyenda. Harold decidió el
+2026-11-15 no tocar las tablas versionadas: el aviso al comienzo del informe vale para todas las tablas de su
+carpeta, y solo las de proyección anual y trimestral lo repiten en su columna `nota` (`decisiones_fase6.md`,
+sección del 2026-11-19). El informe no tiene figuras.
+
 ## 11. Preregistro, corrida y reproducibilidad (F6-12)
 
 - Se congelan con commit, antes de la primera proyección sobre datos reales: el corte, los supuestos en L0, los YAML
@@ -159,6 +165,11 @@ estaba en las de `stop()`. Pasó a las informativas porque las dos remesas tiene
   el BVAR en F1-3 de Fase 5.
 - Salidas en `data/L4_experiments/F6_*/` con manifiesto, y una fila por (experimento, modelo) en
   `catalogos/07_experimentos.csv` (F4-25).
+
+*Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo M3):* el preregistro vigente es
+`doc/metodologia/preregistro_fase6_2026-11-11.yaml` (`1528483`), que reemplaza al que nombra esta sección. Hubo dos
+corridas completas sobre datos reales: la del 2026-11-04, reemplazada, y la vigente, del 2026-11-12 (F6-12, nota
+del 2026-11-10; §8, nota del 2026-11-19).
 
 ## 12. Lo que este protocolo no cubre
 

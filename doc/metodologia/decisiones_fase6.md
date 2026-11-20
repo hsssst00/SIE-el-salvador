@@ -697,6 +697,11 @@ su reproducción E4 (`doc/evidencia_reproduccion_fase6.txt`).
   bytes, o si el bloque `sensibilidad` no trae `forma` y `anio_choque` iguales a las del código.
 - **Dónde corre.** La E3 nueva corre en la PC de Harold `D:\harold`. E4 se reproduce en la PC INVE cuando vuelva.
 
+**Nota (2026-11-19, auditoría independiente de Fase 6, hallazgo M4).** El contrato de las filas de `07` que fija
+F6-12-b no llegó a `tests/test-robustez-registro.R` ni al diccionario de `catalogos/README.md` antes de la corrida.
+Según el mensaje de `337abb2`, el CI del PR #94 rechazó las 42 filas de la E3 del 2026-11-04, y la prueba se adaptó
+después de la corrida, en ese commit, sin cambiar la corrida. El diccionario se completó el 2026-11-19.
+
 ## F6-13 — Pronóstico puntual del BVAR con h = 20
 
 **DECIDIDO (opción recomendada (d) seguida de (a), autorización de Harold del 2026-10-17).**
@@ -1366,3 +1371,11 @@ la decidió él el 2026-11-10.
 El agente redactó y decidió F6-14 a F6-18 el 2026-10-19, en la opción recomendada de cada una, bajo la delegación del
 2026-10-17, cuyo texto en `CLAUDE.md` cubría las fichas F6-01 a F6-13. La ratificación del 2026-11-15 cubrió sus
 detalles, no las cinco decisiones principales. Harold las adopta tal como están. Dejan de ser decisiones delegadas.
+
+## Decisión de Harold del 2026-11-15: el aviso de condicionalidad y las tablas (registrada el 2026-11-19, auditoría independiente de Fase 6, hallazgo M3)
+
+En la revisión de F2 del 2026-11-15, Harold decidió corregir el texto del informe y no tocar las tablas
+versionadas. El aviso al comienzo de `informe_proyeccion_fase6.md` vale para todas las tablas de `reportes_fase6/`;
+las de proyección anual y trimestral lo repiten en su columna `nota`, y las demás no la llevan. Se aparta del
+protocolo de proyección, §1 y §10 (nota del 2026-11-19 allí). Hasta esta fecha constaba solo en la nota de cierre
+de la senda.

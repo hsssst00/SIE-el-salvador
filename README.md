@@ -10,7 +10,7 @@ series predictoras nuevas). Para el conteo actual, correr `make audit`
 (`scripts/auditoria_mecanica.R`), que es la fuente que calcula estos números en cada corrida en
 vez de que se transcriban a mano aquí (hallazgo M5 de la revisión independiente 2026-09-17).
 
-**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (quedan BCR y CEPAL en gestión, y la decisión de política de L0 aplazada al corte del BCR — el estado por fuente está en ADR-008; gestión vía ADR-008 con cortes fechados, no atada al cierre de fase). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
+**Fase 0 — cerrada.** Nueve ADR registrados (ADR-001 a ADR-009); ocho cerrados, ADR-008 parcial (los cortes del BCR y de CEPAL vencieron sin pronunciamiento y la política de L0 es por fuente desde el 2026-10-14; queda abierta la condición de CEPAL sobre obras derivadas — el estado por fuente está en ADR-008; gestión vía ADR-008 con cortes fechados, no atada al cierre de fase). Cierre verificado y revalidado en CI — ver [`doc/adr/README.md`](doc/adr/README.md) para el detalle de cada decisión y el registro de cierre.
 
 **Fase 1 — cerrada.** Inventario del ecosistema estadístico. El criterio de cierre (senda §4) se satisface sobre las variables *admitidas*: las 98 series de `catalogos/03_series.csv` (las cuatro publicaciones de PIB del BCR) con cobertura verificada y trazabilidad `fuente_celda` 98 PASS, y la variable objetivo con N=145 observaciones documentado (D3 / empalme). Se cierra bajo la interpretación de "ingresa al proyecto" = variable admitida, no inventario completo — ver la nota de §4 de la senda y el registro de cierre en [`doc/adr/README.md`](doc/adr/README.md). Quedan abiertas, sin bloquear el cierre, la cobertura de las publicaciones inventariadas sin serie admitida (compuerta *just-in-time* de Fase 3) y las condiciones de uso (vía ADR-008). Tag `v0.4.0-fase1`.
 
@@ -49,7 +49,7 @@ scripts/                               utilidades de configuración (bootstrap d
 renv::restore()
 ```
 
-Eso reproduce el entorno exacto en cualquier máquina limpia — confirmado en CI sobre `ubuntu-latest`. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile (`renv::snapshot()` a partir de `DESCRIPTION`) por si hace falta regenerarlo tras cambiar el stack de ADR-009.
+Eso reproduce el entorno exacto en cualquier máquina limpia — confirmado en CI sobre `ubuntu-24.04`. `scripts/bootstrap_renv.R` documenta cómo se generó el lockfile (`renv::snapshot()` a partir de `DESCRIPTION`) por si hace falta regenerarlo tras cambiar el stack de ADR-009.
 
 ## Calendario de captura
 
