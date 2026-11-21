@@ -200,3 +200,11 @@ NSA. Decidir si las dos se leen con la fila de la SA era un cambio de mapeo de H
 `08_vintages.csv` (`v2026-06` y `v2026-09`). Con eso, D3 permite capturar las tres el mismo día, y `raw-rapido` deja de
 sondear NSA y nominal cuando el calendario dice `NO_TOCA`. Si alguna vez el BCR las publica por separado, el nivel 2 de
 `raw-rapido` lo ve igual.
+
+**Nota (2026-11-21, más tarde).** Primera ventana real con `captura_d3()`, en la copia principal de Harold:
+`BCR.GOBIERNO_CENTRAL_CONSOLIDADO` falló por timeout del portal (`doc/bitacora_fuentes_fragiles.md`), y la consola no
+aceptó la respuesta a la segunda pregunta (`BCR.IPI.VIGENTE`). Nada se escribió en L0. Se reemplaza la pregunta
+`readline()` por dos llamadas, `planear_d3()` y `capturar_d3("<publicacion_id>")`, que funcionan igual en la consola,
+con Ctrl+Enter, en un chunk o con `Rscript`. El detalle de que es una función de consola y no un `make` se mantiene:
+`planear_d3()` hace la única pasada de `raw-rapido`, y `capturar_d3()` usa su plan sin volver a sondear.
+

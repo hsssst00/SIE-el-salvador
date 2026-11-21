@@ -108,8 +108,33 @@ test_that("saltos y nota del backlog: vintages intermedios y estado de cada publ
   expect_match(n_no, "no se confirmo")
 })
 
-test_that("captura_d3.R no carga verificar_l0_fisico.R con source(): termina con quit()", {
+test_that("captura_d3.R no carga verificar_l0_fisico.R con source() ni pregunta con readline()", {
   txt <- .leer(here::here("src", "adquisicion", "captura_d3.R"))
-  expect_false(grepl('source("scripts/verificar_l0_fisico.R"', txt, fixed = TRUE))
+  expect_false(grepl('source("scripts/verificar_l0_fisico.R"', txt, fixed = TRUE))   # termina con quit()
   expect_true(grepl("system2(", txt, fixed = TRUE))
+  expect_false(grepl("readline(", txt, fixed = TRUE))   # se colgaba tras un fallo del navegador (ensayo)
+})
+
+test_that("validar_captura_d3: una sola publicacion, del plan de hoy, que cumpla y sin repetir", {
+  plan <- evaluar_candidatas_d3(.trab(), .vin, .cal, hoy = as.Date("2026-10-10"))
+  attr(plan, "fecha") <- as.Date("2026-10-10")
+  hoy <- as.Date("2026-10-10")
+  expect_equal(validar_captura_d3(plan, "BCR.ISI", .vin, hoy)$comando, 'descargar_bcr_isi("2026-10-01")')
+  expect_error(validar_captura_d3(NULL, "BCR.ISI", .vin, hoy), "planear_d3")
+  expect_error(validar_captura_d3(plan, c("BCR.ISI", "BCR.IPP"), .vin, hoy), "una publicacion a la vez")
+  expect_error(validar_captura_d3(plan, "BCR.ISI", .vin, as.Date("2026-10-11")), "no de hoy")
+  expect_error(validar_captura_d3(plan, "BCR.IPP", .vin, hoy), "no salio NUEVO_PERIODO")
+  expect_error(validar_captura_d3(plan, "BCR.ISI", .vin, hoy, capturadas = "BCR.ISI"), "ya se capturo")
+  expect_error(validar_captura_d3(plan, "BCR.ISI", .vin, hoy, fallidas = "BCR.ISI"), "No se reintenta")
+  v2 <- rbind(.vin, data.frame(publicacion_id = "BCR.ISI", vintage_id = "BCR.ISI.v2026-10",
+                               periodo_referencia_max = "2026-M09", stringsAsFactors = FALSE))
+  expect_error(validar_captura_d3(plan, "BCR.ISI", v2, hoy), "ya existe")
+  no <- evaluar_candidatas_d3(.trab(), .vin, .cal, hoy = as.Date("2026-10-05"))
+  attr(no, "fecha") <- as.Date("2026-10-05")
+  expect_error(validar_captura_d3(no, "BCR.ISI", .vin, as.Date("2026-10-05")), "no cumple D3")
+})
+
+test_that("la nota del backlog distingue la captura fallida", {
+  ev <- evaluar_candidatas_d3(.trab(), .vin, .cal, hoy = as.Date("2026-10-10"))
+  expect_match(nota_backlog_d3(ev, character(), as.Date("2026-10-10"), fallidas = "BCR.ISI"), "la captura fallo")
 })
