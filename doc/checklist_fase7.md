@@ -32,7 +32,8 @@ de una ficha todavía no decidida lo dice y no se marca.
   `make trace` con su entrada en la bitácora, pruebas). Lo corre Harold en su PC, con L0 materializada.
 - [ ] **C3** Referencia versionada del sha256 de cada archivo de `data/L3_master/` vigente, para que la sección 4 del
   manual pueda comparar contra algo (hueco del esqueleto).
-- [x] **C5 · F7-13** Captura fuera de ventana asistida: `captura_d3()`, sus pruebas y la nota de ADR-007. — este
+- [x] **C5 · F7-13** Captura fuera de ventana asistida: `planear_d3()` y `capturar_d3()` (antes `captura_d3()`), sus pruebas y las
+  notas de ADR-007. — este
   commit; `tests/test-captura-d3.R` (9 pruebas) en verde. Incluye el mapeo del PIB NSA y
   nominal a la fila del SA en el calendario.
 - [ ] **C4** Corregir el manual con lo que falló en C2, y dejar la bitácora del ensayo en

@@ -6,7 +6,7 @@
 #
 # Automatiza la DECISION de D3, no la captura: dice que publicaciones cumplen las tres
 # condiciones, con que funcion y con que fecha_publicacion se capturarian. Cada captura la
-# confirma una persona, una publicacion a la vez (regla 9 de CLAUDE.md).
+# pide una persona, nombrando una publicacion a la vez (regla 9 de CLAUDE.md).
 #
 # Requiere haber cargado src/adquisicion/verificacion_rapida.R (clave_periodo,
 # CALENDARIO_BCR_VARIABLE, CALENDARIO_BCR_ANIO, .MESES_ES).
@@ -113,15 +113,17 @@ evaluar_candidatas_d3 <- function(trabajo, vintages, calendario, hoy = Sys.Date(
 }
 
 #' Texto de la nota fechada para doc/backlog_captura_vintages.md.
-nota_backlog_d3 <- function(evaluacion, capturadas, hoy = Sys.Date()) {
+nota_backlog_d3 <- function(evaluacion, capturadas, hoy = Sys.Date(), fallidas = character()) {
   lineas <- c(sprintf("## Nota del %s \u2014 captura posterior a la publicacion (ADR-007 D3)", hoy), "",
-              sprintf("`captura_d3()` (una pasada de `make raw-rapido`) marco %d `NUEVO_PERIODO`.", nrow(evaluacion)))
+              sprintf("`planear_d3()` (una pasada de `make raw-rapido`) marco %d `NUEVO_PERIODO`.", nrow(evaluacion)))
   for (i in seq_len(nrow(evaluacion))) {
     e <- evaluacion[i, ]
     estado <- if (e$publicacion_id %in% capturadas) {
       sprintf("capturada como `%s` (%s -> %s%s)", e$vintage_id, e$periodo_max, e$periodo_fuente,
               if (e$saltos > 1) sprintf("; avanzo %d periodos: hubo vintages intermedios no capturados", e$saltos)
               else "; sin vintages intermedios perdidos")
+    } else if (e$publicacion_id %in% fallidas) {
+      "cumplia D3 y la captura fallo (ver doc/bitacora_fuentes_fragiles.md): queda para la ventana"
     } else if (isTRUE(e$cumple)) {
       "cumplia D3 y no se confirmo: queda para la ventana"
     } else {
@@ -130,4 +132,32 @@ nota_backlog_d3 <- function(evaluacion, capturadas, hoy = Sys.Date()) {
     lineas <- c(lineas, sprintf("- `%s`: %s.", e$publicacion_id, estado))
   }
   paste(lineas, collapse = "\n")
+}
+
+#' Guardas de capturar_d3(): devuelve la fila del plan que se puede capturar, o se detiene con el
+#' motivo. `plan` es lo que devolvio planear_d3() (atributo "fecha"); `capturadas` y `fallidas`, lo
+#' que ya se intento con ese plan; `vintages`, 08_vintages.csv releido justo antes de capturar.
+validar_captura_d3 <- function(plan, publicacion_id, vintages, hoy = Sys.Date(),
+                               capturadas = character(), fallidas = character()) {
+  if (is.null(plan)) stop("FALLO VISIBLE: no hay plan. Corre primero planear_d3().")
+  if (length(publicacion_id) != 1L || is.na(publicacion_id)) {
+    stop("FALLO VISIBLE: se captura una publicacion a la vez (regla 9). Nombra una sola.")
+  }
+  fecha <- attr(plan, "fecha")
+  if (is.null(fecha) || !identical(as.Date(fecha), as.Date(hoy))) {
+    stop("FALLO VISIBLE: el plan es del ", format(as.Date(fecha)), ", no de hoy. ",
+         "Una pasada de raw-rapido por ventana (regla 9): espera a la proxima ventana.")
+  }
+  fila <- plan[plan$publicacion_id == publicacion_id, , drop = FALSE]
+  if (nrow(fila) == 0) stop("FALLO VISIBLE: ", publicacion_id, " no salio NUEVO_PERIODO en el plan de hoy.")
+  if (!isTRUE(fila$cumple)) stop("FALLO VISIBLE: ", publicacion_id, " no cumple D3: ", fila$motivo)
+  if (publicacion_id %in% capturadas) stop("FALLO VISIBLE: ", publicacion_id, " ya se capturo con este plan.")
+  if (publicacion_id %in% fallidas) {
+    stop("FALLO VISIBLE: la captura de ", publicacion_id, " ya fallo hoy. No se reintenta (regla 9): ",
+         "queda para la ventana.")
+  }
+  if (fila$vintage_id %in% vintages$vintage_id) {
+    stop("FALLO VISIBLE: el vintage_id ", fila$vintage_id, " ya existe en 08_vintages.csv.")
+  }
+  fila
 }

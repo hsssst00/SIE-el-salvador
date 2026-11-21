@@ -561,3 +561,11 @@ su `descargar_*()`. Termina con `verificar_l0_fisico.R` y la nota fechada para e
 captura sigue siendo un acto deliberado, iniciado por quien opera y de a una. No cambia ninguna de las tres
 condiciones de D3, ni lo que D3 no cambia, ni la regla 9. Fuera de una sesión interactiva, `captura_d3()` no captura
 nada. Un fallo de captura no se reintenta solo. El `Estado` del ADR sigue siendo Cerrado.
+
+**Nota (2026-11-21, más tarde).** La forma con pregunta «s/n» (`captura_d3()`) se reemplaza por dos llamadas sin
+preguntas: `planear_d3()` hace la pasada de `raw-rapido` y guarda el plan del día, y `capturar_d3("<publicacion_id>")`
+captura solo la publicación que la persona nombra, de a una. Motivo: en la primera ventana real, después de un fallo
+de captura, la consola no aceptó la respuesta a la segunda pregunta. La lectura de «a mano» no cambia: cada captura
+la pide la persona, nombrándola. `capturar_d3()` rechaza un plan que no sea del día, una publicación que no cumpla D3
+y el reintento de una captura que ya falló.
+

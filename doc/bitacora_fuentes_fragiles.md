@@ -301,6 +301,15 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   sesión (afecta todos los comandos CDP, por eso no se hizo). Los dos intentos fallidos no capturaron ni descargaron nada (la navegación murió
   antes de cargar), así que no cuentan como pasada de captura para la regla 9.
 
+- **2026-11-21** (Harold, con `captura_d3()`, `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` M09): la captura falló con
+  `FALLO VISIBLE: timeout (240s) esperando: filtrar() / matriz completa`, después de navegar bien (`idPublic = 231`,
+  rango completo 1994-I .. 2026, 393 períodos). No se escribió nada en L0 ni en los catálogos: árbol limpio y 92 filas
+  en el manifiesto y en `08_vintages.csv` después del fallo. Es la tercera vez que esta publicación no termina: en la
+  ventana del 2026-11-02 dio timeout dos veces (backlog, nota de esa fecha). La espera que se agota es la de
+  `filtrar()`, no la navegación del 2026-10-07. *Hipótesis, no verificada:* con 393 períodos, la matriz tarda más que los
+  240 s de esa espera. No se cambió nada: la publicación no alimenta L3, y el remedio se evalúa aparte. Queda para la
+  ventana de diciembre.
+
 ## BCR — Reservas Internacionales y Liquidez en Moneda Extranjera: mecanismo distinto de `vista-serie`
 
 - **2026-08-26** (Claude Code, sondeo en vivo, handoff Fase 1 Bloque 4): la publicación
