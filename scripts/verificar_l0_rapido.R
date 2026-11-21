@@ -55,6 +55,7 @@ for (i in seq_len(nrow(trabajo))) {
 
 trabajo$estado <- trabajo$estado1
 trabajo$detalle <- vapply(n1, `[[`, character(1), "detalle")
+trabajo$periodo_fuente <- NA_character_   # ultimo periodo que sirve la fuente (nivel 2); lo usa captura_d3()
 
 errores <- character()
 a_sondear <- trabajo$estado1 != "NO_TOCA"
@@ -64,10 +65,13 @@ if (alcance == "todo" && any(a_sondear)) {
   for (i in which(a_sondear)) {
     pid <- trabajo$publicacion_id[i]
     message("== ", pid, " (vigente ", trabajo$periodo_max[i], ") ==")
+    pf <- NA_character_
     r <- tryCatch({
       s <- bcr_sondear_ultimo_periodo(trabajo$url[i])
+      pf <- s$ultimo_periodo
       estado_sondeo(trabajo$periodo_max[i], s$ultimo_periodo)
     }, error = function(e) list(estado = "ERROR", detalle = conditionMessage(e)))
+    trabajo$periodo_fuente[i] <- pf
     trabajo$estado[i]  <- r$estado
     trabajo$detalle[i] <- r$detalle
     message("   ", r$estado, ": ", r$detalle)
