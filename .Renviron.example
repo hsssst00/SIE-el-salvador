@@ -1,13 +1,42 @@
-# Plantilla. Copiar a .Renviron (gitignoreado) y completar los valores.
+# Plantilla de .Renviron del SIE. Copiala a .Renviron, en la raiz del repo, y completa los valores.
 #
-# .Renviron NO se versiona: aloja credenciales personales. Cada usuario usa las
-# suyas. R lo lee al arrancar (antes que .Rprofile); no se recarga en caliente,
-# hay que reiniciar la sesion de R tras editarlo.
+# Como se usa
+#   1. En la consola de R, con el proyecto abierto: usethis::edit_r_environ("project")
+#      (abre o crea .Renviron en la raiz del repo). Pega este archivo y completa los valores.
+#   2. Guarda y REINICIA R (en RStudio: Session > Restart R). R lee .Renviron solo al arrancar.
+#   3. Comprueba cada variable en la consola: Sys.getenv("FRED_API_KEY") no debe salir "".
 #
-# RENV_PATHS_LIBRARY ya NO va aqui: se fija en .Rprofile (versionado).
+# Reglas de formato
+#   - Una variable por linea: NOMBRE=valor, sin espacios alrededor del "=" y sin comillas.
+#   - Rutas de Windows con barras normales: C:/Users/... (no C:\Users\...).
+#   - El archivo termina con una linea en blanco: R puede ignorar una ultima linea sin salto.
+#   - Las lineas que empiezan con # son comentarios.
+#
+# .Renviron NO se versiona (esta en .gitignore): guarda credenciales y rutas personales.
+# Esta plantilla SI se versiona y no lleva valores reales. tests/test-renviron-plantilla.R
+# comprueba que documente toda variable SIE_* o FRED_* que lea el codigo.
+# RENV_PATHS_LIBRARY no va aqui: la fija .Rprofile (versionado).
 
-# Clave de la API de FRED. Gratuita, una por usuario, de:
-#   https://fredaccount.stlouisfed.org
-# Nunca se pasa como parte de una URL que se escriba a manifiesto.csv o a
-# 08_vintages.csv (ambos versionados) — ver src/adquisicion/fred.R.
+# ---------------------------------------------------------------------------------------
+# 1. Obligatoria para capturar (make raw, src/adquisicion/fred.R)
+# ---------------------------------------------------------------------------------------
+# Clave de la API de FRED. Gratuita y personal: https://fredaccount.stlouisfed.org
+# Nunca se escribe en una URL que vaya a manifiesto.csv o a 08_vintages.csv (ADR-008).
 FRED_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# ---------------------------------------------------------------------------------------
+# 2. Para poner L0 en la maquina (make materializar-l0, scripts/materializar_l0.R)
+# ---------------------------------------------------------------------------------------
+# Ruta a tu copia de trabajo del almacen privado de L0: la carpeta que contiene los
+# .xlsx, .json y .csv con los nombres del manifiesto. Sin acceso al almacen, dejala
+# comentada (manual de actualizacion, seccion 3).
+# SIE_L0_STORE=C:/ruta/a/SIE-el-salvador-L0
+
+# ---------------------------------------------------------------------------------------
+# 3. NUNCA aqui
+# ---------------------------------------------------------------------------------------
+# SIE_CONJUNTO y SIE_SALIDA las pone make al correr
+#   make master CONJUNTO=<corte.csv> SALIDA=<dir>
+# Si se definieran aqui, toda sesion de R y todo make master leerian ese corte congelado en
+# vez de la L3 vigente, sin avisar. No las definas en .Renviron.
+
