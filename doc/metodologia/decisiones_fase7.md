@@ -51,6 +51,7 @@ registra en la regla 4 en este mismo commit, antes de usarse.
 | F7-10 | Prospectiva AP-2 | DECIDIDO | 2026-11-20 |
 | F7-11 | Registro del cierre | DECIDIDO | 2026-11-20 |
 | F7-12 | Flujo de trabajo y delegación | DECIDIDO | 2026-11-20 |
+| F7-13 | Captura fuera de ventana (D3) asistida | DECIDIDO | 2026-11-21 |
 
 ---
 
@@ -168,3 +169,34 @@ de los documentos, configuración de Quarto y del *workflow*, *vignettes*, `CITA
 **fusión** de los PR que solo implementan esas fichas, con el CI en verde sobre la cabeza del PR y sin apilar. El
 texto de la delegación, con sus exclusiones, está en la regla 4 de `CLAUDE.md`. Los detalles que fije el agente se
 rotulan **«delegada al agente; se puede reabrir»**.
+
+### F7-13. Captura fuera de ventana (ADR-007 D3) asistida
+
+**Hecho (ensayo con el 2026-T2, 2026-11-21).** La sección 6.3 del borrador del manual era confusa: listaba las tres
+condiciones de D3 sin decir cómo comprobarlas ni qué escribir. Harold propuso automatizar la decisión.
+
+**DECIDIDO (Harold, 2026-11-21), opción recomendada.** Se automatiza la decisión con confirmación por publicación:
+una pasada de `raw-rapido`, las condiciones de D3 comprobadas contra el calendario y `08_vintages.csv`, la tabla de
+candidatas y una pregunta «s/n» por cada una antes de llamar a su `descargar_*()`. Va con una nota de seguimiento en
+ADR-007 que fija que «a mano» incluye esa confirmación. Se descartaron: solo la decisión, con el comando para copiar;
+y todo automático, que contradice D3 («nunca en bucle») y exigiría enmendar ADR-007 y la regla 9.
+
+**Detalles de implementación** (fuera de la delegación de F7-12; los revisa Harold en el PR):
+- Es una función de consola, `source("src/adquisicion/captura_d3.R"); captura_d3()`, no un objetivo de `make`. La
+  confirmación necesita la consola: un `Rscript` lanzado por `make` o por `system()` no puede leer la respuesta. Un
+  objetivo de `make` que solo mostrara la tabla obligaría a una segunda pasada de `raw-rapido` para capturar (regla 9).
+- `scripts/verificar_l0_rapido.R` guarda el último período que sirve la fuente en `trabajo$periodo_fuente`; su salida
+  no cambia.
+- La fecha de publicación es el día 01 del mes en que el calendario anuncia **ese** período; si el calendario no lo
+  anuncia, la publicación no cumple (b) y espera la ventana.
+
+**Mapeo del PIB en el calendario.** El calendario mapeaba solo la serie desestacionalizada del PIB (`CALENDARIO_BCR_VARIABLE` en
+`src/adquisicion/verificacion_rapida.R`). La original (NSA, de la que sale `PIB_SA_PROPIO_Q`) y la nominal no tienen
+fila, así que nunca cumplen (b): el día que se publique un trimestre nuevo, D3 permitiría capturar la SA pero no la
+NSA. Decidir si las dos se leen con la fila de la SA era un cambio de mapeo de Harold.
+
+**DECIDIDO (Harold, 2026-11-21), opción recomendada.** NSA y nominal se leen con la fila del PIB desestacionalizado en
+`CALENDARIO_BCR_VARIABLE`. El BCR publica las tres juntas: tienen el mismo mes de publicación en todos sus vintages de
+`08_vintages.csv` (`v2026-06` y `v2026-09`). Con eso, D3 permite capturar las tres el mismo día, y `raw-rapido` deja de
+sondear NSA y nominal cuando el calendario dice `NO_TOCA`. Si alguna vez el BCR las publica por separado, el nivel 2 de
+`raw-rapido` lo ve igual.

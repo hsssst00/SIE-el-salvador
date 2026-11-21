@@ -547,3 +547,17 @@ nuevos), y la captura sigue siendo un acto deliberado.
 perdido. Los dos intentos previos fallaron en la navegación por la latencia del portal y no
 escribieron nada (`doc/bitacora_fuentes_fragiles.md`, entrada 2026-10-07). El `Estado` del ADR sigue
 siendo Cerrado. Procedimiento operativo: `doc/backlog_captura_vintages.md`.
+
+## Nota de seguimiento — captura D3 asistida (2026-11-21)
+
+**Decisión de Harold (2026-11-21, ficha F7-13 de `doc/metodologia/decisiones_fase7.md`).** El procedimiento de D3 era
+confuso para un operador nuevo (hallazgo del ensayo de Fase 7). Se automatiza la **decisión**, no la captura:
+`captura_d3()` (`src/adquisicion/captura_d3.R`, lógica en `captura_d3_lib.R`) corre una sola pasada de `raw-rapido`,
+comprueba para cada `NUEVO_PERIODO` las condiciones 2 y 3 de D3 y muestra la función y la `fecha_publicacion` con que
+se capturaría. Después pregunta publicación por publicación; solo con una respuesta afirmativa de la persona llama a
+su `descargar_*()`. Termina con `verificar_l0_fisico.R` y la nota fechada para el backlog.
+
+**Lectura de «a mano».** «A mano, una publicación a la vez» incluye esta confirmación persona por persona: cada
+captura sigue siendo un acto deliberado, iniciado por quien opera y de a una. No cambia ninguna de las tres
+condiciones de D3, ni lo que D3 no cambia, ni la regla 9. Fuera de una sesión interactiva, `captura_d3()` no captura
+nada. Un fallo de captura no se reintenta solo. El `Estado` del ADR sigue siendo Cerrado.
