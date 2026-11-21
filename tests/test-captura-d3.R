@@ -63,10 +63,21 @@ test_that("(b) no cumple si el calendario no anuncia ese periodo o la publicacio
   ev <- evaluar_candidatas_d3(.trab(pf = "2026-M10", pmax = "2026-M09"), .vin, .cal, hoy = as.Date("2026-11-20"))
   expect_false(ev$cumple)
   expect_match(ev$motivo, "^\\(b\\) el calendario no anuncia")
-  ev2 <- evaluar_candidatas_d3(.trab(pid = "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA", pmax = "2026-T2", pf = "2026-T3"),
-                               .vin, .cal, hoy = as.Date("2026-12-31"))
-  expect_false(ev2$cumple)
-  expect_match(ev2$motivo, "^\\(b\\)")
+})
+
+test_that("el PIB NSA y el nominal se leen con la fila del PIB desestacionalizado (F7-13)", {
+  pib <- c("BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA", "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA", "BCR.PIB_T.NOMINAL")
+  expect_equal(length(unique(CALENDARIO_BCR_VARIABLE[pib])), 1L)
+  cal <- data.frame(variable = unname(CALENDARIO_BCR_VARIABLE[pib[1]]), mes_publicacion = "Diciembre",
+                    dia_publicacion = 22L, periodo_referencia = "2026-T3", stringsAsFactors = FALSE)
+  vin <- data.frame(publicacion_id = pib, vintage_id = paste0(pib, ".v2026-09"),
+                    periodo_referencia_max = "2026-T2", stringsAsFactors = FALSE)
+  trab <- data.frame(publicacion_id = pib, periodo_max = "2026-T2", estado = "NUEVO_PERIODO",
+                     periodo_fuente = "2026-T3", stringsAsFactors = FALSE)
+  ev <- evaluar_candidatas_d3(trab, vin, cal, hoy = as.Date("2026-12-23"))
+  expect_true(all(ev$cumple))
+  expect_equal(unique(ev$fecha_publicacion), "2026-12-01")
+  expect_equal(ev$comando[ev$publicacion_id == pib[2]], 'descargar_bcr_pib_nsa("2026-12-01")')
 })
 
 test_that("(c) no cumple si ya hay un vintage de ese periodo o si el vintage_id del mes ya existe", {

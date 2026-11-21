@@ -25,8 +25,10 @@
 CALENDARIO_BCR_ANIO <- 2026L
 
 # publicacion_id -> `variable` del calendario. Explicito, no inferido por nombre. Lo que no
-# esta aqui (PIB_T NSA y NOMINAL, que el calendario no nombra) queda SIN_CALENDARIO y se
-# sondea siempre. SPNF_VIGENTE usa la fila heredada "Serie 1994-2025": correccion de mapeo
+# esta aqui queda SIN_CALENDARIO y se sondea siempre. PIB_T NSA y NOMINAL, que el calendario no
+# nombra, se leen con la fila del PIB desestacionalizado: el BCR publica las tres juntas (mismo
+# mes de publicacion en todos sus vintages de 08_vintages.csv); decision de Harold, 2026-11-21
+# (F7-13 de doc/metodologia/decisiones_fase7.md). SPNF_VIGENTE usa la fila heredada "Serie 1994-2025": correccion de mapeo
 # de Harold, 2026-08-26 (doc/calendario_divulgacion_bcr.md).
 CALENDARIO_BCR_VARIABLE <- c(
   "BCR.BALANZA_COMERCIAL"            = "Balanza Comercial de Mercancías. Valores",
@@ -41,6 +43,10 @@ CALENDARIO_BCR_VARIABLE <- c(
   "BCR.PANORAMA_BANCO_CENTRAL"       = "Panorama del Banco Central",
   "BCR.PANORAMA_SOCIEDADES_DEPOSITO" = "Panorama de las sociedades de depósito",
   "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_SA" =
+    "PIB T. Producción y gasto. Índices de volumen encadenados. Serie desestacionalizada (referencia 2014)",
+  "BCR.PIB_T.INDICES_VOLUMEN_ENCADENADOS_NSA" =
+    "PIB T. Producción y gasto. Índices de volumen encadenados. Serie desestacionalizada (referencia 2014)",
+  "BCR.PIB_T.NOMINAL" =
     "PIB T. Producción y gasto. Índices de volumen encadenados. Serie desestacionalizada (referencia 2014)",
   "BCR.REMESAS_FAMILIARES_MENSUAL"   = "Ingresos mensuales de remesas familiares",
   "BCR.RESERVAS_INTERNACIONALES_NETAS" = "Reservas Internacionales Netas BCR",

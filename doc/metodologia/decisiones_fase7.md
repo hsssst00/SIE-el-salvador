@@ -190,7 +190,13 @@ y todo automático, que contradice D3 («nunca en bucle») y exigiría enmendar 
 - La fecha de publicación es el día 01 del mes en que el calendario anuncia **ese** período; si el calendario no lo
   anuncia, la publicación no cumple (b) y espera la ventana.
 
-**Abierto.** El calendario mapea solo la serie desestacionalizada del PIB (`CALENDARIO_BCR_VARIABLE` en
+**Mapeo del PIB en el calendario.** El calendario mapeaba solo la serie desestacionalizada del PIB (`CALENDARIO_BCR_VARIABLE` en
 `src/adquisicion/verificacion_rapida.R`). La original (NSA, de la que sale `PIB_SA_PROPIO_Q`) y la nominal no tienen
 fila, así que nunca cumplen (b): el día que se publique un trimestre nuevo, D3 permitiría capturar la SA pero no la
-NSA. Decidir si las dos se leen con la fila de la SA es un cambio de mapeo que decide Harold.
+NSA. Decidir si las dos se leen con la fila de la SA era un cambio de mapeo de Harold.
+
+**DECIDIDO (Harold, 2026-11-21), opción recomendada.** NSA y nominal se leen con la fila del PIB desestacionalizado en
+`CALENDARIO_BCR_VARIABLE`. El BCR publica las tres juntas: tienen el mismo mes de publicación en todos sus vintages de
+`08_vintages.csv` (`v2026-06` y `v2026-09`). Con eso, D3 permite capturar las tres el mismo día, y `raw-rapido` deja de
+sondear NSA y nominal cuando el calendario dice `NO_TOCA`. Si alguna vez el BCR las publica por separado, el nivel 2 de
+`raw-rapido` lo ve igual.
