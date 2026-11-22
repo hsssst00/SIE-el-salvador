@@ -310,3 +310,30 @@ y IPM (hasta M08), IPI (M08), ITCER, ISI, RIN y SPNF (hasta M09). ITCER salta de
 Gobierno Central Consolidado y Panorama de las sociedades de depósito dieron timeout visible (también en un reintento) y
 quedan para la ventana de diciembre. `verificar_l0_fisico` 92/92. Detalle en `doc/metodologia/decisiones_fase6.md`,
 «Hechos verificados el 2026-11-02».
+
+## Nota del 2026-11-21 — captura posterior a la publicación (ADR-007 D3), primer uso de `planear_d3()`
+
+Primer uso del mecanismo de F7-13 (`doc/metodologia/decisiones_fase7.md`) en la copia principal de Harold.
+`planear_d3()` (una pasada de `make raw-rapido`) marcó 8 `NUEVO_PERIODO`, y las 8 cumplían las condiciones de D3:
+
+- `BCR.IPI.VIGENTE`: capturada como `BCR.IPI.VIGENTE.v2026-11` (2026-M08 → 2026-M09; sin vintages intermedios perdidos).
+- `BCR.ISI`: capturada como `BCR.ISI.v2026-11` (2026-M09 → 2026-M10; sin vintages intermedios perdidos).
+- `BCR.PANORAMA_BANCO_CENTRAL`: capturada como `BCR.PANORAMA_BANCO_CENTRAL.v2026-11` (2026-M09 → 2026-M10; sin
+  vintages intermedios perdidos).
+- `BCR.RESERVAS_INTERNACIONALES_NETAS`: capturada como `BCR.RESERVAS_INTERNACIONALES_NETAS.v2026-11` (2026-M09 →
+  2026-M10; sin vintages intermedios perdidos).
+- `ONEC.IPC.BASE_2009`: capturada como `ONEC.IPC.BASE_2009.v2026-11` (2026-M09 → 2026-M10; sin vintages intermedios
+  perdidos). Alimenta las remesas reales de L3.
+- `BCR.GOBIERNO_CENTRAL_CONSOLIDADO`, `BCR.IPP` y `BCR.PANORAMA_SOCIEDADES_DEPOSITO`: la captura falló, las tres con el
+  mismo timeout (`doc/bitacora_fuentes_fragiles.md`, entrada del 2026-11-21). Quedan para la ventana de diciembre.
+
+**Regla 9.** Ese día hubo dos pasadas de `raw-rapido` en la copia principal: la de `captura_d3()` (versión con
+pregunta s/n, en la que falló el Gobierno Central y la consola dejó de aceptar respuestas) y la de `planear_d3()`, que la
+reemplazó (PR #112). La segunda volvió a intentar el Gobierno Central. Queda registrado como excepción del día en que se
+cambió el mecanismo: desde `planear_d3()`, `capturar_d3()` rechaza el reintento de una captura que falló con el mismo
+plan.
+
+**Almacén y verificación.** Los cinco crudos están en el almacén privado de L0 en el commit `ca5a9d6`, subido a GitHub
+el 2026-11-22 con `make sincronizar-l0` (F7-14), después de que una primera sincronización dejara el commit sin push
+(PR #114). `verificar_l0_fisico` 97/97. Manifiesto y `08_vintages.csv` pasan de 92 a 97 filas; las 92 anteriores no
+cambian.
