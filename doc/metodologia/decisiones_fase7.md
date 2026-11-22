@@ -52,6 +52,7 @@ registra en la regla 4 en este mismo commit, antes de usarse.
 | F7-11 | Registro del cierre | DECIDIDO | 2026-11-20 |
 | F7-12 | Flujo de trabajo y delegación | DECIDIDO | 2026-11-20 |
 | F7-13 | Captura fuera de ventana (D3) asistida | DECIDIDO | 2026-11-21 |
+| F7-14 | Sincronización de L0 con el almacén | DECIDIDO | 2026-11-22 |
 
 ---
 
@@ -207,4 +208,28 @@ aceptó la respuesta a la segunda pregunta (`BCR.IPI.VIGENTE`). Nada se escribi�
 `readline()` por dos llamadas, `planear_d3()` y `capturar_d3("<publicacion_id>")`, que funcionan igual en la consola,
 con Ctrl+Enter, en un chunk o con `Rscript`. El detalle de que es una función de consola y no un `make` se mantiene:
 `planear_d3()` hace la única pasada de `raw-rapido`, y `capturar_d3()` usa su plan sin volver a sondear.
+
+### F7-14. Sincronización de L0 con el almacén privado
+
+**Hecho (2026-11-22).** Las cinco capturas D3 del 2026-11-21 (`BCR.IPI.VIGENTE`, `BCR.ISI`,
+`BCR.PANORAMA_BANCO_CENTRAL`, `BCR.RESERVAS_INTERNACIONALES_NETAS` y `ONEC.IPC.BASE_2009`, todas `v2026-11`) quedaron
+en `data/L0_raw/` de la copia de Harold y no en el almacén. `make materializar-l0` solo copia del almacén a L0, y la
+dirección inversa era un `git add` manual (cabecera de `scripts/materializar_l0.R`). Una copia nueva no podría
+materializar L0 cuando el manifiesto registre esas filas. Harold pidió un mecanismo.
+
+**DECIDIDO (Harold, 2026-11-22), opción recomendada.** `make sincronizar-l0` (`scripts/sincronizar_l0.R`, lógica en
+`src/adquisicion/sincronizacion_l0_lib.R`), en las dos direcciones y con push:
+1. El almacén tiene que estar limpio y avanzar solo por avance rápido (`git pull --ff-only`); si no, se detiene.
+2. Cada fila del manifiesto se clasifica: en los dos lados, solo en L0 (se sube), solo en el almacén (se baja), en
+   ninguno o con contenido distinto del `sha256` del manifiesto. Los dos últimos casos detienen todo antes de copiar.
+3. Nunca sobrescribe, y verifica el `sha256` de cada copia.
+4. Lo subido va en un commit del almacén que nombra los `vintage_id`, seguido de `git push`.
+5. Termina con `verificar_l0_fisico.R`.
+
+`make materializar-l0` sigue siendo la vía para una máquina nueva. Se descartaron: el mismo mecanismo sin push, y subir
+al almacén dentro de cada captura, que mezclaría captura y archivo.
+
+**Prueba.** `tests/test-sincronizacion-l0.R`: el plan, sin git, y el flujo completo con un almacén y su remoto falsos
+(baja, sube con commit y push, es idempotente, y se detiene ante un conflicto o ante cambios sin commit). El flujo
+completo corre en CI (Linux); en el sandbox Windows del agente, git no puede clonar un repo local.
 

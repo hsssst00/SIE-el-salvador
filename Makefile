@@ -2,7 +2,7 @@
 # Muchos objetivos aún no tienen script real detrás — se implementan en la fase
 # correspondiente de la senda metodológica (§4), no antes.
 
-.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5 proyeccion proyeccion-medicion fase6 fase6-medicion-bvar preregistro-fase6 preregistro-escribir tablas-fase6
+.PHONY: setup raw raw-rapido raw-calendario raw-api raw-plan raw-fisico materializar-l0 sincronizar-l0 clean master explore eval eval-sintetico tabla-fase4 report validate test audit trace fase5 proyeccion proyeccion-medicion fase6 fase6-medicion-bvar preregistro-fase6 preregistro-escribir tablas-fase6
 
 setup:
 	Rscript scripts/bootstrap_renv.R
@@ -46,6 +46,12 @@ raw-plan:
 # descarga de ninguna fuente ni toca el manifiesto — ver scripts/materializar_l0.R.
 materializar-l0:
 	Rscript scripts/materializar_l0.R
+	Rscript scripts/verificar_l0_fisico.R
+
+# F7-14: sincroniza data/L0_raw/ con el almacen en las dos direcciones; sube lo nuevo con commit y push.
+# Correr despues de cada captura, antes del PR que registra el manifiesto. Requiere SIE_L0_STORE.
+sincronizar-l0:
+	Rscript scripts/sincronizar_l0.R
 	Rscript scripts/verificar_l0_fisico.R
 
 # Fase 3 — L0 -> L1 -> L2 -> L3, transformaciones y series maestras.

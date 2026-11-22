@@ -36,6 +36,8 @@ de una ficha todavía no decidida lo dice y no se marca.
   notas de ADR-007. — este
   commit; `tests/test-captura-d3.R` (9 pruebas) en verde. Incluye el mapeo del PIB NSA y
   nominal a la fila del SA en el calendario.
+- [x] **C6 · F7-14** `make sincronizar-l0`: L0 y almacén en las dos direcciones, con commit y push. — este commit;
+  `tests/test-sincronizacion-l0.R`.
 - [ ] **C4** Corregir el manual con lo que falló en C2, y dejar la bitácora del ensayo en
   `doc/evidencia_ensayo_fase7.txt`.
 
