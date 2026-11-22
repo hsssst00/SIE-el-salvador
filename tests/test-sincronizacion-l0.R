@@ -55,7 +55,7 @@ test_that("sincronizar_l0: baja, sube con commit y push, es idempotente y se det
 
   # Un commit que quedo sin subir (push fallido en una corrida anterior) se sube en la siguiente.
   writeLines("nota", file.path(almacen, "README.md"))
-  .sys("-C", almacen, "add", "README.md"); .sys("-C", almacen, "commit", "--quiet", "-m", "pendiente sin push")
+  .sys("-C", almacen, "add", "README.md"); .sys("-C", almacen, "commit", "--quiet", "-m", "pendiente_sin_push")
   expect_false(identical(.sys("--git-dir", remoto, "rev-parse", rama), .sys("-C", almacen, "rev-parse", "HEAD")))
   p3 <- sincronizar_l0(almacen, ruta_man, l0)
   expect_equal(p3$accion, c("OK", "OK"))
