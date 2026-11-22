@@ -102,12 +102,25 @@ sincronizar_l0 <- function(almacen = Sys.getenv("SIE_L0_STORE", unset = ""),
     msj <- paste0("L0: ", length(subir), " archivo(s) desde el manifiesto del SIE (", paste(vids, collapse = ", "), ")")
     cm <- .git(almacen, "commit", "--quiet", "-m", shQuote(msj))
     if (cm$status != 0L) .fallar_sync("git commit en el almacen fallo:\n  ", paste(cm$salida, collapse = "\n  "))
+  }
+
+  # 4b. Commits del almacen que su remoto no tiene: los de este commit y los que quedaron de una corrida
+  # anterior cuyo push fallo (2026-11-22: una segunda corrida decia OK con un commit sin subir).
+  rl <- .git(almacen, "rev-list", "--count", shQuote("@{u}..HEAD"))
+  pendientes <- suppressWarnings(as.integer(rl$salida[1]))
+  if (rl$status != 0L || is.na(pendientes)) {
+    .fallar_sync("no se pudo contar los commits del almacen sin subir (la rama no sigue a su remoto?):\n  ",
+                 paste(rl$salida, collapse = "\n  "))
+  }
+  if (pendientes > 0L) {
     if (push) {
       ps <- .git(almacen, "push", "--quiet")
       if (ps$status != 0L) {
-        .fallar_sync("git push del almacen fallo; el commit quedo local. Reintentar con git push en ",
-                     almacen, ":\n  ", paste(ps$salida, collapse = "\n  "))
+        .fallar_sync("git push del almacen fallo; ", pendientes, " commit(s) quedaron solo en esta maquina. ",
+                     "Reintentar con git push en ", almacen, ":\n  ", paste(ps$salida, collapse = "\n  "))
       }
+    } else {
+      message("AVISO: el almacen tiene ", pendientes, " commit(s) sin subir a su remoto (push = FALSE).")
     }
   }
 
@@ -120,8 +133,7 @@ sincronizar_l0 <- function(almacen = Sys.getenv("SIE_L0_STORE", unset = ""),
             paste(huerfanos, collapse = ", "))
   }
   hc <- .git(almacen, "rev-parse", "--short", "HEAD")$salida
-  message(sprintf("OK sincronizar-l0: %d en los dos lados, %d bajado(s) del almacen, %d subido(s) al almacen%s. Almacen en %s.",
-                  sum(plan$accion == "OK"), length(bajar), length(subir),
-                  if (length(subir) > 0 && push) " (commit y push)" else "", hc))
+  message(sprintf("OK sincronizar-l0: %d en los dos lados, %d bajado(s) del almacen, %d subido(s) al almacen, %d commit(s) empujado(s) al remoto. Almacen en %s.",
+                  sum(plan$accion == "OK"), length(bajar), length(subir), if (push) pendientes else 0L, hc))
   invisible(plan)
 }

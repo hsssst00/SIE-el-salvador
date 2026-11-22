@@ -233,3 +233,10 @@ al almacén dentro de cada captura, que mezclaría captura y archivo.
 (baja, sube con commit y push, es idempotente, y se detiene ante un conflicto o ante cambios sin commit). El flujo
 completo corre en CI (Linux); en el sandbox Windows del agente, git no puede clonar un repo local.
 
+**Nota (2026-11-22, más tarde).** Primera corrida real: el commit del almacén con las cinco capturas del 2026-11-21
+(`ca5a9d6`) quedó en la copia de Harold sin llegar a GitHub (`main` del almacén seguía en `6956bed`). Una segunda
+corrida informó «97 en los dos lados, 0 subido(s)» y «OK», porque solo miraba los archivos y no los commits sin subir.
+Corrección: después del commit, `sincronizar_l0()` cuenta los commits que el remoto no tiene (`@{u}..HEAD`) y los sube.
+Si el push falla, se detiene diciendo cuántos commits quedaron solo en la máquina. Se detiene también si no puede
+contarlos. La prueba de integración cubre el caso.
+
