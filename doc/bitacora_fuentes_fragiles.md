@@ -310,6 +310,16 @@ adquisición de cada fuente. Entregable de Fase 2 (senda §4).
   240 s de esa espera. No se cambió nada: la publicación no alimenta L3, y el remedio se evalúa aparte. Queda para la
   ventana de diciembre.
 
+- **2026-11-21, más tarde** (Harold, con `planear_d3()` y `capturar_d3()`): fallaron tres publicaciones, las tres con el
+  mismo mensaje, `FALLO VISIBLE: timeout (240s) esperando: filtrar() / matriz completa`. Fueron
+  `BCR.GOBIERNO_CENTRAL_CONSOLIDADO` (cuarto fallo de esta publicación), `BCR.IPP` y `BCR.PANORAMA_SOCIEDADES_DEPOSITO`.
+  Otras cinco publicaciones del mismo portal se capturaron bien en la misma sesión (IPI, ISI, Panorama del Banco
+  Central, RIN e IPC de ONEC). No se escribió nada en L0 por las fallidas. Esto debilita la hipótesis de la entrada
+  anterior, que atribuía el fallo al tamaño de la matriz del Gobierno Central: el IPP, que el portal exportó sin
+  problemas el 2026-10-22 (`BCR.IPP.v2026-10`), falló igual. *Hipótesis alternativa, no verificada:* ese día el portal estaba lento para armar la matriz, y la espera de
+  240 s quedó corta para varias publicaciones. El IPP alimenta L3, así que la ventana de diciembre lo tiene que capturar;
+  si vuelve a fallar, hay que decidir el remedio (subir la espera o investigar el portal).
+
 ## BCR — Reservas Internacionales y Liquidez en Moneda Extranjera: mecanismo distinto de `vista-serie`
 
 - **2026-08-26** (Claude Code, sondeo en vivo, handoff Fase 1 Bloque 4): la publicación
