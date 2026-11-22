@@ -80,5 +80,5 @@ de una ficha todavía no decidida lo dice y no se marca.
 
 ## Fuera de esta fase
 
-- **AP-2** (F7-10): sigue su propio protocolo y su plazo, en PR aparte. El manual la menciona cuando exista
-  `prospectiva-v1`.
+- **AP-2** (F7-10): retirada el 2026-11-22 por la reorientación hacia `SIE-sv`. No hay `make prospectiva` ni
+  `prospectiva-v1`. En C4 se quita del manual el paso opcional que la menciona (§9, paso 4).

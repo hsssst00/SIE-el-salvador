@@ -48,7 +48,7 @@ registra en la regla 4 en este mismo commit, antes de usarse.
 | F7-07 | *Vignettes* | DECIDIDO | 2026-11-20 |
 | F7-08 | DOI | DECIDIDO | 2026-11-20 |
 | F7-09 | Versión de cierre | DECIDIDO | 2026-11-20 |
-| F7-10 | Prospectiva AP-2 | DECIDIDO | 2026-11-20 |
+| F7-10 | Prospectiva AP-2 | RETIRADA | 2026-11-22 |
 | F7-11 | Registro del cierre | DECIDIDO | 2026-11-20 |
 | F7-12 | Flujo de trabajo y delegación | DECIDIDO | 2026-11-20 |
 | F7-13 | Captura fuera de ventana (D3) asistida | DECIDIDO | 2026-11-21 |
@@ -156,6 +156,14 @@ su plazo, en PR aparte y fuera de los criterios de Fase 7. La implementación ar
 publique el PIB de 2026-T3. El manual de actualización la menciona como un paso opcional que existe solo cuando esté el
 tag `prospectiva-v1`.
 
+**REVISADO (Harold, 2026-11-22): AP-2 se retira.** El proyecto se reorienta (ver «Reorientación del 2026-11-22» más
+abajo). El servicio de estadísticas sin pronósticos pasa a ser un producto aparte, y este repositorio cierra en Fase 7
+como sistema de proyección del PIB. Por eso no se implementa la prospectiva: no habrá `make prospectiva` ni tag
+`prospectiva-v1`. El preregistro (`doc/metodologia/protocolo_prospectiva_ap2.md`) queda como documento histórico,
+sin implementar. La parte descriptiva de AP-2 (Fase 5) no cambia. El paso opcional del manual que menciona
+`prospectiva-v1` (`doc/manual_actualizacion.md` §9, paso 4) se retira en el PR de correcciones C4, porque el manual
+no se edita durante el ensayo.
+
 ### F7-11. Registro del cierre
 
 **DECIDIDO (Harold, 2026-11-20).** Como en las fases anteriores: «Cierre de Fase 7» en `doc/adr/README.md`; nota de
@@ -240,3 +248,19 @@ Corrección: después del commit, `sincronizar_l0()` cuenta los commits que el r
 Si el push falla, se detiene diciendo cuántos commits quedaron solo en la máquina. Se detiene también si no puede
 contarlos. La prueba de integración cubre el caso.
 
+## Reorientación del 2026-11-22
+
+**DECIDIDO (Harold, 2026-11-22).** El SIE ya funciona como gestor de estadísticas macroeconómicas de El Salvador. El
+paso siguiente es un sistema que procese la información, la cure y la sirva a un cliente, que es una librería de R. Es
+otro producto, distinto del que se planeó en la senda, así que va en un repositorio nuevo: `hsssst00/SIE-sv`, con el
+paquete `siesv`. Ese repositorio parte del historial de `main` de este (copia del 2026-11-22, sin los tags) y empieza en
+su propia Fase 0, con su propia senda.
+
+Consecuencias para este repositorio:
+
+- Fase 7 sigue con su criterio de cierre, que no cambia. F7-01 y F7-04 siguen abiertas.
+- AP-2 se retira (F7-10, revisada arriba).
+- Al cerrar Fase 7, este repositorio queda como el sistema de proyección del PIB trimestral (Fases 4 a 6), con su DOI
+  de Zenodo. Los pronósticos no pasan a `SIE-sv`.
+- Las correcciones que entren aquí después de la copia y que también afecten la captura o la curación (por ejemplo,
+  las C4 del manual o `sincronizar-l0`) se llevan a `SIE-sv` por PR aparte.

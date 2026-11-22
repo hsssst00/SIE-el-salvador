@@ -1,5 +1,8 @@
 # Protocolo de la evaluación prospectiva AP-2 (preregistro)
 
+> **Retirado el 2026-11-22 (F7-10 revisada en `decisiones_fase7.md`).** Este preregistro no se implementó y queda
+> como documento histórico. No habrá `make prospectiva` ni tag `prospectiva-v1`.
+
 **Estado:** decidido por Harold el 2026-10-15 (fichas AP2-1 a AP2-5, todas en la opción recomendada). Falta
 implementarlo (ver §6). Este documento fija las reglas **antes** del primer target de la prospectiva. Ninguna
 lectura descriptiva puede cambiarlas. Un cambio de regla crea una prospectiva nueva con su propio documento.
