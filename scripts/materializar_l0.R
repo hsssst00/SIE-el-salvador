@@ -20,8 +20,9 @@
 #
 # NUNCA sobrescribe un archivo existente (regla 1 de CLAUDE.md: L0 es inmutable; reponer un
 # ausente no es editar un existente). La direccion inversa -un archivo capturado en esta
-# maquina que todavia no esta en el almacen- esta FUERA DE ALCANCE: eso se sube al repo
-# privado con `git add` desde la copia de trabajo del almacen, deliberadamente.
+# maquina que todavia no esta en el almacen- esta FUERA DE ALCANCE de este script: desde el
+# 2026-11-22 la cubre `make sincronizar-l0` (scripts/sincronizar_l0.R, ficha F7-14), que
+# sincroniza en las dos direcciones y sube lo nuevo con commit y push. Antes se subia a mano.
 #
 # USO:
 #   SIE_L0_STORE=/ruta/a/copia-de-trabajo-del-repo-privado  Rscript scripts/materializar_l0.R

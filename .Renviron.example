@@ -25,7 +25,7 @@
 FRED_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # ---------------------------------------------------------------------------------------
-# 2. Para poner L0 en la maquina (make materializar-l0, scripts/materializar_l0.R)
+# 2. Para L0: make materializar-l0 (maquina nueva) y make sincronizar-l0 (despues de capturar)
 # ---------------------------------------------------------------------------------------
 # Ruta a tu copia de trabajo del almacen privado de L0: la carpeta que contiene los
 # .xlsx, .json y .csv con los nombres del manifiesto. Sin acceso al almacen, dejala
